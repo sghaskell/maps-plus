@@ -13,7 +13,8 @@ define([
 			'leaflet-contextmenu',
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
-			'leaflet.markercluster',
+            'leaflet.markercluster',
+            'leaflet.heat',
             '../contrib/leaflet.featuregroup.subgroup-src',
             '../contrib/leaflet-measure',
 			'../contrib/leaflet.awesome-markers',
@@ -96,7 +97,14 @@ define([
             'display.visualizations.custom.leaflet_maps_app.leaflet_maps.refreshInterval': 0,
             'display.visualizations.custom.leaflet_maps_app.leaflet_maps.pathSplits': 0,
 			'display.visualizations.custom.leaflet_maps_app.leaflet_maps.pathRenderer': "svg",
-            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.pathSplitInterval': 60
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.pathSplitInterval': 60,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapEnable': 0,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapOnly': 0,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapMinOpacity': 1.0,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapMaxZoom': null, 
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapMaxPointIntensity': 1.0,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapRadius': 25,
+            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.heatmapBlur': 15
         },
         ATTRIBUTIONS: {
         'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; OpenStreetMap contributors',
@@ -175,7 +183,8 @@ define([
 							   'pathOpacity',
 							   'layerGroup',
                                'clusterGroup',
-							   'pathColor'];
+                               'pathColor',
+                               '_time'];
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
                     invalidFields[key] = value;
@@ -645,7 +654,14 @@ define([
                 showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
                 pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
                 pathColorList = this._getEscapedProperty('pathColorList', config),
-                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000;
+                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
+                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config))
+                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config))
+                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
+                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)) 
+                heatmapMaxPointIntensity = parseFloat(this._getEscapedProperty('heatmapMaxPointIntensity', config)),
+                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)) 
+                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config));
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
@@ -916,7 +932,16 @@ define([
                     }, this);
                 }
                 
-				var pathLineLayer = this.pathLineLayer = L.layerGroup();
+                var pathLineLayer = this.pathLineLayer = L.layerGroup();
+                
+                // Heatmap
+                if (this.isArgTrue(heatmapEnable)) {
+                    var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                                                            maxZoom: heatmapMaxZoom,
+                                                            max: heatmapMaxPointIntensity,
+                                                            radius: heatmapRadius,
+                                                            blur: heatmapBlur}).addTo(this.map);
+                }
                
                 // Init defaults
                 if(this.isSplunkSeven) {

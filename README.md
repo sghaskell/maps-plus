@@ -23,6 +23,7 @@ Have you ever wanted to plot massive amounts of single value lat/lons with clust
 ##### [Underscore.js](http://underscorejs.org/)
 ##### [Webpack](https://webpack.github.io/)
 ##### [transform-loader](https://www.npmjs.com/package/transform-loader)
+##### [moment](https://github.com/moment/moment)
 ##### [brfs](https://www.npmjs.com/package/brfs)
 
 Big thanks to the following people: 
@@ -55,7 +56,7 @@ Description that is added next to the icon in the layer control legend. **this f
 
 # Style Markers And Icons Dynamically Through SPL
 ### Feature Description
-Version 1.1 introduces new features to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
+Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
@@ -77,7 +78,7 @@ Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssr
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome or Ionicons to change the styling. **Default** ``fa-lg``
 
 ### SVG Markers
-Version 1.4.4 introduces the ability to use SVG based markers. You can dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.
+Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.
 
 ##### markerType
 ``svg`` or ``png`` **Default** ``png``
@@ -106,7 +107,7 @@ Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssr
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome to change the styling.
 
 # Path Tracing
-Version 1.5.0 introduces the ability to trace paths along the map. If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can now trace the path of the object. You can control whether markers are displayed along the path using the **markerVisibility** setting.
+If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the format menu.
 
 ### Available Fields and Values
 ##### markerVisibility
@@ -122,7 +123,7 @@ Opacity of path line. **Default** ``0.5``
 The color of the path.  If not specified, the color will be chosen randomly from the set of colors listed in the **Path Colors** option.
 
 # Marker Priority
-Version 1.4.4 introduces the ability to prioritize how markers are rendered on the map. Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.
+Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.
 
 Use the following setting to set the marker priority.
 
@@ -130,7 +131,7 @@ Use the following setting to set the marker priority.
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 # Drilldown
-Version 1.3.12 introduces drilldown capability! The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. See the [documentation on dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms). Refer to this section of the docs on [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).
+The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. See the [documentation on dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms). Refer to this section of the docs on [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).
 
 ### Usage
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
@@ -243,9 +244,9 @@ This example highlights creating a dashboard with contextual drilldown. I save t
 ```
 
 # Layer Controls
-Version 1.3.6 introduces a few feature that groups marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a checkbox to toggle visbility of the markers on the map. This control works for both clustered and single value visualizations. 
+Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a checkbox to toggle visbility of the markers on the map. This control works for both clustered and single value visualizations. 
 
-Version 1.5.9 introduces the ability to specify a **layerGroup** via SPL for filtering markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the **layerGroup** field allows you to split them into their own group for filtering.
+Specify ``layerGroup`` via SPL for filtering markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the ``layerGroup`` field allows you to split them into their own group for filtering.
 
 ### Available Fields
 ##### layerDescription
@@ -257,9 +258,11 @@ Example
 ```
 layerGroup=case(like(description, "%HARASSMENT BY TELEPHONE%"), "hbt", like(description, "%RECKLESS CONDUCT%"), "rc", 1=1, "default")
 ```
+# Multiple Cluster Groups
+By default, the visualiztion renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field.
 
 # Overlays
-Version 1.3.7 introduces a new feature that allows you to add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.
+Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.
 
 #### Usage
 
@@ -281,10 +284,10 @@ file1.kml,file2.kmz
 The files will be asynchronously loaded when the map is rendered.
 
 # Measurement Plugin
-Version 1.3.8 indroduces a new feature that allows you to interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
+Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
 
 # Google Places Search
-Version 1.5.6 introduces a search control for the Google Places API. Log into the [Google API Console](https://console.developers.google.com/flows/enableapi?apiid=places_backend&reusekey=true&authuser=2) and enable the **Google Places API Web Service** and **Google Maps JavaScript API** for the given project and create an API key. See [Google's docs](https://developers.google.com/places/web-service/get-api-key?authuser=2) for detailed instructions.
+A search control for the Google Places API. Log into the [Google API Console](https://console.developers.google.com/flows/enableapi?apiid=places_backend&reusekey=true&authuser=2) and enable the **Google Places API Web Service** and **Google Maps JavaScript API** for the given project and create an API key. See [Google's docs](https://developers.google.com/places/web-service/get-api-key?authuser=2) for detailed instructions.
 
 #### Usage
 **Enable/Disable** the search control via the format menu option **Google Places -> Google Places Search -> Enabled**
@@ -294,7 +297,7 @@ Set the **API Key** option **Google Places -> API Key**
 Optionally set the **Zoom Level** option **Google Places -> Zoom Level** for the desired fly to zoom level.
 
 # Bing Maps
-Version 1.5.17 introduces a Bing Maps tile layer. 
+A Bing Maps tile layer. 
 
 #### Usage
 **Enable/Disable** Bing Maps via the format menu option **Bing Maps -> Bing Maps -> Enabled**. When Bing Maps are enabled, the default tile layer set and the map attribution override setting will not work.
@@ -438,6 +441,16 @@ Position of Google Places Search Bar (Default: Top Left)
 ###### Zoom Level
 Desired zoom level to fly to
 
+### Bing Maps
+###### Bing Maps
+Enable or disable Bing Maps tiles
+###### API Key
+Bing Maps API Key
+###### Tile Layer
+Select tile layer imagery set
+###### Label Language
+Select language used for labels
+
 ### Cluster Colors
 #### Cluster color changes require browser refresh
 ###### Range One Background
@@ -490,12 +503,18 @@ Color of measurement when actively drawing (Default: #00ff00)
 Color of measurement when drawing is complete (Default: #0066ff)
 
 ### Path Lines
-###### Show Path Lines
+###### Path Lines
 Draw path lines on map for markers that have multiple coordinates.
+###### Renderer
+Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support
 ###### Path Identifier
 Field used to distinguish unique paths, e.g. vehicle number or trip ID
 ###### Path Colors
 Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)
+###### Path Splits
+Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
+###### Path Split Interval
+Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)
 
 # Support
 ###### This app is supported by Scott Haskell ([shaskell@splunk.com](mailto:shaskell@splunk.com))

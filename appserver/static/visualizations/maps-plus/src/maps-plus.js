@@ -38,7 +38,7 @@ define([
         maxResults: 0,
         tileLayer: null,
 		mapOptions: {},
-        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/leaflet_maps/contrib/',
+        contribUri: '/en-US/static/app/maps-plus/visualizations/maps-plus/contrib/',
         defaultConfig:  {
             'display.visualizations.custom.maps-plus.maps-plus.cluster': 1,
             'display.visualizations.custom.maps-plus.maps-plus.allPopups': 0,
@@ -130,7 +130,7 @@ define([
                 type: "GET",
                 async: false,
                 context: this,
-                url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
+                url: "/en-US/splunkd/__raw/servicesNS/nobody/maps-plus/server/info",
                 success: function(s) {                                        
                     var xml = $(s);
                     var that = this;

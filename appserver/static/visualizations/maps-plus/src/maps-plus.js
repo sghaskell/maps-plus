@@ -489,6 +489,13 @@ define([
             return mcg;
         },
 
+        _addHeat: function(heat,
+                           coordinates,
+                           heatmapEnable,
+                           heatmapOnly) {
+        
+        },
+
         _addMarker: function(userData,
                              markerIcon,
                              layerDescription,
@@ -999,6 +1006,15 @@ define([
                 if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
                     // Skip the marker to improve performance of rendering
                     return;
+                }
+
+                if (this.isArgTrue(heatmapEnable)) {
+                    var latlng = this.latlng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']));
+                    this.heat.addLatLng(this.latlng);
+                    
+                    if(this.isArgTrue(heatmapOnly)) {
+                        return;
+                    }
                 }
 
                 // Set icon options

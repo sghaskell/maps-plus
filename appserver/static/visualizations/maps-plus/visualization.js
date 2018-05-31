@@ -89,7 +89,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    return SplunkVisualizationBase.extend({
 	        maxResults: 0,
 	        tileLayer: null,
-			mapOptions: {},
+	        mapOptions: {},
+	        heatMarkers: 0,
+	        markerCount: 0,
 	        contribUri: '/en-US/static/app/maps-plus/visualizations/maps-plus/contrib/',
 	        defaultConfig:  {
 	            'display.visualizations.custom.maps-plus.maps-plus.cluster': 1,
@@ -601,14 +603,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	        _addClustered: function(layerFilter,
 	                               that) {
+
+	            console.log("Adding clustered");
+	            console.log("Layer Filter");
+	            console.log(layerFilter);
 	            // Process layers
-	            _.each(layerFilter, function(lg, i) { 
+	            _.each(layerFilter, function(lg, i) {
+	                console.log("Layer Group");
+	                console.log(lg);
 	                // Process cluster groups
 	                _.each(lg.clusterGroup, function(cg, i) {
 	                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList);
+	                    console.log(this.tmpFG);
 	                    lg.group.addLayer(this.tmpFG);
 	                }, that);
 
+	                console.log("Adding layergorup to map");
 	                lg.group.addTo(that.map);
 	                that.addLayerToControl(lg, that.control);
 	            }, that);
@@ -636,13 +646,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        },
 
 	        formatData: function(data) {
-	            if(data.results.length == 0 && data.fields.length >= 1){
+	            console.log("In format:");
+	            console.log(data);
+	            //if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
+	            if(data.results.length == 0 && data.fields.length >= 1){    
+	                console.log("Done: " + data.meta.done);
+	                console.log("Markers processed: " + this.markerCount);
 	                this.allDataProcessed = true;
 	                return this;
-	            } else if(data.results.length == 0)  {
+	            }
+	            
+	            if(data.results.length == 0)  {
+	                console.log("returning this");
 	                return this;
 	            }
 
+	            console.log("returning data");
 	            return data;
 	        },
 
@@ -724,12 +743,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Auto Fit & Zoom once we've processed all data
 	            if(this.allDataProcessed) {
+	                console.log("is splunk 7");
+	                console.log(this.layerFilter);
 	                if (this.isArgTrue(showPathLines)) {
 	                    setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
 	                } else {
 	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
 	                }
 
+	                console.log(this.heatMarkers);
 	                // Dashboard refresh
 	                if(refreshInterval > 0) {
 	                    setTimeout(function() {
@@ -739,6 +761,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            } 
 	            
 	            if (this.allDataProcessed && !this.isSplunkSeven) {
+	                console.log("is not splunk 7");
 	                // Remove marker cluster layers
 	                try {
 	                    this.markers.clearLayers();
@@ -769,6 +792,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Check for data and retrun if we don't have any
 	            if(!_.has(data, "results")) {
+	                console.log("No results detected - returning");
 	                return this;
 	            }
 
@@ -796,6 +820,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Initialize the DOM
 	            if (!this.isInitializedDom) {
+	                console.log("initializing DOM");
 	                // Set defaul icon image path
 	                L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
 
@@ -1044,6 +1069,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Init current position in dataRows
 	            var curPos = this.curPos = 0;
+	            console.log(dataRows);
 
 	            _.each(dataRows, function(userData, i) {
 	                // Only return if we have > this.chunkSize and not on the first page of results
@@ -1060,9 +1086,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    return;
 	                }
 
+	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var latlng = this.latlng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']));
-	                    this.heat.addLatLng(this.latlng);
+	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']));
+	                    this.heat.addLatLng(this.heatLatLng);
+	                    this.heatMarkers += 1;
 	                    
 	                    if(this.isArgTrue(heatmapOnly)) {
 	                        return;
@@ -1075,7 +1103,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:icon;
 
 	                // Create Cluster Group
-	                if(typeof this.clusterGroups[clusterGroup] == 'undefined') {
+	                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
+	                    console.log("Creating cluster group");
 	                    var cg = this._createClusterGroup(disableClusteringAtZoom,
 	                                                      disableClusteringAtZoomLevel,
 	                                                      maxClusterRadius,
@@ -1091,7 +1120,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 
 	                // Create Clustered featuregroup subgroup layer
-	                if (typeof this.layerFilter[layerGroup] == 'undefined' && this.isArgTrue(cluster)) {
+	                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
+	                    console.log("Creating Layer Filter")
 	                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
 	                                                    'iconStyle' : icon,
 	                                                    'layerExists' : false,
@@ -1240,6 +1270,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                        tooltip,
 											title,
 	                                        drilldown);
+	                        this.markerCount += 1;
 	                    }
 	                } else {
 	                    this._addMarker(userData,
@@ -1255,6 +1286,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                    tooltip,
 										title,
 	                                    drilldown);
+	                    this.markerCount += 1;
 	                }
 	            }, this);            
 
@@ -1268,11 +1300,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Clustered
 	            if (this.isArgTrue(cluster)) {           
-	                this._addClustered(layerFilter,
+	                this._addClustered(this.layerFilter,
 	                                  this);
 	            // Single value
 	            } else {
-	                this._addUnclustered(layerFilter,
+	                this._addUnclustered(this.layerFilter,
 	                                     allPopups,
 	                                     this);
 	            }
@@ -1374,7 +1406,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            // Update offset and fetch next chunk of data
 	            if(this.isSplunkSeven) {
 	                this.offset += dataRows.length;
-	                this.updateDataParams({count: this.chunk, offset: this.offset});    
+	                console.log("offset: " + this.offset);
+	                console.log("Processed?: " + this.allDataProcessed);
+	                this.updateDataParams({count: this.chunk, offset: this.offset});
 	            } else {
 	                // It's Splunk 6.x
 	                if(dataRows.length == this.chunk) {

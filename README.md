@@ -277,15 +277,13 @@ Copy any KML or KMZ files into the following directory
 $SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/leaflet_maps/contrib/kml
 ```
 
-If you use a deployer (search head clustering) or a deployment server to manage your search heads, uncompress the app and place your KML files into the above directory and then recompress the app for distribution. 
-
-Click 'Format' and selct the 'Overlays' tab. Enter a comma separated list of filenames that you uploaded to the above directory.
+Click 'Format' and selct the 'Overlays' tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml
 
 ```
 file1.kml,file2.kmz
 ```
 
-The files will be asynchronously loaded when the map is rendered.
+The files will be asynchronously loaded when the map is rendered. 
 
 # Measurement Plugin
 Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.

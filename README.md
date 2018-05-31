@@ -25,6 +25,10 @@ Have you ever wanted to plot massive amounts of single value lat/lons with clust
 ##### [transform-loader](https://www.npmjs.com/package/transform-loader)
 ##### [moment](https://github.com/moment/moment)
 ##### [brfs](https://www.npmjs.com/package/brfs)
+##### [fontawesome](https://fontawesome.com/)
+##### [Glyphicons](http://glyphicons.com/)
+##### [Ionicons](https://ionicons.com/)
+##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
 
 Big thanks to the following people: 
 

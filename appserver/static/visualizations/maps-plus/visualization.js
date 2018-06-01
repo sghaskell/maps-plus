@@ -160,7 +160,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxPointIntensity': 1.0,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
-	            'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15
+	            'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
+	            'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
 	        },
 	        ATTRIBUTIONS: {
 	        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; OpenStreetMap contributors',
@@ -651,9 +652,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            console.log("In format:");
 	            console.log(data);
 
-	            console.log("Stopping spinner");
-	            this.map.spin(false);
-
 	            if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
 	            //if(data.results.length == 0 && data.fields.length >= 1){    
 	                console.log("Done: " + data.meta.done);
@@ -740,20 +738,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
 	                pathColorList = this._getEscapedProperty('pathColorList', config),
 	                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
-	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config))
-	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config))
+	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
+	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
 	                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
-	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)) 
+	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
 	                heatmapMaxPointIntensity = parseFloat(this._getEscapedProperty('heatmapMaxPointIntensity', config)),
-	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)) 
-	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config));
+	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
+	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
+	                showProgress = parseInt(this._getEscapedProperty('showProgress', config));
 
 	            // Auto Fit & Zoom once we've processed all data
 	            if(this.allDataProcessed) {
 	                console.log("is splunk 7");
 	                console.log(this.layerFilter);
 
-	                this.map.spin(false);
+	                if(showProgress) {
+	                    console.log("Stopping spinner");
+	                    this.map.spin(false);
+	                }
+	                
 
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    this.heat.addTo(this.map);
@@ -1052,8 +1055,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					this.isInitializedDom = true;         
 	                this.allDataProcessed = false;
 
-	                console.log("Spinning!!");
-	                this.map.spin(true);
+	                
+	                if(showProgress) {
+	                    this.map.spin(true);
+	                    console.log("Spinning!!");
+	                }
 	            } 
 
 	            // Map Scroll
@@ -1088,11 +1094,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            // Init current position in dataRows
 	            var curPos = this.curPos = 0;
 	            console.log(dataRows);
-
-	            var spinner = new Spinner();
-	            console.log(spinner);
-	            console.log("Spinning!!");
-	            this.map.spin(true);
 
 	            _.each(dataRows, function(userData, i) {
 	                // Only return if we have > this.chunkSize and not on the first page of results

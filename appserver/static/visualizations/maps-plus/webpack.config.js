@@ -14,10 +14,10 @@ module.exports = {
     },
     module: {
         loaders: [
-            //{
-            //    test: /leaflet\.markercluster-src\.js$/,
-            //    loader: 'imports-loader?L=leaflet'
-            //},
+            {
+                test: /leaflet\.spin\.js$/,
+                loader: 'imports-loader?L=leaflet'
+            },
             {
                 test: /leaflet\.awesome-markers\.js$/,
                 loader: 'imports-loader?L=leaflet'

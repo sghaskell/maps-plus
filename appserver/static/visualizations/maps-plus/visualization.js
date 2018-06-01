@@ -53,7 +53,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
 	            __webpack_require__(6),
-	            __webpack_require__(245),
+	            __webpack_require__(246),
 	            __webpack_require__(3),
 	            __webpack_require__(7),
 	            __webpack_require__(10),
@@ -62,16 +62,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            __webpack_require__(117),
 	            __webpack_require__(118),
 	            __webpack_require__(119),
+	            __webpack_require__(245),
 	            __webpack_require__(2),
-				__webpack_require__(246),
 				__webpack_require__(247),
-	            __webpack_require__(248),
+				__webpack_require__(248),
 	            __webpack_require__(249),
 	            __webpack_require__(250),
 	            __webpack_require__(251),
 	            __webpack_require__(252),
-				__webpack_require__(253),
-	            __webpack_require__(254)
+	            __webpack_require__(253),
+	            __webpack_require__(254),
+				__webpack_require__(255),
+	            __webpack_require__(256)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
@@ -82,7 +84,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            SplunkVisualizationBase,
 	            SplunkVisualizationUtils,
 	            loadGoogleMapsAPI,
-				moment
+	            moment
 	        ) {
 
 
@@ -648,6 +650,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        formatData: function(data) {
 	            console.log("In format:");
 	            console.log(data);
+
+	            console.log("Stopping spinner");
+	            this.map.spin(false);
+
 	            if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
 	            //if(data.results.length == 0 && data.fields.length >= 1){    
 	                console.log("Done: " + data.meta.done);
@@ -746,6 +752,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            if(this.allDataProcessed) {
 	                console.log("is splunk 7");
 	                console.log(this.layerFilter);
+
+	                this.map.spin(false);
+
+	                if (this.isArgTrue(heatmapEnable)) {
+	                    this.heat.addTo(this.map);
+	                }
+
 	                if (this.isArgTrue(showPathLines)) {
 	                    setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
 	                } else {
@@ -1025,7 +1038,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                                            maxZoom: heatmapMaxZoom,
 	                                                            max: heatmapMaxPointIntensity,
 	                                                            radius: heatmapRadius,
-	                                                            blur: heatmapBlur}).addTo(this.map);
+	                                                            blur: heatmapBlur});
+	                                                            //blur: heatmapBlur}).addTo(this.map);
 	                }
 	               
 	                // Init defaults
@@ -1037,6 +1051,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                this.offset = 0;
 					this.isInitializedDom = true;         
 	                this.allDataProcessed = false;
+
+	                console.log("Spinning!!");
+	                this.map.spin(true);
 	            } 
 
 	            // Map Scroll
@@ -1071,6 +1088,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            // Init current position in dataRows
 	            var curPos = this.curPos = 0;
 	            console.log(dataRows);
+
+	            var spinner = new Spinner();
+	            console.log(spinner);
+	            console.log("Spinning!!");
+	            this.map.spin(true);
 
 	            _.each(dataRows, function(userData, i) {
 	                // Only return if we have > this.chunkSize and not on the first page of results
@@ -1247,7 +1269,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                    drilldown);
 	                    this.markerCount += 1;
 	                }
-	            }, this);            
+	            }, this);
+	            
+	            // if (this.isArgTrue(heatmapEnable)) {
+	            //     this.heat.addTo(this.map);
+	            // }
 
 	            // Enable/disable layer controls and toggle collapse 
 	            if (this.isArgTrue(layerControl)) {           
@@ -1369,7 +1395,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                console.log("Processed?: " + this.allDataProcessed);
 	                setTimeout(function(that) {
 	                    that.updateDataParams({count: that.chunk, offset: that.offset});
-	                }, 500, this);
+	                }, 100, this);
 	            } else {
 	                // It's Splunk 6.x
 	                if(dataRows.length == this.chunk) {
@@ -1378,7 +1404,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    // loop processing the results.
 	                    this.offset += this.chunk-1;
 	                    this.curPage += 1;
-	                    this.updateDataParams({count: this.chunk, offset: this.offset});
+	                    setTimeout(function(that) {
+	                        that.updateDataParams({count: that.chunk, offset: that.offset});
+	                    }, 100, this);
+	                    //this.updateDataParams({count: this.chunk, offset: this.offset});
 	                } else {
 	                    this.allDataProcessed = true;
 
@@ -61112,6 +61141,199 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 /***/ }),
 /* 245 */
+/***/ (function(module, exports) {
+
+	var __assign = (this && this.__assign) || Object.assign || function(t) {
+	    for (var s, i = 1, n = arguments.length; i < n; i++) {
+	        s = arguments[i];
+	        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+	            t[p] = s[p];
+	    }
+	    return t;
+	};
+	var defaults = {
+	    lines: 12,
+	    length: 7,
+	    width: 5,
+	    radius: 10,
+	    scale: 1.0,
+	    corners: 1,
+	    color: '#000',
+	    fadeColor: 'transparent',
+	    animation: 'spinner-line-fade-default',
+	    rotate: 0,
+	    direction: 1,
+	    speed: 1,
+	    zIndex: 2e9,
+	    className: 'spinner',
+	    top: '50%',
+	    left: '50%',
+	    shadow: '0 0 1px transparent',
+	    position: 'absolute',
+	};
+	var Spinner = /** @class */ (function () {
+	    function Spinner(opts) {
+	        if (opts === void 0) { opts = {}; }
+	        this.opts = __assign({}, defaults, opts);
+	    }
+	    /**
+	     * Adds the spinner to the given target element. If this instance is already
+	     * spinning, it is automatically removed from its previous target by calling
+	     * stop() internally.
+	     */
+	    Spinner.prototype.spin = function (target) {
+	        this.stop();
+	        this.el = document.createElement('div');
+	        this.el.className = this.opts.className;
+	        this.el.setAttribute('role', 'progressbar');
+	        css(this.el, {
+	            position: this.opts.position,
+	            width: 0,
+	            zIndex: this.opts.zIndex,
+	            left: this.opts.left,
+	            top: this.opts.top,
+	            transform: "scale(" + this.opts.scale + ")",
+	        });
+	        if (target) {
+	            target.insertBefore(this.el, target.firstChild || null);
+	        }
+	        drawLines(this.el, this.opts);
+	        return this;
+	    };
+	    /**
+	     * Stops and removes the Spinner.
+	     * Stopped spinners may be reused by calling spin() again.
+	     */
+	    Spinner.prototype.stop = function () {
+	        if (this.el) {
+	            if (typeof requestAnimationFrame !== 'undefined') {
+	                cancelAnimationFrame(this.animateId);
+	            }
+	            else {
+	                clearTimeout(this.animateId);
+	            }
+	            if (this.el.parentNode) {
+	                this.el.parentNode.removeChild(this.el);
+	            }
+	            this.el = undefined;
+	        }
+	        return this;
+	    };
+	    return Spinner;
+	}());
+	export { Spinner };
+	/**
+	 * Sets multiple style properties at once.
+	 */
+	function css(el, props) {
+	    for (var prop in props) {
+	        el.style[prop] = props[prop];
+	    }
+	    return el;
+	}
+	/**
+	 * Returns the line color from the given string or array.
+	 */
+	function getColor(color, idx) {
+	    return typeof color == 'string' ? color : color[idx % color.length];
+	}
+	/**
+	 * Internal method that draws the individual lines.
+	 */
+	function drawLines(el, opts) {
+	    var borderRadius = (Math.round(opts.corners * opts.width * 500) / 1000) + 'px';
+	    var shadow = 'none';
+	    if (opts.shadow === true) {
+	        shadow = '0 2px 4px #000'; // default shadow
+	    }
+	    else if (typeof opts.shadow === 'string') {
+	        shadow = opts.shadow;
+	    }
+	    var shadows = parseBoxShadow(shadow);
+	    for (var i = 0; i < opts.lines; i++) {
+	        var degrees = ~~(360 / opts.lines * i + opts.rotate);
+	        var backgroundLine = css(document.createElement('div'), {
+	            position: 'absolute',
+	            top: -opts.width / 2 + "px",
+	            width: (opts.length + opts.width) + 'px',
+	            height: opts.width + 'px',
+	            background: getColor(opts.fadeColor, i),
+	            borderRadius: borderRadius,
+	            transformOrigin: 'left',
+	            transform: "rotate(" + degrees + "deg) translateX(" + opts.radius + "px)",
+	        });
+	        var delay = i * opts.direction / opts.lines / opts.speed;
+	        delay -= 1 / opts.speed; // so initial animation state will include trail
+	        var line = css(document.createElement('div'), {
+	            width: '100%',
+	            height: '100%',
+	            background: getColor(opts.color, i),
+	            borderRadius: borderRadius,
+	            boxShadow: normalizeShadow(shadows, degrees),
+	            animation: 1 / opts.speed + "s linear " + delay + "s infinite " + opts.animation,
+	        });
+	        backgroundLine.appendChild(line);
+	        el.appendChild(backgroundLine);
+	    }
+	}
+	function parseBoxShadow(boxShadow) {
+	    var regex = /^\s*([a-zA-Z]+\s+)?(-?\d+(\.\d+)?)([a-zA-Z]*)\s+(-?\d+(\.\d+)?)([a-zA-Z]*)(.*)$/;
+	    var shadows = [];
+	    for (var _i = 0, _a = boxShadow.split(','); _i < _a.length; _i++) {
+	        var shadow = _a[_i];
+	        var matches = shadow.match(regex);
+	        if (matches === null) {
+	            continue; // invalid syntax
+	        }
+	        var x = +matches[2];
+	        var y = +matches[5];
+	        var xUnits = matches[4];
+	        var yUnits = matches[7];
+	        if (x === 0 && !xUnits) {
+	            xUnits = yUnits;
+	        }
+	        if (y === 0 && !yUnits) {
+	            yUnits = xUnits;
+	        }
+	        if (xUnits !== yUnits) {
+	            continue; // units must match to use as coordinates
+	        }
+	        shadows.push({
+	            prefix: matches[1] || '',
+	            x: x,
+	            y: y,
+	            xUnits: xUnits,
+	            yUnits: yUnits,
+	            end: matches[8],
+	        });
+	    }
+	    return shadows;
+	}
+	/**
+	 * Modify box-shadow x/y offsets to counteract rotation
+	 */
+	function normalizeShadow(shadows, degrees) {
+	    var normalized = [];
+	    for (var _i = 0, shadows_1 = shadows; _i < shadows_1.length; _i++) {
+	        var shadow = shadows_1[_i];
+	        var xy = convertOffset(shadow.x, shadow.y, degrees);
+	        normalized.push(shadow.prefix + xy[0] + shadow.xUnits + ' ' + xy[1] + shadow.yUnits + shadow.end);
+	    }
+	    return normalized.join(', ');
+	}
+	function convertOffset(x, y, degrees) {
+	    var radians = degrees * Math.PI / 180;
+	    var sin = Math.sin(radians);
+	    var cos = Math.cos(radians);
+	    return [
+	        Math.round((x * cos + y * sin) * 1000) / 1000,
+	        Math.round((-x * sin + y * cos) * 1000) / 1000,
+	    ];
+	}
+
+
+/***/ }),
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//     Underscore.js 1.9.0
@@ -62806,7 +63028,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(120)(module)))
 
 /***/ }),
-/* 246 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -63398,7 +63620,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 247 */
+/* 248 */
 /***/ (function(module, exports) {
 
 	L.Control.Dialog = L.Control.extend({
@@ -63760,7 +63982,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 248 */
+/* 249 */
 /***/ (function(module, exports) {
 
 	(function () {
@@ -63910,7 +64132,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 249 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*
@@ -66601,7 +66823,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 250 */
+/* 251 */
 /***/ (function(module, exports) {
 
 	/*
@@ -66617,7 +66839,86 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	L.HeatLayer=(L.Layer?L.Layer:L.Class).extend({initialize:function(t,i){this._latlngs=t,L.setOptions(this,i)},setLatLngs:function(t){return this._latlngs=t,this.redraw()},addLatLng:function(t){return this._latlngs.push(t),this.redraw()},setOptions:function(t){return L.setOptions(this,t),this._heat&&this._updateOptions(),this.redraw()},redraw:function(){return!this._heat||this._frame||this._map._animating||(this._frame=L.Util.requestAnimFrame(this._redraw,this)),this},onAdd:function(t){this._map=t,this._canvas||this._initCanvas(),t._panes.overlayPane.appendChild(this._canvas),t.on("moveend",this._reset,this),t.options.zoomAnimation&&L.Browser.any3d&&t.on("zoomanim",this._animateZoom,this),this._reset()},onRemove:function(t){t.getPanes().overlayPane.removeChild(this._canvas),t.off("moveend",this._reset,this),t.options.zoomAnimation&&t.off("zoomanim",this._animateZoom,this)},addTo:function(t){return t.addLayer(this),this},_initCanvas:function(){var t=this._canvas=L.DomUtil.create("canvas","leaflet-heatmap-layer leaflet-layer"),i=L.DomUtil.testProp(["transformOrigin","WebkitTransformOrigin","msTransformOrigin"]);t.style[i]="50% 50%";var a=this._map.getSize();t.width=a.x,t.height=a.y;var s=this._map.options.zoomAnimation&&L.Browser.any3d;L.DomUtil.addClass(t,"leaflet-zoom-"+(s?"animated":"hide")),this._heat=simpleheat(t),this._updateOptions()},_updateOptions:function(){this._heat.radius(this.options.radius||this._heat.defaultRadius,this.options.blur),this.options.gradient&&this._heat.gradient(this.options.gradient),this.options.max&&this._heat.max(this.options.max)},_reset:function(){var t=this._map.containerPointToLayerPoint([0,0]);L.DomUtil.setPosition(this._canvas,t);var i=this._map.getSize();this._heat._width!==i.x&&(this._canvas.width=this._heat._width=i.x),this._heat._height!==i.y&&(this._canvas.height=this._heat._height=i.y),this._redraw()},_redraw:function(){var t,i,a,s,e,n,h,o,r,d=[],_=this._heat._r,l=this._map.getSize(),m=new L.Bounds(L.point([-_,-_]),l.add([_,_])),c=void 0===this.options.max?1:this.options.max,u=void 0===this.options.maxZoom?this._map.getMaxZoom():this.options.maxZoom,f=1/Math.pow(2,Math.max(0,Math.min(u-this._map.getZoom(),12))),g=_/2,p=[],v=this._map._getMapPanePos(),w=v.x%g,y=v.y%g;for(t=0,i=this._latlngs.length;i>t;t++)if(a=this._map.latLngToContainerPoint(this._latlngs[t]),m.contains(a)){e=Math.floor((a.x-w)/g)+2,n=Math.floor((a.y-y)/g)+2;var x=void 0!==this._latlngs[t].alt?this._latlngs[t].alt:void 0!==this._latlngs[t][2]?+this._latlngs[t][2]:1;r=x*f,p[n]=p[n]||[],s=p[n][e],s?(s[0]=(s[0]*s[2]+a.x*r)/(s[2]+r),s[1]=(s[1]*s[2]+a.y*r)/(s[2]+r),s[2]+=r):p[n][e]=[a.x,a.y,r]}for(t=0,i=p.length;i>t;t++)if(p[t])for(h=0,o=p[t].length;o>h;h++)s=p[t][h],s&&d.push([Math.round(s[0]),Math.round(s[1]),Math.min(s[2],c)]);this._heat.data(d).draw(this.options.minOpacity),this._frame=null},_animateZoom:function(t){var i=this._map.getZoomScale(t.zoom),a=this._map._getCenterOffset(t.center)._multiplyBy(-i).subtract(this._map._getMapPanePos());L.DomUtil.setTransform?L.DomUtil.setTransform(this._canvas,a,i):this._canvas.style[L.DomUtil.TRANSFORM]=L.DomUtil.getTranslateString(a)+" scale("+i+")"}}),L.heatLayer=function(t,i){return new L.HeatLayer(t,i)};
 
 /***/ }),
-/* 251 */
+/* 252 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
+	var L = __webpack_require__(3);
+
+	(function (factory, window) {
+	    // define an AMD module that relies on 'leaflet'
+	    if (true) {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(245)], __WEBPACK_AMD_DEFINE_RESULT__ = function (L, Spinner) {
+	            factory(L, Spinner);
+	        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+	    // define a Common JS module that relies on 'leaflet'
+	    } else if (typeof exports === 'object') {
+	        module.exports = function (L) {
+	            if (L === undefined) {
+	                L = require('leaflet');
+	            }
+	            factory(L);
+	            return L;
+	        };
+	    // attach your plugin to the global 'L' variable
+	    } else if (typeof window !== 'undefined' && window.L) {
+	        factory(window.L);
+	    }
+	}(function leafletSpinFactory(L, Spinner) {
+	    var SpinMapMixin = {
+	        spin: function (state, options) {
+	            if (!!state) {
+	                // start spinning !
+	                if (!this._spinner) {
+	                    this._spinner = new Spinner(options)
+	                        .spin(this._container);
+	                    this._spinning = 0;
+	                }
+	                this._spinning++;
+	            }
+	            else {
+	                this._spinning--;
+	                if (this._spinning <= 0) {
+	                    // end spinning !
+	                    if (this._spinner) {
+	                        this._spinner.stop();
+	                        this._spinner = null;
+	                    }
+	                }
+	            }
+	        }
+	    };
+
+	    var SpinMapInitHook = function () {
+	        this.on('layeradd', function (e) {
+	            // If added layer is currently loading, spin !
+	            if (e.layer.loading) this.spin(true);
+	            if (typeof e.layer.on !== 'function') return;
+	            e.layer.on('data:loading', function () {
+	                this.spin(true);
+	            }, this);
+	            e.layer.on('data:loaded',  function () {
+	                this.spin(false);
+	            }, this);
+	        }, this);
+	        this.on('layerremove', function (e) {
+	            // Clean-up
+	            if (e.layer.loading) this.spin(false);
+	            if (typeof e.layer.on !== 'function') return;
+	            e.layer.off('data:loaded');
+	            e.layer.off('data:loading');
+	        }, this);
+	    };
+
+	    L.Map.include(SpinMapMixin);
+	    L.Map.addInitHook(SpinMapInitHook);
+	}, window));
+
+
+
+/***/ }),
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -66842,7 +67143,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 252 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var require;var require;var __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {/*** IMPORTS FROM imports-loader ***/
@@ -74143,7 +74444,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 253 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -74279,7 +74580,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 254 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/

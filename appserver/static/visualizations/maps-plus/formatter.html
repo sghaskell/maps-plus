@@ -27,6 +27,16 @@
             </div>
         </div>
         <div class="control-group">
+            <label class="control-label">Progress Indicator</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.showProgress" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input>
+                <span class="help-block ">Display progress spinner for long running searches</span>
+            </div>
+        </div>
+        <div class="control-group">
             <label class="control-label">Scroll Wheel Zoom</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.scrollWheelZoom" value="1">

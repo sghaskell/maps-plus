@@ -14,6 +14,8 @@ Have you ever wanted to plot massive amounts of single value lat/lons with clust
 ##### [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu)
 ##### [leaflet-bing-layer](https://github.com/digidem/leaflet-bing-layer)
 ##### [Leaflet.Dialog](https://github.com/NBTSolutions/Leaflet.Dialog)
+##### [Leaflet.spin](https://github.com/makinacorpus/Leaflet.Spin)
+##### [spin.js](https://github.com/fgnass/spin.js)
 ##### [togeojson](https://github.com/mapbox/togeojson)
 ##### [load-google-maps-api](https://www.npmjs.com/package/load-google-maps-api#usage)
 ##### [load-google-places-autocomplete](https://www.npmjs.com/package/leaflet-google-places-autocomplete)

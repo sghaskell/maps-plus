@@ -648,8 +648,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        formatData: function(data) {
 	            console.log("In format:");
 	            console.log(data);
-	            //if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
-	            if(data.results.length == 0 && data.fields.length >= 1){    
+	            if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
+	            //if(data.results.length == 0 && data.fields.length >= 1){    
 	                console.log("Done: " + data.meta.done);
 	                console.log("Markers processed: " + this.markerCount);
 	                this.allDataProcessed = true;
@@ -662,6 +662,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 
 	            console.log("returning data");
+	            this.allDataProcessed = false;
 	            return data;
 	        },
 
@@ -1213,48 +1214,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                }
 
-	                /* Add the icon to layerFilter so we can access properties
-					 * for overlay in addLayerToControl
-					 */
-	                
-	                /*
-	                if (typeof this.layerFilter[layerGroup] !== 'undefined') {
-	                    this.layerFilter[layerGroup].icon = markerIcon;
-	                }
-
-	                var marker = L.marker([userData['latitude'],
-	                                       userData['longitude']],
-	                                      {icon: markerIcon,
-	                                       layerDescription: layerDescription,
-										   zIndexOffset: markerPriority});
-
-	                // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
-	                if(tooltip) {
-	                    marker.bindTooltip(tooltip, {permanent: permanentTooltip,
-	                                                 direction: 'auto',
-	                                                 sticky: stickyTooltip});
-	                } else if (title) {
-	                    marker.bindTooltip(title, {permanent: permanentTooltip,
-	                                               direction: 'auto',
-	                                               sticky: stickyTooltip});
-	                }
-
-	                if(this.isArgTrue(drilldown)) {
-						var drilldownFields = this.validateFields(userData);
-	                    marker.on('dblclick', this._drilldown.bind(this, drilldownFields));
-	                }
-
-	                // Bind description popup if description exists
-	                if(userData["description"]) {
-	                    marker.bindPopup(userData['description']);
-	                }
-	                */
-
-	                // this.layerFilter[layerGroup].markerList.push(marker);
-	                // this.curPos += 1;
-	                //if (!_.isUndefined(this.layerFilter[layerGroup])) {
-
-	                // Save each icon in the layer if markerVisibility is either set and == "marker" or unset
 	                if (userData["markerVisibility"]) {
 	                    if (userData["markerVisibility"] == "marker") {
 	                        this._addMarker(userData,
@@ -1408,7 +1367,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                this.offset += dataRows.length;
 	                console.log("offset: " + this.offset);
 	                console.log("Processed?: " + this.allDataProcessed);
-	                this.updateDataParams({count: this.chunk, offset: this.offset});
+	                setTimeout(function(that) {
+	                    that.updateDataParams({count: that.chunk, offset: that.offset});
+	                }, 500, this);
 	            } else {
 	                // It's Splunk 6.x
 	                if(dataRows.length == this.chunk) {

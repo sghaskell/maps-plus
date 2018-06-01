@@ -700,7 +700,7 @@ define([
                 console.log("is splunk 7");
                 console.log(this.layerFilter);
 
-                if(showProgress) {
+                if(this.isArgTrue(showProgress)) {
                     console.log("Stopping spinner");
                     this.map.spin(false);
                 }
@@ -1004,7 +1004,7 @@ define([
                 this.allDataProcessed = false;
 
                 
-                if(showProgress) {
+                if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
                     console.log("Spinning!!");
                 }

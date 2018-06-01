@@ -189,6 +189,7 @@ define([
 							   'layerGroup',
                                'clusterGroup',
                                'pathColor',
+                               'popupAnchor',
                                '_time'];
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
@@ -1130,6 +1131,7 @@ define([
                 var iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white";
                 var markerSize = _.has(userData, "markerSize") ? userData["markerSize"].split(/,/):[35,45];
                 var markerAnchor = _.has(userData, "markerAnchor") ? userData["markerAnchor"].split(/,/):[15,50];
+                var popupAnchor = _.has(userData, "popupAnchor") ? userData["popupAnchor"].split(/,/):[0,0];
                 var shadowSize = _.has(userData, "shadowSize") ? userData["shadowSize"].split(/,/):[30,46];
                 var shadowAnchor = _.has(userData, "shadowAnchor") ? userData["shadowAnchor"].split(/,/):[30,30];
                 var markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0;
@@ -1167,6 +1169,7 @@ define([
                         shadowAnchor: shadowAnchor,
                         extraIconClasses: extraClasses,
                         prefix: prefix,
+                        popupAnchor: popupAnchor,
                         iconSize: markerSize,
 						iconAnchor: markerAnchor,
                     });

@@ -9,12 +9,14 @@ define([
             'api/SplunkVisualizationUtils',
             'load-google-maps-api',
             'moment',
+            'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
             'leaflet.heat',
+            '../contrib/leaflet.spin',
             '../contrib/leaflet.featuregroup.subgroup-src',
             '../contrib/leaflet-measure',
 			'../contrib/leaflet.awesome-markers',
@@ -30,7 +32,7 @@ define([
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
             loadGoogleMapsAPI,
-			moment
+            moment
         ) {
 
 
@@ -596,6 +598,10 @@ define([
         formatData: function(data) {
             console.log("In format:");
             console.log(data);
+
+            console.log("Stopping spinner");
+            this.map.spin(false);
+
             if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
             //if(data.results.length == 0 && data.fields.length >= 1){    
                 console.log("Done: " + data.meta.done);
@@ -694,6 +700,13 @@ define([
             if(this.allDataProcessed) {
                 console.log("is splunk 7");
                 console.log(this.layerFilter);
+
+                this.map.spin(false);
+
+                if (this.isArgTrue(heatmapEnable)) {
+                    this.heat.addTo(this.map);
+                }
+
                 if (this.isArgTrue(showPathLines)) {
                     setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
                 } else {
@@ -973,7 +986,8 @@ define([
                                                             maxZoom: heatmapMaxZoom,
                                                             max: heatmapMaxPointIntensity,
                                                             radius: heatmapRadius,
-                                                            blur: heatmapBlur}).addTo(this.map);
+                                                            blur: heatmapBlur});
+                                                            //blur: heatmapBlur}).addTo(this.map);
                 }
                
                 // Init defaults
@@ -985,6 +999,9 @@ define([
                 this.offset = 0;
 				this.isInitializedDom = true;         
                 this.allDataProcessed = false;
+
+                console.log("Spinning!!");
+                this.map.spin(true);
             } 
 
             // Map Scroll
@@ -1019,6 +1036,11 @@ define([
             // Init current position in dataRows
             var curPos = this.curPos = 0;
             console.log(dataRows);
+
+            var spinner = new Spinner();
+            console.log(spinner);
+            console.log("Spinning!!");
+            this.map.spin(true);
 
             _.each(dataRows, function(userData, i) {
                 // Only return if we have > this.chunkSize and not on the first page of results
@@ -1195,7 +1217,11 @@ define([
                                     drilldown);
                     this.markerCount += 1;
                 }
-            }, this);            
+            }, this);
+            
+            // if (this.isArgTrue(heatmapEnable)) {
+            //     this.heat.addTo(this.map);
+            // }
 
             // Enable/disable layer controls and toggle collapse 
             if (this.isArgTrue(layerControl)) {           
@@ -1317,7 +1343,7 @@ define([
                 console.log("Processed?: " + this.allDataProcessed);
                 setTimeout(function(that) {
                     that.updateDataParams({count: that.chunk, offset: that.offset});
-                }, 500, this);
+                }, 100, this);
             } else {
                 // It's Splunk 6.x
                 if(dataRows.length == this.chunk) {
@@ -1326,7 +1352,10 @@ define([
                     // loop processing the results.
                     this.offset += this.chunk-1;
                     this.curPage += 1;
-                    this.updateDataParams({count: this.chunk, offset: this.offset});
+                    setTimeout(function(that) {
+                        that.updateDataParams({count: that.chunk, offset: that.offset});
+                    }, 100, this);
+                    //this.updateDataParams({count: this.chunk, offset: this.offset});
                 } else {
                     this.allDataProcessed = true;
 

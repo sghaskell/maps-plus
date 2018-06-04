@@ -269,6 +269,13 @@ define([
                 .appendTo("head");
         },
 
+        stringToPoint: function(stringPoint) {
+            var point = _.map(stringPoint.split(','), function(val) {
+                return parseInt(val);
+            })
+            return point;
+        },
+
         // Draw path line
         drawPath: function(data, context) {
             _.each(data, function(p) {
@@ -703,7 +710,9 @@ define([
 
                 if(this.isArgTrue(showProgress)) {
                     console.log("Stopping spinner");
-                    this.map.spin(false);
+                    if(!_.isUndefined(this.map)) {
+                        this.map.spin(false);
+                    }
                 }
                 
 
@@ -1129,11 +1138,10 @@ define([
 				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png";
                 var markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue";
                 var iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white";
-                var markerSize = _.has(userData, "markerSize") ? userData["markerSize"].split(/,/):[35,45];
-                var markerAnchor = _.has(userData, "markerAnchor") ? userData["markerAnchor"].split(/,/):[15,50];
-                var popupAnchor = _.has(userData, "popupAnchor") ? userData["popupAnchor"].split(/,/):[0,0];
-                var shadowSize = _.has(userData, "shadowSize") ? userData["shadowSize"].split(/,/):[30,46];
-                var shadowAnchor = _.has(userData, "shadowAnchor") ? userData["shadowAnchor"].split(/,/):[30,30];
+                var markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45];
+                var markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50];
+                var shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46];
+                var shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30];
                 var markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0;
                 var title = _.has(userData, "title") ? userData["title"]:null;
                 var tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null;
@@ -1146,7 +1154,7 @@ define([
                     var popupAnchor = [-3, -35];
                 } else {
                     var className = "awesome-marker";
-                    var popupAnchor = [1, -35];
+                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35];
                 }
 
                 // Get description
@@ -1171,8 +1179,11 @@ define([
                         prefix: prefix,
                         popupAnchor: popupAnchor,
                         iconSize: markerSize,
-						iconAnchor: markerAnchor,
+                        iconAnchor: markerAnchor,
                     });
+
+                    console.log("SVG:");    
+                    console.log(markerIcon);
                 } else {
                     // Create markerIcon
                     var markerIcon = L.AwesomeMarkers.icon({
@@ -1185,7 +1196,8 @@ define([
                         popupAnchor: popupAnchor,
                         description: description
                     });
-
+                    console.log("PNG:");    
+                    console.log(markerIcon);
                 }
 
                 if (userData["markerVisibility"]) {

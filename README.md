@@ -1,7 +1,7 @@
 # Maps+ for Splunk
 
 # Synopsis
-Have you ever wanted to plot massive amounts of single value lat/lons with clustering and drill-down to individual markers? Use this app! No geostats aggregation at all! Tested with 1.7 million individual points. Lots of configuration options including the ability to add description popups with HTML support, color and style markers, add icons, disable clustering and plot nothing but single values. Native splunk maps can't do that!
+The mapping equivalent of a Swiss Army knife for Splunk.
 
 # Credits
 ### Included Open Source Software

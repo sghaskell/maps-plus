@@ -201,7 +201,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    });
 	                },
 	                error: function(e) {
-	                    console.info(e);
+	                    //console.info(e);
 	                }
 	            });
 	        },
@@ -241,6 +241,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 								   'layerGroup',
 	                               'clusterGroup',
 	                               'pathColor',
+	                               'popupAnchor',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -318,6 +319,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                .prop("type", "text/css")
 	                .html(html)
 	                .appendTo("head");
+	        },
+
+	        stringToPoint: function(stringPoint) {
+	            var point = _.map(stringPoint.split(','), function(val) {
+	                return parseInt(val);
+	            })
+	            return point;
 	        },
 
 	        // Draw path line
@@ -607,21 +615,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        _addClustered: function(layerFilter,
 	                               that) {
 
-	            console.log("Adding clustered");
-	            console.log("Layer Filter");
-	            console.log(layerFilter);
+	            //console.log("Adding clustered");
+	            //console.log("Layer Filter");
+	            //console.log(layerFilter);
 	            // Process layers
 	            _.each(layerFilter, function(lg, i) {
-	                console.log("Layer Group");
-	                console.log(lg);
+	                //console.log("Layer Group");
+	                //console.log(lg);
 	                // Process cluster groups
 	                _.each(lg.clusterGroup, function(cg, i) {
 	                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList);
-	                    console.log(this.tmpFG);
+	                    //console.log(this.tmpFG);
 	                    lg.group.addLayer(this.tmpFG);
 	                }, that);
 
-	                console.log("Adding layergorup to map");
+	                //console.log("Adding layergorup to map");
 	                lg.group.addTo(that.map);
 	                that.addLayerToControl(lg, that.control);
 	            }, that);
@@ -649,23 +657,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        },
 
 	        formatData: function(data) {
-	            console.log("In format:");
-	            console.log(data);
+	            //console.log("In format:");
+	            //console.log(data);
 
 	            if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
 	            //if(data.results.length == 0 && data.fields.length >= 1){    
-	                console.log("Done: " + data.meta.done);
-	                console.log("Markers processed: " + this.markerCount);
+	                //console.log("Done: " + data.meta.done);
+	                //console.log("Markers processed: " + this.markerCount);
 	                this.allDataProcessed = true;
 	                return this;
 	            }
 	            
 	            if(data.results.length == 0)  {
-	                console.log("returning this");
+	                //console.log("returning this");
 	                return this;
 	            }
 
-	            console.log("returning data");
+	            //console.log("returning data");
 	            this.allDataProcessed = false;
 	            return data;
 	        },
@@ -749,12 +757,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Auto Fit & Zoom once we've processed all data
 	            if(this.allDataProcessed) {
-	                console.log("is splunk 7");
-	                console.log(this.layerFilter);
+	                //console.log("is splunk 7");
+	                //console.log(this.layerFilter);
 
 	                if(this.isArgTrue(showProgress)) {
-	                    console.log("Stopping spinner");
-	                    this.map.spin(false);
+	                    //console.log("Stopping spinner");
+	                    if(!_.isUndefined(this.map)) {
+	                        this.map.spin(false);
+	                    }
 	                }
 	                
 
@@ -768,7 +778,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
 	                }
 
-	                console.log(this.heatMarkers);
+	                //console.log(this.heatMarkers);
 	                // Dashboard refresh
 	                if(refreshInterval > 0) {
 	                    setTimeout(function() {
@@ -778,13 +788,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            } 
 	            
 	            if (this.allDataProcessed && !this.isSplunkSeven) {
-	                console.log("is not splunk 7");
+	                //console.log("is not splunk 7");
 	                // Remove marker cluster layers
 	                try {
 	                    this.markers.clearLayers();
 	                    //this.markers = null;
 	                } catch(e) {
-	                    console.error(e);
+	                    //console.error(e);
 	                }
 	                
 	                // Remove layer Filter layers
@@ -797,7 +807,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                try {
 	                    this.pathLineLayer.clearLayers();
 	                } catch(e) {
-	                    console.error(e);
+	                    //console.error(e);
 	                }
 	                this.curPage = 0;
 	                this.offset = 0;
@@ -809,7 +819,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Check for data and retrun if we don't have any
 	            if(!_.has(data, "results")) {
-	                console.log("No results detected - returning");
+	                //console.log("No results detected - returning");
 	                return this;
 	            }
 
@@ -837,7 +847,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Initialize the DOM
 	            if (!this.isInitializedDom) {
-	                console.log("initializing DOM");
+	                //console.log("initializing DOM");
 	                // Set defaul icon image path
 	                L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
 
@@ -927,7 +937,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                            }
 	                        }).addTo(map);
 	                    }).catch(function(err) {
-	                        console.error(err);
+	                        //console.error(err);
 	                    }) 
 	                }
 
@@ -1058,7 +1068,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true);
-	                    console.log("Spinning!!");
+	                    //console.log("Spinning!!");
 	                }
 	            } 
 
@@ -1093,7 +1103,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Init current position in dataRows
 	            var curPos = this.curPos = 0;
-	            console.log(dataRows);
+	            //console.log(dataRows);
 
 	            _.each(dataRows, function(userData, i) {
 	                // Only return if we have > this.chunkSize and not on the first page of results
@@ -1128,7 +1138,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Create Cluster Group
 	                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-	                    console.log("Creating cluster group");
+	                    //console.log("Creating cluster group");
 	                    var cg = this._createClusterGroup(disableClusteringAtZoom,
 	                                                      disableClusteringAtZoomLevel,
 	                                                      maxClusterRadius,
@@ -1145,7 +1155,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Create Clustered featuregroup subgroup layer
 	                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-	                    console.log("Creating Layer Filter")
+	                    //console.log("Creating Layer Filter")
 	                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
 	                                                    'iconStyle' : icon,
 	                                                    'layerExists' : false,
@@ -1180,10 +1190,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png";
 	                var markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue";
 	                var iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white";
-	                var markerSize = _.has(userData, "markerSize") ? userData["markerSize"].split(/,/):[35,45];
-	                var markerAnchor = _.has(userData, "markerAnchor") ? userData["markerAnchor"].split(/,/):[15,50];
-	                var shadowSize = _.has(userData, "shadowSize") ? userData["shadowSize"].split(/,/):[30,46];
-	                var shadowAnchor = _.has(userData, "shadowAnchor") ? userData["shadowAnchor"].split(/,/):[30,30];
+	                var markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45];
+	                var markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50];
+	                var shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46];
+	                var shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30];
 	                var markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0;
 	                var title = _.has(userData, "title") ? userData["title"]:null;
 	                var tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null;
@@ -1196,7 +1206,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    var popupAnchor = [-3, -35];
 	                } else {
 	                    var className = "awesome-marker";
-	                    var popupAnchor = [1, -35];
+	                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35];
 	                }
 
 	                // Get description
@@ -1219,8 +1229,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                        shadowAnchor: shadowAnchor,
 	                        extraIconClasses: extraClasses,
 	                        prefix: prefix,
+	                        popupAnchor: popupAnchor,
 	                        iconSize: markerSize,
-							iconAnchor: markerAnchor,
+	                        iconAnchor: markerAnchor,
 	                    });
 	                } else {
 	                    // Create markerIcon
@@ -1234,7 +1245,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                        popupAnchor: popupAnchor,
 	                        description: description
 	                    });
-
 	                }
 
 	                if (userData["markerVisibility"]) {
@@ -1392,8 +1402,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            // Update offset and fetch next chunk of data
 	            if(this.isSplunkSeven) {
 	                this.offset += dataRows.length;
-	                console.log("offset: " + this.offset);
-	                console.log("Processed?: " + this.allDataProcessed);
+	                // //console.log("offset: " + this.offset);
+	                // //console.log("Processed?: " + this.allDataProcessed);
 	                setTimeout(function(that) {
 	                    that.updateDataParams({count: that.chunk, offset: that.offset});
 	                }, 100, this);

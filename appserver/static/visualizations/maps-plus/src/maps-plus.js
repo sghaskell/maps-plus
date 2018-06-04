@@ -149,7 +149,7 @@ define([
                     });
                 },
                 error: function(e) {
-                    console.info(e);
+                    //console.info(e);
                 }
             });
         },
@@ -563,21 +563,21 @@ define([
         _addClustered: function(layerFilter,
                                that) {
 
-            console.log("Adding clustered");
-            console.log("Layer Filter");
-            console.log(layerFilter);
+            //console.log("Adding clustered");
+            //console.log("Layer Filter");
+            //console.log(layerFilter);
             // Process layers
             _.each(layerFilter, function(lg, i) {
-                console.log("Layer Group");
-                console.log(lg);
+                //console.log("Layer Group");
+                //console.log(lg);
                 // Process cluster groups
                 _.each(lg.clusterGroup, function(cg, i) {
                     this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList);
-                    console.log(this.tmpFG);
+                    //console.log(this.tmpFG);
                     lg.group.addLayer(this.tmpFG);
                 }, that);
 
-                console.log("Adding layergorup to map");
+                //console.log("Adding layergorup to map");
                 lg.group.addTo(that.map);
                 that.addLayerToControl(lg, that.control);
             }, that);
@@ -605,23 +605,23 @@ define([
         },
 
         formatData: function(data) {
-            console.log("In format:");
-            console.log(data);
+            //console.log("In format:");
+            //console.log(data);
 
             if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
             //if(data.results.length == 0 && data.fields.length >= 1){    
-                console.log("Done: " + data.meta.done);
-                console.log("Markers processed: " + this.markerCount);
+                //console.log("Done: " + data.meta.done);
+                //console.log("Markers processed: " + this.markerCount);
                 this.allDataProcessed = true;
                 return this;
             }
             
             if(data.results.length == 0)  {
-                console.log("returning this");
+                //console.log("returning this");
                 return this;
             }
 
-            console.log("returning data");
+            //console.log("returning data");
             this.allDataProcessed = false;
             return data;
         },
@@ -705,11 +705,11 @@ define([
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
-                console.log("is splunk 7");
-                console.log(this.layerFilter);
+                //console.log("is splunk 7");
+                //console.log(this.layerFilter);
 
                 if(this.isArgTrue(showProgress)) {
-                    console.log("Stopping spinner");
+                    //console.log("Stopping spinner");
                     if(!_.isUndefined(this.map)) {
                         this.map.spin(false);
                     }
@@ -726,7 +726,7 @@ define([
                     setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
                 }
 
-                console.log(this.heatMarkers);
+                //console.log(this.heatMarkers);
                 // Dashboard refresh
                 if(refreshInterval > 0) {
                     setTimeout(function() {
@@ -736,13 +736,13 @@ define([
             } 
             
             if (this.allDataProcessed && !this.isSplunkSeven) {
-                console.log("is not splunk 7");
+                //console.log("is not splunk 7");
                 // Remove marker cluster layers
                 try {
                     this.markers.clearLayers();
                     //this.markers = null;
                 } catch(e) {
-                    console.error(e);
+                    //console.error(e);
                 }
                 
                 // Remove layer Filter layers
@@ -755,7 +755,7 @@ define([
                 try {
                     this.pathLineLayer.clearLayers();
                 } catch(e) {
-                    console.error(e);
+                    //console.error(e);
                 }
                 this.curPage = 0;
                 this.offset = 0;
@@ -767,7 +767,7 @@ define([
 
             // Check for data and retrun if we don't have any
             if(!_.has(data, "results")) {
-                console.log("No results detected - returning");
+                //console.log("No results detected - returning");
                 return this;
             }
 
@@ -795,7 +795,7 @@ define([
 
             // Initialize the DOM
             if (!this.isInitializedDom) {
-                console.log("initializing DOM");
+                //console.log("initializing DOM");
                 // Set defaul icon image path
                 L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
 
@@ -885,7 +885,7 @@ define([
                             }
                         }).addTo(map);
                     }).catch(function(err) {
-                        console.error(err);
+                        //console.error(err);
                     }) 
                 }
 
@@ -1016,7 +1016,7 @@ define([
                 
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
-                    console.log("Spinning!!");
+                    //console.log("Spinning!!");
                 }
             } 
 
@@ -1051,7 +1051,7 @@ define([
 
             // Init current position in dataRows
             var curPos = this.curPos = 0;
-            console.log(dataRows);
+            //console.log(dataRows);
 
             _.each(dataRows, function(userData, i) {
                 // Only return if we have > this.chunkSize and not on the first page of results
@@ -1086,7 +1086,7 @@ define([
 
                 // Create Cluster Group
                 if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-                    console.log("Creating cluster group");
+                    //console.log("Creating cluster group");
                     var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                       disableClusteringAtZoomLevel,
                                                       maxClusterRadius,
@@ -1103,7 +1103,7 @@ define([
 
                 // Create Clustered featuregroup subgroup layer
                 if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-                    console.log("Creating Layer Filter")
+                    //console.log("Creating Layer Filter")
                     this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
                                                     'iconStyle' : icon,
                                                     'layerExists' : false,
@@ -1181,9 +1181,6 @@ define([
                         iconSize: markerSize,
                         iconAnchor: markerAnchor,
                     });
-
-                    console.log("SVG:");    
-                    console.log(markerIcon);
                 } else {
                     // Create markerIcon
                     var markerIcon = L.AwesomeMarkers.icon({
@@ -1196,8 +1193,6 @@ define([
                         popupAnchor: popupAnchor,
                         description: description
                     });
-                    console.log("PNG:");    
-                    console.log(markerIcon);
                 }
 
                 if (userData["markerVisibility"]) {
@@ -1355,8 +1350,8 @@ define([
             // Update offset and fetch next chunk of data
             if(this.isSplunkSeven) {
                 this.offset += dataRows.length;
-                console.log("offset: " + this.offset);
-                console.log("Processed?: " + this.allDataProcessed);
+                // //console.log("offset: " + this.offset);
+                // //console.log("Processed?: " + this.allDataProcessed);
                 setTimeout(function(that) {
                     that.updateDataParams({count: that.chunk, offset: that.offset});
                 }, 100, this);

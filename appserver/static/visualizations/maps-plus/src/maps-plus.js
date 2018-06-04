@@ -1167,7 +1167,8 @@ define([
                 if (markerType == "svg") {
 					// Update marker to shade of Awesome Marker blue
 					if(markerColor == "blue") { markerColor = "#38AADD"; }
-					markerColor = this.convertHex(markerColor);
+                    markerColor = this.convertHex(markerColor);
+                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50];
 
                     var markerIcon = L.VectorMarkers.icon({
                         icon: icon,

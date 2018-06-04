@@ -45,7 +45,7 @@ This app is compatible with **Splunk 6.4+** as it relies on the [Custom Visualiz
 # Usage
 ### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup]
+base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup]
 ```
 
 # Required Fields
@@ -97,6 +97,9 @@ Color of map marker. Use any common [HTML color code name](http://www.w3schools.
 
 ##### markerAnchor
 Comma separated string representing the coordinates of the "tip" of the icon (relative to its top left corner). **Default** ``15,50``
+
+##### popupAnchor
+Comma separated string representing the coordinates of the point from which popups will "open", relative to the icon anchor.
 
 ##### shadowSize
 Comma separated string representing the pixel width and height of the marker shadow. You typically don't need to change this value unless you increase or decrese the **markerSize**. Set to ``0,0`` to disable shadows. **Default** ``30,46``

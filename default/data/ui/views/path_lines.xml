@@ -1,0 +1,117 @@
+<form>
+  <label>Path Lines</label>
+  <fieldset submitButton="false">
+    <input type="multiselect" token="taxi_id" searchWhenChanged="true">
+      <label>Taxi ID</label>
+      <choice value="*">All</choice>
+      <prefix>id=</prefix>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR  id=</delimiter>
+      <fieldForLabel>taxi_id</fieldForLabel>
+      <fieldForValue>taxi_id</fieldForValue>
+      <search>
+        <query>| inputlookup taxi-data.csv | stats values(id) as taxi_id | mvexpand taxi_id</query>
+      </search>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="multiselect" token="date_filter" searchWhenChanged="true">
+      <label>Date</label>
+      <choice value="*">All</choice>
+      <prefix>_time=</prefix>
+      <valuePrefix>"</valuePrefix>
+      <valueSuffix>*"</valueSuffix>
+      <delimiter> OR _time=</delimiter>
+      <fieldForLabel>day</fieldForLabel>
+      <fieldForValue>day</fieldForValue>
+      <search>
+        <query>| inputlookup taxi-data.csv | search $taxi_id$ | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | stats values(date) as day | mvexpand day</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Taxi Paths</title>
+      <viz type="maps-plus.maps-plus">
+        <search>
+          <query>| inputlookup taxi-data.csv | eval tooltip=_time | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter$ $taxi_id$</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="maps-plus.maps-plus.allPopups">0</option>
+        <option name="maps-plus.maps-plus.animate">1</option>
+        <option name="maps-plus.maps-plus.autoFitAndZoom">1</option>
+        <option name="maps-plus.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="maps-plus.maps-plus.bingMaps">0</option>
+        <option name="maps-plus.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="maps-plus.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="maps-plus.maps-plus.cluster">1</option>
+        <option name="maps-plus.maps-plus.contextMenu">1</option>
+        <option name="maps-plus.maps-plus.criticalThreshold">80</option>
+        <option name="maps-plus.maps-plus.defaultHeight">600</option>
+        <option name="maps-plus.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="maps-plus.maps-plus.drilldown">0</option>
+        <option name="maps-plus.maps-plus.fullScreen">0</option>
+        <option name="maps-plus.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="maps-plus.maps-plus.googlePlacesSearch">0</option>
+        <option name="maps-plus.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="maps-plus.maps-plus.heatmapBlur">15</option>
+        <option name="maps-plus.maps-plus.heatmapEnable">0</option>
+        <option name="maps-plus.maps-plus.heatmapMaxPointIntensity">1.0</option>
+        <option name="maps-plus.maps-plus.heatmapMaxZoom">0</option>
+        <option name="maps-plus.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="maps-plus.maps-plus.heatmapOnly">0</option>
+        <option name="maps-plus.maps-plus.heatmapRadius">25</option>
+        <option name="maps-plus.maps-plus.layerControl">1</option>
+        <option name="maps-plus.maps-plus.layerControlCollapsed">1</option>
+        <option name="maps-plus.maps-plus.mapCenterLat">39.50</option>
+        <option name="maps-plus.maps-plus.mapCenterLon">-98.35</option>
+        <option name="maps-plus.maps-plus.mapCenterZoom">6</option>
+        <option name="maps-plus.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="maps-plus.maps-plus.maxClusterRadius">80</option>
+        <option name="maps-plus.maps-plus.maxSpiderfySize">100</option>
+        <option name="maps-plus.maps-plus.maxZoom">19</option>
+        <option name="maps-plus.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="maps-plus.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="maps-plus.maps-plus.measureIconPosition">topright</option>
+        <option name="maps-plus.maps-plus.measureLocalization">en</option>
+        <option name="maps-plus.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="maps-plus.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="maps-plus.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="maps-plus.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="maps-plus.maps-plus.measureTool">1</option>
+        <option name="maps-plus.maps-plus.minZoom">1</option>
+        <option name="maps-plus.maps-plus.multiplePopups">0</option>
+        <option name="maps-plus.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="maps-plus.maps-plus.pathIdentifier">date</option>
+        <option name="maps-plus.maps-plus.pathRenderer">canvas</option>
+        <option name="maps-plus.maps-plus.pathSplitInterval">600</option>
+        <option name="maps-plus.maps-plus.pathSplits">1</option>
+        <option name="maps-plus.maps-plus.permanentTooltip">0</option>
+        <option name="maps-plus.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="maps-plus.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="maps-plus.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="maps-plus.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="maps-plus.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="maps-plus.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="maps-plus.maps-plus.refreshInterval">0</option>
+        <option name="maps-plus.maps-plus.scrollWheelZoom">1</option>
+        <option name="maps-plus.maps-plus.showPathLines">1</option>
+        <option name="maps-plus.maps-plus.showProgress">1</option>
+        <option name="maps-plus.maps-plus.singleMarkerMode">0</option>
+        <option name="maps-plus.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="maps-plus.maps-plus.stickyTooltip">1</option>
+        <option name="maps-plus.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+</form>

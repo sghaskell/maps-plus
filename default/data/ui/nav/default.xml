@@ -1,4 +1,16 @@
 <nav search_view="search" color="#3c444c">
   <view name="search" default="true" />
   <view name="dashboards" />
+  <!-- Use the collection tag to create a list of items -->
+    <collection label="Examples">
+
+        <!-- Add items to the list -->
+        <view name="google_streetview_drilldown" />
+        <view name="path_lines" />
+        <!-- Add a nested list with items -->
+        <!-- <collection label="Submenu name"> -->
+        <!--     <view name="dashboard4" /> -->
+        <!--    <view name="dashboard5" /> -->
+        <!-- </collection> -->
+    </collection>
 </nav>

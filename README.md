@@ -19,6 +19,7 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [togeojson](https://github.com/mapbox/togeojson)
 ##### [load-google-maps-api](https://www.npmjs.com/package/load-google-maps-api#usage)
 ##### [load-google-places-autocomplete](https://www.npmjs.com/package/leaflet-google-places-autocomplete)
+##### [load-google-maps-api-2](https://www.npmjs.com/package/load-google-maps-api-2)
 ##### [JSZip](https://stuk.github.io/jszip/)
 ##### [JSZipUtils](http://stuk.github.io/jszip-utils/)
 ##### [Jquery](https://jquery.com/)
@@ -31,6 +32,8 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [Glyphicons](http://glyphicons.com/)
 ##### [Ionicons](https://ionicons.com/)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
+##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
+##### [T-Drive trajectory data sample](https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/)
 
 Big thanks to the following people: 
 

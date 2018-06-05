@@ -501,14 +501,7 @@ define([
 
             return mcg;
         },
-
-        _addHeat: function(heat,
-                           coordinates,
-                           heatmapEnable,
-                           heatmapOnly) {
         
-        },
-
         _addMarker: function(userData,
                              markerIcon,
                              layerDescription,
@@ -716,7 +709,7 @@ define([
                 }
                 
 
-                if (this.isArgTrue(heatmapEnable)) {
+                if (this.isArgTrue(heatmapEnable) && !_.isUndefined(this.heat)) {
                     this.heat.addTo(this.map);
                 }
 

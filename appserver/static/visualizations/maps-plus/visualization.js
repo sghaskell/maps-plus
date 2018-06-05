@@ -553,14 +553,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            return mcg;
 	        },
-
-	        _addHeat: function(heat,
-	                           coordinates,
-	                           heatmapEnable,
-	                           heatmapOnly) {
 	        
-	        },
-
 	        _addMarker: function(userData,
 	                             markerIcon,
 	                             layerDescription,
@@ -768,7 +761,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 	                
 
-	                if (this.isArgTrue(heatmapEnable)) {
+	                if (this.isArgTrue(heatmapEnable) && !_.isUndefined(this.heat)) {
 	                    this.heat.addTo(this.map);
 	                }
 

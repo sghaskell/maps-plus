@@ -1,0 +1,22 @@
+{
+  "name": "google_street_view",
+  "version": "1.0.0",
+  "description": "Google Street View contextual drill-down module",
+  "main": "visualization.js",
+  "scripts": {
+    "build": "node ./node_modules/webpack/bin/webpack.js",
+    "devbuild": "node ./node_modules/webpack/bin/webpack.js --progress",
+    "watch": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
+  },
+  "author": "Splunk",
+  "license": "MIT",
+  "devDependencies": {
+    "imports-loader": "^0.6.5",
+    "webpack": "^1.12.6"
+  },
+  "dependencies": {
+    "jquery": "^2.2.0",
+    "underscore": "^1.8.3",
+    "load-google-maps-api-2": "^1.0.2"
+  }
+}

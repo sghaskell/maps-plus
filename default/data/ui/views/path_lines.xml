@@ -88,7 +88,7 @@
         <option name="maps-plus.maps-plus.minZoom">1</option>
         <option name="maps-plus.maps-plus.multiplePopups">0</option>
         <option name="maps-plus.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="maps-plus.maps-plus.pathIdentifier">date</option>
+        <option name="maps-plus.maps-plus.pathIdentifier">id</option>
         <option name="maps-plus.maps-plus.pathRenderer">canvas</option>
         <option name="maps-plus.maps-plus.pathSplitInterval">600</option>
         <option name="maps-plus.maps-plus.pathSplits">1</option>

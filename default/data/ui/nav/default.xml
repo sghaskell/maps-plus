@@ -7,6 +7,7 @@
         <!-- Add items to the list -->
         <view name="google_streetview_drilldown" />
         <view name="path_lines" />
+        <view name="heatmap" />
         <!-- Add a nested list with items -->
         <!-- <collection label="Submenu name"> -->
         <!--     <view name="dashboard4" /> -->

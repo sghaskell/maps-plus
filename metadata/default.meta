@@ -39,3 +39,6 @@ export = system
 # Un-comment the stanza below to make the standin visualization available to all apps.
 [visualizations/maps-plus]
 export = system
+
+[visualizations/google-street-view]
+export = system

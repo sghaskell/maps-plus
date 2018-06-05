@@ -32,6 +32,8 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [Glyphicons](http://glyphicons.com/)
 ##### [Ionicons](https://ionicons.com/)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
+##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
+##### [T-Drive trajectory data sample](https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/)
 
 Big thanks to the following people: 
 

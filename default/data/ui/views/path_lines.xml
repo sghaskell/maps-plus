@@ -3,7 +3,7 @@
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
-      <title>Canvas Renderer, No Splits, Auto Fit &amp; Zoom</title>
+      <title>Canvas Renderer, No Splits, Auto Fit &amp; Zoom, tooltip, description</title>
       <input type="multiselect" token="track_id_viz_1" searchWhenChanged="true">
         <label>Vehicle ID</label>
         <choice value="*">All</choice>
@@ -21,10 +21,10 @@
       <input type="multiselect" token="date_filter_viz_1" searchWhenChanged="true">
         <label>Date</label>
         <choice value="*">All</choice>
-        <prefix>_time=</prefix>
+        <prefix>date=</prefix>
         <valuePrefix>"</valuePrefix>
-        <valueSuffix>*"</valueSuffix>
-        <delimiter> OR _time=</delimiter>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR date=</delimiter>
         <fieldForLabel>day</fieldForLabel>
         <fieldForValue>day</fieldForValue>
         <search>
@@ -36,7 +36,7 @@
       </input>
       <viz type="maps-plus.maps-plus">
         <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $date_filter_viz_1$ $track_id_viz_1$ | eval id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description</query>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_1$ $track_id_viz_1$ | eval id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -115,7 +115,7 @@
   </row>
   <row>
     <panel>
-      <title>SVG Renderer, 10 Second Splits, Auto Fit &amp; Zoom</title>
+      <title>SVG Renderer, 10 Second Splits, Auto Fit &amp; Zoom, tooltip</title>
       <input type="multiselect" token="track_id_viz_2" searchWhenChanged="true">
         <label>Taxi ID</label>
         <choice value="*">All</choice>
@@ -133,10 +133,10 @@
       <input type="multiselect" token="date_filter_viz_2" searchWhenChanged="true">
         <label>Date</label>
         <choice value="*">All</choice>
-        <prefix>_time=</prefix>
+        <prefix>date=</prefix>
         <valuePrefix>"</valuePrefix>
-        <valueSuffix>*"</valueSuffix>
-        <delimiter> OR _time=</delimiter>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR date=</delimiter>
         <fieldForLabel>day</fieldForLabel>
         <fieldForValue>day</fieldForValue>
         <search>
@@ -144,11 +144,11 @@
           <earliest>-24h@h</earliest>
           <latest>now</latest>
         </search>
-        <initialValue>*</initialValue>
+        <initialValue>2014-09-17</initialValue>
       </input>
       <viz type="maps-plus.maps-plus">
         <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $date_filter_viz_2$ $track_id_viz_2$ | eval id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description</query>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_2$ $track_id_viz_2$ | eval id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -227,7 +227,7 @@
   </row>
   <row>
     <panel>
-      <title>Canvas Renderer, No Splits, Hidden Markers, Auto Fit &amp; Zoom</title>
+      <title>Canvas Renderer, No Splits, Hidden Markers, Auto Fit &amp; Zoom, pathWeight, pathColor, pathOpacity, tooltip,</title>
       <input type="multiselect" token="track_id_viz_3" searchWhenChanged="true">
         <label>Vehicle ID</label>
         <choice value="*">All</choice>
@@ -240,15 +240,15 @@
         <search>
           <query>| inputlookup go_track_trackspoints.csv | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ | stats values(track_id) as track_id | mvexpand track_id | sort +track_id</query>
         </search>
-        <initialValue>*</initialValue>
+        <initialValue>16,17,20,22,23</initialValue>
       </input>
       <input type="multiselect" token="date_filter_viz_3" searchWhenChanged="true">
         <label>Date</label>
         <choice value="*">All</choice>
-        <prefix>_time=</prefix>
+        <prefix>date=</prefix>
         <valuePrefix>"</valuePrefix>
-        <valueSuffix>*"</valueSuffix>
-        <delimiter> OR _time=</delimiter>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR date=</delimiter>
         <fieldForLabel>day</fieldForLabel>
         <fieldForValue>day</fieldForValue>
         <search>
@@ -260,7 +260,7 @@
       </input>
       <viz type="maps-plus.maps-plus">
         <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description</query>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description, pathColor=case(like(id, "16"), "#e50de5"), pathWeight=case(like(id, "16"), "20"), pathOpacity=case(like(id, "16"), "1.0")</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -295,7 +295,7 @@
         <option name="maps-plus.maps-plus.mapCenterLat">-10.698394</option>
         <option name="maps-plus.maps-plus.mapCenterLon">-37.026672</option>
         <option name="maps-plus.maps-plus.mapCenterZoom">9</option>
-        <option name="maps-plus.maps-plus.mapTile">http://tile.stamen.com/toner/{z}/{x}/{y}.png</option>
+        <option name="maps-plus.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
         <option name="maps-plus.maps-plus.maxClusterRadius">80</option>
         <option name="maps-plus.maps-plus.maxSpiderfySize">100</option>
         <option name="maps-plus.maps-plus.maxZoom">19</option>

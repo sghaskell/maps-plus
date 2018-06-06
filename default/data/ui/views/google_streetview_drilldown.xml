@@ -4,7 +4,7 @@
   <row>
     <panel>
       <html>
-    Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates below the map.
+    Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates.
     </html>
     </panel>
   </row>
@@ -104,8 +104,6 @@
         </drilldown>
       </viz>
     </panel>
-  </row>
-  <row>
     <panel>
       <viz depends="$coordinates$" type="maps-plus.google-street-view">
         <title>Street View of $coordinates$</title>

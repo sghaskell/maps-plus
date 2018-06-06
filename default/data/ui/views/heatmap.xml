@@ -102,7 +102,7 @@
       <title>Heatmap With Markers</title>
       <viz type="maps-plus.maps-plus">
         <search>
-          <query>| inputlookup taxi-data.csv</query>
+          <query>| inputlookup go_track_trackspoints.csv</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -110,7 +110,7 @@
         <option name="drilldown">none</option>
         <option name="maps-plus.maps-plus.allPopups">0</option>
         <option name="maps-plus.maps-plus.animate">1</option>
-        <option name="maps-plus.maps-plus.autoFitAndZoom">1</option>
+        <option name="maps-plus.maps-plus.autoFitAndZoom">0</option>
         <option name="maps-plus.maps-plus.autoFitAndZoomDelay">500</option>
         <option name="maps-plus.maps-plus.bingMaps">0</option>
         <option name="maps-plus.maps-plus.bingMapsLabelLanguage">en-US</option>
@@ -134,8 +134,8 @@
         <option name="maps-plus.maps-plus.heatmapRadius">12.5</option>
         <option name="maps-plus.maps-plus.layerControl">1</option>
         <option name="maps-plus.maps-plus.layerControlCollapsed">1</option>
-        <option name="maps-plus.maps-plus.mapCenterLat">39.740986</option>
-        <option name="maps-plus.maps-plus.mapCenterLon">116.630859</option>
+        <option name="maps-plus.maps-plus.mapCenterLat">-10.838701</option>
+        <option name="maps-plus.maps-plus.mapCenterLon">-36.904449</option>
         <option name="maps-plus.maps-plus.mapCenterZoom">9</option>
         <option name="maps-plus.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
         <option name="maps-plus.maps-plus.maxClusterRadius">80</option>

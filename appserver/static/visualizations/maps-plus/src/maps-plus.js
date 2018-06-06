@@ -15,7 +15,7 @@ define([
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
-            'leaflet.heat',
+            'simpleheat',
             '../contrib/leaflet.spin',
             '../contrib/leaflet.featuregroup.subgroup-src',
             '../contrib/leaflet-measure',

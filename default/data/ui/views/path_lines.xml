@@ -5,7 +5,7 @@
     <panel>
       <title>Canvas Renderer Without Splits</title>
       <input type="multiselect" token="track_id" searchWhenChanged="true">
-        <label>Taxi ID</label>
+        <label>Vehicle ID</label>
         <choice value="*">All</choice>
         <prefix>track_id=</prefix>
         <valuePrefix>"</valuePrefix>

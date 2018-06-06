@@ -765,10 +765,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    this.heat.addTo(this.map);
 	                }
 
-	                if (this.isArgTrue(showPathLines)) {
-	                    setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
-	                } else {
-	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
+	                if(this.isArgTrue(autoFitAndZoom)) {
+	                    if (this.isArgTrue(showPathLines)) {
+	                        setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
+	                    } else {
+	                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
+	                    }
 	                }
 
 	                //console.log(this.heatMarkers);

@@ -242,6 +242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
+	                               'heatPointIntensity',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -1119,7 +1120,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']));
+	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
+	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
 	                    this.heat.addLatLng(this.heatLatLng);
 	                    this.heatMarkers += 1;
 	                    

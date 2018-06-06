@@ -425,4 +425,4 @@ Time in seconds by which path segments are defined. Higher values result in a mo
 
 # Support
 ###### This app is supported by Scott Haskell ([shaskell@splunk.com](mailto:shaskell@splunk.com))
-###### [Code hosted at Github](https://github.com/sghaskell/Clustered-Single-Value-Map-Visualization)
+###### [Code hosted at Github](https://github.com/sghaskell/maps-plus)

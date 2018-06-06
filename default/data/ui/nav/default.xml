@@ -1,6 +1,4 @@
 <nav search_view="search" color="#3c444c">
-  <view name="search" default="true" />
-  <view name="dashboards" />
   <!-- Use the collection tag to create a list of items -->
     <collection label="Examples">
 
@@ -14,4 +12,6 @@
         <!--    <view name="dashboard5" /> -->
         <!-- </collection> -->
     </collection>
+  <view name="help" />
+  <view name="search" default="true" />
 </nav>

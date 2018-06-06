@@ -317,12 +317,14 @@ define([
         showCoordinates: function (e) {
             var coordinates = e.latlng.toString().match(/([-\d\.]+)/g);
             var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g);
+            var curZoom = this.map.getZoom();
             var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
                   "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
+                  "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
                   "<br></br>Copy and paste the following values into Format menu to change <b>Center Lat</b> and <b>Center Lon</b> (visualization API does not currently support programmatically setting format menu options):<br>" +
                   "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
                   "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">";
-            var dialog = L.control.dialog({size: [300,375], anchor: [100, 500]})
+            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
               .setContent(content)
               .addTo(this.map);
         },

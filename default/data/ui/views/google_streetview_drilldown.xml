@@ -1,24 +1,30 @@
 <form>
   <label>Google Streetview Drilldown</label>
-  <fieldset submitButton="false">
-    <input type="multiselect" token="desc">
-      <label>Infraction</label>
-      <choice value="*">All</choice>
-      <valuePrefix>"</valuePrefix>
-      <valueSuffix>"</valueSuffix>
-      <delimiter> OR </delimiter>
-      <fieldForLabel>desc_vals</fieldForLabel>
-      <fieldForValue>desc_vals</fieldForValue>
-      <search>
-        <query>| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals</query>
-        <earliest>-24h@h</earliest>
-        <latest>now</latest>
-      </search>
-      <initialValue>*</initialValue>
-    </input>
-  </fieldset>
+  <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
+      <html>
+    Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates below the map.
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="multiselect" token="desc">
+        <label>Infraction</label>
+        <choice value="*">All</choice>
+        <valuePrefix>"</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR </delimiter>
+        <fieldForLabel>desc_vals</fieldForLabel>
+        <fieldForValue>desc_vals</fieldForValue>
+        <search>
+          <query>| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <initialValue>*</initialValue>
+      </input>
       <viz type="maps-plus.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv | search description=$desc$ | eval tooltip=description, coordinates=latitude.",".longitude</query>

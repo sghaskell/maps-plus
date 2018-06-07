@@ -52,7 +52,7 @@ This app is compatible with **Splunk 6.4+** as it relies on the [Custom Visualiz
 # Usage
 ### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatPointIntensity]
+base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatLayer | heatPointIntensity]
 ```
 
 # Required Fields
@@ -121,6 +121,16 @@ Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssr
 
 ##### extraClasses
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome to change the styling.
+
+# Heatmaps
+Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatLayer` field.
+
+### Available Fields and Values
+##### heatLayer
+Name of the heatmap layer to render.
+
+##### heatPointIntensity
+Control the intensity of the point. (Default: 1.0)
 
 # Path Tracing
 If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the format menu. Note that ``_time`` must be present for split intervals to work.
@@ -338,6 +348,34 @@ Open the tooltip permanently or only on mouseover. Depends on tooltip field in s
 ###### Sticky Tooltip
 Tooltip follows mouse instead of fixed position.
 
+### Heatmap
+###### Enable Heatmap
+Enable or disable heatmap.
+###### Heatmap Only
+Only show the heatmap. No markers will be rendered.
+###### Min Opacity
+Minimum opacity the heat will start at. (Default: 1.0)
+###### Max Zoom
+Zoom level where the points reach maximum intensity. (Default: Max Zoom of map)
+###### Radius
+Max point intensity. (Default: 1.0)
+###### Blur
+Amount of blur. (Default: 15)
+
+### Path Lines
+###### Path Lines
+Draw path lines on map for markers that have multiple coordinates.
+###### Renderer
+Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support
+###### Path Identifier
+Field used to distinguish unique paths, e.g. vehicle number or trip ID
+###### Path Colors
+Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)
+###### Path Splits
+Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
+###### Path Split Interval
+Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)
+
 ### Google Places
 ###### Google Places Search
 Enable or disable Google Places API search control.
@@ -408,20 +446,6 @@ Secondary unit for area measurement (Default: square miles)
 Color of measurement when actively drawing (Default: #00ff00)
 ###### Completed Color
 Color of measurement when drawing is complete (Default: #0066ff)
-
-### Path Lines
-###### Path Lines
-Draw path lines on map for markers that have multiple coordinates.
-###### Renderer
-Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support
-###### Path Identifier
-Field used to distinguish unique paths, e.g. vehicle number or trip ID
-###### Path Colors
-Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)
-###### Path Splits
-Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
-###### Path Split Interval
-Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)
 
 # Support
 ###### This app is supported by Scott Haskell ([shaskell@splunk.com](mailto:shaskell@splunk.com))

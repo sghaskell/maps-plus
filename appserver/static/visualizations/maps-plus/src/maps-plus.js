@@ -107,7 +107,6 @@ define([
             'display.visualizations.custom.maps-plus.maps-plus.heatmapOnly': 0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapMinOpacity': 1.0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
-            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxPointIntensity': 1.0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
             'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
@@ -191,6 +190,7 @@ define([
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
+                               'heatLayer',
                                'heatPointIntensity',
                                '_time'];
             $.each(obj, function(key, value) {
@@ -695,7 +695,6 @@ define([
                 heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
                 heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
                 heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
-                heatmapMaxPointIntensity = parseFloat(this._getEscapedProperty('heatmapMaxPointIntensity', config)),
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
                 showProgress = parseInt(this._getEscapedProperty('showProgress', config));
@@ -713,8 +712,10 @@ define([
                 }
                 
 
-                if (this.isArgTrue(heatmapEnable) && !_.isUndefined(this.heat)) {
-                    this.heat.addTo(this.map);
+                if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                    _.each(this.heatLayers, function(heat) {
+                        heat.addTo(this.map);    
+                    }, this)
                 }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
@@ -992,15 +993,15 @@ define([
                 
                 var pathLineLayer = this.pathLineLayer = L.layerGroup();
                 
-                // Heatmap
-                if (this.isArgTrue(heatmapEnable)) {
-                    var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-                                                            maxZoom: heatmapMaxZoom,
-                                                            //max: heatmapMaxPointIntensity,
-                                                            radius: heatmapRadius,
-                                                            blur: heatmapBlur});
-                                                            //blur: heatmapBlur}).addTo(this.map);
-                }
+                var heatLayers = this.heatLayers = {};
+                // // Heatmap
+                // if (this.isArgTrue(heatmapEnable)) {
+                //     var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                //                                             maxZoom: heatmapMaxZoom,
+                //                                             radius: heatmapRadius,
+                //                                             blur: heatmapBlur});
+                //                                             //blur: heatmapBlur}).addTo(this.map);
+                // }
                
                 // Init defaults
                 if(this.isSplunkSeven) {
@@ -1069,10 +1070,21 @@ define([
 
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
+                    var heatLayer = this.heatLayer = _.has(userData, "heatLayer") ? userData["heatLayer"]:"default";
+
+                    if(!_.has(this.heatLayers, this.heatLayer)) {
+                        // Create heat layer
+                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                                                                           maxZoom: heatmapMaxZoom,
+                                                                           radius: heatmapRadius,
+                                                                           blur: heatmapBlur});
+                                                                    //blur: heatmapBlur}).addTo(this.map);
+                    }
+
                     var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
                     var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
                     console.log(heatLatLng);
-                    this.heat.addLatLng(this.heatLatLng);
+                    this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
                     this.heatMarkers += 1;
                     
                     if(this.isArgTrue(heatmapOnly)) {

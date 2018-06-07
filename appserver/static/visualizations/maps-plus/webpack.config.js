@@ -19,6 +19,10 @@ module.exports = {
                 loader: 'imports-loader?L=leaflet'
             },
             {
+                test: /HeatLayer\.js$/,
+                loaders: ['imports-loader?L=leaflet', 'imports-loader?simpleheat']
+            },
+            {
                 test: /leaflet\.awesome-markers\.js$/,
                 loader: 'imports-loader?L=leaflet'
             },

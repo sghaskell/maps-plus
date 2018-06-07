@@ -159,7 +159,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapOnly': 0,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMinOpacity': 1.0,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
-	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxPointIntensity': 1.0,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
 	            'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
@@ -747,7 +746,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
 	                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
 	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
-	                heatmapMaxPointIntensity = parseFloat(this._getEscapedProperty('heatmapMaxPointIntensity', config)),
 	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
 	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
 	                showProgress = parseInt(this._getEscapedProperty('showProgress', config));
@@ -1048,7 +1046,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
 	                                                            maxZoom: heatmapMaxZoom,
-	                                                            //max: heatmapMaxPointIntensity,
 	                                                            radius: heatmapRadius,
 	                                                            blur: heatmapBlur});
 	                                                            //blur: heatmapBlur}).addTo(this.map);

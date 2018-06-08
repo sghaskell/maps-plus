@@ -1,5 +1,5 @@
 <form>
-  <label>Google Streetview Drilldown</label>
+  <label>Google Street View Drilldown</label>
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>

@@ -67,4 +67,5 @@ display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom = <int>
 display.visualizations.custom.maps-plus.maps-plus.heatmapMaxPointIntensity = <float>
 display.visualizations.custom.maps-plus.maps-plus.heatmapRadius = <int>
 display.visualizations.custom.maps-plus.maps-plus.heatmapBlur = <int> 
+display.visualizations.custom.maps-plus.maps-plus.heatmapColorGradient = <string>
 display.visualizations.custom.maps-plus.maps-plus.showProgress = <int>

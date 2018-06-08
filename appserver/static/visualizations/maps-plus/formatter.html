@@ -288,20 +288,6 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label">Max Zoom</label>
-            <div class="controls controls-fill ">
-                <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapMaxZoom" value="0"></splunk-text-input>
-                <span class="help-block ">Zoom level where the points reach maximum intensity. (Default: Max Zoom of map)</span> 
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">Max Point Intensity</label>
-            <div class="controls controls-fill ">
-                <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapMaxPointIntensity" value="1.0"></splunk-text-input>
-                <span class="help-block ">Max point intensity. (Default: 1.0)</span> 
-            </div>
-        </div>
-        <div class="control-group">
             <label class="control-label">Radius</label>
             <div class="controls controls-fill ">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapRadius" value="25"></splunk-text-input>
@@ -315,12 +301,13 @@
                 <span class="help-block ">Amount of blur. (Default: 15)</span> 
             </div>
         </div>
-        <!--
-        <splunk-control-group label="Color Gradient">
-            <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapColorGradient" value="{.4:'blue',.6:'cyan',.7:'lime',.8:'yellow',1:'red'}"></splunk-text-input>
-            <span class="help-block ">Color gradient - {0.4: 'blue', 0.65: 'lime', 1: 'red'} (Default: {.4:"blue",.6:"cyan",.7:"lime",.8:"yellow",1:"red"})</span> 
-        </splunk-control-group>
-        -->
+        <div class="control-group">
+            <label class="control-label">Color Gradient</label>
+            <div class="controls controls-fill ">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapColorGradient" value='{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}'></splunk-text-input>
+                <span class="help-block ">(Default: {"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})</span>
+            </div>
+        </div>
     </form>
     <form class="splunk-formatter-section" section-label="Path Lines">
         <div class="control-group">

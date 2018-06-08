@@ -41,8 +41,6 @@ define([
         maxResults: 0,
         tileLayer: null,
         mapOptions: {},
-        heatMarkers: 0,
-        markerCount: 0,
         contribUri: '/en-US/static/app/maps-plus/visualizations/maps-plus/contrib/',
         defaultConfig:  {
             'display.visualizations.custom.maps-plus.maps-plus.cluster': 1,
@@ -107,9 +105,9 @@ define([
             'display.visualizations.custom.maps-plus.maps-plus.heatmapOnly': 0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapMinOpacity': 1.0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
-            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxPointIntensity': 1.0,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
+            'display.visualizations.custom.maps-plus.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
             'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
         },
         ATTRIBUTIONS: {
@@ -191,7 +189,13 @@ define([
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
-                               'heatPointIntensity',
+                               'heamaptLayer',
+                               'heatmapPointIntensity',
+                               'heatmapMinOpacity',
+                               'heatmapMaxZoom',
+                               'heatmapRadius',
+                               'heatmapBlur',
+                               'heatmapColorGradient',
                                '_time'];
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
@@ -200,6 +204,16 @@ define([
             });
 
             return(invalidFields);
+        },
+
+        _stringToJSON: function(value) {
+            var cleanJSON = value.replace(/'/g, '"');
+            return JSON.parse(cleanJSON);
+        },
+
+        _getProperty: function(name, config) {
+            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
+            return propertyValue;
         },
 
         _getEscapedProperty: function(name, config) {
@@ -695,9 +709,9 @@ define([
                 heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
                 heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
                 heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
-                heatmapMaxPointIntensity = parseFloat(this._getEscapedProperty('heatmapMaxPointIntensity', config)),
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
+                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
                 showProgress = parseInt(this._getEscapedProperty('showProgress', config));
 
             // Auto Fit & Zoom once we've processed all data
@@ -712,9 +726,11 @@ define([
                     }
                 }
                 
-
-                if (this.isArgTrue(heatmapEnable) && !_.isUndefined(this.heat)) {
-                    this.heat.addTo(this.map);
+                // Render hetmap layer on map
+                if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                    _.each(this.heatLayers, function(heat) {
+                        heat.addTo(this.map);    
+                    }, this)
                 }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
@@ -992,15 +1008,8 @@ define([
                 
                 var pathLineLayer = this.pathLineLayer = L.layerGroup();
                 
-                // Heatmap
-                if (this.isArgTrue(heatmapEnable)) {
-                    var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-                                                            maxZoom: heatmapMaxZoom,
-                                                            //max: heatmapMaxPointIntensity,
-                                                            radius: heatmapRadius,
-                                                            blur: heatmapBlur});
-                                                            //blur: heatmapBlur}).addTo(this.map);
-                }
+                // Store heatmap layers
+                var heatLayers = this.heatLayers = {};
                
                 // Init defaults
                 if(this.isSplunkSeven) {
@@ -1069,11 +1078,25 @@ define([
 
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
-                    var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
+                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
+                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity;
+                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? parseFloat(serData["heatmapMaxZoom"]):heatmapMaxZoom;
+                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius;
+                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur;
+                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
+                    
+                    if(!_.has(this.heatLayers, this.heatLayer)) {
+                        // Create heat layer
+                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                                                                           maxZoom: heatmapMaxZoom,
+                                                                           radius: heatmapRadius,
+                                                                           gradient: heatmapColorGradient,
+                                                                           blur: heatmapBlur});
+                    }
+
+                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0;
                     var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
-                    console.log(heatLatLng);
-                    this.heat.addLatLng(this.heatLatLng);
-                    this.heatMarkers += 1;
+                    this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
                     
                     if(this.isArgTrue(heatmapOnly)) {
                         return;
@@ -1212,7 +1235,6 @@ define([
                                         tooltip,
 										title,
                                         drilldown);
-                        this.markerCount += 1;
                     }
                 } else {
                     this._addMarker(userData,
@@ -1228,14 +1250,9 @@ define([
                                     tooltip,
 									title,
                                     drilldown);
-                    this.markerCount += 1;
                 }
             }, this);
             
-            // if (this.isArgTrue(heatmapEnable)) {
-            //     this.heat.addTo(this.map);
-            // }
-
             // Enable/disable layer controls and toggle collapse 
             if (this.isArgTrue(layerControl)) {           
                 this.control.addTo(this.map);
@@ -1378,6 +1395,20 @@ define([
                         } else {
                             setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
                         }
+                    }
+
+                    // Render hetmap layer on map
+                    if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                        _.each(this.heatLayers, function(heat) {
+                            heat.addTo(this.map);    
+                        }, this)
+                    }
+
+                    // Dashboard refresh
+                    if(refreshInterval > 0) {
+                        setTimeout(function() {
+                            location.reload();
+                        }, refreshInterval);
                     }
                 }
             }

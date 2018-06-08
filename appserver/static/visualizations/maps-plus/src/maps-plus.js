@@ -41,8 +41,6 @@ define([
         maxResults: 0,
         tileLayer: null,
         mapOptions: {},
-        heatMarkers: 0,
-        markerCount: 0,
         contribUri: '/en-US/static/app/maps-plus/visualizations/maps-plus/contrib/',
         defaultConfig:  {
             'display.visualizations.custom.maps-plus.maps-plus.cluster': 1,
@@ -109,6 +107,7 @@ define([
             'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
             'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
             'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
+            'display.visualizations.custom.maps-plus.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
             'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
         },
         ATTRIBUTIONS: {
@@ -200,6 +199,12 @@ define([
             });
 
             return(invalidFields);
+        },
+
+        _getJSONString: function(name, config) {
+            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
+            var cleanJSON = propertyValue.replace(/'/g, '"');
+            return cleanJSON;
         },
 
         _getEscapedProperty: function(name, config) {
@@ -697,6 +702,7 @@ define([
                 heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
+                heatmapColorGradient = JSON.parse(this._getJSONString('heatmapColorGradient', config)),
                 showProgress = parseInt(this._getEscapedProperty('showProgress', config));
 
             // Auto Fit & Zoom once we've processed all data
@@ -711,7 +717,7 @@ define([
                     }
                 }
                 
-
+                // Render hetmap layer on map
                 if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
                     _.each(this.heatLayers, function(heat) {
                         heat.addTo(this.map);    
@@ -993,15 +999,8 @@ define([
                 
                 var pathLineLayer = this.pathLineLayer = L.layerGroup();
                 
+                // Store heatmap layers
                 var heatLayers = this.heatLayers = {};
-                // // Heatmap
-                // if (this.isArgTrue(heatmapEnable)) {
-                //     var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-                //                                             maxZoom: heatmapMaxZoom,
-                //                                             radius: heatmapRadius,
-                //                                             blur: heatmapBlur});
-                //                                             //blur: heatmapBlur}).addTo(this.map);
-                // }
                
                 // Init defaults
                 if(this.isSplunkSeven) {
@@ -1074,18 +1073,17 @@ define([
 
                     if(!_.has(this.heatLayers, this.heatLayer)) {
                         // Create heat layer
+                        console.log("color gradient: " + heatmapColorGradient);
                         this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
                                                                            maxZoom: heatmapMaxZoom,
                                                                            radius: heatmapRadius,
+                                                                           gradient: heatmapColorGradient,
                                                                            blur: heatmapBlur});
-                                                                    //blur: heatmapBlur}).addTo(this.map);
                     }
 
                     var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
                     var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
-                    console.log(heatLatLng);
                     this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
-                    this.heatMarkers += 1;
                     
                     if(this.isArgTrue(heatmapOnly)) {
                         return;
@@ -1224,7 +1222,6 @@ define([
                                         tooltip,
 										title,
                                         drilldown);
-                        this.markerCount += 1;
                     }
                 } else {
                     this._addMarker(userData,
@@ -1240,14 +1237,9 @@ define([
                                     tooltip,
 									title,
                                     drilldown);
-                    this.markerCount += 1;
                 }
             }, this);
             
-            // if (this.isArgTrue(heatmapEnable)) {
-            //     this.heat.addTo(this.map);
-            // }
-
             // Enable/disable layer controls and toggle collapse 
             if (this.isArgTrue(layerControl)) {           
                 this.control.addTo(this.map);
@@ -1390,6 +1382,20 @@ define([
                         } else {
                             setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
                         }
+                    }
+
+                    // Render hetmap layer on map
+                    if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                        _.each(this.heatLayers, function(heat) {
+                            heat.addTo(this.map);    
+                        }, this)
+                    }
+
+                    // Dashboard refresh
+                    if(refreshInterval > 0) {
+                        setTimeout(function() {
+                            location.reload();
+                        }, refreshInterval);
                     }
                 }
             }

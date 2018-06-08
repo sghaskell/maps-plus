@@ -133,7 +133,7 @@ Name of the heatmap layer to render.
 Control the intensity of the point. (Default: 1.0)
 
 # Path Tracing
-If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the format menu. Note that ``_time`` must be present for split intervals to work.
+If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the [format menu options](#path-lines). Note that ``_time`` must be present for split intervals to work.
 
 ### Available Fields and Values
 ##### markerVisibility
@@ -361,6 +361,8 @@ Zoom level where the points reach maximum intensity. (Default: Max Zoom of map)
 Max point intensity. (Default: 1.0)
 ###### Blur
 Amount of blur. (Default: 15)
+###### Color Gradient
+(Default: {"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})
 
 ### Path Lines
 ###### Path Lines

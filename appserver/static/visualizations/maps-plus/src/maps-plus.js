@@ -1414,6 +1414,12 @@ define([
                             location.reload();
                         }, refreshInterval);
                     }
+
+                    if(this.isArgTrue(showProgress)) {
+                        if(!_.isUndefined(this.map)) {
+                            this.map.spin(false);
+                        }
+                    }
                 }
             }
 

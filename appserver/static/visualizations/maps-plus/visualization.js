@@ -259,6 +259,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        },
 
 	        _stringToJSON: function(value) {
+	            if(_.isUndefined(value)) {
+	                return;
+	            }
+	            
 	            var cleanJSON = value.replace(/'/g, '"');
 	            return JSON.parse(cleanJSON);
 	        },

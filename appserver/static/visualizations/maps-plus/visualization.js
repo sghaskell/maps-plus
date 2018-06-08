@@ -1131,12 +1131,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
-	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? userData["heatmapMinOpacity"]:heatmapMinOpacity;
-	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? userData["heatmapMaxZoom"]:heatmapMaxZoom;
-	                    heatmapRadius = _.has(userData, "heatmapRadius") ? userData["heatmapRadius"]:heatmapRadius;
-	                    heatmapBlur = _.has(userData, "heatmapBlur") ? userData["heatmapBlur"]:heatmapBlur;
+	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity;
+	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? parseFloat(serData["heatmapMaxZoom"]):heatmapMaxZoom;
+	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius;
+	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur;
 	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
-
+	                    
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
 	                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,

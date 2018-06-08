@@ -93,8 +93,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        maxResults: 0,
 	        tileLayer: null,
 	        mapOptions: {},
-	        heatMarkers: 0,
-	        markerCount: 0,
 	        contribUri: '/en-US/static/app/maps-plus/visualizations/maps-plus/contrib/',
 	        defaultConfig:  {
 	            'display.visualizations.custom.maps-plus.maps-plus.cluster': 1,
@@ -161,6 +159,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapMaxZoom': null, 
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapRadius': 25,
 	            'display.visualizations.custom.maps-plus.maps-plus.heatmapBlur': 15,
+	            'display.visualizations.custom.maps-plus.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
 	            'display.visualizations.custom.maps-plus.maps-plus.showProgress': 1
 	        },
 	        ATTRIBUTIONS: {
@@ -242,8 +241,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
-	                               'heatLayer',
-	                               'heatPointIntensity',
+	                               'heamaptLayer',
+	                               'heatmapPointIntensity',
+	                               'heatmapMinOpacity',
+	                               'heatmapMaxZoom',
+	                               'heatmapRadius',
+	                               'heatmapBlur',
+	                               'heatmapColorGradient',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -252,6 +256,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            });
 
 	            return(invalidFields);
+	        },
+
+	        _stringToJSON: function(value) {
+	            var cleanJSON = value.replace(/'/g, '"');
+	            return JSON.parse(cleanJSON);
+	        },
+
+	        _getProperty: function(name, config) {
+	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
+	            return propertyValue;
 	        },
 
 	        _getEscapedProperty: function(name, config) {
@@ -749,6 +763,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
 	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
 	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
+	                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
 	                showProgress = parseInt(this._getEscapedProperty('showProgress', config));
 
 	            // Auto Fit & Zoom once we've processed all data
@@ -763,7 +778,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    }
 	                }
 	                
-
+	                // Render hetmap layer on map
 	                if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
 	                    _.each(this.heatLayers, function(heat) {
 	                        heat.addTo(this.map);    
@@ -1045,15 +1060,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                
 	                var pathLineLayer = this.pathLineLayer = L.layerGroup();
 	                
+	                // Store heatmap layers
 	                var heatLayers = this.heatLayers = {};
-	                // // Heatmap
-	                // if (this.isArgTrue(heatmapEnable)) {
-	                //     var heat = this.heat = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-	                //                                             maxZoom: heatmapMaxZoom,
-	                //                                             radius: heatmapRadius,
-	                //                                             blur: heatmapBlur});
-	                //                                             //blur: heatmapBlur}).addTo(this.map);
-	                // }
 	               
 	                // Init defaults
 	                if(this.isSplunkSeven) {
@@ -1122,22 +1130,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLayer = this.heatLayer = _.has(userData, "heatLayer") ? userData["heatLayer"]:"default";
+	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
+	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? userData["heatmapMinOpacity"]:heatmapMinOpacity;
+	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? userData["heatmapMaxZoom"]:heatmapMaxZoom;
+	                    heatmapRadius = _.has(userData, "heatmapRadius") ? userData["heatmapRadius"]:heatmapRadius;
+	                    heatmapBlur = _.has(userData, "heatmapBlur") ? userData["heatmapBlur"]:heatmapBlur;
+	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
 
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
 	                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
 	                                                                           maxZoom: heatmapMaxZoom,
 	                                                                           radius: heatmapRadius,
+	                                                                           gradient: heatmapColorGradient,
 	                                                                           blur: heatmapBlur});
-	                                                                    //blur: heatmapBlur}).addTo(this.map);
 	                    }
 
-	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
+	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0;
 	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
-	                    console.log(heatLatLng);
 	                    this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
-	                    this.heatMarkers += 1;
 	                    
 	                    if(this.isArgTrue(heatmapOnly)) {
 	                        return;
@@ -1276,7 +1287,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                        tooltip,
 											title,
 	                                        drilldown);
-	                        this.markerCount += 1;
 	                    }
 	                } else {
 	                    this._addMarker(userData,
@@ -1292,14 +1302,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                    tooltip,
 										title,
 	                                    drilldown);
-	                    this.markerCount += 1;
 	                }
 	            }, this);
 	            
-	            // if (this.isArgTrue(heatmapEnable)) {
-	            //     this.heat.addTo(this.map);
-	            // }
-
 	            // Enable/disable layer controls and toggle collapse 
 	            if (this.isArgTrue(layerControl)) {           
 	                this.control.addTo(this.map);
@@ -1442,6 +1447,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                        } else {
 	                            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
 	                        }
+	                    }
+
+	                    // Render hetmap layer on map
+	                    if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+	                        _.each(this.heatLayers, function(heat) {
+	                            heat.addTo(this.map);    
+	                        }, this)
+	                    }
+
+	                    // Dashboard refresh
+	                    if(refreshInterval > 0) {
+	                        setTimeout(function() {
+	                            location.reload();
+	                        }, refreshInterval);
 	                    }
 	                }
 	            }

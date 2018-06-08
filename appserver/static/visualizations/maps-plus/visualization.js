@@ -241,8 +241,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
-	                               'heatLayer',
-	                               'heatPointIntensity',
+	                               'heamaptLayer',
+	                               'heatmapPointIntensity',
+	                               'heatmapMinOpacity',
+	                               'heatmapMaxZoom',
+	                               'heatmapRadius',
+	                               'heatmapBlur',
+	                               'heatmapColorGradient',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -253,10 +258,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            return(invalidFields);
 	        },
 
-	        _getJSONString: function(name, config) {
+	        _stringToJSON: function(value) {
+	            var cleanJSON = value.replace(/'/g, '"');
+	            return JSON.parse(cleanJSON);
+	        },
+
+	        _getProperty: function(name, config) {
 	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
-	            var cleanJSON = propertyValue.replace(/'/g, '"');
-	            return cleanJSON;
+	            return propertyValue;
 	        },
 
 	        _getEscapedProperty: function(name, config) {
@@ -754,7 +763,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
 	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
 	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
-	                heatmapColorGradient = JSON.parse(this._getJSONString('heatmapColorGradient', config)),
+	                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
 	                showProgress = parseInt(this._getEscapedProperty('showProgress', config));
 
 	            // Auto Fit & Zoom once we've processed all data
@@ -1121,7 +1130,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLayer = this.heatLayer = _.has(userData, "heatLayer") ? userData["heatLayer"]:"default";
+	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
+	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? userData["heatmapMinOpacity"]:heatmapMinOpacity;
+	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? userData["heatmapMaxZoom"]:heatmapMaxZoom;
+	                    heatmapRadius = _.has(userData, "heatmapRadius") ? userData["heatmapRadius"]:heatmapRadius;
+	                    heatmapBlur = _.has(userData, "heatmapBlur") ? userData["heatmapBlur"]:heatmapBlur;
+	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
 
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
@@ -1132,7 +1146,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                                                           blur: heatmapBlur});
 	                    }
 
-	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatPointIntensity") ? userData["heatPointIntensity"]:1.0;
+	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0;
 	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
 	                    this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
 	                    

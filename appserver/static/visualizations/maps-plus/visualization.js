@@ -1125,7 +1125,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
-	                        console.log("color gradient: " + heatmapColorGradient);
 	                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
 	                                                                           maxZoom: heatmapMaxZoom,
 	                                                                           radius: heatmapRadius,

@@ -3,14 +3,17 @@
     <collection label="Examples">
 
         <!-- Add items to the list -->
+        <!-- <collection label="Markers"> -->
+        <view name="png_markers" />
+        <view name="svg_markers" />
+        <view name="multicluster_groups" />
+        <view name="multilayer_groups" />
+        <!--    <view name="dashboard5" /> -->
+        <!-- </collection> -->
         <view name="google_streetview_drilldown" />
         <view name="path_lines" />
         <view name="heatmap" />
         <!-- Add a nested list with items -->
-        <!-- <collection label="Submenu name"> -->
-        <!--     <view name="dashboard4" /> -->
-        <!--    <view name="dashboard5" /> -->
-        <!-- </collection> -->
     </collection>
   <view name="help" />
   <view name="search" default="true" />

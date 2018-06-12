@@ -31,10 +31,6 @@ module.exports = {
                 loader: 'imports-loader?define=>false'
             },
             {
-                test: /splunk\.js$/,
-                loader: 'imports-loader?define=>false'
-            },
-            {
                 test: /leaflet-measure\.js$/,
                 loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
             }

@@ -8,14 +8,14 @@ define([
             'api/SplunkVisualizationBase',
             'api/SplunkVisualizationUtils',
             'load-google-maps-api',
+            'leaflet-bing-layer',
 			'leaflet-contextmenu',
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
             '../contrib/leaflet.markercluster-src',
             '../contrib/leaflet.featuregroup.subgroup-src',
             '../contrib/leaflet-measure',
-            '../contrib/leaflet.awesome-markers',
-            '../contrib/splunk',
+			'../contrib/leaflet.awesome-markers',
             '../contrib/leaflet-vector-markers'
         ],
         function(
@@ -109,7 +109,6 @@ define([
             this.isSplunkSeven = false;
             this.curPage = 0;
             this.allDataProcessed = false;
-            this.isMapped = false;
 
             // Detect version from REST API
             $.ajax({
@@ -139,8 +138,7 @@ define([
         getInitialDataParams: function() {
             return ({
                 outputMode: SplunkVisualizationBase.RAW_OUTPUT_MODE,
-                count: this.maxResults,
-                search: "| where 1=1"
+                count: this.maxResults
             });
         },
 
@@ -364,7 +362,6 @@ define([
         },
 
         formatData: function(data) {
-            //console.log(data);
             if(data.results.length == 0 && data.fields.length >= 1){
                 this.allDataProcessed = true;
                 return this;
@@ -375,72 +372,14 @@ define([
             return data;
         },
 
-        runSearch: function(service, searchString) {
-            var deferred = $.Deferred();
+        // Do the work of creating the viz
+        updateView: function(data, config) {
+            // viz gets passed empty config until you click the 'format' dropdown
+            // intialize with defaults
+			if(_.keys(config).length <= 1) {
+                config = this.defaultConfig;
+            }
 
-            var decodedSearchString = $("<textarea/>").html(searchString).text();
-            // Set the search parameters
-            var searchParams = {
-                exec_mode: "normal",
-                earliest_time: "2012-06-20T16:27:43.000-07:00"
-            };
-            
-            // Run a normal search that immediately returns the job's SID
-            service.search(
-                decodedSearchString,
-                searchParams,
-                function(err, job) {
-                    console.log(job);
-            
-                    // Display the job's search ID
-                    //console.log("Job SID: ", job.sid);
-                
-                    // Poll the status of the search job
-                    job.track({period: 200}, {
-                        done: function(job) {
-                        
-                        // console.log("Done!");
-                
-                        // // Print out the statics
-                        // console.log("Job statistics:");
-                        // console.log("  Event count:  " + job.properties().eventCount); 
-                        // console.log("  Result count: " + job.properties().resultCount);
-                        // console.log("  Disk usage:   " + job.properties().diskUsage + " bytes");
-                        // console.log("  Priority:     " + job.properties().priority);
-                
-                            deferred.resolve(job);
-                        // // Get the results and print them
-                        // job.results({}, function(err, results, job) {
-                        //     var fields = results.fields;
-                        //     var rows = results.rows;
-                        //     for(var i = 0; i < rows.length; i++) {
-                        //     var values = rows[i];
-                        //     console.log("Row " + i + ": ");
-                        //     for(var j = 0; j < values.length; j++) {
-                        //         var field = fields[j];
-                        //         var value = values[j];
-                        //         console.log("  " + field + ": " + value);
-                        //     }
-                        //     }
-                        // });
-                        
-                        },
-                        failed: function(job) {
-                            console.log("Job failed")
-                            deferred.reject("Job failed");
-                        },
-                        error: function(err) {
-                            done(err);
-                        }
-                    });
-            
-                }
-            );
-
-            return deferred.promise();
-        },
-
-        mapIt: function(data, config) {
             // get configs
             var cluster     = parseInt(this._getEscapedProperty('cluster', config)),
                 allPopups   = parseInt(this._getEscapedProperty('allPopups', config)),
@@ -472,7 +411,11 @@ define([
                 googlePlacesSearch = parseInt(this._getEscapedProperty('googlePlacesSearch', config)),
                 googlePlacesApiKey = this._getEscapedProperty('googlePlacesApiKey', config),
                 googlePlacesZoomLevel = parseInt(this._getEscapedProperty('googlePlacesZoomLevel', config)),
-				googlePlacesPosition = this._getEscapedProperty('googlePlacesPosition', config),
+                googlePlacesPosition = this._getEscapedProperty('googlePlacesPosition', config),
+                bingMaps = parseInt(this._getEscapedProperty('bingMaps', config)),
+                bingMapsApiKey = this._getEscapedProperty('bingMapsApiKey', config),
+                bingMapsTileLayer = this._getEscapedProperty('bingMapsTileLayer', config),
+                bingMapsLabelLanguage = this._getEscapedProperty('bingMapsLabelLanguage', config),
                 kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
                 rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
                 rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
@@ -494,11 +437,7 @@ define([
                 showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
                 pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
                 pathColorList = this._getEscapedProperty('pathColorList', config),
-                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000
-                searchString = this._getEscapedProperty('searchString', config);
-
-            
-
+                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000;
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
@@ -653,15 +592,23 @@ define([
                     }) 
                 }
 
-                // Setup the tile layer with map tile, zoom and attribution
-				this.tileLayer = L.tileLayer(this.activeTile, {
-                    attribution: this.attribution,
-                    minZoom: minZoom,
-                    maxZoom: maxZoom
-				});
+                // Create Bing Map
+                if(this.isArgTrue(bingMaps)) {
+                    var bingOptions = this.bingOptions = {"bingMapsKey": bingMapsApiKey,
+                                                          "imagerySet": bingMapsTileLayer,
+                                                          "culture": bingMapsLabelLanguage};
+                    this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                } else {
+                    // Setup the tile layer with map tile, zoom and attribution
+                    this.tileLayer = L.tileLayer(this.activeTile, {
+                        attribution: this.attribution,
+                        minZoom: minZoom,
+                        maxZoom: maxZoom
+                    });    
+                }
 
                 // Add tile layer to map
-                this.map.addLayer(this.tileLayer);   
+                this.map.addLayer(this.tileLayer);
 
                 this.markers = new L.MarkerClusterGroup({ 
                     chunkedLoading: true,
@@ -757,14 +704,15 @@ define([
                 this.allDataProcessed = false;
             } 
 
-
             // Map Scroll
             (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable();
 
-            // Reset Tile If Changed
-            if(this.tileLayer._url != this.activeTile) {
-                this.tileLayer.setUrl(this.activeTile);
-            }
+            if(!this.isArgTrue(bingMaps)) {
+                // Reset Tile If Changed
+                if(this.tileLayer._url != this.activeTile) {
+                    this.tileLayer.setUrl(this.activeTile);
+                }
+            }   
 
             // Reset tile zoom levels if changed
             if (this.tileLayer.options.maxZoom != maxZoom) {
@@ -1043,80 +991,8 @@ define([
                     }
                 }
             }
-        },
 
-        // Do the work of creating the viz
-        updateView: function(data, config) {
-            console.log("isMapped: " + this.isMapped);
-            if(this.isMapped) {
-                console.log("MAPPED!!");
-                return this;
-            }
-
-            var splunkWebHttp = new splunkjs.SplunkWebHttp();
-            var service = new splunkjs.Service(splunkWebHttp);
-
-            // viz gets passed empty config until you click the 'format' dropdown
-            // intialize with defaults
-			if(_.keys(config).length <= 1) {
-                config = this.defaultConfig;
-            }
-
-            var searchString = this._getEscapedProperty('searchString', config);
-            var that = this;
-
-            if(!searchString) {
-                return this;
-            }
-
-            console.log(searchString);
-
-            this.runSearch(service, searchString).then(function(job) {
-                var deferred = $.Deferred();
-                console.log("1");
-                job.results({}, function(err, results, job) {
-                    console.log(results.fields);
-
-                    // var fields = results.fields;
-                    // var rows = results.rows;
-                    // for(var i = 0; i < rows.length; i++) {
-                    //     var values = rows[i];
-                    //     console.log("Row " + i + ": ");
-                    //     for(var j = 0; j < values.length; j++) {
-                    //         var field = fields[j];
-                    //         var value = values[j];
-                    //         console.log("  " + field + ": " + value);
-                    //     }
-                    // }
-                    deferred.resolve();
-                });
-                //console.log(results);
-                //console.log("Done!");
-                //that.isMapped = true;
-                //this.isMapped = true;
-               
-                return deferred.promise();
-            }).then(function() {
-                var deferred = $.Deferred();
-
-                console.log("2");
-                console.log("Done chaining");
-                that.isMapped = true;
-                //return that;
-                deferred.resolve();
-                return deferred.promise();
-            }).then(function() {
-                var deferred = $.Deferred();
-                console.log("sleeping");
-                setTimeout(function(){
-                    deferred.resolve();
-                }, 10000);    
-                return deferred.promise();
-            }).done(function() {
-              console.log("ALL DONE!!!");  
-            });
-            
-            //return this;
+            return this;
         }
     });
 });

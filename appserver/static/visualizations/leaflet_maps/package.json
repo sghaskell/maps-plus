@@ -1,6 +1,6 @@
 {
   "name": "leaflet_maps_app",
-  "version": "1.5.16",
+  "version": "1.5.17",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "leaflet-contextmenu": "^1.2.1",
     "leaflet-dialog": "^1.0.1",
     "leaflet-google-places-autocomplete": "^0.0.8",
-    "load-google-maps-api": "^1.0.0"
+    "load-google-maps-api": "^1.0.0",
+    "leaflet-bing-layer": "^3.3.0"
   }
 }

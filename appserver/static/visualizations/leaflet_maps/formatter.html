@@ -1,0 +1,656 @@
+<form class="splunk-formatter-section" section-label="Map">
+    <div class="control-group">
+        <label class="control-label">Map Tile</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
+              <option value="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">Open Streetmap</option> 
+              <option value="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option> 
+              <option value="http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option> 
+              <option value="http://tile.stamen.com/toner/{z}/{x}/{y}.png">Stamen Toner</option> 
+              <option value="http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg">Stamen Terrain (USA Only)</option> 
+              <option value="http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg">Stamen Watercolor</option> 
+            </splunk-select> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Map Tile Override</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>
+            <span class="help-block ">Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Map Attribution Override</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.mapAttributionOverride"></splunk-text-input>
+            <span class="help-block ">Use your own attribution.</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Scroll Wheel Zoom</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.scrollWheelZoom" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable zooming on map with scroll wheel</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Full Screen Mode</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.fullScreen" value="0">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Drilldown</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.drilldown" value="0">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable drilldown behavior for markers. Double-click marker to drilldown</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Context Menu</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.contextMenu" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable context menu when right clicking the map.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Default Height</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.defaultHeight" value="600"></splunk-text-input>
+            <span class="help-block ">Initial Height Of Map (Default: 600) </span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Map (Continued)">
+    <div class="control-group">
+        <label class="control-label">Auto Fit & Zoom</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.autoFitAndZoom" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Auto Fit & Zoom Delay (ms)</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.autoFitAndZoomDelay" value="500"></splunk-text-input>
+            <span class="help-block ">Delay in milliseconds before triggering Auto Fit & Zoom. Increase if you get inconsistent behavior (Default: 500).</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Dashboard Refresh Interval</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.refreshInterval" value="0"></splunk-text-input>
+            <span class="help-block ">Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Map Zoom</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterZoom" value="6"></splunk-text-input>
+            <span class="help-block ">Initial Zoom for map (Default: 6).</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Center Lat</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterLat" value="39.50"></splunk-text-input>
+            <span class="help-block ">Initial Center Latitiude (Default: 39.50)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Center Lon</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterLon" value="-98.35"></splunk-text-input>
+            <span class="help-block ">Initial Center Longitude (Default: -98.35)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Min Zoom</label>
+        <div class="controls controls-block">
+            <splunk-text-input class="input-medium" name="{{VIZ_NAMESPACE}}.minZoom" value="1"></splunk-text-input>
+            <span class="help-block ">Minimum zoom for tile layer. Does not affect map zoom. (Default: 1)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Max Zoom</label>
+        <div class="controls controls-block">
+            <splunk-text-input class="input-medium" name="{{VIZ_NAMESPACE}}.maxZoom" value="19"></splunk-text-input>
+            <span class="help-block ">Maximum zoom for tile layer. Does not affect map zoom. (Default: 19)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Clustering">
+    <div class="control-group">
+        <label class="control-label">Enable Clustering</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.cluster" value="1">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Disable clustering and plot all markers. WARNING - This comes at a significant performance penalty for large datasets.</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Show All Popups</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.allPopups" value="0">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Display all popups on page load. Only works with clustering disabled.</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Allow Multiple Popups</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.multiplePopups" value="0">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Allow multiple popups to dispaly on screen without closing previous. Will disappear at higher zoom levels with clustering enabled. Enabled by default when showing all popups.</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Animate</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.animate" value="1">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Animate cluster separation on zoom</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Single Marker Mode</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.singleMarkerMode" value="0">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Re-style single marker icon to marker cluster style (round)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Clustering (Continued)">
+    <div class="control-group">
+        <label class="control-label">Max Cluster Radius</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.maxClusterRadius" value="80"></splunk-text-input>
+            <span class="help-block ">A cluster will cover at most this many pixels from its center (Default: 80)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Cluster Warning Size</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.maxSpiderfySize" value="100"></splunk-text-input>
+            <span class="help-block ">Display an alert warning that the cluster exceeds threshold at max-zoom and do not show underlying markers. Browser may hang and die if a single point exceeds a very large number.(Default: 100)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Distance Multiplier</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.spiderfyDistanceMultiplier" value="1"></splunk-text-input>
+            <span class="help-block ">Increase to increase the distance away that markers appear from the center when expanded at max zoom. (Default: 1)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Markers">
+    <div class="control-group">
+        <label class="control-label">Permanent Tooltip</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.permanentTooltip" value="0">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Open the tooltip permanently or only on mouseover. Depends on tooltip field in search results.</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Sticky Tooltip</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.stickyTooltip" value="1">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block ">Tooltip follows mouse instead of fixed position.</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Google Places">
+    <div class="control-group">
+        <label class="control-label">Google Places Search</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.googlePlacesSearch" value="0">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable Google Places API search control.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">API Key</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKey"></splunk-text-input>
+            <span class="help-block ">Google Places API Key</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Search Bar Position</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.googlePlacesPosition" value="topleft">
+              <option value="topleft">Top Left</option>
+              <option value="topright">Top Right</option>
+              <option value="bottomleft">Bottom Left</option>
+              <option value="bottomright">Bottom Right</option>
+            </splunk-select>
+            <span class="help-block ">Position of Google Places Search Bar (Default: Top Left)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Zoom Level</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesZoomLevel" value="12"></splunk-text-input>
+            <span class="help-block ">Desired zoom level to fly to</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Bing Maps">
+    <div class="control-group">
+        <label class="control-label">Bing Maps</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.bingMaps" value="0">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable Bing Maps tiles.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">API Key</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKey"></splunk-text-input>
+            <span class="help-block ">Bing Maps API Key</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Tile Layer</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.bingMapsTileLayer" value="CanvasLight">
+              <option value="CanvasLight">Canvas Light</option>
+              <option value="CanvasDark">Canvas Dark</option>
+              <option value="CanvasGray">Canvas Gray</option>
+              <option value="Aerial">Aerial</option>
+              <option value="AerialWithLabels">Aerial with road overlay</option>
+              <option value="AerialWithLabelsOnDemand">Aerial with on-demand road overlay</option>
+              <option value="Road">Roads (legacy tile service)</option>
+              <option value="RoadOnDemand">Roads (dynamic tile service)</option>
+            </splunk-select>
+            <span class="help-block ">Select tile layer imagery set</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Label Language</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.bingMapsLabelLanguage" value="en-US">
+              <option value="af">Afrikaans</option>
+              <option value="am">Amharic</option>
+              <option value="ar-sa">Arabic (Saudi Arabia)</option>
+              <option value="as">Assamese</option>
+              <option value="az-Latn">Azerbaijani (Latin)</option>
+              <option value="be">Belarusian</option>
+              <option value="bg">Bulgarian</option>
+              <option value="bn-BD">Bangla (Bangladesh)</option>
+              <option value="bn-IN">Bangla (India)</option>
+              <option value="bs">Bosnian (Latin)</option>
+              <option value="ca">Catalan Spanish</option>
+              <option value="ca-ES-valencia">Valencian</option>
+              <option value="cs">Czech</option>
+              <option value="cy">Welsh</option>
+              <option value="da">Danish</option>
+              <option value="de-de">German</option>
+              <option value="el">Greek</option>
+              <option value="en-US">English (United States)</option>
+              <option value="en-GB">English ((United Kingdom)</option>
+              <option value="es-ES">Spanish (Spain)</option>
+              <option value="es-US">Spanish (United States</option>
+              <option value="es-MX">Spanish (Mexico)</option>
+              <option value="et">Estonian</option>
+              <option value="eu">Basque</option>
+              <option value="fa">Persian</option>
+              <option value="fi">Finnish</option>
+              <option value="fil-Latn">Filipino</option>
+              <option value="fr-FR">French (France)</option>
+              <option value="fr-CA">French (Canada)</option>
+              <option value="ga">Irish</option>
+              <option value="gd-Latn">Scottish Gaelic</option>
+              <option value="gl">Galician</option>
+              <option value="gu">Gujarati</option>
+              <option value="ha-Latn">Hausa (Latin)</option>
+              <option value="he">Hebrew</option>
+              <option value="hi">Hindi</option>
+              <option value="hr">Croatian</option>
+              <option value="hu">Hungarian</option>
+              <option value="hy">Armenian</option>
+              <option value="id">Indonesian</option>
+              <option value="ig-Latn">Igbo</option>
+              <option value="is">Icelandic</option>
+              <option value="it-it">Italian (Italy)</option>
+              <option value="ja">Japanese</option>
+              <option value="ka">Georgian</option>
+              <option value="kk">Kazakh</option>
+              <option value="km">Khmer</option>
+              <option value="kn">Kannada</option>
+              <option value="ko">Korean</option>
+              <option value="kok">Konkani</option>
+              <option value="ku-Arab">Central Kurdish</option>
+              <option value="ky-Cyrl">Kyrgyz</option>
+              <option value="lb">Luxembourgish</option>
+              <option value="lt">Lithuanian</option>
+              <option value="lv">Latvian</option>
+              <option value="mi-Latn">Maori</option>
+              <option value="mk">Macedonian</option>
+              <option value="ml">Malayalam</option>
+              <option value="mn-Cyrl">Mongolian (Cyrillic)</option>
+              <option value="mr">Marathi</option>
+              <option value="ms">Malay (Malaysia)</option>
+              <option value="mt">Maltese</option>
+              <option value="nb">Norwegian (Bokmål)</option>
+              <option value="ne">Nepali (Nepal)</option>
+              <option value="nl-BE">Dutch (Netherlands)</option>
+              <option value="nn">Norwegian (Nynorsk)</option>
+              <option value="nso">Sesotho sa Leboa</option>
+              <option value="or">Odia</option>
+              <option value="pa">Punjabi (Gurmukhi)</option>
+              <option value="pa-Arab">Punjabi (Arabic)</option>
+              <option value="pl">Polish</option>
+              <option value="prs-Arab">Dari</option>
+              <option value="pt-BR">Portuguese (Brazil)</option>
+              <option value="pt-PT">Portuguese (Portugal)</option>
+              <option value="qut-Latn">K’iche’</option>
+              <option value="quz">Quechua (Peru)</option>
+              <option value="ro">Romanian (Romania)</option>
+              <option value="ru">Russian</option>
+              <option value="rw">Kinyarwanda</option>
+              <option value="sd-Arab">Sindhi (Arabic)</option>
+              <option value="si">Sinhala</option>
+              <option value="sk">Slovak</option>
+              <option value="sl">Slovenian</option>
+              <option value="sq">Albanian</option>
+              <option value="sr-Cyrl-BA">Serbian (Cyrillic, Bosnia and Herzegovina)</option>
+              <option value="sr-Cyrl-RS">Serbian (Cyrillic, Serbia)</option>
+              <option value="sr-Latn-RS">Serbian (Latin, Serbia)</option>
+              <option value="sv">Swedish (Sweden)</option>
+              <option value="sw">Kiswahili</option>
+              <option value="ta">Tamil</option>
+              <option value="te">Telugu</option>
+              <option value="tg-Cyrl">Tajik (Cyrillic)</option>
+              <option value="th">Thai</option>
+              <option value="ti">Tigrinya</option>
+              <option value="tk-Latn">Turkmen (Latin)</option>
+              <option value="tn">Setswana</option>
+              <option value="tr">Turkish</option>
+              <option value="tt-Cyrl">Tatar (Cyrillic)</option>
+              <option value="ug-Arab">Uyghur</option>
+              <option value="uk">Ukrainian</option>
+              <option value="ur">Urdu</option>
+              <option value="uz-Latn">Uzbek (Latin)</option>
+              <option value="vi">Vietnamese</option>
+              <option value="wo">Wolof</option>
+              <option value="xh">isiXhosa</option>
+              <option value="yo-Latn">Yoruba</option>
+              <option value="zh-Hans">Chinese (Simplified)</option>
+              <option value="zh-Hant">Chinese (Traditional)</option>
+              <option value="zu">isiZulu</option>
+            </splunk-select>
+            <span class="help-block ">Select language used for labels</span>
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Cluster Colors">
+    <div class="control-group">
+        <label class="control-label">Range One Background</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeOneBgColor" value="#B5E28C">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #B5E28C)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range One Foreground</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeOneFgColor" value="#6ECC39">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #6ECC39)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range two thereshold</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.warningThreshold" value="55"></splunk-text-input>
+            <span class="help-block ">Number at which cluster group two starts</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range Two Background</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeTwoBgColor" value="#F1D357">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #F1D357)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range Two Foreground</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeTwoFgColor" value="#F0C20C">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #F0C20C)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range three threshold</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.criticalThreshold" value="80"></splunk-text-input>
+            <span class="help-block ">Number at which cluster group three starts</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range Three Background</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeBgColor" value="#FD9C73">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #FD9C73)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Range Three Foreground</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeFgColor" value="#F18017">
+            </splunk-color-picker> 
+            <span class="help-block ">(Default: #F18017)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Layer Controls">
+    <div class="control-group">
+        <label class="control-label">Layer Control</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.layerControl" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map.</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Control Collapsed</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.layerControlCollapsed" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Collapse or expand layer control widget. If collapsed, mousing over icon will expand.</span>
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Overlays">
+    <div class="control-group">
+        <label class="control-label">KML/KMZ Overlay</label>
+        <div class="controls controls-block">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.kmlOverlay"></splunk-text-input>
+            <span class="help-block ">Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Measure">
+    <div class="control-group">
+        <label class="control-label">Enable Measurement Plugin</label>
+        <div class="controls controls-fill ">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.measureTool" value="1">
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+            </splunk-radio-input>
+            <span class="help-block ">Enable or disable measurement plugin to allow path and area measurement on map. (Default: Enabled)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Localization</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measureLocalization" value="en">
+              <option value="cn">Chinese</option>
+              <option value="de">German</option>
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="it">Italian</option>
+              <option value="nl">Dutch</option>
+              <option value="pt_BR">Brazilian Portuguese</option>
+              <option value="pt_PT">European Portuguese</option>
+              <option value="ru">Russian</option>
+              <option value="es">Spanish</option>
+              <option value="tr">Turkish</option>
+            </splunk-select>
+            <span class="help-block ">Language (Default: English)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Icon Position</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measureIconPosition" value="topright">
+              <option value="topleft">Top Left</option>
+              <option value="topright">Top Right</option>
+              <option value="bottomleft">Bottom Left</option>
+              <option value="bottomright">Bottom Right</option>
+            </splunk-select>
+            <span class="help-block ">Position of measurement icon on map (Default: Top Right)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Primary Length Unit</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measurePrimaryLengthUnit" value="feet">
+              <option value="feet">Feet</option>
+              <option value="meters">Meters</option>
+              <option value="miles">Miles</option>
+              <option value="kilometers">Kilometers</option>
+            </splunk-select>
+            <span class="help-block ">Primary unit for length measurement (Default: feet)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Secondary Length Unit</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measureSecondaryLengthUnit" value="miles">
+              <option value="feet">Feet</option>
+              <option value="meters">Meters</option>
+              <option value="miles">Miles</option>
+              <option value="kilometers">Kilometers</option>
+              <option value="">None</option>
+            </splunk-select>
+            <span class="help-block ">Secondary unit for length measurement (Default: miles)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Primary Area Unit</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measurePrimaryAreaUnit" value="acres">
+              <option value="acres">Acres</option>
+              <option value="hectares">Hectares</option>
+              <option value="sqfeet">Square Feet</option>
+              <option value="sqmeters">Square Meters</option>
+              <option value="sqmiles">Square Miles</option>
+            </splunk-select>
+            <span class="help-block ">Primary unit for area measurement (Default: acres)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Secondary Area Unit</label>
+        <div class="controls controls-block">
+            <splunk-select name="{{VIZ_NAMESPACE}}.measureSecondaryAreaUnit" value="sqmiles">
+              <option value="acres">Acres</option>
+              <option value="hectares">Hectares</option>
+              <option value="sqfeet">Square Feet</option>
+              <option value="sqmeters">Square Meters</option>
+              <option value="sqmiles">Square Miles</option>
+              <option value="">None</option>
+            </splunk-select>
+            <span class="help-block ">Secondary unit for area measurement (Default: square miles)</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Active Color</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.measureActiveColor" value="#00ff00">
+            </splunk-color-picker> 
+            <span class="help-block ">Color of measurement when actively drawing (Default: #00ff00)</span> 
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Completed Color</label>
+        <div class="controls controls-block">
+            <splunk-color-picker name="{{VIZ_NAMESPACE}}.measureCompletedColor" value="#0066ff">
+            </splunk-color-picker> 
+            <span class="help-block ">Color of measurement when drawing is complete (Default: #0066ff)</span> 
+        </div>
+    </div>
+</form>
+<form class="splunk-formatter-section" section-label="Path Lines">
+    <div class="control-group">
+        <label class="control-label">Show Path Lines</label>
+        <div class="controls controls-fill">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPathLines" value="0">
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </splunk-radio-input> 
+            <span class="help-block">Draw path lines on map alongside markers (hide individual markers with markerVisibility != "marker")</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Path Identifier</label>
+        <div class="controls controls-fill">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.pathIdentifier"></splunk-text-input>
+            <span class="help-block">Field used to distinguish unique paths, e.g. vehicle number or trip ID</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Path Colors</label>
+        <div class="controls controls-fill">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.pathColorList" value="#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378"></splunk-text-input>
+            <span class="help-block">Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)</span>
+        </div>
+    </div>
+</form>

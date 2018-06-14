@@ -6,6 +6,7 @@
         <!-- <collection label="Markers"> -->
         <view name="png_markers" />
         <view name="svg_markers" />
+        <view name="custom_icons" />
         <view name="multicluster_groups" />
         <view name="multilayer_groups" />
         <!--    <view name="dashboard5" /> -->

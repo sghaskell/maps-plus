@@ -18,9 +18,9 @@ define([
         maxResults: 0,
         tileLayer: null,
 		mapOptions: {},
-        contribUri: '/en-US/static/app/custom-google-street-view-viz/visualizations/google-street-view/contrib/',
+        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/google-street-view/contrib/',
         defaultConfig:  {
-            'display.visualizations.custom.leaflet_maps_app.leaflet_maps.googleMapsApiKey': ""
+            'display.visualizations.custom.leaflet_maps_app.google-street-view.googleMapsApiKey': ""
         },
 
         initialize: function() {

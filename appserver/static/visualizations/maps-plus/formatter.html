@@ -27,6 +27,16 @@
             </div>
         </div>
         <div class="control-group">
+            <label class="control-label">Renderer</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.renderer" value="canvas">
+                    <option value="canvas">Canvas</option>
+                    <option value="svg">SVG</option>
+                </splunk-radio-input>
+                <span class="help-block ">Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.</span>
+            </div>
+        </div>
+        <div class="control-group">
             <label class="control-label">Progress Indicator</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showProgress" value="1">
@@ -318,16 +328,6 @@
                     <option value="0">Disabled</option>
                 </splunk-radio-input> 
                 <span class="help-block">Draw path lines on map alongside markers (hide individual markers with markerVisibility != "marker")</span>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">Renderer</label>
-            <div class="controls controls-fill ">
-                <splunk-radio-input name="{{VIZ_NAMESPACE}}.pathRenderer" value="svg">
-                    <option value="svg">SVG</option>
-                    <option value="canvas">Canvas</option>
-                </splunk-radio-input>
-                <span class="help-block ">Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support.</span>
             </div>
         </div>
         <div class="control-group">

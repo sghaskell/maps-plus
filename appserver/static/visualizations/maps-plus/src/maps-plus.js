@@ -1172,8 +1172,8 @@ define([
 
                 // Set icon options
                 var icon = _.has(userData, "icon") ? userData["icon"]:"circle";
-				var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
-				var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:icon;
+                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
+				var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default";
 
                 // Create Cluster Group
                 if(_.isUndefined(this.clusterGroups[clusterGroup])) {

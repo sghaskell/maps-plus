@@ -151,12 +151,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList': "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
-				'display.visualizations.custom.leaflet_maps_app.maps-plus.pathRenderer': "svg",
+				'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMaxZoom': null, 
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
@@ -244,10 +243,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'heamaptLayer',
 	                               'heatmapPointIntensity',
 	                               'heatmapMinOpacity',
-	                               'heatmapMaxZoom',
 	                               'heatmapRadius',
 	                               'heatmapBlur',
 	                               'heatmapColorGradient',
+	                               'circleStroke',
+	                               'circleRadius',
+	                               'circleColor',
+	                               'circleWeight',
+	                               'circleOpacity',
+	                               'circleFillColor',
+	                               'circleFillOpacity',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -361,24 +366,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                                     direction: 'auto',
 	                                                     sticky: p[0]['stickyTooltip']});
 	                }
-
 	            }, context);
 	        },
 
 	        // Create a control icon and description in the layer control legend
-	        addLayerToControl: function(lg, control) {
-	            if(!lg.layerExists) {
+	        addLayerToControl: function(options) {
+	            console.log(options.layerGroup);
+	            if(!options.layerGroup.layerExists) {
 	                // update blue to awesome-marker blue color
-	                if(lg.icon.options.markerColor === "blue") {
-	                    var styleColor = "#38AADD";
-	                }
-	                else {
-	                    var styleColor = lg.icon.options.markerColor;
+	                if(!_.isUndefined(options.layerGroup.icon)) {
+	                    if(_.has(options.layerGroup.icon.options, "markerColor") && options.layerGroup.icon.options.markerColor === "blue") {
+	                        var styleColor = "#38AADD";
+	                    }
+	                    else {
+	                        var styleColor = options.layerGroup.icon.options.markerColor;
+	                    }
+
+	                    //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+	                } 
+
+	                if(!_.isUndefined(options.layerGroup.circle)) {
+	                    var styleColor = options.layerGroup.circle.fillColor;
+	                    //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+	                    //console.log(iconHtml);
 	                }
 
-	                var iconHtml= "<i class=\"legend-toggle-icon " + lg.icon.options.prefix + " " + lg.icon.options.prefix + "-" + lg.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + lg.layerDescription;
-	                control.addOverlay(lg.group, iconHtml);
-	                lg.layerExists = true;
+	                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+
+	                options.control.addOverlay(options.layerGroup.group, iconHtml);
+	                options.layerGroup.layerExists = true;
 	            }
 
 	        },
@@ -575,100 +591,150 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            return mcg;
 	        },
-	        
-	        _addMarker: function(userData,
-	                             markerIcon,
-	                             layerDescription,
-	                             markerPriority,
-	                             permanentTooltip,
-	                             stickyTooltip,
-	                             cluster,
-	                             layerFilter,
-	                             layerGroup,
-	                             clusterGroup,
-	                             tooltip,
-								 title,
-	                             drilldown) {
-	            if (typeof this.layerFilter[layerGroup] !== 'undefined') {
-	                this.layerFilter[layerGroup].icon = markerIcon;
-	            }
 
-	            var marker = L.marker([userData['latitude'],
-	                                   userData['longitude']],
-	                                 {icon: markerIcon,
-	                                  layerDescription: layerDescription,
-	                                  zIndexOffset: markerPriority});
+	        _addCircleMarker: function(options) {
+	            var circleMarker = L.circleMarker([parseFloat(options.userData["latitude"]),
+	                                               parseFloat(options.userData["longitude"])],
+	                                               {radius: options.radius,
+	                                                color: options.color,
+	                                                weight: options.weight,
+	                                                stroke: options.stroke,
+	                                                opacity: options.opacity,
+	                                                fillColor: options.fillColor,
+	                                                fillOpacity: options.fillOpacity})
 
 	            // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
-	            if(tooltip) {
-	                marker.bindTooltip(tooltip, {permanent: permanentTooltip,
-	                                             direction: 'auto',
-	                                             sticky: stickyTooltip});
-	            } else if (title) {
-	                marker.bindTooltip(title, {permanent: permanentTooltip,
-	                                           direction: 'auto',
-	                                           sticky: stickyTooltip});
+	            if(options.tooltip) {
+	                circleMarker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
+	                                                     direction: 'auto',
+	                                                     sticky: options.stickyTooltip});
+	            } else if (options.title) {
+	                circleMarker.bindTooltip(options.title, {permanent: options.permanentTooltip,
+	                                                   direction: 'auto',
+	                                                   sticky: options.stickyTooltip});
 	            }
 
-	            if(this.isArgTrue(drilldown)) {
-	                var drilldownFields = this.validateFields(userData);
+	            if(options.drilldown) {
+	                var drilldownFields = this.validateFields(options.userData);
+	                circleMarker.on('dblclick', this._drilldown.bind(this, drilldownFields));
+	            }
+
+	            // Bind description popup if description exists
+	            if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
+	                circleMarker.bindPopup(options.userData['description']);
+	            }
+
+	            if (this.isArgTrue(options.cluster)) {           
+	                _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(circleMarker)
+	            } else {
+	                options.layerFilter[options.layerGroup].markerList.push(circleMarker);
+	            }                                              
+	        },
+	        
+	        _addMarker: function(options) {
+
+	            if(options.markerType == "circle") {
+	                var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
+	                                             parseFloat(options.userData["longitude"])],
+	                                              {radius: options.radius,
+	                                               color: options.color,
+	                                               weight: options.weight,
+	                                               stroke: options.stroke,
+	                                               opacity: options.opacity,
+	                                               fillColor: options.fillColor,
+	                                               fillOpacity: options.fillOpacity})
+	                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
+	                if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
+	                    options.layerFilter[options.layerGroup].circle = {radius: options.radius,
+	                        color: options.color,
+	                        weight: options.weight,
+	                        stroke: options.stroke,
+	                        opacity: options.opacity,
+	                        fillColor: options.fillColor,
+	                        fillOpacity: options.fillOpacity};
+	                }                                               
+	            } else {
+	                var marker = L.marker([parseFloat(options.userData['latitude']),
+	                                       parseFloat(options.userData['longitude'])],
+	                                       {icon: options.markerIcon,
+	                                        layerDescription: options.layerDescription,
+	                                        zIndexOffset: options.markerPriority});                
+
+	                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
+	                // if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
+	                //     options.layerFilter[options.layerGroup].icon = options.markerIcon;
+	                // }                                        
+	            }
+
+	            // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
+	            if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
+	                options.layerFilter[options.layerGroup].icon = options.markerIcon;
+	            }
+
+	            // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
+	            if(options.tooltip) {
+	                marker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
+	                                                     direction: 'auto',
+	                                                     sticky: options.stickyTooltip});
+	            } else if (options.title) {
+	                marker.bindTooltip(options.title, {permanent: options.permanentTooltip,
+	                                                   direction: 'auto',
+	                                                   sticky: options.stickyTooltip});
+	            }
+
+	            if(this.isArgTrue(options.drilldown)) {
+	                var drilldownFields = this.validateFields(options.userData);
 	                marker.on('dblclick', this._drilldown.bind(this, drilldownFields));
 	            }
 
 	            // Bind description popup if description exists
-	            if(_.has(userData, "description") && userData["description"] != "") {
-	                marker.bindPopup(userData['description']);
+	            if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
+	                marker.bindPopup(options.userData['description']);
 	            }
 
-	            if (this.isArgTrue(cluster)) {           
-	                _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}).markerList.push(marker)
+	            if (options.cluster) {           
+	                _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(marker)
 	            } else {
-	                this.layerFilter[layerGroup].markerList.push(marker);
+	                options.layerFilter[options.layerGroup].markerList.push(marker);
 	            }
 	        },
 
-	        _addClustered: function(layerFilter,
-	                               that) {
-
-	            //console.log("Adding clustered");
-	            //console.log("Layer Filter");
-	            //console.log(layerFilter);
+	        _addClustered: function(map, options) {
 	            // Process layers
-	            _.each(layerFilter, function(lg, i) {
-	                //console.log("Layer Group");
-	                //console.log(lg);
+	            _.each(options.layerFilter, function(lg, i) {
 	                // Process cluster groups
 	                _.each(lg.clusterGroup, function(cg, i) {
 	                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList);
-	                    //console.log(this.tmpFG);
 	                    lg.group.addLayer(this.tmpFG);
-	                }, that);
+	                });
 
-	                //console.log("Adding layergorup to map");
-	                lg.group.addTo(that.map);
-	                that.addLayerToControl(lg, that.control);
-	            }, that);
+	                lg.group.addTo(map);
+
+	                if(options.layerControl) {
+	                    options.context.addLayerToControl({layerGroup: lg, control: options.control});
+	                }
+	            });
 	        },
 
-	        _addUnclustered: function(layerFilter,
-	                                  allPopups,
-	                                  that) {
+	        _addUnclustered: function(map, options) {
 	            // Loop through layer filters
-	            _.each(layerFilter, function(lg, i) { 
+	            _.each(options.layerFilter, function(lg, i) { 
 	                // Loop through markers and add to map
 	                _.each(lg.markerList, function(m, k) {
-	                    if(that.isArgTrue(allPopups)) {
+	                    if(options.allPopups) {
 	                        m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup();
 	                    } else {
 	                        m.addTo(lg.group);
 	                    }
-	                }, that);
+	                });
 	                // Add layergroup to map
-	                lg.group.addTo(that.map);
+	                lg.group.addTo(map);
 
 	                // Add layer controls
-	                that.addLayerToControl(lg, that.control);
-	            }, that);
+	                if(options.layerControl) {
+	                    options.context.addLayerToControl({layerGroup: lg, control: options.control});
+	                }
+	            });
 	        },
 
 	        formatData: function(data) {
@@ -764,7 +830,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
 	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
 	                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
-	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
 	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
 	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
 	                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
@@ -858,7 +923,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 
 	            pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
-	            pathRenderer = this._getEscapedProperty('pathRenderer', config),
+	            renderer = this._getEscapedProperty('renderer', config),
 	            pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config));
 
 	            this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile;
@@ -936,8 +1001,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 
 	                // Create canvas render and prever canvas for paths
-	                if(pathRenderer == "canvas") {
-	                    this.mapOptions.renderer = L.canvas();
+	                if(renderer == "canvas") {
+	                    //this.mapOptions.renderer = L.canvas();
 	                    this.mapOptions.preferCanvas = true;
 	                }
 
@@ -1136,7 +1201,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
 	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity;
-	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? parseFloat(serData["heatmapMaxZoom"]):heatmapMaxZoom;
 	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius;
 	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur;
 	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
@@ -1144,7 +1208,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
 	                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-	                                                                           maxZoom: heatmapMaxZoom,
 	                                                                           radius: heatmapRadius,
 	                                                                           gradient: heatmapColorGradient,
 	                                                                           blur: heatmapBlur});
@@ -1161,8 +1224,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Set icon options
 	                var icon = _.has(userData, "icon") ? userData["icon"]:"circle";
-					var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
-					var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:icon;
+	                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
+					var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default";
 
 	                // Create Cluster Group
 	                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
@@ -1215,18 +1278,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 				
 	                // Get marker and icon properties	
-					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png";
-	                var markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue";
-	                var iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white";
-	                var markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45];
-	                var markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50];
-	                var shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46];
-	                var shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30];
-	                var markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0;
-	                var title = _.has(userData, "title") ? userData["title"]:null;
-	                var tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null;
-	                var prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa";
-	                var extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg";
+					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
+	                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
+	                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
+	                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
+	                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
+	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
+	                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
+	                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
+	                    title = _.has(userData, "title") ? userData["title"]:null,
+	                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
+	                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
+	                    extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
+	                    circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
+	                    circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,
+	                    circleColor = _.has(userData, "circleColor") ? this.convertHex(userData["circleColor"]):this.convertHex("#3388ff"),
+	                    circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
+	                    circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
+	                    circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
+	                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2
 
 	                // Set icon class
 	                if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
@@ -1276,36 +1346,34 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    });
 	                }
 
+	                var markerOptions = {markerType: markerType,
+	                    radius: circleRadius,
+	                    stroke: circleStroke,
+	                    color: circleColor,
+	                    weight: circleWeight,
+	                    opacity: circleOpacity,
+	                    fillColor: circleFillColor,
+	                    fillOpacity: circleFillOpacity,
+	                    userData: userData,
+	                    markerIcon: markerIcon,
+	                    layerDescription: layerDescription,
+	                    markerPriority: markerPriority,
+	                    permanentTooltip: this.isArgTrue(permanentTooltip),
+	                    stickyTooltip: this.isArgTrue(stickyTooltip),
+	                    cluster: this.isArgTrue(cluster),
+	                    layerFilter: layerFilter,
+	                    layerGroup: layerGroup,
+	                    clusterGroup: clusterGroup,
+	                    tooltip: tooltip,
+	                    title: title,
+	                    drilldown: drilldown}
+
 	                if (userData["markerVisibility"]) {
 	                    if (userData["markerVisibility"] == "marker") {
-	                        this._addMarker(userData,
-	                                        markerIcon,
-	                                        layerDescription,
-	                                        markerPriority,
-	                                        permanentTooltip,
-	                                        stickyTooltip,
-	                                        cluster,
-	                                        this.layerFilter,
-	                                        layerGroup,
-	                                        clusterGroup,
-	                                        tooltip,
-											title,
-	                                        drilldown);
+	                        this._addMarker(markerOptions)
 	                    }
 	                } else {
-	                    this._addMarker(userData,
-	                                    markerIcon,
-	                                    layerDescription,
-	                                    markerPriority,
-	                                    permanentTooltip,
-	                                    stickyTooltip,
-	                                    cluster,
-	                                    this.layerFilter,
-	                                    layerGroup,
-	                                    clusterGroup,
-	                                    tooltip,
-										title,
-	                                    drilldown);
+	                    this._addMarker(markerOptions)
 	                }
 	            }, this);
 	            
@@ -1318,14 +1386,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 
 	            // Clustered
-	            if (this.isArgTrue(cluster)) {           
-	                this._addClustered(this.layerFilter,
-	                                  this);
+	            if (this.isArgTrue(cluster)) {
+	                this._addClustered(this.map, {layerFilter: this.layerFilter,
+	                                              layerControl: this.isArgTrue(layerControl),
+	                                              control: this.control,
+	                                              context: this})
 	            // Single value
 	            } else {
-	                this._addUnclustered(this.layerFilter,
-	                                     allPopups,
-	                                     this);
+	                this._addUnclustered(this.map, {layerFilter: this.layerFilter,
+	                                                layerControl: this.isArgTrue(layerControl),
+	                                                allPopups: this.isArgTrue(allPopups),
+	                                                control: this.control,
+	                                                context: this});
 	            }
 
 	            // Draw path lines

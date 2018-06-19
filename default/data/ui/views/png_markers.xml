@@ -22,7 +22,7 @@
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv 
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
+| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
 icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
 | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup</query>

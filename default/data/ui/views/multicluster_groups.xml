@@ -1,11 +1,13 @@
 <dashboard>
-  <label>Multi-Cluster Groups</label>
+  <label></label>
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
-        The default behavior is to cluster like icons into the same cluster group. Use the <b>clusterGroup</b> field for granular control over cluster grouping. To group all markers into a single cluster, simply <b>| eval clusterGroup="default"</b>
+        The default behavior is to cluster all markers into the same cluster group. Use the <b>clusterGroup</b> field for granular control over cluster grouping. The following example creates seven cluster groups.
       </p>
     </html>
+    </panel>
   </row>
   <row>
     <panel>
@@ -13,9 +15,10 @@
         <search>
           <query>| inputlookup chicago-crime.csv 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+clusterGroup=case(like(description, "%SIMPLE%"), "simple", like(description, "%DOMESTIC BATTERY%"), "battery", like(description, "%500 AND UNDER%"), "under_five_hundred", like(description, "%TO PROPERTY%"), "property", like(description, "%RETAIL THEFT%"), "theft", like(description, "%TO VEHICLE%"), "vehicle", 1=1, "default")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description
-| table latitude, longitude, description, tooltip, markerColor, icon</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

@@ -3,7 +3,7 @@
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
-      <title>Canvas Renderer, No Splits, Auto Fit &amp; Zoom, tooltip, description</title>
+      <title>No Splits, Auto Fit &amp; Zoom, tooltip, description</title>
       <input type="multiselect" token="track_id_viz_1" searchWhenChanged="true">
         <label>Vehicle ID</label>
         <choice value="*">All</choice>
@@ -60,6 +60,7 @@
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
         <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
         <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
@@ -88,7 +89,6 @@
         <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">track_id</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">30</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
@@ -99,6 +99,7 @@
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
@@ -115,7 +116,7 @@
   </row>
   <row>
     <panel>
-      <title>SVG Renderer, 10 Second Splits, Auto Fit &amp; Zoom, tooltip</title>
+      <title>10 Second Splits, Auto Fit &amp; Zoom, tooltip</title>
       <input type="multiselect" token="track_id_viz_2" searchWhenChanged="true">
         <label>Taxi ID</label>
         <choice value="*">All</choice>
@@ -172,6 +173,7 @@
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
         <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
         <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
@@ -200,7 +202,6 @@
         <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">track_id</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">10</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">1</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
@@ -211,6 +212,7 @@
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
@@ -227,7 +229,7 @@
   </row>
   <row>
     <panel>
-      <title>Canvas Renderer, No Splits, Hidden Markers, Auto Fit &amp; Zoom, pathWeight, pathColor, pathOpacity, tooltip,</title>
+      <title>No Splits, Hidden Markers, Auto Fit &amp; Zoom, pathWeight, pathColor, pathOpacity, tooltip,</title>
       <input type="multiselect" token="track_id_viz_3" searchWhenChanged="true">
         <label>Vehicle ID</label>
         <choice value="*">All</choice>
@@ -284,6 +286,7 @@
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
         <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
         <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
@@ -312,7 +315,6 @@
         <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
         <option name="leaflet_maps_app.maps-plus.pathIdentifier">track_id</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">30</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
@@ -323,6 +325,7 @@
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

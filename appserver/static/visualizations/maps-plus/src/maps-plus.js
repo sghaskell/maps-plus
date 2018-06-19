@@ -99,7 +99,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList': "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
-			'display.visualizations.custom.leaflet_maps_app.maps-plus.pathRenderer': "svg",
+			'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
@@ -865,7 +865,7 @@ define([
             }
 
             pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
-            pathRenderer = this._getEscapedProperty('pathRenderer', config),
+            renderer = this._getEscapedProperty('renderer', config),
             pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config));
 
             this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile;
@@ -943,8 +943,8 @@ define([
                 }
 
                 // Create canvas render and prever canvas for paths
-                if(pathRenderer == "canvas") {
-                    this.mapOptions.renderer = L.canvas();
+                if(renderer == "canvas") {
+                    //this.mapOptions.renderer = L.canvas();
                     this.mapOptions.preferCanvas = true;
                 }
 

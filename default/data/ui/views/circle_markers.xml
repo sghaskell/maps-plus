@@ -1,0 +1,107 @@
+<dashboard>
+  <label>Circle Markers</label>
+  <row>
+    <html>
+      <p>
+        Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.
+      </p>
+      <p>
+        <b>circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight</b>
+      </p>
+      
+    </html>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| inputlookup chicago-crime.csv
+| eval description = "&lt;b&gt;".description."&lt;/b&gt;", 
+tooltip=description, 
+clusterGroup="default",
+markerType="circle", 
+layerGroup=case(like(description, "%SIMPLE%"), "simple", like(description, "%DOMESTIC BATTERY%"), "domestic", like(description, "%500 AND UNDER%"), "five_hundred", like(description, "%TO PROPERTY%"), "property", like(description, "%RETAIL THEFT%"), "retail", like(description, "%TO VEHICLE%"), "vehicle", 1=1, "default"), 
+circleColor=case(like(description, "%SIMPLE%"), "#42f498", like(description, "%DOMESTIC BATTERY%"), "rgb(95, 66, 244)", like(description, "%500 AND UNDER%"), "#41f4ee", like(description, "%TO PROPERTY%"), "rgb(175, 244, 65)", like(description, "%RETAIL THEFT%"), "#f46741", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "#f44164"),      
+circleFillColor=case(like(description, "%SIMPLE%"), "#f442c8", like(description, "%DOMESTIC BATTERY%"), "#be41f4", like(description, "%500 AND UNDER%"), "#d1ef62", like(description, "%TO PROPERTY%"), "rgb(99, 14, 76)", like(description, "%RETAIL THEFT%"), "#370e63", like(description, "%TO VEHICLE%"), "#72066b", 1=1, "#f2074d"), 
+circleOpacity=case(like(description, "%SIMPLE%"), "0.4", like(description, "%DOMESTIC BATTERY%"), "0.4", like(description, "%500 AND UNDER%"), "0.7", like(description, "%TO PROPERTY%"), "0.8", like(description, "%RETAIL THEFT%"), "0.3", like(description, "%TO VEHICLE%"), "0.5", 1=1, "0.6"),
+circleFillOpacity=case(like(description, "%SIMPLE%"), "1.0", like(description, "%DOMESTIC BATTERY%"), "0.3", like(description, "%500 AND UNDER%"), "0.5", like(description, "%TO PROPERTY%"), "0.6", like(description, "%RETAIL THEFT%"), "0.7", like(description, "%TO VEHICLE%"), "0.3", 1=1, "0.4"),
+circleRadius=case(like(description, "%SIMPLE%"), "15", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "7", like(description, "%RETAIL THEFT%"), "5", like(description, "%TO VEHICLE%"), "6", 1=1, "4"),
+circleStroke=case(like(description, "%SIMPLE%"), "true", like(description, "%DOMESTIC BATTERY%"), "true", like(description, "%500 AND UNDER%"), "false", like(description, "%TO PROPERTY%"), "true", like(description, "%RETAIL THEFT%"), "false", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "true"),
+circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "8", like(description, "%RETAIL THEFT%"), "15", like(description, "%TO VEHICLE%"), "13", 1=1, "8")
+| table latitude, longitude, description, tooltip, markerType, clusterGroup, layerGroup, circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

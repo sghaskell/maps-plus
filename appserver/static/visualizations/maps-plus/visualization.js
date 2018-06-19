@@ -248,6 +248,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'heatmapRadius',
 	                               'heatmapBlur',
 	                               'heatmapColorGradient',
+	                               'circleStroke',
+	                               'circleRadius',
+	                               'circleColor',
+	                               'circleWeight',
+	                               'circleOpacity',
+	                               'circleFillColor',
+	                               'circleFillOpacity',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {

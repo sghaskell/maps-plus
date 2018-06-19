@@ -156,7 +156,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMaxZoom': null, 
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
@@ -244,7 +243,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                               'heamaptLayer',
 	                               'heatmapPointIntensity',
 	                               'heatmapMinOpacity',
-	                               'heatmapMaxZoom',
 	                               'heatmapRadius',
 	                               'heatmapBlur',
 	                               'heatmapColorGradient',
@@ -394,7 +392,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 
 	                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
-	                
+
 	                options.control.addOverlay(options.layerGroup.group, iconHtml);
 	                options.layerGroup.layerExists = true;
 	            }
@@ -832,7 +830,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
 	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
 	                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
-	                heatmapMaxZoom = parseInt(this._getEscapedProperty('heatmapMaxZoom', config)),
 	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
 	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
 	                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
@@ -1204,7 +1201,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
 	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity;
-	                    heatmapMaxZoom = _.has(userData, "heatmapMaxZoom") ? parseFloat(serData["heatmapMaxZoom"]):heatmapMaxZoom;
 	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius;
 	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur;
 	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
@@ -1212,7 +1208,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create heat layer
 	                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-	                                                                           maxZoom: heatmapMaxZoom,
 	                                                                           radius: heatmapRadius,
 	                                                                           gradient: heatmapColorGradient,
 	                                                                           blur: heatmapBlur});

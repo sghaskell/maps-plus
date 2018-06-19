@@ -4,7 +4,7 @@
     <panel>
       <html>
       <p>
-        The default behavior is to group like icons into the same layer group. Use the <b>layerGroup</b> field for granular control over cluster grouping. To group all markers into a single layer, simply <b>| eval layerGroup="default"</b>
+        The default behavior is to group like icons into the same layer group. Use the <b>layerGroup</b> field for granular control over layer grouping. To group all markers into a single layer, simply <b>| eval layerGroup="default" | table layerGroup</b>
       </p>
       <p>
         Toggle the visibility of each layer using the layer controls panel in the upper right corner of the map.
@@ -19,9 +19,10 @@
         <search>
           <query>| inputlookup chicago-crime.csv 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+iconColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description
-| table latitude, longitude, description, tooltip, markerColor, icon</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, iconColor</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

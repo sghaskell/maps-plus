@@ -199,7 +199,7 @@ The visualization will identify any non-standard fields and make them available 
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
 
 ### Layer Controls
-Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a checkbox to toggle visbility of the markers on the map. This control works for both clustered and single value visualizations. 
+Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and single value visualizations. 
 
 Specify ``layerGroup`` via SPL for filtering markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the ``layerGroup`` field allows you to split them into their own group for filtering.
 
@@ -209,12 +209,8 @@ Add description text next to each icon in the layer control legend.
 ##### layerGroup
 Specify unique group that markers belong to. [See Issue 13 for details](https://github.com/sghaskell/Clustered-Single-Value-Map-Visualization/issues/13)
 
-Example
-```
-layerGroup=case(like(description, "%HARASSMENT BY TELEPHONE%"), "hbt", like(description, "%RECKLESS CONDUCT%"), "rc", 1=1, "default")
-```
-### Multiple Cluster Groups
-By default, the visualiztion renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field.
+### Cluster Groups
+By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field.
 
 ### Overlays
 Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.

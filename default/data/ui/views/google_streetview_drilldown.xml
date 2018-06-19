@@ -4,7 +4,7 @@
   <row>
     <panel>
       <html>
-    Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates below the map.
+        Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates below the map. The Google Street View visualization requires an API key. Log in to the <a target="_blank" href="https://console.cloud.google.com/">Google Cloud Console</a> to enable the <b>Maps JavaScript API</b>, <b>Street View API</b> and <a target="_blank" href="https://cloud.google.com/docs/authentication/api-keys">generate an API key</a>.
     </html>
     </panel>
   </row>

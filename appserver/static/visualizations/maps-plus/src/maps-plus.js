@@ -302,24 +302,43 @@ define([
         },
 
         // Draw path line
-        drawPath: function(data, context) {
-            _.each(data, function(p) {
+        drawPath: function(options) {
+            _.each(options.data, function(p) {
+                id = p[0]['id'];
+
+                // Check if feature group exists for current id. Use existing FG or create new accordingly.
+                if(_.has(options.pathLineLayers, id)) {
+                    var pathFg = options.pathLineLayers[id];
+                } else {
+                    var pathFg = L.featureGroup();
+                    pathFg.options.name = id;
+                    options.pathLineLayers[pathFg.options.name] = pathFg;
+                }
+
                 // create polyline and bind popup
-                var pl = L.polyline(_.pluck(p, 'coordinates'), {color: this.convertHex(p[0]['color']),
-                                                       weight: p[0]['pathWeight'],
-                                                       opacity: p[0]['pathOpacity']}).bindPopup(p[0]['id']).addTo(context.pathLineLayer);
+                var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+                                                                weight: p[0]['pathWeight'],
+                                                                opacity: p[0]['pathOpacity']}).bindPopup(id);
                 // Apply tooltip to polyline
                 if(p[0]['tooltip'] != "") {
                     pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
                                                      direction: 'auto',
                                                      sticky: p[0]['stickyTooltip']});
                 }
-            }, context);
+
+                // Add polyline to feature group
+                pathFg.addLayer(pl);
+            });
         },
 
         // Create a control icon and description in the layer control legend
         addLayerToControl: function(options) {
-            console.log(options.layerGroup);
+            // Add Heatmap layer to controls and use layer name for control label
+            if(options.layerType == "heat" || options.layerType == "path") {
+                options.control.addOverlay(options.featureGroup, options.featureGroup.options.name)
+                return;
+            }
+
             if(!options.layerGroup.layerExists) {
                 // update blue to awesome-marker blue color
                 if(!_.isUndefined(options.layerGroup.icon)) {
@@ -329,14 +348,10 @@ define([
                     else {
                         var styleColor = options.layerGroup.icon.options.markerColor;
                     }
-
-                    //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
                 } 
 
                 if(!_.isUndefined(options.layerGroup.circle)) {
                     var styleColor = options.layerGroup.circle.fillColor;
-                    //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
-                    //console.log(iconHtml);
                 }
 
                 var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
@@ -377,23 +392,24 @@ define([
             this.map.zoomOut();
         },
 
-        fitPathLayerBounds: function (e, that) {
-            var map = _.isUndefined(that) ? this.map:that.map;
-            var tmpGroup = new L.featureGroup;
-
-            if(!_.isUndefined(e)) {
-                _.each(e._layers, function(l, i) {
-                    tmpGroup.addLayer(l);
-                }, this);    
+        fitPathLayerBounds: function (options) {
+            var map = _.isUndefined(options.context) ? this.map:options.context.map;
+            var tmpGroup = new L.featureGroup();
+    
+            if(!_.isUndefined(options.pathLineLayers)) {
+                _.each(options.pathLineLayers, function(l, i) {
+                    var curLayer = l.getLayers();
+                    tmpGroup.addLayer(curLayer[0]);
+                });    
             }
 
             map.fitBounds(tmpGroup.getBounds());            
         },
 
-        fitLayerBounds: function (e, that) {
-            var map = _.isUndefined(that) ? this.map:that.map;
-            var layerGroup = _.isUndefined(that) ? this.layerFilter:e;
-            var tmpGroup = new L.featureGroup;
+        fitLayerBounds: function (options) {
+            var map = _.isUndefined(options.context) ? this.map:options.context.map;
+            var layerGroup = _.isUndefined(options.context) ? this.layerFilter:options.layerFilter;
+            var tmpGroup = new L.featureGroup();
 
             _.each(layerGroup, function(lg, i) {
                 tmpGroup.addLayer(lg.group);
@@ -684,6 +700,19 @@ define([
                 }
             });
         },
+        
+        _renderLayersToMap: function(map, options) {
+            // Render hetmap layer on map
+            _.each(options.layers, function(featureGroup) {
+                featureGroup.addTo(map);
+                if(options.layerControl) {
+                    var layerOptions = {layerType: options.layerType,
+                                        featureGroup: featureGroup,
+                                        control: options.control};
+                    options.context.addLayerToControl(layerOptions);   
+                }   
+            })
+        },
 
         formatData: function(data) {
             //console.log("In format:");
@@ -796,17 +825,28 @@ define([
                 }
                 
                 // Render hetmap layer on map
-                if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
-                    _.each(this.heatLayers, function(heat) {
-                        heat.addTo(this.map);    
-                    }, this)
+                if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                    this._renderLayersToMap(this.map, {layers: this.heatLayers,
+                                                      control: this.control,
+                                                      layerControl: this.isArgTrue(layerControl),
+                                                      layerType: "heat",
+                                                      context: this})
+                }
+
+                // Render paths to map
+                if(this.isArgTrue(showPathLines)) {
+                    this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
+                                                       control: this.control,
+                                                       layerControl: this.isArgTrue(layerControl),
+                                                       layerType: "path",
+                                                       context: this})
                 }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
                     if (this.isArgTrue(showPathLines)) {
-                        setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
+                        setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
                     } else {
-                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
+                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
                     }
                 }
 
@@ -1014,7 +1054,7 @@ define([
                 });
 
                 // Create layer control
-                this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)});
+                var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)});
 				
 				// Get map size          
 				var mapSize = this.mapSize = this.map.getSize();
@@ -1075,7 +1115,8 @@ define([
                     }, this);
                 }
                 
-                var pathLineLayer = this.pathLineLayer = L.layerGroup();
+                //var pathLineLayer = this.pathLineLayer = L.layerGroup();
+                var pathLineLayers = this.pathLineLayers = {}
                 
                 // Store heatmap layers
                 var heatLayers = this.heatLayers = {};
@@ -1154,16 +1195,23 @@ define([
                     heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
                     
                     if(!_.has(this.heatLayers, this.heatLayer)) {
+                        // Create feature group
+                        var heatFg = L.featureGroup();
+
                         // Create heat layer
-                        this.heatLayers[this.heatLayer] = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-                                                                           radius: heatmapRadius,
-                                                                           gradient: heatmapColorGradient,
-                                                                           blur: heatmapBlur});
+                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                                                        radius: heatmapRadius,
+                                                        gradient: heatmapColorGradient,
+                                                        blur: heatmapBlur});
+                        // Add to feature group                                
+                        heatFg.addLayer(heatFgLayer);
+                        heatFg.options.name = this.heatLayer;
+                        this.heatLayers[this.heatLayer] = heatFg;
                     }
 
                     var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0;
                     var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
-                    this.heatLayers[this.heatLayer].addLatLng(this.heatLatLng);
+                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng);
                     
                     if(this.isArgTrue(heatmapOnly)) {
                         return;
@@ -1415,16 +1463,12 @@ define([
                         })
                         .values()
                         .value();
-
-                        this.drawPath(this.pathData, this);
+                        this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
                     }, this);
                 } else {
                     this.pathData = paths;
-                    this.drawPath(this.pathData, this);
+                    this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
                 }
-
-				// Add pathlines to map
-				this.pathLineLayer.addTo(this.map);
             }
 
 
@@ -1465,19 +1509,35 @@ define([
                 } else {
                     this.allDataProcessed = true;
 
-                    if(this.isArgTrue(autoFitAndZoom)) {
-                        if (this.isArgTrue(showPathLines)) {
-                            setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, this.pathLineLayer, this);
-                        } else {
-                            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, this.layerFilter, this);
+                    if(this.isArgTrue(showProgress)) {
+                        if(!_.isUndefined(this.map)) {
+                            this.map.spin(false);
                         }
+                    }s
+                                    // Render hetmap layer on map
+                    if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+                        this._renderLayersToMap(this.map, {layers: this.heatLayers,
+                                                        control: this.control,
+                                                        layerControl: this.isArgTrue(layerControl),
+                                                        layerType: "heat",
+                                                        context: this})
                     }
 
-                    // Render hetmap layer on map
-                    if (this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
-                        _.each(this.heatLayers, function(heat) {
-                            heat.addTo(this.map);    
-                        }, this)
+                    // Render paths to map
+                    if(this.isArgTrue(showPathLines)) {
+                        this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
+                                                        control: this.control,
+                                                        layerControl: this.isArgTrue(layerControl),
+                                                        layerType: "path",
+                                                        context: this})
+                    }
+
+                    if(this.isArgTrue(autoFitAndZoom)) {
+                        if (this.isArgTrue(showPathLines)) {
+                            setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
+                        } else {
+                            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
+                        }
                     }
 
                     // Dashboard refresh
@@ -1487,11 +1547,7 @@ define([
                         }, refreshInterval);
                     }
 
-                    if(this.isArgTrue(showProgress)) {
-                        if(!_.isUndefined(this.map)) {
-                            this.map.spin(false);
-                        }
-                    }
+
                 }
             }
 

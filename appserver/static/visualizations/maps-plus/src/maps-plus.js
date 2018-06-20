@@ -814,11 +814,8 @@ define([
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
-                //console.log("is splunk 7");
-                //console.log(this.layerFilter);
 
                 if(this.isArgTrue(showProgress)) {
-                    //console.log("Stopping spinner");
                     if(!_.isUndefined(this.map)) {
                         this.map.spin(false);
                     }
@@ -834,7 +831,7 @@ define([
                 }
 
                 // Render paths to map
-                if(this.isArgTrue(showPathLines)) {
+                if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
                     this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
                                                        control: this.control,
                                                        layerControl: this.isArgTrue(layerControl),
@@ -1489,8 +1486,7 @@ define([
             // Update offset and fetch next chunk of data
             if(this.isSplunkSeven) {
                 this.offset += dataRows.length;
-                // //console.log("offset: " + this.offset);
-                // //console.log("Processed?: " + this.allDataProcessed);
+
                 setTimeout(function(that) {
                     that.updateDataParams({count: that.chunk, offset: that.offset});
                 }, 100, this);
@@ -1505,7 +1501,6 @@ define([
                     setTimeout(function(that) {
                         that.updateDataParams({count: that.chunk, offset: that.offset});
                     }, 100, this);
-                    //this.updateDataParams({count: this.chunk, offset: this.offset});
                 } else {
                     this.allDataProcessed = true;
 
@@ -1517,19 +1512,19 @@ define([
                                     // Render hetmap layer on map
                     if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
                         this._renderLayersToMap(this.map, {layers: this.heatLayers,
-                                                        control: this.control,
-                                                        layerControl: this.isArgTrue(layerControl),
-                                                        layerType: "heat",
-                                                        context: this})
+                                                           control: this.control,
+                                                           layerControl: this.isArgTrue(layerControl),
+                                                           layerType: "heat",
+                                                           context: this})
                     }
 
                     // Render paths to map
-                    if(this.isArgTrue(showPathLines)) {
+                    if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
                         this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-                                                        control: this.control,
-                                                        layerControl: this.isArgTrue(layerControl),
-                                                        layerType: "path",
-                                                        context: this})
+                                                           control: this.control,
+                                                           layerControl: this.isArgTrue(layerControl),
+                                                           layerType: "path",
+                                                           context: this})
                     }
 
                     if(this.isArgTrue(autoFitAndZoom)) {

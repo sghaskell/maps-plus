@@ -3,10 +3,10 @@
   <row>
     <html>
       <h1 id="mapsforsplunk">Maps+ for Splunk</h1>
-<h1 id="synopsis">Synopsis</h1>
+<h3 id="synopsis">Synopsis</h3>
 <p>The mapping equivalent of a Swiss Army knife for Splunk.</p>
-<h1 id="credits">Credits</h1>
-<h3 id="includedopensourcesoftware">Included Open Source Software</h3>
+<h3 id="credits">Credits</h3>
+<h4 id="includedopensourcesoftware">Included Open Source Software</h4>
 <h5 id="leafletmapshttpleafletjscom"><a href="http://leafletjs.com/">Leaflet Maps</a></h5>
 <h5 id="leafletmarkerclusterpluginhttpsgithubcomleafletleafletmarkercluster"><a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet Markercluster Plugin</a></h5>
 <h5 id="leafletawesomemarkerspluginhttpswwwnpmjscompackagedrmontyleafletawesomemarkers"><a href="https://www.npmjs.com/package/drmonty-leaflet-awesome-markers">Leaflet Awesome Markers Plugin</a></h5>
@@ -47,24 +47,23 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <li>Paul Thompson for <a href="#marker-priority">marker priority</a> and <a href="#svg-markers">SVG marker</a> feature suggestions.</li>
 <li><a href="https://github.com/dxwils3">dxwils3</a> for <strong>pathColor</strong> enhancement.</li>
 </ul>
-<h1 id="compatibility">Compatibility</h1>
-<p>This app is compatible with <strong>Splunk 6.4+</strong> as it relies on the <a href="http://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/CustomVizDevOverview">Custom Visualization API</a>.</p>
-<h1 id="usage">Usage</h1>
-<h3 id="fieldsmustbenamedexactlyaslabledheretheappiskeyedoffoffieldnamesandnotfieldorder">Fields must be named exactly as labled here. The app is keyed off of field names and not field order.</h3>
-<pre><code>base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup]
+<h3 id="compatibility">Compatibility</h3>
+<p>Maps+ is compatible with <strong>Splunk 6.4+</strong>. <strong>Splunk 7.0+</strong> is recommended.</p>
+<h3 id="usage">Usage</h3>
+<h5 id="fieldsmustbenamedexactlyaslabledheretheappiskeyedoffoffieldnamesandnotfieldorder">Fields must be named exactly as labled here. The app is keyed off of field names and not field order.</h5>
+<pre><code>base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
 </code></pre>
-<h1 id="requiredfields">Required Fields</h1>
+<h3 id="requiredfields">Required Fields</h3>
 <h5 id="latitude">latitude</h5>
 <p>Latitude Coordinates</p>
 <h5 id="longitude">longitude</h5>
 <p>Longitude Coordinates</p>
-<h1 id="optionalfields">Optional Fields</h1>
+<h3 id="optionalfields">Optional Fields</h3>
 <h5 id="description">description</h5>
 <p>Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. <strong>This field supports HTML</strong>.</p>
 <h5 id="layerdescription">layerDescription</h5>
 <p>Description that is added next to the icon in the layer control legend. <strong>this field supports HTML</strong></p>
-<h1 id="stylemarkersandiconsdynamicallythroughspl">Style Markers And Icons Dynamically Through SPL</h1>
-<h3 id="featuredescription">Feature Description</h3>
+<h3 id="stylemarkersandiconsdynamicallythroughspl">Style Markers And Icons Dynamically Through SPL</h3>
 <p>Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using <a href="http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions">eval</a> to define colors for the marker or use an icon from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="http://ionicons.com/">ionicons</a>. If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.</p>
 <p>By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use <a href="#svg-markers">SVG based markers</a>.</p>
 <h3 id="availablefieldsandvalues">Available Fields and Values</h3>
@@ -73,156 +72,133 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <h5 id="tooltip">tooltip</h5>
 <p>Tooltip to display on marker hover.</p>
 <h5 id="icon">icon</h5>
-<p>Icon displayed in map marker - Any icon from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="http://ionicons.com/">ionicons</a>. <strong>Default</strong> <code>circle</code></p>
+<p>Icon displayed in map marker - Any icon from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="http://ionicons.com/">ionicons</a>. - <strong>Default</strong> <code>circle</code></p>
 <h5 id="markercolor">markerColor</h5>
-<p>Color of map marker - <code>red</code>, <code>darkred</code>, <code>lightred</code>, <code>orange</code>, <code>beige</code>, <code>green</code>, <code>darkgreen</code>, <code>lightgreen</code>, <code>blue</code>, <code>darkblue</code>, <code>lightblue</code>, <code>purple</code>, <code>darkpurple</code>, <code>pink</code>, <code>cadetblue</code>, <code>white</code>, <code>gray</code>, <code>lightgray</code>, <code>black</code>. <strong>Default</strong> <code>blue</code></p>
+<p>Color of map marker - <code>red</code>, <code>darkred</code>, <code>lightred</code>, <code>orange</code>, <code>beige</code>, <code>green</code>, <code>darkgreen</code>, <code>lightgreen</code>, <code>blue</code>, <code>darkblue</code>, <code>lightblue</code>, <code>purple</code>, <code>darkpurple</code>, <code>pink</code>, <code>cadetblue</code>, <code>white</code>, <code>gray</code>, <code>lightgray</code>, <code>black</code>. - <strong>Default</strong> <code>blue</code></p>
 <h5 id="iconcolor">iconColor</h5>
-<p>Color of icon - Any <a href="https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html">CSS color name</a>, <a href="http://www.w3schools.com/colors/colors_picker.asp">Hex or RGB value</a>. <strong>Default</strong> white.</p>
+<p>Color of icon - Any <a href="https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html">CSS color name</a>, <a href="http://www.w3schools.com/colors/colors_picker.asp">Hex or RGB value</a>. - <strong>Default</strong> <code>white</code>.</p>
 <h5 id="prefix">prefix</h5>
-<p><code>fa</code> (Font Awesome) or <code>ion</code> (ionicons). <strong>Default</strong> <code>fa</code></p>
+<p><code>fa</code> (Font Awesome) or <code>ion</code> (ionicons). - <strong>Default</strong> <code>fa</code></p>
 <h5 id="extraclasses">extraClasses</h5>
 <p>Any extra CSS classes you wish to add for styling. Here are some <a href="http://fortawesome.github.io/Font-Awesome/examples/">additional classes</a> you can use with Font Awesome or Ionicons to change the styling. <strong>Default</strong> <code>fa-lg</code></p>
 <h3 id="svgmarkers">SVG Markers</h3>
 <p>Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.</p>
 <h5 id="markertype">markerType</h5>
-<p><code>svg</code> or <code>png</code> <strong>Default</strong> <code>png</code></p>
+<p><code>svg</code> or <code>png</code> - <strong>Default</strong> <code>png</code></p>
 <h5 id="markersize">markerSize</h5>
-<p>Comma separated string representing the pixel width and height of marker, respectively. <strong>Default</strong> <code>35,45</code></p>
+<p>Comma separated string representing the pixel width and height of marker, respectively. - <strong>Default</strong> <code>35,45</code></p>
 <h5 id="markercolor-1">markerColor</h5>
-<p>Color of map marker. Use any common <a href="http://www.w3schools.com/colors/colors_names.asp">HTML color code name</a> or <a href="http://www.google.com/search?q=html+color+picker">hex value</a>. <strong>Default</strong> <code>#38AADD</code></p>
+<p>Color of map marker. Use any common <a href="http://www.w3schools.com/colors/colors_names.asp">HTML color code name</a> or <a href="http://www.google.com/search?q=html+color+picker">hex value</a>. - <strong>Default</strong> <code>#38AADD</code></p>
 <h5 id="markeranchor">markerAnchor</h5>
-<p>Comma separated string representing the coordinates of the "tip" of the icon (relative to its top left corner). <strong>Default</strong> <code>15,50</code></p>
+<p>Comma separated string representing the coordinates of the "tip" of the icon (relative to its top left corner). - <strong>Default</strong> <code>15,50</code></p>
 <h5 id="popupanchor">popupAnchor</h5>
 <p>Comma separated string representing the coordinates of the point from which popups will "open", relative to the icon anchor.</p>
 <h5 id="shadowsize">shadowSize</h5>
-<p>Comma separated string representing the pixel width and height of the marker shadow. You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. Set to <code>0,0</code> to disable shadows. <strong>Default</strong> <code>30,46</code></p>
+<p>Comma separated string representing the pixel width and height of the marker shadow. You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. Set to <code>0,0</code> to disable shadows. - <strong>Default</strong> <code>30,46</code></p>
 <h5 id="shadowanchor">shadowAnchor</h5>
-<p>Comma separated string representing the coordinates of the "tip" of the shadow (relative to its top left corner). You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. <strong>Default</strong> <code>30,30</code></p>
+<p>Comma separated string representing the coordinates of the "tip" of the shadow (relative to its top left corner). You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. - <strong>Default</strong> <code>30,30</code></p>
 <h5 id="iconcolor-1">iconColor</h5>
 <p>Color of icon - Any <a href="https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html">CSS color name</a>, <a href="http://www.w3schools.com/colors/colors_picker.asp">Hex or RGB value</a>. <strong>Default</strong> white.</p>
 <h5 id="prefix-1">prefix</h5>
 <p><code>fa</code> (Font Awesome) or <code>ion</code> (ionicons). <strong>Default</strong> <code>fa</code></p>
 <h5 id="extraclasses-1">extraClasses</h5>
 <p>Any extra CSS classes you wish to add for styling. Here are some <a href="http://fortawesome.github.io/Font-Awesome/examples/">additional classes</a> you can use with Font Awesome to change the styling.</p>
-<h1 id="pathtracing">Path Tracing</h1>
-<p>If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the <code>markerVisibility</code> setting. Show split intervals by enabling <code>Path Splits</code> and adjusting the <code>Path Split Interval</code> in the format menu. Note that <code>_time</code> must be present for split intervals to work.</p>
-<h3 id="availablefieldsandvalues-1">Available Fields and Values</h3>
+<h3 id="circlemarkers">Circle Markers</h3>
+<p>Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.</p>
+<h5 id="circleradius">circleRadius</h5>
+<p>Radius of the circle marker, in pixels</p>
+<h5 id="circlecolor">circleColor</h5>
+<p>Stroke color</p>
+<h5 id="circlefillcolor">circleFillColor</h5>
+<p>Fill color. Defaults to the value of the <a href="#circlecolor">circleColor</a> field</p>
+<h5 id="circleopacity">circleOpacity</h5>
+<p>Stroke opacity</p>
+<h5 id="circlefillopacity">circleFillOpacity</h5>
+<p>Fill opacity.</p>
+<h5 id="circlestroke">circleStroke</h5>
+<p>Whether to draw stroke along the path. Set it to false to disable borders.</p>
+<h5 id="circleweight">circleWeight</h5>
+<p>Stroke width in pixels</p>
+<h3 id="heatmaps">Heatmaps</h3>
+<p>Render heatmaps with or without markers. Control heatmaps via the <a href="#heatmap">format menu</a> or directly with SPL. Create multiple heatmap layers via SPL with the <code>heatmapLayer</code> field. When controlling heatmaps through SPL, the first event for a given <code>heatmapLayer</code> will define the heatmap settings <code>heatmapMinOpacity</code> <code>heatmapMaxZoom</code> <code>heatmapRadius</code> <code>heatmapBlur</code> <code>heatmapColorGradient</code>, if specified, otherwise values specified in the format menu will be used.</p>
+<h4 id="availablefieldsandvalues-1">Available Fields and Values</h4>
+<h5 id="heatlayer">heatLayer</h5>
+<p>Name of the heatmap layer to render.</p>
+<h5 id="heatpointintensity">heatPointIntensity</h5>
+<p>Control the intensity of the point - <strong>Default</strong> <code>1.0</code></p>
+<h5 id="heatmapminopacity">heatmapMinOpacity</h5>
+<p>The minimum opacity the heat will start at</p>
+<h5 id="heatmapradius">heatmapRadius</h5>
+<p>Radius of each "point" of the heatmap - <strong>Default</strong> <code>25</code></p>
+<h5 id="heatmapblur">heatmapBlur</h5>
+<p>Amount of blur - <strong>Default</strong> <code>15</code></p>
+<h5 id="heatmapcolorgradient">heatmapColorGradient</h5>
+<p>Color gradient config - <strong>Default</strong> <code>{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})</code></p>
+<h3 id="pathtracing">Path Tracing</h3>
+<p>If you have a dataset that contains multiple coordinates for each object (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path on the map. Control whether markers are displayed along the path using the <code>markerVisibility</code> setting. Show split intervals by enabling <code>Path Splits</code> and adjusting the <code>Path Split Interval</code> in the <a href="#path-lines">format menu options</a>. Note that <code>_time</code> must be present for split intervals to work.</p>
+<h4 id="availablefieldsandvalues-2">Available Fields and Values</h4>
 <h5 id="markervisibility">markerVisibility</h5>
 <p>Show marker for the given coordinates. Set to <code>marker</code> to show marker or any other value to hide.</p>
 <h5 id="pathweight">pathWeight</h5>
-<p>Weight (width) of path. <strong>Default</strong> <code>5</code></p>
+<p>Weight (width) of path - <strong>Default</strong> <code>5</code></p>
 <h5 id="pathopacity">pathOpacity</h5>
-<p>Opacity of path line. <strong>Default</strong> <code>0.5</code></p>
+<p>Opacity of path line - <strong>Default</strong> <code>0.5</code></p>
 <h5 id="pathcolor">pathColor</h5>
 <p>The color of the path.  If not specified, the color will be chosen randomly from the set of colors listed in the <strong>Path Colors</strong> option.</p>
-<h1 id="markerpriority">Marker Priority</h1>
+<h3 id="markerpriority">Marker Priority</h3>
 <p>Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.</p>
 <p>Use the following setting to set the marker priority.</p>
 <h5 id="markerpriority-1">markerPriority</h5>
 <p>Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like <code>1000</code> (or a high negative value to render beneath). <strong>Default</strong> <code>0</code></p>
-<h1 id="drilldown">Drilldown</h1>
+<h3 id="drilldown">Drilldown</h3>
 <p>The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. See the <a href="http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms">documentation on dynamic drilldown</a>. Refer to this section of the docs on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown">accessing tokens for dynamic drilldown</a>.</p>
-<h3 id="usage-1">Usage</h3>
+<h4 id="usage-1">Usage</h4>
 <p>Drilldown is disabled by default. Enable it in the main <strong>Map</strong> section of the format menu.  Simply <strong>double-click</strong> on a marker to activate the drilldown behavior.</p>
-<h1 id="layercontrols">Layer Controls</h1>
-<p>Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a checkbox to toggle visbility of the markers on the map. This control works for both clustered and single value visualizations. </p>
-<p>Specify <code>layerGroup</code> via SPL for filtering markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the <code>layerGroup</code> field allows you to split them into their own group for filtering.</p>
-<h3 id="availablefields">Available Fields</h3>
+<h3 id="layercontrols">Layer Controls</h3>
+<p>Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and stand-alone markers. </p>
+<p>Specify groups with the <code>layerGroup</code> field to filter markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the <code>layerGroup</code> field allows you to split them into their own group for filtering.</p>
+<h4 id="availablefields">Available Fields</h4>
 <h5 id="layerdescription-1">layerDescription</h5>
 <p>Add description text next to each icon in the layer control legend.</p>
 <h5 id="layergroup">layerGroup</h5>
-<p>Specify unique group that markers belong to. <a href="https://github.com/sghaskell/Clustered-Single-Value-Map-Visualization/issues/13">See Issue 13 for details</a></p>
-<p>Example</p>
-<pre><code>layerGroup=case(like(description, "%HARASSMENT BY TELEPHONE%"), "hbt", like(description, "%RECKLESS CONDUCT%"), "rc", 1=1, "default")
-</code></pre>
-<h1 id="multipleclustergroups">Multiple Cluster Groups</h1>
-<p>By default, the visualiztion renders all markers into a single cluster group. Override this behavior using the <code>clusterGroup</code> SPL field.</p>
-<h1 id="overlays">Overlays</h1>
+<p>Specify unique group that markers belong to.</p>
+<h3 id="clustergroups">Cluster Groups</h3>
+<p>By default, the visualization renders all markers into a single cluster group. Override this behavior using the <code>clusterGroup</code> SPL field. Refer to the <code>Multi-Cluster Groups</code> dashboard example in the app for details.</p>
+<h3 id="overlays">Overlays</h3>
 <p>Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.</p>
-<h4 id="usage-2">Usage</h4>
 <h5 id="kmlkmzoverlay">KML/KMZ Overlay</h5>
 <p>Copy any KML or KMZ files into the following directory</p>
 <pre><code>$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/leaflet_maps/contrib/kml
 </code></pre>
-<p>Click 'Format' and selct the 'Overlays' tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml</p>
+<p>Click <code>Format</code> and selct the <code>Overlays</code> tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml</p>
 <pre><code>file1.kml,file2.kmz
 </code></pre>
 <p>The files will be asynchronously loaded when the map is rendered. </p>
-<h1 id="measurementplugin">Measurement Plugin</h1>
+<h3 id="measurementplugin">Measurement Plugin</h3>
 <p>Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.</p>
-<h1 id="googleplacessearch">Google Places Search</h1>
-<p>A search control for the Google Places API. Log into the <a href="https://console.developers.google.com/flows/enableapi?apiid=places_backend%2Freusekey=true%2Fauthuser=2">Google API Console</a> and enable the <strong>Google Places API Web Service</strong> and <strong>Google Maps JavaScript API</strong> for the given project and create an API key. See <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google's docs</a> for detailed instructions.</p>
-<h4 id="usage-3">Usage</h4>
-<p><strong>Enable/Disable</strong> the search control via the format menu option <strong>Google Places -> Google Places Search -> Enabled</strong></p>
-<p>Set the <strong>API Key</strong> option <strong>Google Places -> API Key</strong></p>
-<p>Optionally set the <strong>Zoom Level</strong> option <strong>Google Places -> Zoom Level</strong> for the desired fly to zoom level.</p>
-<h1 id="bingmaps">Bing Maps</h1>
+<h3 id="googleplacessearch">Google Places Search</h3>
+<p>A search control for the Google Places API. Log into the <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google API Console</a> and enable the <code>Google Places API Web Service</code> and <code>Google Maps JavaScript API</code> for the given project and create an API key. See <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google's docs</a> for detailed instructions.</p>
+<p>Enable the search control via the format menu option <code>Google Places -&gt; Google Places Search -&gt; Enabled</code></p>
+<p>Set the <code>API Key</code> option <code>Google Places -&gt; API Key</code></p>
+<p>Optionally set the <code>Zoom Level</code> option <code>Google Places -&gt; Zoom Level</code> for the desired fly to zoom level.</p>
+<h3 id="bingmaps">Bing Maps</h3>
 <p>A Bing Maps tile layer. </p>
-<h4 id="usage-4">Usage</h4>
-<p><strong>Enable/Disable</strong> Bing Maps via the format menu option <strong>Bing Maps -> Bing Maps -> Enabled</strong>. When Bing Maps are enabled, the default tile layer set and the map attribution override setting will not work.</p>
-<p>Set the <strong>API Key</strong> option <strong>Bing Maps -> API Key</strong> by pasting your Bing Maps API Key into this field.</p>
-<p>Choose the desired <strong>Tile Layer</strong> under <strong>Bing Maps -> Tile Layer</strong></p>
-<p>Optionally set the <strong>Label Language</strong> using <strong>Bing Maps -> Label Language</strong> to localize the tile labels in the desired language. See <a href="https://msdn.microsoft.com/en-us/library/hh441729.aspx">Microsoft's documentation</a> for more details.</p>
-<h1 id="searchexamples">Search Examples</h1>
-<h3 id="basicplotoflatitudeandlongitude">Basic plot of latitude and longitude</h3>
-<pre><code>index=chicago_crime 
-| fillnull 
-| table latitude, longitude
-</code></pre>
-<h3 id="plotwithlatitudelongitudeanddescription">Plot with latitude, longitude and description</h3>
-<pre><code>index=chicago_crime 
-| fillnull 
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;" 
-| table latitude, longitude, description
-</code></pre>
-<h3 id="plotwithcustommarkercolorandicons">Plot with custom marker color and icons</h3>
-<pre><code>index=chicago_crime 
-| fillnull 
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;" 
-| eval markerColor = case(like(description, "%HARASSMENT BY TELEPHONE%"), "red", like(description, "%RECKLESS CONDUCT%"), "green", 1=1, "blue"), 
-icon=case(like(description, "%HARASSMENT BY TELEPHONE%"), "exclamation", like(description, "%RECKLESS CONDUCT%"), "check-circle", 1=1, "circle") 
-| table latitude, longitude, description, markerColor, icon
-</code></pre>
-<h3 id="plotoverridingcustommarkerwithmapiconsfromfontawesome">Plot overriding custom marker with map icons from Font Awesome</h3>
-<pre><code>index=chicago_crime 
-| fillnull 
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;"
-| eval markerColor = case(like(description, "%HARASSMENT BY TELEPHONE%"), "red", like(description, "%RECKLESS CONDUCT%"), "green", 1=1, "blue"), 
-icon=case(like(description, "%HARASSMENT BY TELEPHONE%"), "map-marker", like(description, "%RECKLESS CONDUCT%"), "map-pin", 1=1, "circle"), 
-iconColor=case(like(description, "%HARASSMENT BY TELEPHONE%"), "#374D13", like(description, "%RECKLESS CONDUCT%"), "rgb(0,255,255)", 1=1, "white") 
-| table latitude, longitude, description, markerColor, icon, iconColor
-</code></pre>
-<h3 id="plotsvgmarkerswithcustommarkersizeshadowsizeandmarkerpriority">Plot SVG markers with custom marker size, shadow size and marker priority</h3>
-<p>Red exclamation markers render on top of green check markers on top of smaller blue markers.</p>
-<pre><code>index=chicago_crime
-| fillnull
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;",
-shadowSize = case(like(description, "%HARASSMENT BY TELEPHONE%"), "30,46", like(description, "%RECKLESS CONDUCT%"), "30,46", 1=1, "20,36"),
-shadowAnchor = case(like(description, "%HARASSMENT BY TELEPHONE%"), "30,30", like(description, "%RECKLESS CONDUCT%"), "30,30", 1=1, "32,40"),
-extraClasses = case(like(description, "%HARASSMENT BY TELEPHONE%"), "fa-lg", like(description, "%RECKLESS CONDUCT%"), "fa-lg", 1=1, ""),
-markerSize = case(like(description, "%HARASSMENT BY TELEPHONE%"), "35,45", like(description, "%RECKLESS CONDUCT%"), "35,45", 1=1, "15,35"),
-markerType = case(like(description, "%HARASSMENT BY TELEPHONE%"), "svg", like(description, "%RECKLESS CONDUCT%"), "svg", 1=1, "svg"),
-markerColor = case(like(description, "%HARASSMENT BY TELEPHONE%"), "red", like(description, "%RECKLESS CONDUCT%"), "green", 1=1, "blue"),
-icon=case(like(description, "%HARASSMENT BY TELEPHONE%"), "exclamation", like(description, "%RECKLESS CONDUCT%"), "check-circle", 1=1, "circle"),
-markerPriority=case(like(description, "%HARASSMENT BY TELEPHONE%"), 1000000, like(description, "%RECKLESS CONDUCT%"), 500000, 1=1, -1000000)
-| table latitude, longitude, description, markerColor, icon, markerType, markerSize, extraClasses, shadowSize, shadowAnchor, markerPriority
-</code></pre>
-<h3 id="showpathlineswithonlythelastmarkervisiblefordatasetwiththefollowingfields_timelatitudelongitudevehicle">Show path lines with only the last marker visible for data set with the following fields: _time, latitude, longitude, vehicle</h3>
-<pre><code>| inputlookup vehicles.csv 
-| reverse 
-| streamstats current=f window=1 first(_time) as ftime by vehicle 
-| reverse 
-| eval markerVisibility=if(isnull(ftime), "marker", "foo"), description=vehicle, pathWeight=case(like(user, "%mustang%"), 10), pathOpacity=case(like(user, "%mustang%"), 0.8)
-| table latitude, longitude, vehicle, description, markerVisibility, pathWeight, pathOpacity
-</code></pre>
-<h1 id="formattingoptions">Formatting Options</h1>
-<h3 id="map">Map</h3>
+<p><code>Enable</code> or <code>Disable</code> Bing Maps via the format menu option <code>Bing Maps -&gt; Bing Maps -&gt; Enabled</code>. When Bing Maps are enabled, the default tile layer set and the map attribution override setting will not work.</p>
+<p>Set the <code>API Key</code> option <code>Bing Maps -&gt; API Key</code> by pasting your Bing Maps API Key into this field.</p>
+<p>Choose the desired <code>Tile Layer</code> under <code>Bing Maps -&gt; Tile Layer</code></p>
+<p>Optionally set the <code>Label Language</code> using <code>Bing Maps -&gt; Label Language</code> to localize the tile labels in the desired language. See <a href="https://msdn.microsoft.com/en-us/library/hh441729.aspx">Microsoft's documentation</a> for more details.</p>
+<h3 id="formattingoptions">Formatting Options</h3>
+<h4 id="map">Map</h4>
 <h6 id="maptile">Map Tile</h6>
 <p>Select one of six available map tiles</p>
 <h6 id="maptileoverride">Map Tile Override</h6>
 <p>Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles <a href="http://wiki.openstreetmap.org/wiki/Tiles">here</a></p>
 <h6 id="mapattributionoverride">Map Attribution Override</h6>
 <p>Use your own attribution. - <strong>Requires browser Refresh</strong></p>
+<h6 id="renderer">Renderer</h6>
+<p>Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.</p>
+<h6 id="progressindicator">Progress Indicator</h6>
+<p>Display progress spinner for long running searches</p>
 <h6 id="scrollwheelzoom">Scroll Wheel Zoom</h6>
 <p>Enable or disable scroll wheel zoom.</p>
 <h6 id="fullscreenmode">Full Screen Mode</h6>
@@ -232,24 +208,24 @@ markerPriority=case(like(description, "%HARASSMENT BY TELEPHONE%"), 1000000, lik
 <h6 id="contextmenu">Context Menu</h6>
 <p>Enable or disable context menu when right clicking the map.</p>
 <h6 id="defaultheight">Default Height</h6>
-<p>Initial Height Of Map (Default: 600)</p>
+<p>Initial Height Of Map - <strong>Default</strong> <code>600</code></p>
 <h6 id="autofitzoom">Auto Fit &amp; Zoom</h6>
-<p>Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes. (Default: Enabled)</p>
+<p>Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes. - <strong>Default</strong> <code>Enabled</code></p>
 <h6 id="autofitzoomdelayms">Auto Fit &amp; Zoom Delay (ms)</h6>
-<p>Delay in milliseconds before triggering Auto Fit &amp; Zoom. Increase if you get inconsistent behavior (Default: 500)</p>
+<p>Delay in milliseconds before triggering Auto Fit &amp; Zoom. Increase if you get inconsistent behavior - <strong>Default</strong> <code>500</code></p>
 <h6 id="dashboardrefreshinterval">Dashboard Refresh Interval</h6>
 <p>Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)</p>
 <h6 id="mapzoom">Map Zoom</h6>
-<p>Initial Zoom for map (Default: 6)</p>
+<p>Initial Zoom for map - <strong>Default</strong> <code>6</code></p>
 <h6 id="centerlat">Center Lat</h6>
-<p>Initial Center Latitiude (Default: 39.50)</p>
+<p>Initial Center Latitiude - <strong>Default</strong> <code>39.50</code></p>
 <h6 id="centerlon">Center Lon</h6>
-<p>Initial Center Longitude (Default: -98.35)</p>
+<p>Initial Center Longitude - <strong>Default</strong> <code>-98.35</code></p>
 <h6 id="minzoom">Min Zoom</h6>
-<p>Minimum zoom for tile layer. Does not affect map zoom. (Default: 1)</p>
+<p>Minimum zoom for tile layer. Does not affect map zoom. - <strong>Default</strong> <code>1</code></p>
 <h6 id="maxzoom">Max Zoom</h6>
-<p>Maximum zoom for tile layer. Does not affect map zoom. (Default: 19)</p>
-<h3 id="clustering">Clustering</h3>
+<p>Maximum zoom for tile layer. Does not affect map zoom. - <strong>Default</strong> <code>19</code></p>
+<h4 id="clustering">Clustering</h4>
 <h6 id="enableclustering">Enable Clustering</h6>
 <p>Disable clustering and plot all markers. WARNING - This comes at a significant performance penalty for large datasets. - <strong>Requires browser Refresh</strong></p>
 <h6 id="showallpopups">Show All Popups</h6>
@@ -260,86 +236,40 @@ markerPriority=case(like(description, "%HARASSMENT BY TELEPHONE%"), 1000000, lik
 <p>Animate cluster separation on zoom - <strong>Requires browser Refresh</strong></p>
 <h6 id="singlemarkermode">Single Marker Mode</h6>
 <p>Re-style single marker icon to marker cluster style (round) - <strong>Requires browser Refresh</strong></p>
+<h6 id="disableclusteringatzoom">Disable Clustering At Zoom</h6>
+<p>At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.</p>
+<h6 id="disableclusteringatzoomlevel">Disable Clustering At Zoom Level</h6>
+<p>At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.</p>
 <h6 id="maxclusterradius">Max Cluster Radius</h6>
-<p>A cluster will cover at most this many pixels from its center (Default: 80) - <strong>Requires browser Refresh</strong></p>
+<p>A cluster will cover at most this many pixels from its center - <strong>Default</strong> <code>80</code> - <strong>Requires browser Refresh</strong></p>
 <h6 id="clusterwarningsize">Cluster Warning Size</h6>
-<p>Display an alert warning that the cluster exceeds threshold at max-zoom and do not show underlying markers. Browser may hang and die if a single point exceeds a very large number.(Default: 100) - <strong>Requires browser refresh</strong></p>
+<p>Display an alert warning that the cluster exceeds threshold at max-zoom and do not show underlying markers. Browser may hang and die if a single point exceeds a very large number.- <strong>Default</strong> <code>100</code> - <strong>Requires browser refresh</strong></p>
 <h6 id="distancemultiplier">Distance Multiplier</h6>
-<p>Increase to increase the distance away that markers appear from the center when expanded at max zoom. (Default: 1) - <strong>Requires browser refresh</strong></p>
-<h3 id="markers">Markers</h3>
+<p>Increase to increase the distance away that markers appear from the center when expanded at max zoom. - <strong>Default</strong> <code>1</code> - <strong>Requires browser refresh</strong></p>
+<h4 id="markers">Markers</h4>
 <h6 id="permanenttooltip">Permanent Tooltip</h6>
 <p>Open the tooltip permanently or only on mouseover. Depends on tooltip field in search results.</p>
 <h6 id="stickytooltip">Sticky Tooltip</h6>
 <p>Tooltip follows mouse instead of fixed position.</p>
-<h3 id="googleplaces">Google Places</h3>
-<h6 id="googleplacessearch-1">Google Places Search</h6>
-<p>Enable or disable Google Places API search control.</p>
-<h6 id="apikey">API Key</h6>
-<p>Google Places API Key</p>
-<h6 id="searchbarposition">Search Bar Position</h6>
-<p>Position of Google Places Search Bar (Default: Top Left)</p>
-<h6 id="zoomlevel">Zoom Level</h6>
-<p>Desired zoom level to fly to</p>
-<h3 id="bingmaps-1">Bing Maps</h3>
-<h6 id="bingmaps-2">Bing Maps</h6>
-<p>Enable or disable Bing Maps tiles</p>
-<h6 id="apikey-1">API Key</h6>
-<p>Bing Maps API Key</p>
-<h6 id="tilelayer">Tile Layer</h6>
-<p>Select tile layer imagery set</p>
-<h6 id="labellanguage">Label Language</h6>
-<p>Select language used for labels</p>
-<h3 id="clustercolors">Cluster Colors</h3>
-<h4 id="clustercolorchangesrequirebrowserrefresh">Cluster color changes require browser refresh</h4>
-<h6 id="rangeonebackground">Range One Background</h6>
-<p>(Default: #B5E28C)</p>
-<h6 id="rangeoneforeground">Range One Foreground</h6>
-<p>(Default: #6ECC39)</p>
-<h6 id="rangetwothereshold">Range two thereshold</h6>
-<p>Number at which cluster group two starts</p>
-<h6 id="rangetwobackground">Range Two Background</h6>
-<p>(Default: #F1D357)</p>
-<h6 id="rangetwoforeground">Range Two Foreground</h6>
-<p>(Default: #F0C20C)</p>
-<h6 id="rangethreethreshold">Range three threshold</h6>
-<p>Number at which cluster group three starts</p>
-<h6 id="rangethreebackground">Range Three Background</h6>
-<p>(Default: #FD9C73)</p>
-<h6 id="rangethreeforeground">Range Three Foreground</h6>
-<p>(Default: #F18017)</p>
-<h3 id="layercontrols-1">Layer Controls</h3>
-<h4 id="layercontrolchangesrequirebrowserrefresh">Layer control changes require browser refresh</h4>
-<h6 id="layercontrol">Layer Control</h6>
-<p>Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map. (Default: Enabled)</p>
-<h6 id="controlcollapsed">Control Collapsed</h6>
-<p>Collapse or expand layer control widget. If collapsed, mousing over icon will expand. (Default: Collapsed)</p>
-<h3 id="overlays-1">Overlays</h3>
-<h4 id="overlaycontrolchangesrequirebrowserrefresh">Overlay control changes require browser refresh</h4>
-<h6 id="kmlkmzoverlay-1">KML/KMZ Overlay</h6>
-<p>Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)</p>
-<h3 id="measure">Measure</h3>
-<h6 id="enablemeasurementplugin">Enable Measurement Plugin</h6>
-<p>Enable or disable measurement plugin to allow path and area measurement on map. (Default: Enabled)</p>
-<h6 id="localization">Localization</h6>
-<p>Language (Default: English)</p>
-<h6 id="iconposition">Icon Position</h6>
-<p>Position of measurement icon on map (Default: Top Right)</p>
-<h6 id="primarylengthunit">Primary Length Unit</h6>
-<p>Primary unit for length measurement (Default: feet)</p>
-<h6 id="secondarylengthunit">Secondary Length Unit</h6>
-<p>Secondary unit for length measurement (Default: miles)</p>
-<h6 id="primaryareaunit">Primary Area Unit</h6>
-<p>Primary unit for area measurement (Default: acres)</p>
-<h6 id="secondaryareaunit">Secondary Area Unit</h6>
-<p>Secondary unit for area measurement (Default: square miles)</p>
-<h6 id="activecolor">Active Color</h6>
-<p>Color of measurement when actively drawing (Default: #00ff00)</p>
-<h6 id="completedcolor">Completed Color</h6>
-<p>Color of measurement when drawing is complete (Default: #0066ff)</p>
-<h3 id="pathlines">Path Lines</h3>
+<h3 id="heatmap">Heatmap</h3>
+<h6 id="enableheatmap">Enable Heatmap</h6>
+<p>Enable or disable heatmap.</p>
+<h6 id="heatmaponly">Heatmap Only</h6>
+<p>Only show the heatmap. No markers will be rendered.</p>
+<h6 id="minopacity">Min Opacity</h6>
+<p>Minimum opacity the heat will start at. - <strong>Default</strong> <code>1.0</code></p>
+<h6 id="maxzoom-1">Max Zoom</h6>
+<p>Zoom level where the points reach maximum intensity. - <strong>Default</strong> <code>Max Zoom of map</code></p>
+<h6 id="radius">Radius</h6>
+<p>Max point intensity. - <strong>Default</strong> <code>1.0</code></p>
+<h6 id="blur">Blur</h6>
+<p>Amount of blur. - <strong>Default</strong> <code>15</code></p>
+<h6 id="colorgradient">Color Gradient</h6>
+<p>Color gradient config - <strong>Default</strong> <code>{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</code></p>
+<h4 id="pathlines">Path Lines</h4>
 <h6 id="pathlines-1">Path Lines</h6>
 <p>Draw path lines on map for markers that have multiple coordinates.</p>
-<h6 id="renderer">Renderer</h6>
+<h6 id="renderer-1">Renderer</h6>
 <p>Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support</p>
 <h6 id="pathidentifier">Path Identifier</h6>
 <p>Field used to distinguish unique paths, e.g. vehicle number or trip ID</p>
@@ -348,10 +278,97 @@ markerPriority=case(like(description, "%HARASSMENT BY TELEPHONE%"), 1000000, lik
 <h6 id="pathsplits">Path Splits</h6>
 <p>Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.</p>
 <h6 id="pathsplitinterval">Path Split Interval</h6>
-<p>Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)</p>
+<p>Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - <strong>Default</strong> <code>60</code></p>
+<h4 id="googleplaces">Google Places</h4>
+<h6 id="googleplacessearch-1">Google Places Search</h6>
+<p>Enable or disable Google Places API search control.</p>
+<h6 id="apikey">API Key</h6>
+<p>Google Places API Key</p>
+<h6 id="searchbarposition">Search Bar Position</h6>
+<p>Position of Google Places Search Bar - <strong>Default</strong> <code>Top Left</code></p>
+<h6 id="zoomlevel">Zoom Level</h6>
+<p>Desired zoom level to fly to</p>
+<h4 id="bingmaps-1">Bing Maps</h4>
+<h6 id="bingmaps-2">Bing Maps</h6>
+<p>Enable or disable Bing Maps tiles</p>
+<h6 id="apikey-1">API Key</h6>
+<p>Bing Maps API Key</p>
+<h6 id="tilelayer">Tile Layer</h6>
+<p>Select tile layer imagery set</p>
+<h6 id="labellanguage">Label Language</h6>
+<p>Select language used for labels</p>
+<h4 id="clustercolors">Cluster Colors</h4>
+<p>Cluster color changes require browser refresh</p>
+<h6 id="rangeonebackground">Range One Background</h6>
+<ul>
+<li><strong>Default</strong> <code>#B5E28C</code></li>
+</ul>
+<h6 id="rangeoneforeground">Range One Foreground</h6>
+<ul>
+<li><strong>Default</strong> <code>#6ECC39</code></li>
+</ul>
+<h6 id="rangetwothereshold">Range two thereshold</h6>
+<p>Number at which cluster group two starts</p>
+<h6 id="rangetwobackground">Range Two Background</h6>
+<ul>
+<li><strong>Default</strong> <code>#F1D357</code></li>
+</ul>
+<h6 id="rangetwoforeground">Range Two Foreground</h6>
+<ul>
+<li><strong>Default</strong> <code>#F0C20C</code></li>
+</ul>
+<h6 id="rangethreethreshold">Range three threshold</h6>
+<p>Number at which cluster group three starts</p>
+<h6 id="rangethreebackground">Range Three Background</h6>
+<ul>
+<li><strong>Default</strong> <code>#FD9C73</code></li>
+</ul>
+<h6 id="rangethreeforeground">Range Three Foreground</h6>
+<ul>
+<li><strong>Default</strong> <code>#F18017</code></li>
+</ul>
+<h4 id="layercontrols-1">Layer Controls</h4>
+<p>Layer control changes require browser refresh</p>
+<h6 id="layercontrol">Layer Control</h6>
+<p>Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map. - <strong>Default</strong> <code>Enabled</code></p>
+<h6 id="controlcollapsed">Control Collapsed</h6>
+<p>Collapse or expand layer control widget. If collapsed, mousing over icon will expand. - <strong>Default</strong> <code>Collapsed</code></p>
+<h4 id="overlays-1">Overlays</h4>
+<p>Overlay control changes require browser refresh</p>
+<h6 id="kmlkmzoverlay-1">KML/KMZ Overlay</h6>
+<p>Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)</p>
+<h4 id="measure">Measure</h4>
+<h6 id="enablemeasurementplugin">Enable Measurement Plugin</h6>
+<p>Enable or disable measurement plugin to allow path and area measurement on map. - <strong>Default</strong> <code>Enabled</code></p>
+<h6 id="localization">Localization</h6>
+<p>Language - <strong>Default</strong> <code>English</code></p>
+<h6 id="iconposition">Icon Position</h6>
+<p>Position of measurement icon on map - <strong>Default</strong> <code>Top Right</code></p>
+<h6 id="primarylengthunit">Primary Length Unit</h6>
+<p>Primary unit for length measurement - <strong>Default</strong> <code>feet</code></p>
+<h6 id="secondarylengthunit">Secondary Length Unit</h6>
+<p>Secondary unit for length measurement - <strong>Default</strong> <code>miles</code></p>
+<h6 id="primaryareaunit">Primary Area Unit</h6>
+<p>Primary unit for area measurement - <strong>Default</strong> <code>acres</code></p>
+<h6 id="secondaryareaunit">Secondary Area Unit</h6>
+<p>Secondary unit for area measurement - <strong>Default</strong> <code>square miles</code></p>
+<h6 id="activecolor">Active Color</h6>
+<p>Color of measurement when actively drawing - <strong>Default</strong> <code>#00ff00</code></p>
+<h6 id="completedcolor">Completed Color</h6>
+<p>Color of measurement when drawing is complete - <strong>Default</strong> <code>#0066ff</code></p>
+<h1 id="googlestreetviewcompanionvisualization">Google Street View Companion Visualization</h1>
+<p>Maps+ comes bundled with the new Google Street View visualization. Use this visualization as a drill-down target when clicking on a marker. See the <code>Google Street View Drilldown</code> example dashboard in the app for detailed usage.</p>
+<h3 id="prerequisites">Pre-requisites</h3>
+<p>The Google Street View visualization requires an API key. Log in to the <a href="https://console.cloud.google.com/">Google Cloud Console</a> to enable the <code>Maps JavaScript API</code>,<code>Street View API</code> and <a href="https://cloud.google.com/docs/authentication/api-keys">generate an API key</a>.</p>
+<h3 id="requiredfields-1">Required Fields</h3>
+<h5 id="coordinates">coordinates</h5>
+<p>Comma separated coordinate pair the format <code>&lt;latitude&gt;,&lt;longitude&gt;</code>. e.g - <code>| eval coordinates=latitude.",".longitude</code></p>
+<h3 id="formattingoptions-1">Formatting Options</h3>
+<h5 id="apikey-2">API Key</h5>
+<p>Google Street View API Key</p>
 <h1 id="support">Support</h1>
 <h6 id="thisappissupportedbyscotthaskellshaskellsplunkcommailtoshaskellsplunkcom">This app is supported by Scott Haskell (<a href="mailto:shaskell@splunk.com">shaskell@splunk.com</a>)</h6>
-<h6 id="codehostedatgithubhttpsgithubcomsghaskellclusteredsinglevaluemapvisualization"><a href="https://github.com/sghaskell/maps-plus">Code hosted at Github</a></h6>
+<h6 id="codehostedatgithubhttpsgithubcomsghaskellmapsplus"><a href="https://github.com/sghaskell/maps-plus">Code hosted at Github</a></h6>
     </html>
   </row>
 </dashboard>

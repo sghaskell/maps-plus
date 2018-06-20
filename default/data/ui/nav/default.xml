@@ -4,7 +4,7 @@
 
         <!-- Add items to the list -->
         <!-- <collection label="Markers"> -->
-        <view name="png_markers" />
+        <view name="png_markers" default="true" />
         <view name="svg_markers" />
         <view name="circle_markers" />
         <view name="custom_icons" />
@@ -18,5 +18,5 @@
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />
-  <view name="search" default="true" />
+  <view name="search" />
 </nav>

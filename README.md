@@ -47,7 +47,7 @@ Big thanks to the following people:
 * [dxwils3](https://github.com/dxwils3) for **pathColor** enhancement.
 
 ### Compatibility
-Maps+ is compatible with **Splunk 6.4+**. Splunk 7.0+ is recommended.
+Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
 
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
@@ -146,7 +146,7 @@ Whether to draw stroke along the path. Set it to false to disable borders.
 Stroke width in pixels
 
 ### Heatmaps
-Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise default values from the format menu will be used.
+Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise values specified in the format menu will be used.
 
 #### Available Fields and Values
 ##### heatLayer
@@ -169,7 +169,7 @@ Color gradient config - **Default** ``{"0.4":"blue","0.6":"cyan","0.7":"lime","0
 
 
 ### Path Tracing
-If you have a dataset that contains multiple coordinates for each point (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path of the object. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the [format menu options](#path-lines). Note that ``_time`` must be present for split intervals to work.
+If you have a dataset that contains multiple coordinates for each object (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path on the map. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the [format menu options](#path-lines). Note that ``_time`` must be present for split intervals to work.
 
 #### Available Fields and Values
 ##### markerVisibility
@@ -199,18 +199,19 @@ The visualization will identify any non-standard fields and make them available 
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
 
 ### Layer Controls
-Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and single value visualizations. 
+Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and stand-alone markers. 
 
-Specify ``layerGroup`` via SPL for filtering markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the ``layerGroup`` field allows you to split them into their own group for filtering.
+Specify groups with the ``layerGroup`` field to filter markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the ``layerGroup`` field allows you to split them into their own group for filtering.
 
 #### Available Fields
 ##### layerDescription
 Add description text next to each icon in the layer control legend.
+
 ##### layerGroup
-Specify unique group that markers belong to. [See Issue 13 for details](https://github.com/sghaskell/Clustered-Single-Value-Map-Visualization/issues/13)
+Specify unique group that markers belong to.
 
 ### Cluster Groups
-By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field.
+By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.
 
 ### Overlays
 Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.
@@ -223,7 +224,7 @@ Copy any KML or KMZ files into the following directory
 $SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/leaflet_maps/contrib/kml
 ```
 
-Click 'Format' and selct the 'Overlays' tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml
+Click `Format` and selct the `Overlays` tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml
 
 ```
 file1.kml,file2.kmz

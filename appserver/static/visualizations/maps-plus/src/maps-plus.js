@@ -1508,7 +1508,7 @@ define([
                         if(!_.isUndefined(this.map)) {
                             this.map.spin(false);
                         }
-                    }s
+                    }
                                     // Render hetmap layer on map
                     if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
                         this._renderLayersToMap(this.map, {layers: this.heatLayers,

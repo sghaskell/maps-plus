@@ -156,49 +156,64 @@ define([
                 );
             }
 
+            
             // get configs
-            var googleMapsApiKey = this._getEscapedProperty('googleMapsApiKey', config);
+            var googleMapsApiKey = this._getEscapedProperty('googleMapsApiKey', config),
+                defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
+                fullScreen = parseInt(this._getEscapedProperty('fullScreen', config));
 
-            // Initialize the DOM
-            //if (!this.isInitializedDom) {
-			    // Load Google Maps
+            // Get parent element of div to resize 
+            // Nesting of Div's is different, try 7.x first
+            var parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid");
+            var parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view");
+
+            // Default to 6.x view
+            if(parentView != 'views/shared/ReportVisualizer') {
+                var parentEl = $(this.el).parent().parent().closest("div").attr("data-cid");
+                var parentView = $(this.el).parent().parent().closest("div").attr("data-view");
+            }
+
+
+
+			// Load Google Maps
             loadGoogleMapsAPI({key: googleMapsApiKey}).then(function(googleMaps) {
-                    //_.each(dataRows, function(userData, i) {
-                    console.log(dataRows);
-                    var coordinates = dataRows[0]["coordinates"].split(/,/);
-                    console.log(coordinates);
-                    var latlng = {lat: parseFloat(coordinates[0]), lng: parseFloat(coordinates[1])};
-                    var map = new googleMaps.Map(this.el);
-                    var panorama = new googleMaps.StreetViewPanorama(this.el, {position: latlng,
-                                                                                pov: {
-                                                                                    heading: 34,
-                                                                                    pitch: 5 
-                                                                                }
-                    });
+                
 
-                    map.setStreetView(panorama);
+                console.log(googleMaps);
+                //_.each(dataRows, function(userData, i) {
+                console.log(dataRows);
+                var coordinates = dataRows[0]["coordinates"].split(/,/);
+                console.log(coordinates);
+                var latlng = {lat: parseFloat(coordinates[0]), lng: parseFloat(coordinates[1])};
+                var map = this.map = new googleMaps.Map(this.el);
+                var panorama = this.panorama = new googleMaps.StreetViewPanorama(this.el, {position: latlng,
+                                                                                                pov: {
+                                                                                                heading: 34,
+                                                                                                pitch: 5 
+                                                                                                }
+                                                                                            });
+
+                this.map.setStreetView(this.panorama);
+
+                // Map Full Screen Mode
+                if (this.isArgTrue(fullScreen)) {
+                    var vh = $(window).height() - 120;
+                    $("div[data-cid=" + parentEl + "]").css("height", vh);
+
+                    $(window).resize(function() {
+                        var vh = $(window).height() - 120;
+                        $("div[data-cid=" + parentEl + "]").css("height", vh);
+                    });
+                    googleMaps.event.trigger(this.map, 'resize');
+                    //this.map.invalidateSize();
+                } else {
+                    $("div[data-cid=" + parentEl + "]").css("height", defaultHeight);
+                    //this.map.invalidateSize();
+                    googleMaps.event.trigger(this.map, 'resize');
+                }
            }.bind(this)).catch(function(err) {
                console.error(err);
            }); 
-            //} 
-
-            //console.log(this.map);
-			/********* BEGIN PROCESSING DATA **********/
- 
-            // Iterate through each row creating layer groups per icon type
-            // and create markers appending to a markerList in each layerfilter object
-            
-			// 1.5.6.1 - Reverting to old code due to reports of inconsistent 
-			// behavior featching results.
-            // Chunk through data 50k results at a time
-            /*
-            if(dataRows.length === this.chunk) {
-                this.offset += this.chunk;
-                this.updateDataParams({count: this.chunk, offset: this.offset});
-            } else {
-                this.clearMap = true;
-            }
-            */
 
             return this;
         }

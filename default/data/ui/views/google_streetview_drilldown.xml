@@ -118,7 +118,7 @@
         <option name="drilldown">none</option>
         <option name="leaflet_maps_app.google-street-view.defaultHeight">800</option>
         <option name="leaflet_maps_app.google-street-view.fullScreen">1</option>
-        <option name="leaflet_maps_app.google-street-view.googleMapsApiKey">AIzaSyBalza1ciy185buT0C8vRgpMorcvJ4nEyY</option>
+        <option name="leaflet_maps_app.google-street-view.googleMapsApiKey"></option>
         <option name="refresh.display">progressbar</option>
       </viz>
     </panel>

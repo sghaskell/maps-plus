@@ -441,6 +441,10 @@ Comma separated coordinate pair the format `<latitude>,<longitude>`. e.g - `| ev
 ### Formatting Options
 ##### API Key
 Google Street View API Key
+##### Default Height
+Initial Height Of Map - **Default** `600`
+##### Full Screen Mode
+Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize.
 
 # Support
 ###### This app is supported by Scott Haskell ([shaskell@splunk.com](mailto:shaskell@splunk.com))

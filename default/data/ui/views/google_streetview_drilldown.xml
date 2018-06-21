@@ -89,6 +89,7 @@
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
@@ -115,6 +116,10 @@
           <latest>$latest$</latest>
         </search>
         <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.google-street-view.defaultHeight">800</option>
+        <option name="leaflet_maps_app.google-street-view.fullScreen">1</option>
+        <option name="leaflet_maps_app.google-street-view.googleMapsApiKey">AIzaSyBalza1ciy185buT0C8vRgpMorcvJ4nEyY</option>
+        <option name="refresh.display">progressbar</option>
       </viz>
     </panel>
   </row>

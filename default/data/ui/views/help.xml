@@ -177,7 +177,7 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <h3 id="measurementplugin">Measurement Plugin</h3>
 <p>Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.</p>
 <h3 id="googleplacessearch">Google Places Search</h3>
-<p>A search control for the Google Places API. Log into the <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google API Console</a> and enable the <code>Google Places API Web Service</code> and <code>Google Maps JavaScript API</code> for the given project and create an API key. See <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google's docs</a> for detailed instructions.</p>
+<p>A search control for the Google Places API. Log into the <a target="_blank" href="https://console.cloud.google.com/apis/">Google API Console</a> and enable the <code>Google Places API Web Service</code> and <code>Google Maps JavaScript API</code> for the given project and create an API key. See <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google's docs</a> for detailed instructions.</p>
 <p>Enable the search control via the format menu option <code>Google Places -&gt; Google Places Search -&gt; Enabled</code></p>
 <p>Set the <code>API Key</code> option <code>Google Places -&gt; API Key</code></p>
 <p>Optionally set the <code>Zoom Level</code> option <code>Google Places -&gt; Zoom Level</code> for the desired fly to zoom level.</p>
@@ -366,6 +366,10 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <h3 id="formattingoptions-1">Formatting Options</h3>
 <h5 id="apikey-2">API Key</h5>
 <p>Google Street View API Key</p>
+<h5 id="defaultheight-1">Default Height</h5>
+<p>Initial Height Of Map - <strong>Default</strong> <code>600</code></p>
+<h5 id="fullscreenmode-1">Full Screen Mode</h5>
+<p>Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize.</p>
 <h1 id="support">Support</h1>
 <h6 id="thisappissupportedbyscotthaskellshaskellsplunkcommailtoshaskellsplunkcom">This app is supported by Scott Haskell (<a href="mailto:shaskell@splunk.com">shaskell@splunk.com</a>)</h6>
 <h6 id="codehostedatgithubhttpsgithubcomsghaskellmapsplus"><a href="https://github.com/sghaskell/maps-plus">Code hosted at Github</a></h6>

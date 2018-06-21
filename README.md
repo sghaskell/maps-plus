@@ -149,7 +149,7 @@ Stroke width in pixels
 Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise values specified in the format menu will be used.
 
 #### Available Fields and Values
-##### heatLayer
+##### heatmapLayer
 Name of the heatmap layer to render.
 
 ##### heatPointIntensity

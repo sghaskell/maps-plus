@@ -78,7 +78,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        initialize: function() {
 	            SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
 	            this.$el = $(this.el);
-	            this.isInitializedDom = false;
 	        },
 	  
 	        // Search data params
@@ -93,79 +92,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            this.clearMap = false;
 	        },
 
-	        // Build object of key/value pairs for invalid fields
-	        // to be used as data for _drilldown action
-	        validateFields: function(obj) {
-	            var invalidFields = {};
-	            var validFields = ['latitude',
-								   'longitude',
-	                               'title',
-	                               'tooltip',
-								   'description',
-								   'icon',
-								   'markerType',
-								   'markerColor',
-								   'markerPriority',
-								   'markerSize',
-							       'markerAnchor',
-	                               'markerVisibility',
-								   'iconColor',
-							       'shadowAnchor',
-								   'shadowSize',
-								   'prefix',
-								   'extraClasses',
-							       'layerDescription',
-								   'pathWeight',
-								   'pathOpacity',
-								   'layerGroup',
-								   'pathColor'];
-	            $.each(obj, function(key, value) {
-	                if($.inArray(key, validFields) === -1) {
-	                    invalidFields[key] = value;
-	                }
-	            });
-
-	            return(invalidFields);
-	        },
-
 	        _getEscapedProperty: function(name, config) {
 	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
 	            return SplunkVisualizationUtils.escapeHtml(propertyValue);
-	        },
-
-			// Custom drilldown behavior for markers
-	        _drilldown: function(drilldownFields, resource) {
-	            payload = {
-	                action: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN,
-	                data: drilldownFields
-	            };
-
-	            this.drilldown(payload);
-	        },
-
-			/* 
-			/ Convert 0x|# prefixed hex values to # prefixed for consistency
-			/ Splunk's eval tostring('hex') method returns 0x prefix
-			*/
-			convertHex: function(value) {
-				// Pass markerColor prefixed with # regardless of given prefix ("#" or "0x")
-				var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i;
-				if (hexRegex.test(value)) {
-					markerColor = "#" + hexRegex.exec(value)[1];
-					return(markerColor);
-				} else {
-					return(value);
-				}
-			},
-
-	        // Convert hex values to RGB for marker icon colors
-	        hexToRgb: function(hex) {
-	            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	            return result ? {
-	                r: parseInt(result[1], 16),
-	                g: parseInt(result[2], 16),
-	                b: parseInt(result[3], 16)
-	            } : null;
 	        },
 
 	        // Convert string '1/0' or 'true/false' to boolean true/false
@@ -202,13 +131,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 
 	            // Validate we have at least latitude and longitude fields
-	            if(!("coordinates" in dataRows[0])) {
+	            if(!_.has(dataRows[0], "coordinates")) {
 	                 throw new SplunkVisualizationBase.VisualizationError(
 	                    'Incorrect Fields Detected - coordinates field required'
 	                );
 	            }
 
-	            
 	            // get configs
 	            var googleMapsApiKey = this._getEscapedProperty('googleMapsApiKey', config),
 	                defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
@@ -229,13 +157,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 				// Load Google Maps
 	            loadGoogleMapsAPI({key: googleMapsApiKey}).then(function(googleMaps) {
-	                
-
-	                console.log(googleMaps);
-	                //_.each(dataRows, function(userData, i) {
-	                console.log(dataRows);
 	                var coordinates = dataRows[0]["coordinates"].split(/,/);
-	                console.log(coordinates);
 	                var latlng = {lat: parseFloat(coordinates[0]), lng: parseFloat(coordinates[1])};
 	                var map = this.map = new googleMaps.Map(this.el);
 	                var panorama = this.panorama = new googleMaps.StreetViewPanorama(this.el, {position: latlng,
@@ -243,7 +165,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                                                                                heading: 34,
 	                                                                                                pitch: 5 
 	                                                                                                }
-	                                                                                            });
+	                                                                                           });
 
 	                this.map.setStreetView(this.panorama);
 

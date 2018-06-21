@@ -122,7 +122,7 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <h3 id="heatmaps">Heatmaps</h3>
 <p>Render heatmaps with or without markers. Control heatmaps via the <a href="#heatmap">format menu</a> or directly with SPL. Create multiple heatmap layers via SPL with the <code>heatmapLayer</code> field. When controlling heatmaps through SPL, the first event for a given <code>heatmapLayer</code> will define the heatmap settings <code>heatmapMinOpacity</code> <code>heatmapMaxZoom</code> <code>heatmapRadius</code> <code>heatmapBlur</code> <code>heatmapColorGradient</code>, if specified, otherwise values specified in the format menu will be used.</p>
 <h4 id="availablefieldsandvalues-1">Available Fields and Values</h4>
-<h5 id="heatlayer">heatLayer</h5>
+<h5 id="heatlayer">heatmapLayer</h5>
 <p>Name of the heatmap layer to render.</p>
 <h5 id="heatpointintensity">heatPointIntensity</h5>
 <p>Control the intensity of the point - <strong>Default</strong> <code>1.0</code></p>

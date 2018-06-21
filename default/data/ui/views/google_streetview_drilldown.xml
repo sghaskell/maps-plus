@@ -15,7 +15,7 @@
         <choice value="*">All</choice>
         <valuePrefix>"</valuePrefix>
         <valueSuffix>"</valueSuffix>
-        <delimiter> OR </delimiter>
+        <delimiter> OR description=</delimiter>
         <fieldForLabel>desc_vals</fieldForLabel>
         <fieldForValue>desc_vals</fieldForValue>
         <search>
@@ -24,10 +24,11 @@
           <latest>now</latest>
         </search>
         <initialValue>*</initialValue>
+        <prefix>description=</prefix>
       </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>| inputlookup chicago-crime.csv | search description=$desc$ | eval tooltip=description, offense=description, coordinates=latitude.",".longitude</query>
+          <query>| inputlookup chicago-crime.csv | search $desc$ | eval tooltip=description, offense=description, coordinates=latitude.",".longitude</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

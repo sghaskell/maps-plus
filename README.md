@@ -93,7 +93,7 @@ Any extra CSS classes you wish to add for styling. Here are some [additional cla
 Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.
 
 ##### markerType
-``svg`` or ``png`` - **Default** ``png``
+``svg``
 
 ##### markerSize
 Comma separated string representing the pixel width and height of marker, respectively. - **Default** ``35,45``
@@ -123,6 +123,9 @@ Any extra CSS classes you wish to add for styling. Here are some [additional cla
 
 ### Circle Markers
 Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.
+
+##### markerType
+``circle``
 
 ##### circleRadius 
 Radius of the circle marker, in pixels

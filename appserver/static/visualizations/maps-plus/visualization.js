@@ -451,33 +451,39 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            this.map.zoomOut();
 	        },
 
-	        fitPathLayerBounds: function (options) {
-	            var map = _.isUndefined(options.context) ? this.map:options.context.map;
-	            var tmpGroup = new L.featureGroup();
-	    
-	            if(!_.isUndefined(options.pathLineLayers)) {
-	                _.each(options.pathLineLayers, function(l, i) {
-	                    var curLayer = l.getLayers();
-	                    tmpGroup.addLayer(curLayer[0]);
-	                });    
-	            }
-
-	            map.fitBounds(tmpGroup.getBounds());            
-	        },
-
 	        fitLayerBounds: function (options) {
-	            var map = _.isUndefined(options.context) ? this.map:options.context.map;
-	            var layerGroup = _.isUndefined(options.context) ? this.layerFilter:options.layerFilter;
+	            var map = _.isUndefined(options.map) ? this.map:options.map;
+	            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter;
+	            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers;
+	            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers;
 	            var tmpGroup = new L.featureGroup();
+	            var layers = [layerFilter, pathLineLayers, heatLayers];
 
-	            _.each(layerGroup, function(lg, i) {
-	                tmpGroup.addLayer(lg.group);
-	            }, this);
+	            // loop through layers and build one big feature group to fit bounds against
+	            _.each(layers, function(l, i) {
+	                console.log("Cur Layer: ");
+	                console.log(l);
+	                if(!_.isEmpty(l)) {
+	                    _.each(l, function(lg, i) {
+	                        // It's a normal feature group or cluster feature group
+	                        if(!_.isUndefined(lg.group)) {
+	                            console.log("processing marker layer");
+	                            tmpGroup.addLayer(lg.group);
+	                            return;
+	                        }
 
-	            if(!_.isEmpty(layerGroup)) {
-	                map.fitBounds(tmpGroup.getBounds());
-	            }
+	                        // It's a path
+	                        var curLayers = lg.getLayers();
+	                        console.log("cur layers");
+	                        console.log(curLayers);
+	                        _.each(curLayers, function(cl, i) {
+	                            tmpGroup.addLayer(cl);
+	                        });
+	                    });
+	                }
+	            });
 	            
+	            map.fitBounds(tmpGroup.getBounds());
 	        },
 
 	        // Fetch KMZ or KML files and add to map
@@ -860,14 +866,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                }
 
 	                if(this.isArgTrue(autoFitAndZoom)) {
-	                    if (this.isArgTrue(showPathLines)) {
-	                        setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
-	                    } else {
-	                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
-	                    }
+	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+	                                                                          layerFilter: this.layerFilter,
+	                                                                          heatLayers: this.heatLayers,
+	                                                                          pathLineLayers: this.pathLineLayers, 
+	                                                                          context: this});
 	                }
 
-	                //console.log(this.heatMarkers);
 	                // Dashboard refresh
 	                if(refreshInterval > 0) {
 	                    setTimeout(function() {
@@ -1548,11 +1553,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    }
 
 	                    if(this.isArgTrue(autoFitAndZoom)) {
-	                        if (this.isArgTrue(showPathLines)) {
-	                            setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
-	                        } else {
-	                            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
-	                        }
+	                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+	                                                                              layerFilter: this.layerFilter, 
+	                                                                              pathLineLayers: this.pathLineLayers,
+	                                                                              heatLayers: this.heatLayers,
+	                                                                              context: this});
 	                    }
 
 	                    // Dashboard refresh
@@ -67334,6 +67339,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    initialize: function (latlngs, options) {
 	        this._latlngs = latlngs;
 	        L.setOptions(this, options);
+	    },
+
+	    // @method getLatLng: LatLng
+	    // Returns the current geographical position of the marker.
+	    getLatLng: function () {
+	        return this._latlngs;
 	    },
 
 	    setLatLngs: function (latlngs) {

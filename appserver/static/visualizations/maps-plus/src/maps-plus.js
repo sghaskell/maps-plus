@@ -392,33 +392,34 @@ define([
             this.map.zoomOut();
         },
 
-        fitPathLayerBounds: function (options) {
-            var map = _.isUndefined(options.context) ? this.map:options.context.map;
-            var tmpGroup = new L.featureGroup();
-    
-            if(!_.isUndefined(options.pathLineLayers)) {
-                _.each(options.pathLineLayers, function(l, i) {
-                    var curLayer = l.getLayers();
-                    tmpGroup.addLayer(curLayer[0]);
-                });    
-            }
-
-            map.fitBounds(tmpGroup.getBounds());            
-        },
-
         fitLayerBounds: function (options) {
-            var map = _.isUndefined(options.context) ? this.map:options.context.map;
-            var layerGroup = _.isUndefined(options.context) ? this.layerFilter:options.layerFilter;
+            var map = _.isUndefined(options.map) ? this.map:options.map;
+            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter;
+            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers;
+            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers;
             var tmpGroup = new L.featureGroup();
+            var layers = [layerFilter, pathLineLayers, heatLayers];
 
-            _.each(layerGroup, function(lg, i) {
-                tmpGroup.addLayer(lg.group);
-            }, this);
+            // loop through layers and build one big feature group to fit bounds against
+            _.each(layers, function(l, i) {
+                if(!_.isEmpty(l)) {
+                    _.each(l, function(lg, i) {
+                        // It's a normal feature group or cluster feature group
+                        if(!_.isUndefined(lg.group)) {
+                            tmpGroup.addLayer(lg.group);
+                            return;
+                        }
 
-            if(!_.isEmpty(layerGroup)) {
-                map.fitBounds(tmpGroup.getBounds());
-            }
+                        // It's a path or heatmap
+                        var curLayers = lg.getLayers();
+                        _.each(curLayers, function(cl, i) {
+                            tmpGroup.addLayer(cl);
+                        });
+                    });
+                }
+            });
             
+            map.fitBounds(tmpGroup.getBounds());
         },
 
         // Fetch KMZ or KML files and add to map
@@ -555,45 +556,6 @@ define([
 
             return mcg;
         },
-
-        _addCircleMarker: function(options) {
-            var circleMarker = L.circleMarker([parseFloat(options.userData["latitude"]),
-                                               parseFloat(options.userData["longitude"])],
-                                               {radius: options.radius,
-                                                color: options.color,
-                                                weight: options.weight,
-                                                stroke: options.stroke,
-                                                opacity: options.opacity,
-                                                fillColor: options.fillColor,
-                                                fillOpacity: options.fillOpacity})
-
-            // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
-            if(options.tooltip) {
-                circleMarker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
-                                                     direction: 'auto',
-                                                     sticky: options.stickyTooltip});
-            } else if (options.title) {
-                circleMarker.bindTooltip(options.title, {permanent: options.permanentTooltip,
-                                                   direction: 'auto',
-                                                   sticky: options.stickyTooltip});
-            }
-
-            if(options.drilldown) {
-                var drilldownFields = this.validateFields(options.userData);
-                circleMarker.on('dblclick', this._drilldown.bind(this, drilldownFields));
-            }
-
-            // Bind description popup if description exists
-            if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
-                circleMarker.bindPopup(options.userData['description']);
-            }
-
-            if (this.isArgTrue(options.cluster)) {           
-                _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(circleMarker)
-            } else {
-                options.layerFilter[options.layerGroup].markerList.push(circleMarker);
-            }                                              
-        },
         
         _addMarker: function(options) {
 
@@ -715,23 +677,15 @@ define([
         },
 
         formatData: function(data) {
-            //console.log("In format:");
-            //console.log(data);
-
             if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
-            //if(data.results.length == 0 && data.fields.length >= 1){    
-                //console.log("Done: " + data.meta.done);
-                //console.log("Markers processed: " + this.markerCount);
                 this.allDataProcessed = true;
                 return this;
             }
             
             if(data.results.length == 0)  {
-                //console.log("returning this");
                 return this;
             }
 
-            //console.log("returning data");
             this.allDataProcessed = false;
             return data;
         },
@@ -840,14 +794,13 @@ define([
                 }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
-                    if (this.isArgTrue(showPathLines)) {
-                        setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
-                    } else {
-                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
-                    }
+                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+                                                                          layerFilter: this.layerFilter,
+                                                                          heatLayers: this.heatLayers,
+                                                                          pathLineLayers: this.pathLineLayers, 
+                                                                          context: this});
                 }
 
-                //console.log(this.heatMarkers);
                 // Dashboard refresh
                 if(refreshInterval > 0) {
                     setTimeout(function() {
@@ -857,7 +810,6 @@ define([
             } 
             
             if (this.allDataProcessed && !this.isSplunkSeven) {
-                //console.log("is not splunk 7");
                 // Remove marker cluster layers
                 try {
                     this.markers.clearLayers();
@@ -888,7 +840,6 @@ define([
 
             // Check for data and retrun if we don't have any
             if(!_.has(data, "results")) {
-                //console.log("No results detected - returning");
                 return this;
             }
 
@@ -916,7 +867,6 @@ define([
 
             // Initialize the DOM
             if (!this.isInitializedDom) {
-                //console.log("initializing DOM");
                 // Set defaul icon image path
                 L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
 
@@ -1131,7 +1081,6 @@ define([
                 
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
-                    //console.log("Spinning!!");
                 }
             } 
 
@@ -1166,7 +1115,6 @@ define([
 
             // Init current position in dataRows
             var curPos = this.curPos = 0;
-            //console.log(dataRows);
 
             _.each(dataRows, function(userData, i) {
                 // Only return if we have > this.chunkSize and not on the first page of results
@@ -1222,7 +1170,6 @@ define([
 
                 // Create Cluster Group
                 if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-                    //console.log("Creating cluster group");
                     var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                       disableClusteringAtZoomLevel,
                                                       maxClusterRadius,
@@ -1239,7 +1186,6 @@ define([
 
                 // Create Clustered featuregroup subgroup layer
                 if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-                    //console.log("Creating Layer Filter")
                     this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
                                                     'iconStyle' : icon,
                                                     'layerExists' : false,
@@ -1354,7 +1300,7 @@ define([
                     permanentTooltip: this.isArgTrue(permanentTooltip),
                     stickyTooltip: this.isArgTrue(stickyTooltip),
                     cluster: this.isArgTrue(cluster),
-                    layerFilter: layerFilter,
+                    layerFilter: this.layerFilter,
                     layerGroup: layerGroup,
                     clusterGroup: clusterGroup,
                     tooltip: tooltip,
@@ -1460,11 +1406,11 @@ define([
                         })
                         .values()
                         .value();
-                        this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
+                        this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
                     }, this);
                 } else {
                     this.pathData = paths;
-                    this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
+                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
                 }
             }
 
@@ -1528,11 +1474,11 @@ define([
                     }
 
                     if(this.isArgTrue(autoFitAndZoom)) {
-                        if (this.isArgTrue(showPathLines)) {
-                            setTimeout(this.fitPathLayerBounds, autoFitAndZoomDelay, {pathLineLayers: this.pathLineLayers, context: this});
-                        } else {
-                            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {layerFilter: this.layerFilter, context: this});
-                        }
+                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+                                                                              layerFilter: this.layerFilter, 
+                                                                              pathLineLayers: this.pathLineLayers,
+                                                                              heatLayers: this.heatLayers,
+                                                                              context: this});
                     }
 
                     // Dashboard refresh

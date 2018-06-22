@@ -358,12 +358,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            _.each(options.data, function(p) {
 	                id = p[0]['id'];
 
+	                // console.log("Path Line Layers");
+	                // console.log(options.pathLineLayers);
+
 	                // Check if feature group exists for current id. Use existing FG or create new accordingly.
 	                if(_.has(options.pathLineLayers, id)) {
 	                    var pathFg = options.pathLineLayers[id];
 	                } else {
 	                    var pathFg = L.featureGroup();
 	                    pathFg.options.name = id;
+	                    if(_.isUndefined(options.pathLineLayers)) {
+	                        console.log("UNDEFINED!");
+	                        console.log(pathFg);
+	                    }
 	                    options.pathLineLayers[pathFg.options.name] = pathFg;
 	                }
 
@@ -606,45 +613,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 
 	            return mcg;
-	        },
-
-	        _addCircleMarker: function(options) {
-	            var circleMarker = L.circleMarker([parseFloat(options.userData["latitude"]),
-	                                               parseFloat(options.userData["longitude"])],
-	                                               {radius: options.radius,
-	                                                color: options.color,
-	                                                weight: options.weight,
-	                                                stroke: options.stroke,
-	                                                opacity: options.opacity,
-	                                                fillColor: options.fillColor,
-	                                                fillOpacity: options.fillOpacity})
-
-	            // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
-	            if(options.tooltip) {
-	                circleMarker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
-	                                                     direction: 'auto',
-	                                                     sticky: options.stickyTooltip});
-	            } else if (options.title) {
-	                circleMarker.bindTooltip(options.title, {permanent: options.permanentTooltip,
-	                                                   direction: 'auto',
-	                                                   sticky: options.stickyTooltip});
-	            }
-
-	            if(options.drilldown) {
-	                var drilldownFields = this.validateFields(options.userData);
-	                circleMarker.on('dblclick', this._drilldown.bind(this, drilldownFields));
-	            }
-
-	            // Bind description popup if description exists
-	            if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
-	                circleMarker.bindPopup(options.userData['description']);
-	            }
-
-	            if (this.isArgTrue(options.cluster)) {           
-	                _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(circleMarker)
-	            } else {
-	                options.layerFilter[options.layerGroup].markerList.push(circleMarker);
-	            }                                              
 	        },
 	        
 	        _addMarker: function(options) {
@@ -1406,7 +1374,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    permanentTooltip: this.isArgTrue(permanentTooltip),
 	                    stickyTooltip: this.isArgTrue(stickyTooltip),
 	                    cluster: this.isArgTrue(cluster),
-	                    layerFilter: layerFilter,
+	                    layerFilter: this.layerFilter,
 	                    layerGroup: layerGroup,
 	                    clusterGroup: clusterGroup,
 	                    tooltip: tooltip,
@@ -1512,11 +1480,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                        })
 	                        .values()
 	                        .value();
-	                        this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
+	                        this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
 	                    }, this);
 	                } else {
 	                    this.pathData = paths;
-	                    this.drawPath({data: this.pathData, pathLineLayers: pathLineLayers, context: this});
+	                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
 	                }
 	            }
 

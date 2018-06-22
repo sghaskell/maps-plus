@@ -15,6 +15,12 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
         L.setOptions(this, options);
     },
 
+    // @method getLatLng: LatLng
+    // Returns the current geographical position of the marker.
+    getLatLng: function () {
+        return this._latlngs;
+    },
+
     setLatLngs: function (latlngs) {
         this._latlngs = latlngs;
         return this.redraw();

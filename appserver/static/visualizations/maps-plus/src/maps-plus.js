@@ -306,19 +306,12 @@ define([
             _.each(options.data, function(p) {
                 id = p[0]['id'];
 
-                // console.log("Path Line Layers");
-                // console.log(options.pathLineLayers);
-
                 // Check if feature group exists for current id. Use existing FG or create new accordingly.
                 if(_.has(options.pathLineLayers, id)) {
                     var pathFg = options.pathLineLayers[id];
                 } else {
                     var pathFg = L.featureGroup();
                     pathFg.options.name = id;
-                    if(_.isUndefined(options.pathLineLayers)) {
-                        console.log("UNDEFINED!");
-                        console.log(pathFg);
-                    }
                     options.pathLineLayers[pathFg.options.name] = pathFg;
                 }
 
@@ -409,21 +402,16 @@ define([
 
             // loop through layers and build one big feature group to fit bounds against
             _.each(layers, function(l, i) {
-                console.log("Cur Layer: ");
-                console.log(l);
                 if(!_.isEmpty(l)) {
                     _.each(l, function(lg, i) {
                         // It's a normal feature group or cluster feature group
                         if(!_.isUndefined(lg.group)) {
-                            console.log("processing marker layer");
                             tmpGroup.addLayer(lg.group);
                             return;
                         }
 
-                        // It's a path
+                        // It's a path or heatmap
                         var curLayers = lg.getLayers();
-                        console.log("cur layers");
-                        console.log(curLayers);
                         _.each(curLayers, function(cl, i) {
                             tmpGroup.addLayer(cl);
                         });
@@ -689,23 +677,15 @@ define([
         },
 
         formatData: function(data) {
-            //console.log("In format:");
-            //console.log(data);
-
             if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
-            //if(data.results.length == 0 && data.fields.length >= 1){    
-                //console.log("Done: " + data.meta.done);
-                //console.log("Markers processed: " + this.markerCount);
                 this.allDataProcessed = true;
                 return this;
             }
             
             if(data.results.length == 0)  {
-                //console.log("returning this");
                 return this;
             }
 
-            //console.log("returning data");
             this.allDataProcessed = false;
             return data;
         },
@@ -830,7 +810,6 @@ define([
             } 
             
             if (this.allDataProcessed && !this.isSplunkSeven) {
-                //console.log("is not splunk 7");
                 // Remove marker cluster layers
                 try {
                     this.markers.clearLayers();
@@ -861,7 +840,6 @@ define([
 
             // Check for data and retrun if we don't have any
             if(!_.has(data, "results")) {
-                //console.log("No results detected - returning");
                 return this;
             }
 
@@ -889,7 +867,6 @@ define([
 
             // Initialize the DOM
             if (!this.isInitializedDom) {
-                //console.log("initializing DOM");
                 // Set defaul icon image path
                 L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
 
@@ -1104,7 +1081,6 @@ define([
                 
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
-                    //console.log("Spinning!!");
                 }
             } 
 
@@ -1139,7 +1115,6 @@ define([
 
             // Init current position in dataRows
             var curPos = this.curPos = 0;
-            //console.log(dataRows);
 
             _.each(dataRows, function(userData, i) {
                 // Only return if we have > this.chunkSize and not on the first page of results
@@ -1195,7 +1170,6 @@ define([
 
                 // Create Cluster Group
                 if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-                    //console.log("Creating cluster group");
                     var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                       disableClusteringAtZoomLevel,
                                                       maxClusterRadius,
@@ -1212,7 +1186,6 @@ define([
 
                 // Create Clustered featuregroup subgroup layer
                 if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-                    //console.log("Creating Layer Filter")
                     this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
                                                     'iconStyle' : icon,
                                                     'layerExists' : false,

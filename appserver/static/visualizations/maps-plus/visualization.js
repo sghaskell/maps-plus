@@ -116,7 +116,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapLanguage': 'en',
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,
@@ -135,6 +134,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom': 19,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKey': "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesZoomLevel': "12",
@@ -819,7 +819,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
 	                spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
 	                mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
-	                mapLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapLanguage', config)),
+	                i18nLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('i18nLanguage', config)),
 					mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
 	                mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
 	                layerControl = parseInt(this._getEscapedProperty('layerControl', config)),
@@ -1191,8 +1191,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Load localization file and init locale
 	                var i18n = $.i18n();
-	                i18n.locale = mapLanguage;
-	                i18n.load(location.origin + this.contribUri + '/i18n/' + mapLanguage + '.json', i18n.locale);
+	                i18n.locale = i18nLanguage;
+	                i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale);
 	                
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true);

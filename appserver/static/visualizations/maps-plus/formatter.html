@@ -13,16 +13,6 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label">Language</label>
-            <div class="controls controls-block">
-                <splunk-select name="{{VIZ_NAMESPACE}}.mapLanguage" value="en">
-                  <option value="en">English</option> 
-                  <option value="ja">Japanese</option> 
-                </splunk-select> 
-                <span class="help-block ">Select language for localization</span> 
-            </div>
-        </div>
-        <div class="control-group">
             <label class="control-label">Map Tile Override</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>
@@ -369,6 +359,18 @@
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.pathSplitInterval" value="60"></splunk-text-input>
                 <span class="help-block">Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)</span>
+            </div>
+        </div>
+    </form>
+    <form class="splunk-formatter-section" section-label="i18n">
+        <div class="control-group">
+            <label class="control-label">Language</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.i18nLanguage" value="en">
+                <option value="en">English</option> 
+                <option value="ja">Japanese</option> 
+                </splunk-select> 
+                <span class="help-block ">Select language for localization</span> 
             </div>
         </div>
     </form>

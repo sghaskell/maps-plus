@@ -5,7 +5,7 @@
         ],
         "last-updated": "2018-09-04"
     },
-    "cluster-message": "クラスタには $1 クラスタ警告サイズを超えるポイント$2。クラスタは展開されません。",
+    "cluster-message": "クラスタには $1 クラスタ警告サイズを超えるポイント $2。クラスタは展開されません。",
     "cluster-warning": "クラスタを展開できない",
     "cluster-warning-close": "閉じる"
 }

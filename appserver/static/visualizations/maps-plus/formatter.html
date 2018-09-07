@@ -13,6 +13,16 @@
             </div>
         </div>
         <div class="control-group">
+            <label class="control-label">Language</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.mapLanguage" value="en">
+                  <option value="en">English</option> 
+                  <option value="ja">Japanese</option> 
+                </splunk-select> 
+                <span class="help-block ">Select language for localization</span> 
+            </div>
+        </div>
+        <div class="control-group">
             <label class="control-label">Map Tile Override</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>

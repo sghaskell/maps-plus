@@ -103,7 +103,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        maxResults: 0,
 	        tileLayer: null,
 	        mapOptions: {},
-	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/',
+	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	        defaultConfig:  {
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
@@ -344,6 +344,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        },
 
 	        renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
+	            function anonCallback(callback=function(){}, callbackArgs=null) {
+	                if(callbackArgs) {
+	                    callback.apply(this, callbackArgs);
+	                } else {
+	                    callback();
+	                }
+	            }
+
 	            // Create the modal
 	            var myModal = new Modal(id, {
 	                        title: title,
@@ -970,7 +978,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            // Initialize the DOM
 	            if (!this.isInitializedDom) {
 	                // Set defaul icon image path
-	                L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
+	                L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/';
 
 	                // Create layer filter object
 	                var layerFilter = this.layerFilter = {};
@@ -1159,7 +1167,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                    // Loop through each file and load it onto the map
 	                    _.each(kmlFiles.reverse(), function(file, i) {
-	                        var url = location.origin + this.contribUri + 'kml/' + file;
+	                        var url = location.origin + this.contribUri + '/kml/' + file;
 	                        this.fetchKmlAndMap(url, file, this.map, this.paneZIndex);
 	                        this.paneZIndex = this.paneZIndex - (i+1);
 	                    }, this);
@@ -1182,11 +1190,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                this.allDataProcessed = false;
 
 	                // Load localization file and init locale
-	                $.i18n().load({
-	                    'ja': location.origin + this.contribUri + '/i18n/' + mapLanguage + '.json'
-	                }).then(function() {
-	                    $.i18n({locale: mapLanguage});
-	                });
+	                var i18n = $.i18n();
+	                i18n.locale = mapLanguage;
+	                i18n.load(location.origin + this.contribUri + '/i18n/' + mapLanguage + '.json', i18n.locale);
 	                
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true);

@@ -9,6 +9,7 @@ define([
             'api/SplunkVisualizationUtils',
             'load-google-maps-api',
             'moment',
+            '../contrib/js/Modal',
             'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
@@ -16,12 +17,20 @@ define([
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
             'simpleheat',
-            '../contrib/HeatLayer',
-            '../contrib/leaflet.spin',
-            '../contrib/leaflet.featuregroup.subgroup-src',
-            '../contrib/leaflet-measure',
-			'../contrib/leaflet.awesome-markers',
-            '../contrib/leaflet-vector-markers'
+            '../contrib/js/HeatLayer',
+            '../contrib/js/leaflet.spin',
+            '../contrib/js/leaflet.featuregroup.subgroup-src',
+            '../contrib/js/leaflet-measure',
+			'../contrib/js/leaflet.awesome-markers',
+            '../contrib/js/leaflet-vector-markers',
+            '../contrib/js/CLDRPluralRuleParser',
+            '../contrib/js/jquery.i18n',
+            '../contrib/js/jquery.i18n.messagestore',
+            '../contrib/js/jquery.i18n.fallbacks',
+            '../contrib/js/jquery.i18n.language',
+            '../contrib/js/jquery.i18n.parser',
+            '../contrib/js/jquery.i18n.emitter',
+            '../contrib/js/jquery.i18n.emitter.bidi'
         ],
         function(
             $,
@@ -33,7 +42,8 @@ define([
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
             loadGoogleMapsAPI,
-            moment
+            moment,
+            Modal
         ) {
 
 
@@ -54,6 +64,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapLanguage': 'en',
             'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,
@@ -279,6 +290,41 @@ define([
                 return false;
             }
         },
+
+        renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
+            // Create the modal
+            var myModal = new Modal(id, {
+                        title: title,
+                        backdrop: 'static',
+                        keyboard: false,
+                        destroyOnHide: true,
+                        type: 'wide'
+            });
+
+            // Add content
+            myModal.body.append($(body));
+
+            // Add cancel button for update/delete action
+            if(id == "user-delete-confirm" || id == "update-user-form") {
+                myModal.footer.append($('<cancel>').attr({
+                    type: 'button',
+                    'data-dismiss': 'modal'
+                })
+                .addClass('btn btn-secondary').text("Cancel")).on('click', function(){});
+            }
+
+            // Add footer
+            myModal.footer.append($('<button>').attr({
+                type: 'button',
+                'data-dismiss': 'modal'
+            })
+            .addClass('btn btn-primary').text(buttonText).on('click', function () {
+                    anonCallback(callback, callbackArgs);
+            }))
+
+            // Launch it!  
+            myModal.show();
+        },
       
         // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
         createMarkerStyle: function(bgHex, fgHex, markerName) {
@@ -491,7 +537,8 @@ define([
                                       singleMarkerMode,
                                       animate,
                                       criticalThreshold,
-                                      warningThreshold) {
+                                      warningThreshold,
+                                      context) {
 
             // Redefine spiderfy and extend it
             L.MarkerCluster.include({
@@ -508,8 +555,10 @@ define([
         
                     // Don't spiderfy cluster groups that exeed warning size
                     if (childMarkers.length > this._group.options.maxSpiderfySize) {
-                        alert("Cluster has " + childMarkers.length + " points which exceeds cluster warning size of " + this._group.options.maxSpiderfySize + ". Cluster will not be expanded.");
-                        return;
+                        return context.renderModal("cluster-warning",
+                                                   $.i18n('cluster-warning'),
+                                                   "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>" + $.i18n('cluster-message', childMarkers.length, this._group.options.maxSpiderfySize) + "</div>",
+                                                   $.i18n('cluster-warning-close'))
                     }
                     
                     this._group._unspiderfy();
@@ -710,6 +759,7 @@ define([
                 maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
                 spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
                 mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
+                mapLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapLanguage', config)),
 				mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
                 mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
                 layerControl = parseInt(this._getEscapedProperty('layerControl', config)),
@@ -962,6 +1012,7 @@ define([
 
                 // Create Bing Map
                 if(this.isArgTrue(bingMaps)) {
+
                     var bingOptions = this.bingOptions = {"bingMapsKey": bingMapsApiKey,
                                                           "imagerySet": bingMapsTileLayer,
                                                           "culture": bingMapsLabelLanguage};
@@ -1078,6 +1129,12 @@ define([
 				this.isInitializedDom = true;         
                 this.allDataProcessed = false;
 
+                // Load localization file and init locale
+                $.i18n().load({
+                    'ja': location.origin + this.contribUri + '/i18n/' + mapLanguage + '.json'
+                }).then(function() {
+                    $.i18n({locale: mapLanguage});
+                });
                 
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
@@ -1178,7 +1235,8 @@ define([
                                                       singleMarkerMode,
                                                       animate,
                                                       criticalThreshold,
-                                                      warningThreshold);
+                                                      warningThreshold,
+                                                      this);
 
                     this.clusterGroups[clusterGroup] = cg;
                     cg.addTo(this.map);

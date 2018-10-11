@@ -25,6 +25,8 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [JSZipUtils](http://stuk.github.io/jszip-utils/)
 ##### [Jquery](https://jquery.com/)
 ##### [Underscore.js](http://underscorejs.org/)
+##### [jquery.i18n](https://github.com/wikimedia/jquery.i18n)
+##### [CLDRPluralRuleParser](https://github.com/wikimedia/CLDRPluralRuleParser)
 ##### [Webpack](https://webpack.github.io/)
 ##### [transform-loader](https://www.npmjs.com/package/transform-loader)
 ##### [moment](https://github.com/moment/moment)
@@ -441,6 +443,9 @@ Color of measurement when drawing is complete - **Default** `#0066ff`
 
 # Google Street View Companion Visualization
 Maps+ comes bundled with the new Google Street View visualization. Use this visualization as a drill-down target when clicking on a marker. See the `Google Street View Drilldown` example dashboard in the app for detailed usage.
+
+# i18n Internationalization
+Support for localizing the modal displayed when expanding a cluster beyond the [cluster warning size](#cluster-warning-size). The current languages are `English (US)` and `Japanese`. If you need support for a new language please create an issue within the project and we can collaborate on getting it added. Since I only speak and write English, I'll defer to the broader community to provide translations.
 
 ### Pre-requisites
 The Google Street View visualization requires an API key. Log in to the [Google Cloud Console](https://console.cloud.google.com/) to enable the `Maps JavaScript API`,`Street View API` and [generate an API key](https://cloud.google.com/docs/authentication/api-keys).

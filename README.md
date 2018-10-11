@@ -20,7 +20,6 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [load-google-maps-api](https://www.npmjs.com/package/load-google-maps-api#usage)
 ##### [load-google-places-autocomplete](https://www.npmjs.com/package/leaflet-google-places-autocomplete)
 ##### [load-google-maps-api-2](https://www.npmjs.com/package/load-google-maps-api-2)
-##### [jquery.i18n](https://github.com/wikimedia/jquery.i18n)
 ##### [JSZip](https://stuk.github.io/jszip/)
 ##### [JSZipUtils](http://stuk.github.io/jszip-utils/)
 ##### [Jquery](https://jquery.com/)

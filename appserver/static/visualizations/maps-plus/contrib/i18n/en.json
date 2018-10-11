@@ -1,0 +1,11 @@
+{
+    "@metadata": {
+        "authors": [
+            "Scott Haskell"
+        ],
+        "last-updated": "2018-09-04"
+    },
+    "cluster-message": "Cluster has $1 points which exceeds cluster warning size of $2",
+    "cluster-warning": "Can't Expand Cluster",
+    "cluster-warning-close": "Close"
+}

@@ -1,6 +1,6 @@
 {
   "name": "leaflet_maps_app",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {
@@ -30,9 +30,9 @@
     "leaflet-google-places-autocomplete": "^0.0.8",
     "simpleheat": "^0.4.0",
     "load-google-maps-api": "^1.0.0",
-    "leaflet-bing-layer": "^3.3.0",
+    "leaflet-bing-layer": "digidem/leaflet-bing-layer#gh-pages",
     "leaflet.markercluster": "^1.3.0",
     "spin.js": "^2.3.2",
-	  "moment": "^2.20.1"
+	 "moment": "^2.20.1"
   }
 }

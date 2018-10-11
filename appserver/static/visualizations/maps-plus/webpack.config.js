@@ -35,6 +35,42 @@ module.exports = {
                 loader: 'imports-loader?define=>false'
             },
             {
+                test: /Modal\.js$/,
+                loader: 'imports-loader?_=underscore'
+            },
+            {
+                test: /CLDRPluralRuleParser\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.emitter\.bidi\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.emitter\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.fallbacks\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+           {
+                test: /jquery\.i18n\.language\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.messagestore\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+            {
+                test: /jquery\.i18n\.parser\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
+            },
+           {
                 test: /leaflet-measure\.js$/,
                 loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
             }

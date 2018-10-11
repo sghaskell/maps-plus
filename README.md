@@ -20,10 +20,13 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [load-google-maps-api](https://www.npmjs.com/package/load-google-maps-api#usage)
 ##### [load-google-places-autocomplete](https://www.npmjs.com/package/leaflet-google-places-autocomplete)
 ##### [load-google-maps-api-2](https://www.npmjs.com/package/load-google-maps-api-2)
+##### [jquery.i18n](https://github.com/wikimedia/jquery.i18n)
 ##### [JSZip](https://stuk.github.io/jszip/)
 ##### [JSZipUtils](http://stuk.github.io/jszip-utils/)
 ##### [Jquery](https://jquery.com/)
 ##### [Underscore.js](http://underscorejs.org/)
+##### [jquery.i18n](https://github.com/wikimedia/jquery.i18n)
+##### [CLDRPluralRuleParser](https://github.com/wikimedia/CLDRPluralRuleParser)
 ##### [Webpack](https://webpack.github.io/)
 ##### [transform-loader](https://www.npmjs.com/package/transform-loader)
 ##### [moment](https://github.com/moment/moment)
@@ -224,7 +227,7 @@ Add custom overlays to the map. The first release implements a KML or KMZ overla
 Copy any KML or KMZ files into the following directory
 
 ```
-$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/leaflet_maps/contrib/kml
+$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/kml
 ```
 
 Click `Format` and selct the `Overlays` tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml
@@ -234,6 +237,9 @@ file1.kml,file2.kmz
 ```
 
 The files will be asynchronously loaded when the map is rendered. 
+
+### i18n Localization
+The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
 
 ### Measurement Plugin
 Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
@@ -356,6 +362,10 @@ Comma-separated list of hex or html colors for path lines (wraps around if more 
 Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
 ###### Path Split Interval
 Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - **Default** `60`
+
+#### i18n
+###### Language
+Select language for localization
 
 #### Google Places
 ###### Google Places Search

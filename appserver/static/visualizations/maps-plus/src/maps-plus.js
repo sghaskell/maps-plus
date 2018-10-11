@@ -9,6 +9,7 @@ define([
             'api/SplunkVisualizationUtils',
             'load-google-maps-api',
             'moment',
+            '../contrib/js/Modal',
             'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
@@ -16,12 +17,20 @@ define([
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
             'simpleheat',
-            '../contrib/HeatLayer',
-            '../contrib/leaflet.spin',
-            '../contrib/leaflet.featuregroup.subgroup-src',
-            '../contrib/leaflet-measure',
-			'../contrib/leaflet.awesome-markers',
-            '../contrib/leaflet-vector-markers'
+            '../contrib/js/HeatLayer',
+            '../contrib/js/leaflet.spin',
+            '../contrib/js/leaflet.featuregroup.subgroup-src',
+            '../contrib/js/leaflet-measure',
+			'../contrib/js/leaflet.awesome-markers',
+            '../contrib/js/leaflet-vector-markers',
+            '../contrib/js/CLDRPluralRuleParser',
+            '../contrib/js/jquery.i18n',
+            '../contrib/js/jquery.i18n.messagestore',
+            '../contrib/js/jquery.i18n.fallbacks',
+            '../contrib/js/jquery.i18n.language',
+            '../contrib/js/jquery.i18n.parser',
+            '../contrib/js/jquery.i18n.emitter',
+            '../contrib/js/jquery.i18n.emitter.bidi'
         ],
         function(
             $,
@@ -33,7 +42,8 @@ define([
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
             loadGoogleMapsAPI,
-            moment
+            moment,
+            Modal
         ) {
 
 
@@ -41,7 +51,7 @@ define([
         maxResults: 0,
         tileLayer: null,
         mapOptions: {},
-        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/',
+        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
         defaultConfig:  {
             'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
@@ -72,6 +82,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom': 19,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
             'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKey': "",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesZoomLevel': "12",
@@ -278,6 +289,49 @@ define([
             } else {
                 return false;
             }
+        },
+
+        renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
+            function anonCallback(callback=function(){}, callbackArgs=null) {
+                if(callbackArgs) {
+                    callback.apply(this, callbackArgs);
+                } else {
+                    callback();
+                }
+            }
+
+            // Create the modal
+            var myModal = new Modal(id, {
+                        title: title,
+                        backdrop: 'static',
+                        keyboard: false,
+                        destroyOnHide: true,
+                        type: 'wide'
+            });
+
+            // Add content
+            myModal.body.append($(body));
+
+            // Add cancel button for update/delete action
+            if(id == "user-delete-confirm" || id == "update-user-form") {
+                myModal.footer.append($('<cancel>').attr({
+                    type: 'button',
+                    'data-dismiss': 'modal'
+                })
+                .addClass('btn btn-secondary').text("Cancel")).on('click', function(){});
+            }
+
+            // Add footer
+            myModal.footer.append($('<button>').attr({
+                type: 'button',
+                'data-dismiss': 'modal'
+            })
+            .addClass('btn btn-primary').text(buttonText).on('click', function () {
+                    anonCallback(callback, callbackArgs);
+            }))
+
+            // Launch it!  
+            myModal.show();
         },
       
         // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
@@ -491,7 +545,8 @@ define([
                                       singleMarkerMode,
                                       animate,
                                       criticalThreshold,
-                                      warningThreshold) {
+                                      warningThreshold,
+                                      context) {
 
             // Redefine spiderfy and extend it
             L.MarkerCluster.include({
@@ -508,8 +563,10 @@ define([
         
                     // Don't spiderfy cluster groups that exeed warning size
                     if (childMarkers.length > this._group.options.maxSpiderfySize) {
-                        alert("Cluster has " + childMarkers.length + " points which exceeds cluster warning size of " + this._group.options.maxSpiderfySize + ". Cluster will not be expanded.");
-                        return;
+                        return context.renderModal("cluster-warning",
+                                                   $.i18n('cluster-warning'),
+                                                   "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>" + $.i18n('cluster-message', childMarkers.length, this._group.options.maxSpiderfySize) + "</div>",
+                                                   $.i18n('cluster-warning-close'))
                     }
                     
                     this._group._unspiderfy();
@@ -710,6 +767,7 @@ define([
                 maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
                 spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
                 mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
+                i18nLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('i18nLanguage', config)),
 				mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
                 mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
                 layerControl = parseInt(this._getEscapedProperty('layerControl', config)),
@@ -868,7 +926,7 @@ define([
             // Initialize the DOM
             if (!this.isInitializedDom) {
                 // Set defaul icon image path
-                L.Icon.Default.imagePath = location.origin + this.contribUri + 'images/';
+                L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/';
 
                 // Create layer filter object
                 var layerFilter = this.layerFilter = {};
@@ -962,6 +1020,7 @@ define([
 
                 // Create Bing Map
                 if(this.isArgTrue(bingMaps)) {
+
                     var bingOptions = this.bingOptions = {"bingMapsKey": bingMapsApiKey,
                                                           "imagerySet": bingMapsTileLayer,
                                                           "culture": bingMapsLabelLanguage};
@@ -1056,7 +1115,7 @@ define([
 
                     // Loop through each file and load it onto the map
                     _.each(kmlFiles.reverse(), function(file, i) {
-                        var url = location.origin + this.contribUri + 'kml/' + file;
+                        var url = location.origin + this.contribUri + '/kml/' + file;
                         this.fetchKmlAndMap(url, file, this.map, this.paneZIndex);
                         this.paneZIndex = this.paneZIndex - (i+1);
                     }, this);
@@ -1078,6 +1137,10 @@ define([
 				this.isInitializedDom = true;         
                 this.allDataProcessed = false;
 
+                // Load localization file and init locale
+                var i18n = $.i18n();
+                i18n.locale = i18nLanguage;
+                i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale);
                 
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true);
@@ -1178,7 +1241,8 @@ define([
                                                       singleMarkerMode,
                                                       animate,
                                                       criticalThreshold,
-                                                      warningThreshold);
+                                                      warningThreshold,
+                                                      this);
 
                     this.clusterGroups[clusterGroup] = cg;
                     cg.addTo(this.map);

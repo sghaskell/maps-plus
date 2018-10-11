@@ -1,0 +1,11 @@
+{
+    "@metadata": {
+        "authors": [
+            "Scott Haskell"
+        ],
+        "last-updated": "2018-09-04"
+    },
+    "cluster-message": "クラスタが $1 ポイントあります。クラスタが警告サイズの $2 を超えているため、クラスタは拡大されません。",
+    "cluster-warning": "クラスタを展開できない",
+    "cluster-warning-close": "閉じる"
+}

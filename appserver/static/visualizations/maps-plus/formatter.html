@@ -386,10 +386,16 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label">API Key</label>
+            <label class="control-label">API Key User</label>
             <div class="controls controls-block">
-                <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKey"></splunk-text-input>
-                <span class="help-block ">Google Places API Key</span> 
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKeyUser"></splunk-text-input>
+                <span class="help-block ">Google Places API Key user stored in storage/passwords REST endpoint. See <a target="_blank" href="https://github.com/sghaskell/maps-plus#api-key-storage">docs for help</a> with securely storing API keys. Install  <a target="_blank" href="https://splunkbase.splunk.com/app/4013/">REST storage/passwords Manager for Splunk </a> to manage API keys.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">API Key Realm</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKeyRealm"></splunk-text-input>
             </div>
         </div>
         <div class="control-group">
@@ -424,11 +430,18 @@
             </div>
         </div>
         <div class="control-group">
-            <label class="control-label">API Key</label>
+            <label class="control-label">API Key User</label>
             <div class="controls controls-block">
-                <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKey"></splunk-text-input>
-                <span class="help-block ">Bing Maps API Key</span> 
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKeyUser"></splunk-text-input>
+                <span class="help-block ">Bing Maps API Key user stored in storage/passwords REST endpoint. See <a target="_blank" href="https://github.com/sghaskell/maps-plus#api-key-storage">docs for help</a> with securely storing API keys. Install  <a target="_blank" href="https://splunkbase.splunk.com/app/4013/">REST storage/passwords Manager for Splunk </a> to manage API keys.</span>
             </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">API Key Realm</label>
+                <div class="controls controls-block">
+                    <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKeyRealm"></splunk-text-input>
+                    <span class="help-block ">Optional realm in storage/passwords REST endpoint associated with API key user</span> 
+                </div>
         </div>
         <div class="control-group">
             <label class="control-label">Tile Layer</label>

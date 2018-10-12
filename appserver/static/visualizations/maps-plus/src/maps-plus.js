@@ -338,27 +338,40 @@ define([
             myModal.show();
         },
 
+        // Get API key from storage/passwords REST endpoint
         getStoredApiKey: function(options) {
+            var deferred = $.Deferred();
+
             // Detect version from REST API
             $.ajax({
                 type: "GET",
-                async: false,
+                async: true,
                 context: this,
-                url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.username +":",
+                url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.user +":",
                 success: function(s) {                                        
                     var xml = $(s);
                     var that = this;
                     $(xml).find('content').children().children().each(function(i, v) {
                         if(/name="clear_password"/.test(v.outerHTML)) {
-                            console.log(v);
-                            console.log(v.textContent);
+                            deferred.resolve(v.textContent)
                         } 
                     });
                 },
                 error: function(e) {
+                    if(_.isEmpty(options.realm)) {
+                        var realm = "undefined"
+                    } else {
+                        var realm = options.realm
+                    }
+                    options.context.renderModal('api-key-warning',
+                                                "API Key Failure",
+                                                "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Failed to get API key for user: <b>" + options.user + "</b>, realm: <b>" + realm + "</b> - Verify credentials and try again.</div>",
+                                                'Close')
                     console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm);
                 }
             });
+
+            return deferred.promise();
         },
       
         // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
@@ -973,6 +986,8 @@ define([
                 if(this.isArgTrue(contextMenu)) {
                     this.mapOptions =  {contextmenu: true,
                                        contextmenuWidth: 140,
+                                       minZoom: minZoom,
+                                       maxZoom: maxZoom,
                                        contextmenuItems: [{
                                            text: 'Show details',
                                            context: this,
@@ -1034,42 +1049,65 @@ define([
 
 				// Load Google Places Search Control
                 if(this.isArgTrue(googlePlacesSearch)) {
-                    loadGoogleMapsAPI({key: googlePlacesApiKey,
-                                      libraries: ['places']}).then(function(google) {
-                        new L.Control.GPlaceAutocomplete({
-                            position: googlePlacesPosition,
-                            callback: function(l){
-                                var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng());
-                                map.flyTo(latlng, googlePlacesZoomLevel);
-                            }
-                        }).addTo(map);
-                    }).catch(function(err) {
-                        //console.error(err);
-                    }) 
+                    this.getStoredApiKey({user: googlePlacesApiKeyUser,
+                                          realm: googlePlacesApiKeyRealm,
+                                          context: this})
+                    .then($.proxy(function(googlePlacesApiKey) {
+                        loadGoogleMapsAPI({key: googlePlacesApiKey,
+                                           libraries: ['places']}).then(function(google) {
+                            new L.Control.GPlaceAutocomplete({
+                                position: googlePlacesPosition,
+                                callback: function(l){
+                                    var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng());
+                                    map.flyTo(latlng, googlePlacesZoomLevel);
+                                }
+                            }).addTo(map);
+                        }).catch(function(err) {
+                            //console.error(err);
+                            console.err("Failed to initialize Google Places search control");
+                        })
+                    }, this))
                 }
 
                 // Create Bing Map
                 if(this.isArgTrue(bingMaps)) {
-                    if(!_.isEmpty(bingMapsApiKeyUser) && !_.isEmpty(bingMapsApiKeyRealm)) {
-                        bingMapsApiKey = this.getStoredApiKey({"user": bingMapsApiKeyUser,
-                                                               "realm": bingMapsApiKeyRealm})
-                    } 
+                    if(!_.isEmpty(bingMapsApiKeyUser)) {
+                        this.getStoredApiKey({user: bingMapsApiKeyUser,
+                                              realm: bingMapsApiKeyRealm,
+                                              context: this})
+                        .then($.proxy(function(bingMapsApiKey) {
+                            var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
+                                                                  imagerySet: bingMapsTileLayer,
+                                                                  culture: bingMapsLabelLanguage,
+                                                                  minZoom: minZoom,
+                                                                  maxZoom: maxZoom};
 
-                    var bingOptions = this.bingOptions = {"bingMapsKey": bingMapsApiKey,
-                                                          "imagerySet": bingMapsTileLayer,
-                                                          "culture": bingMapsLabelLanguage};
-                    this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                            this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                        }, this))
+                        .done($.proxy(function() {
+                            // Add tile layer to map
+                            this.map.addLayer(this.tileLayer);
+                        }, this))
+                    } else {
+                        var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
+                                                              imagerySet: bingMapsTileLayer,
+                                                              culture: bingMapsLabelLanguage,
+                                                              minZoom: minZoom,
+                                                              maxZoom: maxZoom};
+                        this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                        // Add tile layer to map
+                        this.map.addLayer(this.tileLayer);
+                    }
                 } else {
                     // Setup the tile layer with map tile, zoom and attribution
                     this.tileLayer = L.tileLayer(this.activeTile, {
                         attribution: this.attribution,
                         minZoom: minZoom,
                         maxZoom: maxZoom
-                    });    
+                    });
+                    // Add tile layer to map
+                    this.map.addLayer(this.tileLayer);    
                 }
-
-                // Add tile layer to map
-                this.map.addLayer(this.tileLayer);
 
                 this.markers = new L.MarkerClusterGroup({ 
                     chunkedLoading: true,
@@ -1192,12 +1230,14 @@ define([
             }   
 
             // Reset tile zoom levels if changed
-            if (this.tileLayer.options.maxZoom != maxZoom) {
-                this.tileLayer.options.maxZoom = maxZoom;
-            }
-
-            if (this.tileLayer.options.minZoom != minZoom) {
-                this.tileLayer.options.minZoom = minZoom;
+            if(!_.isNull(this.tileLayer)) {
+                if (this.tileLayer.options.maxZoom != maxZoom) {
+                    this.tileLayer.options.maxZoom = maxZoom;
+                }
+                
+                if (this.tileLayer.options.minZoom != minZoom) {
+                    this.tileLayer.options.minZoom = minZoom;
+                }
             }
 
             // Reset map zoom

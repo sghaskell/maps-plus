@@ -1,6 +1,6 @@
 {
   "name": "google_street_view",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Google Street View contextual drill-down module",
   "main": "visualization.js",
   "scripts": {

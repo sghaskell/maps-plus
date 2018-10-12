@@ -243,13 +243,18 @@ The app has limited support for localizing portions of the app. Select the `i18n
 ### Measurement Plugin
 Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
 
+### API Key Storage
+API keys for use with Google Places search, Bing Maps and the Google Streetview comapnion viz must be stored in Splunk's [storage/passwords](http://docs.splunk.com/Documentation/Splunk/7.2.0/RESTREF/RESTaccess#storage.2Fpasswords) REST endpoint. Every user who needs access to a key must have the `list_storage_passwords` capability enabled for their role. Set ACL's on credentials to narrow the scope of who can access them. Download and install my [REST storage/passwords Manager for Splunk](https://splunkbase.splunk.com/app/4013/) to make this process painless.
+
 ### Google Places Search
 A search control for the Google Places API. Log into the [Google API Console](https://console.developers.google.com/flows/enableapi?apiid=places_backend&reusekey=true&authuser=2) and enable the `Google Places API Web Service` and `Google Maps JavaScript API` for the given project and create an API key. See [Google's docs](https://developers.google.com/places/web-service/get-api-key?authuser=2) for detailed instructions.
 
 
 Enable the search control via the format menu option ``Google Places -> Google Places Search -> Enabled``
 
-Set the `API Key` option `Google Places -> API Key`
+Set the `API Key User` option `Google Places -> API Key User`
+
+If a realm is specified when creating the API Key User, use the optional `API Key Realm` option `Google Places -> API Key Realm`
 
 Optionally set the `Zoom Level` option `Google Places -> Zoom Level` for the desired fly to zoom level.
 
@@ -258,7 +263,9 @@ A Bing Maps tile layer.
 
 `Enable` or `Disable` Bing Maps via the format menu option `Bing Maps -> Bing Maps -> Enabled`. When Bing Maps are enabled, the default tile layer set and the map attribution override setting will not work.
 
-Set the `API Key` option `Bing Maps -> API Key` by pasting your Bing Maps API Key into this field.
+Set the `API Key User` option `Bing Maps -> API Key User`
+
+If a realm is specified when creating the API Key User, use the optional `API Key Realm` option `Google Places -> API Key Realm`
 
 Choose the desired `Tile Layer` under `Bing Maps -> Tile Layer`
 
@@ -369,8 +376,10 @@ Select language for localization
 #### Google Places
 ###### Google Places Search
 Enable or disable Google Places API search control.
-###### API Key
-Google Places API Key
+###### API Key User
+Google Places API Key user stored in storage/passwords REST endpoint
+###### API Key Realm
+Optional realm in storage/passwords REST endpoint associated with API key user.
 ###### Search Bar Position
 Position of Google Places Search Bar - **Default** `Top Left`
 ###### Zoom Level
@@ -379,8 +388,10 @@ Desired zoom level to fly to
 #### Bing Maps
 ###### Bing Maps
 Enable or disable Bing Maps tiles
-###### API Key
-Bing Maps API Key
+###### API Key User
+Bing Maps API Key user stored in storage/passwords REST endpoint
+###### API Key Realm
+Optional realm in storage/passwords REST endpoint associated with API key user
 ###### Tile Layer
 Select tile layer imagery set
 ###### Label Language

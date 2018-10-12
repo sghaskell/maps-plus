@@ -136,9 +136,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKey': "",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyUser': "",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyRealm': "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesZoomLevel': "12",
-				'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesPosition': "topleft",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesPosition': "topleft",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKey': "",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyUser': "",
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyRealm': "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
@@ -384,6 +388,29 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	            // Launch it!  
 	            myModal.show();
+	        },
+
+	        getStoredApiKey: function(options) {
+	            // Detect version from REST API
+	            $.ajax({
+	                type: "GET",
+	                async: false,
+	                context: this,
+	                url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.username +":",
+	                success: function(s) {                                        
+	                    var xml = $(s);
+	                    var that = this;
+	                    $(xml).find('content').children().children().each(function(i, v) {
+	                        if(/name="clear_password"/.test(v.outerHTML)) {
+	                            console.log(v);
+	                            console.log(v.textContent);
+	                        } 
+	                    });
+	                },
+	                error: function(e) {
+	                    console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm);
+	                }
+	            });
 	        },
 	      
 	        // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
@@ -839,11 +866,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                permanentTooltip = parseInt(this._getEscapedProperty('permanentTooltip', config)),
 	                stickyTooltip = parseInt(this._getEscapedProperty('stickyTooltip', config)),
 	                googlePlacesSearch = parseInt(this._getEscapedProperty('googlePlacesSearch', config)),
-	                googlePlacesApiKey = this._getEscapedProperty('googlePlacesApiKey', config),
+	                googlePlacesApiKeyUser = this._getEscapedProperty('googlePlacesApiKeyUser', config),
+	                googlePlacesApiKeyRealm = this._getEscapedProperty('googlePlacesApiKeyRealm', config),
 	                googlePlacesZoomLevel = parseInt(this._getEscapedProperty('googlePlacesZoomLevel', config)),
 	                googlePlacesPosition = this._getEscapedProperty('googlePlacesPosition', config),
 	                bingMaps = parseInt(this._getEscapedProperty('bingMaps', config)),
 	                bingMapsApiKey = this._getEscapedProperty('bingMapsApiKey', config),
+	                bingMapsApiKeyUser = this._getEscapedProperty('bingMapsApiKeyUser', config),
+	                bingMapsApiKeyRealm = this._getEscapedProperty('bingMapsApiKeyRealm', config),
 	                bingMapsTileLayer = this._getEscapedProperty('bingMapsTileLayer', config),
 	                bingMapsLabelLanguage = this._getEscapedProperty('bingMapsLabelLanguage', config),
 	                kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
@@ -1072,6 +1102,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Create Bing Map
 	                if(this.isArgTrue(bingMaps)) {
+	                    if(!_.isEmpty(bingMapsApiKeyUser) && !_.isEmpty(bingMapsApiKeyRealm)) {
+	                        bingMapsApiKey = this.getStoredApiKey({"user": bingMapsApiKeyUser,
+	                                                               "realm": bingMapsApiKeyRealm})
+	                    } 
 
 	                    var bingOptions = this.bingOptions = {"bingMapsKey": bingMapsApiKey,
 	                                                          "imagerySet": bingMapsTileLayer,

@@ -12,6 +12,14 @@ module.exports = {
         filename: 'visualization.js',
         libraryTarget: 'amd'
     },
+    module: {
+        loaders: [
+            {
+                test: /Modal\.js$/,
+                loader: 'imports-loader?_=underscore'
+            }
+        ]
+    },
     externals: [
         'api/SplunkVisualizationBase',
         'api/SplunkVisualizationUtils'

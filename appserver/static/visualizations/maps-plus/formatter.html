@@ -77,6 +77,16 @@
             </div>
         </div>
         <div class="control-group">
+            <label class="control-label">Drilldown Action</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.drilldownAction" value="dblclick">
+                    <option value="dblclick">Double Click</option>
+                    <option value="click">Click</option>
+                </splunk-radio-input>
+                <span class="help-block ">Select drilldown action for markers</span>
+            </div>
+        </div>
+        <div class="control-group">
             <label class="control-label">Context Menu</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.contextMenu" value="1">

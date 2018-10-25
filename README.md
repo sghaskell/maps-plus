@@ -293,15 +293,15 @@ Use Canvas renderer for performance boost drawing vector layers (path, circle). 
 ###### Progress Indicator
 Display progress spinner for long running searches
 ###### Scroll Wheel Zoom
-Enable or disable scroll wheel zoom.
+Enable or disable scroll wheel zoom
 ###### Full Screen Mode
 Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. - **Requires browser Refresh**
 ###### Drilldown
-Enable or disable drilldown. Double click a marker to activate drilldown. - **Requires browser Refresh**
+Enable or disable drilldown - **Requires browser Refresh**
 ###### Drilldown Mouse Event
 Select mouse event that triggers drilldown from markers
 ###### Context Menu
-Enable or disable context menu when right clicking the map.
+Enable or disable context menu when right clicking the map
 ###### Default Height
 Initial Height Of Map - **Default** `600`
 ###### Auto Fit & Zoom

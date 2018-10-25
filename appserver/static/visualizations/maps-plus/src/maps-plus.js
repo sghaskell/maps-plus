@@ -71,6 +71,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldown': 0,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldownAction': "dblclick",
 			'display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight': 600,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom': 1,
@@ -707,7 +708,7 @@ define([
 
             if(this.isArgTrue(options.drilldown)) {
                 var drilldownFields = this.validateFields(options.userData);
-                marker.on('dblclick', this._drilldown.bind(this, drilldownFields));
+                marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields));
             }
 
             // Bind description popup if description exists
@@ -815,6 +816,7 @@ define([
                 scrollWheelZoom = parseInt(this._getEscapedProperty('scrollWheelZoom', config)),
                 fullScreen = parseInt(this._getEscapedProperty('fullScreen', config)),
                 drilldown = parseInt(this._getEscapedProperty('drilldown', config)),
+                drilldownAction = this._getEscapedProperty('drilldownAction', config),
 				contextMenu = parseInt(this._getEscapedProperty('contextMenu', config)),
                 defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
 				autoFitAndZoom = parseInt(this._getEscapedProperty('autoFitAndZoom', config)),
@@ -1443,7 +1445,8 @@ define([
                     clusterGroup: clusterGroup,
                     tooltip: tooltip,
                     title: title,
-                    drilldown: drilldown}
+                    drilldown: drilldown,
+                    drilldownAction: drilldownAction}
 
                 if (userData["markerVisibility"]) {
                     if (userData["markerVisibility"] == "marker") {

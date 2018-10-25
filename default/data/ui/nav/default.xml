@@ -15,6 +15,7 @@
         <view name="google_streetview_drilldown" />
         <view name="path_lines" />
         <view name="heatmap" />
+        <view name="drilldown" />
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

@@ -198,7 +198,15 @@ Use the following setting to set the marker priority.
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 ### Drilldown
-The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. See the [documentation on dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms). Refer to this section of the docs on [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).
+The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. 
+
+Use the [drilldown editor](http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Access_the_drilldown_editor) to [set the action](http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Choose_a_drilldown_action) for the drilldown.
+
+See the [documentation on contextual drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/ContextualDrilldown). Refer to this section of the docs on [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).
+
+Note that `$click.value$` does not get set through the Custom Visualization API. Use `$row.fieldname$` to acceess a drilldown value.
+
+When using the `Click` drilldown mouse event, use the `tooltip` field instead of the `description` field to display information about the marker as you hover over the icon.
 
 #### Usage
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
@@ -285,13 +293,15 @@ Use Canvas renderer for performance boost drawing vector layers (path, circle). 
 ###### Progress Indicator
 Display progress spinner for long running searches
 ###### Scroll Wheel Zoom
-Enable or disable scroll wheel zoom.
+Enable or disable scroll wheel zoom
 ###### Full Screen Mode
 Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. - **Requires browser Refresh**
 ###### Drilldown
-Enable or disable drilldown. Double click a marker to activate drilldown. - **Requires browser Refresh**
+Enable or disable drilldown - **Requires browser Refresh**
+###### Drilldown Mouse Event
+Select mouse event that triggers drilldown from markers
 ###### Context Menu
-Enable or disable context menu when right clicking the map.
+Enable or disable context menu when right clicking the map
 ###### Default Height
 Initial Height Of Map - **Default** `600`
 ###### Auto Fit & Zoom

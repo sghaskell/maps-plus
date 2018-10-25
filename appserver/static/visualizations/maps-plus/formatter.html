@@ -73,7 +73,17 @@
                     <option value="1">Enabled</option>
                     <option value="0">Disabled</option>
                 </splunk-radio-input>
-                <span class="help-block ">Enable or disable drilldown behavior for markers. Double-click marker to drilldown</span>
+                <span class="help-block ">Enable or disable drilldown behavior for markers</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Drilldown Mouse Event</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.drilldownAction" value="dblclick">
+                    <option value="dblclick">Double Click</option>
+                    <option value="click">Click</option>
+                </splunk-radio-input>
+                <span class="help-block ">Select mouse event that triggers drilldown from markers</span>
             </div>
         </div>
         <div class="control-group">

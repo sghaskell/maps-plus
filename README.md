@@ -206,6 +206,8 @@ See the [documentation on contextual drilldown](http://docs.splunk.com/Documenta
 
 Note that `$click.value$` does not get set through the Custom Visualization API. Use `$row.fieldname$` to acceess a drilldown value.
 
+When using the `Click` drilldown mouse event, use the `tooltip` field instead of the `description` field to display information about the marker as you hover over the icon.
+
 #### Usage
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
 

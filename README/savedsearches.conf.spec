@@ -18,6 +18,7 @@ display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride 
 display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.drilldown = <string>
+display.visualizations.custom.leaflet_maps_app.maps-plus.drilldownAction = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom = <string>

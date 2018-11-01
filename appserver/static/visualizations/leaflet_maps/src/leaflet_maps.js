@@ -380,6 +380,9 @@ define([
                 config = this.defaultConfig;
             }
 
+            // Populate any missing config values with defaults
+            _.defaults(config, this.defaultConfig)
+
             // get configs
             var cluster     = parseInt(this._getEscapedProperty('cluster', config)),
                 allPopups   = parseInt(this._getEscapedProperty('allPopups', config)),

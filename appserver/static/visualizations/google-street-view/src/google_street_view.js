@@ -150,6 +150,9 @@ define([
                 config = this.defaultConfig;
             }
 
+            // Populate any missing config values with defaults
+            _.defaults(config, this.defaultConfig)
+
             // get data
             var dataRows = data.results;
 

@@ -252,7 +252,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 							       'layerDescription',
 								   'pathWeight',
 								   'pathOpacity',
-								   'layerGroup',
+	                               'layerGroup',
+	                               'layerIcon',
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
@@ -480,6 +481,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	        // Create a control icon and description in the layer control legend
 	        addLayerToControl: function(options) {
+	            console.log(options)
 	            // Add Heatmap layer to controls and use layer name for control label
 	            if(options.layerType == "heat" || options.layerType == "path") {
 	                options.control.addOverlay(options.featureGroup, options.featureGroup.options.name)
@@ -501,7 +503,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                    var styleColor = options.layerGroup.circle.fillColor;
 	                }
 
-	                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+	                //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+	                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
 
 	                options.control.addOverlay(options.layerGroup.group, iconHtml);
 	                options.layerGroup.layerExists = true;
@@ -1359,6 +1362,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	                // Set icon options
 	                var icon = _.has(userData, "icon") ? userData["icon"]:"circle";
+	                var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon;
 	                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
 					var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default";
 
@@ -1408,9 +1412,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:"";
 	                
 	                if (!_.isUndefined(this.layerFilter[layerGroup])) {
-	                    this.layerFilter[layerGroup].layerDescription = layerDescription;
+	                    this.layerFilter[layerGroup].layerDescription = layerDescription
+	                    this.layerFilter[layerGroup].layerIcon = layerIcon
 	                }
-				
+	            
 	                // Get marker and icon properties	
 					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
 	                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",

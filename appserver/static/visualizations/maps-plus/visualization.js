@@ -481,7 +481,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	        // Create a control icon and description in the layer control legend
 	        addLayerToControl: function(options) {
-	            console.log(options)
 	            // Add Heatmap layer to controls and use layer name for control label
 	            if(options.layerType == "heat" || options.layerType == "path") {
 	                options.control.addOverlay(options.featureGroup, options.featureGroup.options.name)

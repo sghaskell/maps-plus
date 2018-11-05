@@ -33,6 +33,7 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [fontawesome](https://fontawesome.com/)
 ##### [Glyphicons](http://glyphicons.com/)
 ##### [Ionicons](https://ionicons.com/)
+##### [Mapkey Icons](http://mapkeyicons.com/)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
 ##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
 ##### [UCI Machine Learning Repository - GPS Trajectories Data Set](https://archive.ics.uci.edu/ml/datasets/GPS+Trajectories)

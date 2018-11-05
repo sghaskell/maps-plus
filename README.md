@@ -91,7 +91,7 @@ Color of map marker - ``red``, ``darkred``, ``lightred``, ``orange``, ``beige``,
 ##### iconColor
 Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`.
 ##### prefix
-``fa`` (Font Awesome) or ``ion`` (ionicons). - **Default** ``fa``
+``fa`` (Font Awesome), ``ion`` (ionicons), ``glyphicon`` (Glyphicons), ``mki`` (Mapkey Icons). - **Default** ``fa``
 
 ##### extraClasses
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome or Ionicons to change the styling. **Default** ``fa-lg``

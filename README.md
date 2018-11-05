@@ -54,7 +54,7 @@ Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
 ```
 
 ### Required Fields
@@ -66,11 +66,15 @@ Longitude Coordinates
 ### Optional Fields
 ##### description
 Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. **This field supports HTML**.
+
 ##### layerDescription
 Description that is added next to the icon in the layer control legend. **this field supports HTML**
 
+##### layerIcon
+Icon displayed in layer filter menu - Any icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
+
 ### Style Markers And Icons Dynamically Through SPL
-Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/) or [ionicons](http://ionicons.com/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
+Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
@@ -80,7 +84,7 @@ Icon mouse hover over description. **Deprecated (with backwards compatibility) -
 ##### tooltip
 Tooltip to display on marker hover.
 ##### icon
-Icon displayed in map marker - Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). - **Default** ``circle``
+Icon displayed in map marker - Any icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** ``circle``
 ##### markerColor
 Color of map marker - ``red``, ``darkred``, ``lightred``, ``orange``, ``beige``, ``green``, ``darkgreen``, ``lightgreen``, ``blue``, ``darkblue``, ``lightblue``, ``purple``, ``darkpurple``, ``pink``, ``cadetblue``, ``white``, ``gray``, ``lightgray``, ``black``. - **Default** ``blue``
 ##### iconColor

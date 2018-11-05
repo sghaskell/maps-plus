@@ -1,4 +1,4 @@
-define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(__WEBPACK_EXTERNAL_MODULE_114__, __WEBPACK_EXTERNAL_MODULE_115__) { return /******/ (function(modules) { // webpackBootstrap
+define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/mvc"], function(__WEBPACK_EXTERNAL_MODULE_114__, __WEBPACK_EXTERNAL_MODULE_115__, __WEBPACK_EXTERNAL_MODULE_116__) { return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -53,7 +53,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
 	            __webpack_require__(3),
-	            __webpack_require__(244),
+	            __webpack_require__(245),
 	            __webpack_require__(4),
 	            __webpack_require__(5),
 	            __webpack_require__(8),
@@ -62,20 +62,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            __webpack_require__(115),
 	            __webpack_require__(116),
 	            __webpack_require__(117),
-	            __webpack_require__(243),
-	            __webpack_require__(245),
+	            __webpack_require__(118),
+	            __webpack_require__(244),
 	            __webpack_require__(246),
-				__webpack_require__(249),
+	            __webpack_require__(247),
 				__webpack_require__(250),
-	            __webpack_require__(251),
-	            __webpack_require__(2),
+				__webpack_require__(251),
 	            __webpack_require__(252),
+	            __webpack_require__(2),
 	            __webpack_require__(253),
 	            __webpack_require__(254),
 	            __webpack_require__(255),
 	            __webpack_require__(256),
-				__webpack_require__(257),
-	            __webpack_require__(258),
+	            __webpack_require__(257),
+				__webpack_require__(258),
 	            __webpack_require__(259),
 	            __webpack_require__(260),
 	            __webpack_require__(261),
@@ -83,7 +83,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            __webpack_require__(263),
 	            __webpack_require__(264),
 	            __webpack_require__(265),
-	            __webpack_require__(266)
+	            __webpack_require__(266),
+	            __webpack_require__(267)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
@@ -93,6 +94,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            JSZipUtils,
 	            SplunkVisualizationBase,
 	            SplunkVisualizationUtils,
+	            mvc,
 	            loadGoogleMapsAPI,
 	            moment,
 	            Modal
@@ -191,33 +193,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
 	            this.$el = $(this.el);
 	            this.isInitializedDom = false;
-	            this.splunkVersion = "unknown";
 	            this.isSplunkSeven = false;
 	            this.curPage = 0;
 	            this.allDataProcessed = false;
+	            // Get version from global tokens
+	            this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
 
-	            // Detect version from REST API
-	            $.ajax({
-	                type: "GET",
-	                async: false,
-	                context: this,
-	                url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-	                success: function(s) {                                        
-	                    var xml = $(s);
-	                    var that = this;
-	                    $(xml).find('content').children().children().each(function(i, v) {
-	                        if(/name="version"/.test(v.outerHTML)) {
-	                            that.splunkVersion = parseFloat(v.textContent);
-	                            if(that.splunkVersion >= 7.0) {
-	                                that.isSplunkSeven = true;
-	                            }
-	                        } 
-	                    });
-	                },
-	                error: function(e) {
-	                    //console.info(e);
-	                }
-	            });
+	            // Set default for undetected version
+	            if(_.isUndefined(this.splunkVersion) || _.isEmpty(this.splunkVersion)) {
+	                this.splunkVersion = parseFloat(0.0)
+	            }
+
+	            if(this.splunkVersion >= 7.0) {
+	                this.isSplunkSeven = true;
+	            }
 	        },
 	  
 	        // Search data params
@@ -721,7 +710,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                               opacity: options.opacity,
 	                                               fillColor: options.fillColor,
 	                                               fillOpacity: options.fillOpacity})
-	                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
 	                if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
 	                    options.layerFilter[options.layerGroup].circle = {radius: options.radius,
 	                        color: options.color,
@@ -736,15 +724,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                                       parseFloat(options.userData['longitude'])],
 	                                       {icon: options.markerIcon,
 	                                        layerDescription: options.layerDescription,
-	                                        zIndexOffset: options.markerPriority});                
-
-	                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
-	                // if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
-	                //     options.layerFilter[options.layerGroup].icon = options.markerIcon;
-	                // }                                        
+	                                        zIndexOffset: options.markerPriority,
+	                                        contextmenu: true,
+	                                        contextmenuItems: [{
+	                                            text: 'Marker item',
+	                                            index: 0
+	                                        }, {
+	                                            separator: true,
+	                                            index: 1
+	                                        }]});                
 	            }
 
-	            // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
 	            if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
 	                options.layerFilter[options.layerGroup].icon = options.markerIcon;
 	            }
@@ -47055,6 +47045,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 /* 116 */
 /***/ (function(module, exports) {
 
+	module.exports = __WEBPACK_EXTERNAL_MODULE_116__;
+
+/***/ }),
+/* 117 */
+/***/ (function(module, exports) {
+
 	var CALLBACK_NAME = '__googleMapsApiOnLoadCallback'
 
 	var OPTIONS_KEYS = ['channel', 'client', 'key', 'language', 'region', 'v']
@@ -47105,7 +47101,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var require;/* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -48943,7 +48939,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            try {
 	                oldLocale = globalLocale._abbr;
 	                var aliasedRequire = require;
-	                __webpack_require__(119)("./" + name);
+	                __webpack_require__(120)("./" + name);
 	                getSetGlobalLocale(oldLocale);
 	            } catch (e) {}
 	        }
@@ -51615,10 +51611,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	})));
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(118)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(119)(module)))
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports) {
 
 	module.exports = function(module) {
@@ -51634,256 +51630,256 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./af": 120,
-		"./af.js": 120,
-		"./ar": 121,
-		"./ar-dz": 122,
-		"./ar-dz.js": 122,
-		"./ar-kw": 123,
-		"./ar-kw.js": 123,
-		"./ar-ly": 124,
-		"./ar-ly.js": 124,
-		"./ar-ma": 125,
-		"./ar-ma.js": 125,
-		"./ar-sa": 126,
-		"./ar-sa.js": 126,
-		"./ar-tn": 127,
-		"./ar-tn.js": 127,
-		"./ar.js": 121,
-		"./az": 128,
-		"./az.js": 128,
-		"./be": 129,
-		"./be.js": 129,
-		"./bg": 130,
-		"./bg.js": 130,
-		"./bm": 131,
-		"./bm.js": 131,
-		"./bn": 132,
-		"./bn.js": 132,
-		"./bo": 133,
-		"./bo.js": 133,
-		"./br": 134,
-		"./br.js": 134,
-		"./bs": 135,
-		"./bs.js": 135,
-		"./ca": 136,
-		"./ca.js": 136,
-		"./cs": 137,
-		"./cs.js": 137,
-		"./cv": 138,
-		"./cv.js": 138,
-		"./cy": 139,
-		"./cy.js": 139,
-		"./da": 140,
-		"./da.js": 140,
-		"./de": 141,
-		"./de-at": 142,
-		"./de-at.js": 142,
-		"./de-ch": 143,
-		"./de-ch.js": 143,
-		"./de.js": 141,
-		"./dv": 144,
-		"./dv.js": 144,
-		"./el": 145,
-		"./el.js": 145,
-		"./en-au": 146,
-		"./en-au.js": 146,
-		"./en-ca": 147,
-		"./en-ca.js": 147,
-		"./en-gb": 148,
-		"./en-gb.js": 148,
-		"./en-ie": 149,
-		"./en-ie.js": 149,
-		"./en-il": 150,
-		"./en-il.js": 150,
-		"./en-nz": 151,
-		"./en-nz.js": 151,
-		"./eo": 152,
-		"./eo.js": 152,
-		"./es": 153,
-		"./es-do": 154,
-		"./es-do.js": 154,
-		"./es-us": 155,
-		"./es-us.js": 155,
-		"./es.js": 153,
-		"./et": 156,
-		"./et.js": 156,
-		"./eu": 157,
-		"./eu.js": 157,
-		"./fa": 158,
-		"./fa.js": 158,
-		"./fi": 159,
-		"./fi.js": 159,
-		"./fo": 160,
-		"./fo.js": 160,
-		"./fr": 161,
-		"./fr-ca": 162,
-		"./fr-ca.js": 162,
-		"./fr-ch": 163,
-		"./fr-ch.js": 163,
-		"./fr.js": 161,
-		"./fy": 164,
-		"./fy.js": 164,
-		"./gd": 165,
-		"./gd.js": 165,
-		"./gl": 166,
-		"./gl.js": 166,
-		"./gom-latn": 167,
-		"./gom-latn.js": 167,
-		"./gu": 168,
-		"./gu.js": 168,
-		"./he": 169,
-		"./he.js": 169,
-		"./hi": 170,
-		"./hi.js": 170,
-		"./hr": 171,
-		"./hr.js": 171,
-		"./hu": 172,
-		"./hu.js": 172,
-		"./hy-am": 173,
-		"./hy-am.js": 173,
-		"./id": 174,
-		"./id.js": 174,
-		"./is": 175,
-		"./is.js": 175,
-		"./it": 176,
-		"./it.js": 176,
-		"./ja": 177,
-		"./ja.js": 177,
-		"./jv": 178,
-		"./jv.js": 178,
-		"./ka": 179,
-		"./ka.js": 179,
-		"./kk": 180,
-		"./kk.js": 180,
-		"./km": 181,
-		"./km.js": 181,
-		"./kn": 182,
-		"./kn.js": 182,
-		"./ko": 183,
-		"./ko.js": 183,
-		"./ky": 184,
-		"./ky.js": 184,
-		"./lb": 185,
-		"./lb.js": 185,
-		"./lo": 186,
-		"./lo.js": 186,
-		"./lt": 187,
-		"./lt.js": 187,
-		"./lv": 188,
-		"./lv.js": 188,
-		"./me": 189,
-		"./me.js": 189,
-		"./mi": 190,
-		"./mi.js": 190,
-		"./mk": 191,
-		"./mk.js": 191,
-		"./ml": 192,
-		"./ml.js": 192,
-		"./mn": 193,
-		"./mn.js": 193,
-		"./mr": 194,
-		"./mr.js": 194,
-		"./ms": 195,
-		"./ms-my": 196,
-		"./ms-my.js": 196,
-		"./ms.js": 195,
-		"./mt": 197,
-		"./mt.js": 197,
-		"./my": 198,
-		"./my.js": 198,
-		"./nb": 199,
-		"./nb.js": 199,
-		"./ne": 200,
-		"./ne.js": 200,
-		"./nl": 201,
-		"./nl-be": 202,
-		"./nl-be.js": 202,
-		"./nl.js": 201,
-		"./nn": 203,
-		"./nn.js": 203,
-		"./pa-in": 204,
-		"./pa-in.js": 204,
-		"./pl": 205,
-		"./pl.js": 205,
-		"./pt": 206,
-		"./pt-br": 207,
-		"./pt-br.js": 207,
-		"./pt.js": 206,
-		"./ro": 208,
-		"./ro.js": 208,
-		"./ru": 209,
-		"./ru.js": 209,
-		"./sd": 210,
-		"./sd.js": 210,
-		"./se": 211,
-		"./se.js": 211,
-		"./si": 212,
-		"./si.js": 212,
-		"./sk": 213,
-		"./sk.js": 213,
-		"./sl": 214,
-		"./sl.js": 214,
-		"./sq": 215,
-		"./sq.js": 215,
-		"./sr": 216,
-		"./sr-cyrl": 217,
-		"./sr-cyrl.js": 217,
-		"./sr.js": 216,
-		"./ss": 218,
-		"./ss.js": 218,
-		"./sv": 219,
-		"./sv.js": 219,
-		"./sw": 220,
-		"./sw.js": 220,
-		"./ta": 221,
-		"./ta.js": 221,
-		"./te": 222,
-		"./te.js": 222,
-		"./tet": 223,
-		"./tet.js": 223,
-		"./tg": 224,
-		"./tg.js": 224,
-		"./th": 225,
-		"./th.js": 225,
-		"./tl-ph": 226,
-		"./tl-ph.js": 226,
-		"./tlh": 227,
-		"./tlh.js": 227,
-		"./tr": 228,
-		"./tr.js": 228,
-		"./tzl": 229,
-		"./tzl.js": 229,
-		"./tzm": 230,
-		"./tzm-latn": 231,
-		"./tzm-latn.js": 231,
-		"./tzm.js": 230,
-		"./ug-cn": 232,
-		"./ug-cn.js": 232,
-		"./uk": 233,
-		"./uk.js": 233,
-		"./ur": 234,
-		"./ur.js": 234,
-		"./uz": 235,
-		"./uz-latn": 236,
-		"./uz-latn.js": 236,
-		"./uz.js": 235,
-		"./vi": 237,
-		"./vi.js": 237,
-		"./x-pseudo": 238,
-		"./x-pseudo.js": 238,
-		"./yo": 239,
-		"./yo.js": 239,
-		"./zh-cn": 240,
-		"./zh-cn.js": 240,
-		"./zh-hk": 241,
-		"./zh-hk.js": 241,
-		"./zh-tw": 242,
-		"./zh-tw.js": 242
+		"./af": 121,
+		"./af.js": 121,
+		"./ar": 122,
+		"./ar-dz": 123,
+		"./ar-dz.js": 123,
+		"./ar-kw": 124,
+		"./ar-kw.js": 124,
+		"./ar-ly": 125,
+		"./ar-ly.js": 125,
+		"./ar-ma": 126,
+		"./ar-ma.js": 126,
+		"./ar-sa": 127,
+		"./ar-sa.js": 127,
+		"./ar-tn": 128,
+		"./ar-tn.js": 128,
+		"./ar.js": 122,
+		"./az": 129,
+		"./az.js": 129,
+		"./be": 130,
+		"./be.js": 130,
+		"./bg": 131,
+		"./bg.js": 131,
+		"./bm": 132,
+		"./bm.js": 132,
+		"./bn": 133,
+		"./bn.js": 133,
+		"./bo": 134,
+		"./bo.js": 134,
+		"./br": 135,
+		"./br.js": 135,
+		"./bs": 136,
+		"./bs.js": 136,
+		"./ca": 137,
+		"./ca.js": 137,
+		"./cs": 138,
+		"./cs.js": 138,
+		"./cv": 139,
+		"./cv.js": 139,
+		"./cy": 140,
+		"./cy.js": 140,
+		"./da": 141,
+		"./da.js": 141,
+		"./de": 142,
+		"./de-at": 143,
+		"./de-at.js": 143,
+		"./de-ch": 144,
+		"./de-ch.js": 144,
+		"./de.js": 142,
+		"./dv": 145,
+		"./dv.js": 145,
+		"./el": 146,
+		"./el.js": 146,
+		"./en-au": 147,
+		"./en-au.js": 147,
+		"./en-ca": 148,
+		"./en-ca.js": 148,
+		"./en-gb": 149,
+		"./en-gb.js": 149,
+		"./en-ie": 150,
+		"./en-ie.js": 150,
+		"./en-il": 151,
+		"./en-il.js": 151,
+		"./en-nz": 152,
+		"./en-nz.js": 152,
+		"./eo": 153,
+		"./eo.js": 153,
+		"./es": 154,
+		"./es-do": 155,
+		"./es-do.js": 155,
+		"./es-us": 156,
+		"./es-us.js": 156,
+		"./es.js": 154,
+		"./et": 157,
+		"./et.js": 157,
+		"./eu": 158,
+		"./eu.js": 158,
+		"./fa": 159,
+		"./fa.js": 159,
+		"./fi": 160,
+		"./fi.js": 160,
+		"./fo": 161,
+		"./fo.js": 161,
+		"./fr": 162,
+		"./fr-ca": 163,
+		"./fr-ca.js": 163,
+		"./fr-ch": 164,
+		"./fr-ch.js": 164,
+		"./fr.js": 162,
+		"./fy": 165,
+		"./fy.js": 165,
+		"./gd": 166,
+		"./gd.js": 166,
+		"./gl": 167,
+		"./gl.js": 167,
+		"./gom-latn": 168,
+		"./gom-latn.js": 168,
+		"./gu": 169,
+		"./gu.js": 169,
+		"./he": 170,
+		"./he.js": 170,
+		"./hi": 171,
+		"./hi.js": 171,
+		"./hr": 172,
+		"./hr.js": 172,
+		"./hu": 173,
+		"./hu.js": 173,
+		"./hy-am": 174,
+		"./hy-am.js": 174,
+		"./id": 175,
+		"./id.js": 175,
+		"./is": 176,
+		"./is.js": 176,
+		"./it": 177,
+		"./it.js": 177,
+		"./ja": 178,
+		"./ja.js": 178,
+		"./jv": 179,
+		"./jv.js": 179,
+		"./ka": 180,
+		"./ka.js": 180,
+		"./kk": 181,
+		"./kk.js": 181,
+		"./km": 182,
+		"./km.js": 182,
+		"./kn": 183,
+		"./kn.js": 183,
+		"./ko": 184,
+		"./ko.js": 184,
+		"./ky": 185,
+		"./ky.js": 185,
+		"./lb": 186,
+		"./lb.js": 186,
+		"./lo": 187,
+		"./lo.js": 187,
+		"./lt": 188,
+		"./lt.js": 188,
+		"./lv": 189,
+		"./lv.js": 189,
+		"./me": 190,
+		"./me.js": 190,
+		"./mi": 191,
+		"./mi.js": 191,
+		"./mk": 192,
+		"./mk.js": 192,
+		"./ml": 193,
+		"./ml.js": 193,
+		"./mn": 194,
+		"./mn.js": 194,
+		"./mr": 195,
+		"./mr.js": 195,
+		"./ms": 196,
+		"./ms-my": 197,
+		"./ms-my.js": 197,
+		"./ms.js": 196,
+		"./mt": 198,
+		"./mt.js": 198,
+		"./my": 199,
+		"./my.js": 199,
+		"./nb": 200,
+		"./nb.js": 200,
+		"./ne": 201,
+		"./ne.js": 201,
+		"./nl": 202,
+		"./nl-be": 203,
+		"./nl-be.js": 203,
+		"./nl.js": 202,
+		"./nn": 204,
+		"./nn.js": 204,
+		"./pa-in": 205,
+		"./pa-in.js": 205,
+		"./pl": 206,
+		"./pl.js": 206,
+		"./pt": 207,
+		"./pt-br": 208,
+		"./pt-br.js": 208,
+		"./pt.js": 207,
+		"./ro": 209,
+		"./ro.js": 209,
+		"./ru": 210,
+		"./ru.js": 210,
+		"./sd": 211,
+		"./sd.js": 211,
+		"./se": 212,
+		"./se.js": 212,
+		"./si": 213,
+		"./si.js": 213,
+		"./sk": 214,
+		"./sk.js": 214,
+		"./sl": 215,
+		"./sl.js": 215,
+		"./sq": 216,
+		"./sq.js": 216,
+		"./sr": 217,
+		"./sr-cyrl": 218,
+		"./sr-cyrl.js": 218,
+		"./sr.js": 217,
+		"./ss": 219,
+		"./ss.js": 219,
+		"./sv": 220,
+		"./sv.js": 220,
+		"./sw": 221,
+		"./sw.js": 221,
+		"./ta": 222,
+		"./ta.js": 222,
+		"./te": 223,
+		"./te.js": 223,
+		"./tet": 224,
+		"./tet.js": 224,
+		"./tg": 225,
+		"./tg.js": 225,
+		"./th": 226,
+		"./th.js": 226,
+		"./tl-ph": 227,
+		"./tl-ph.js": 227,
+		"./tlh": 228,
+		"./tlh.js": 228,
+		"./tr": 229,
+		"./tr.js": 229,
+		"./tzl": 230,
+		"./tzl.js": 230,
+		"./tzm": 231,
+		"./tzm-latn": 232,
+		"./tzm-latn.js": 232,
+		"./tzm.js": 231,
+		"./ug-cn": 233,
+		"./ug-cn.js": 233,
+		"./uk": 234,
+		"./uk.js": 234,
+		"./ur": 235,
+		"./ur.js": 235,
+		"./uz": 236,
+		"./uz-latn": 237,
+		"./uz-latn.js": 237,
+		"./uz.js": 236,
+		"./vi": 238,
+		"./vi.js": 238,
+		"./x-pseudo": 239,
+		"./x-pseudo.js": 239,
+		"./yo": 240,
+		"./yo.js": 240,
+		"./zh-cn": 241,
+		"./zh-cn.js": 241,
+		"./zh-hk": 242,
+		"./zh-hk.js": 242,
+		"./zh-tw": 243,
+		"./zh-tw.js": 243
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -51896,17 +51892,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 119;
+	webpackContext.id = 120;
 
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51977,13 +51973,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52116,13 +52112,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52179,13 +52175,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52242,13 +52238,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52368,13 +52364,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52431,13 +52427,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52539,13 +52535,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52602,13 +52598,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 128 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52711,13 +52707,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 129 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52847,13 +52843,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 130 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52941,13 +52937,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 131 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53003,13 +52999,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 132 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53126,13 +53122,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 133 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53249,13 +53245,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 134 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53361,13 +53357,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 135 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53516,13 +53512,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 136 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53608,13 +53604,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 137 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53791,13 +53787,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 138 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53858,13 +53854,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 139 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53942,13 +53938,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 140 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54006,13 +54002,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 141 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54086,13 +54082,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 142 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54166,13 +54162,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 143 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54246,13 +54242,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 144 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54349,13 +54345,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 145 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54453,13 +54449,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 146 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54524,13 +54520,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 147 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54591,13 +54587,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 148 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54662,13 +54658,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 149 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54733,13 +54729,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 150 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54799,13 +54795,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 151 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54870,13 +54866,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 152 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54945,13 +54941,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 153 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55041,13 +55037,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 154 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55137,13 +55133,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 155 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55224,13 +55220,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 156 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55308,13 +55304,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 157 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55378,13 +55374,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 158 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55488,13 +55484,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 159 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55601,13 +55597,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 160 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55665,13 +55661,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 161 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55752,13 +55748,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 162 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55830,13 +55826,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 163 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55912,13 +55908,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 164 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55991,13 +55987,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 165 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56071,13 +56067,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 166 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56152,13 +56148,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 167 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56279,13 +56275,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 168 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56407,13 +56403,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 169 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56508,13 +56504,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 170 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56636,13 +56632,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 171 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56794,13 +56790,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 172 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56908,13 +56904,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 173 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57007,13 +57003,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 174 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57093,13 +57089,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 175 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57229,13 +57225,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 176 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57302,13 +57298,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 177 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57398,13 +57394,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 178 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57484,13 +57480,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 179 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57577,13 +57573,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 180 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57668,13 +57664,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 181 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57782,13 +57778,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 182 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57912,13 +57908,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 183 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57997,13 +57993,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 184 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58088,13 +58084,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 185 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58228,13 +58224,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 186 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58302,13 +58298,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 187 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58424,13 +58420,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 188 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58525,13 +58521,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 189 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58641,13 +58637,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 190 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58709,13 +58705,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 191 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58803,13 +58799,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 192 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58888,13 +58884,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 193 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58996,13 +58992,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 194 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59160,13 +59156,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 195 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59246,13 +59242,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 196 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59332,13 +59328,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 197 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59396,13 +59392,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 198 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59493,13 +59489,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 199 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59559,13 +59555,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 200 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59686,13 +59682,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 201 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59777,13 +59773,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 202 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59868,13 +59864,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 203 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59932,13 +59928,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 204 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60060,13 +60056,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 205 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60190,13 +60186,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 206 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60259,13 +60255,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 207 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60324,13 +60320,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 208 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60403,13 +60399,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 209 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60589,13 +60585,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 210 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60691,13 +60687,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 211 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60755,13 +60751,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 212 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60830,13 +60826,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 213 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60990,13 +60986,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 214 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61167,13 +61163,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 215 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61239,13 +61235,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 216 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61354,13 +61350,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 217 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61469,13 +61465,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 218 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61561,13 +61557,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 219 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61634,13 +61630,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 220 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61697,13 +61693,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 221 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61830,13 +61826,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 222 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61923,13 +61919,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 223 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61994,13 +61990,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 224 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62114,13 +62110,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 225 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62185,13 +62181,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 226 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62251,13 +62247,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 227 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62377,12 +62373,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 228 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62475,13 +62471,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 229 */
+/* 230 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62570,13 +62566,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 230 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62632,13 +62628,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 231 */
+/* 232 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62694,13 +62690,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 232 */
+/* 233 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js language configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62817,13 +62813,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 233 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62972,13 +62968,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 234 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63074,13 +63070,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 235 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63136,13 +63132,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 236 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63198,13 +63194,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 237 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63281,13 +63277,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 238 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63353,13 +63349,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 239 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63417,13 +63413,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 240 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63531,13 +63527,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 241 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63638,13 +63634,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 242 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(117)) :
+	    true ? factory(__webpack_require__(118)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -63745,11 +63741,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 243 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
-	var _ = __webpack_require__(244);
+	var _ = __webpack_require__(245);
 
 	'use strict';
 
@@ -63780,7 +63776,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    });
 	  }
 
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(244)], __WEBPACK_AMD_DEFINE_RESULT__ = function (_) {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(245)], __WEBPACK_AMD_DEFINE_RESULT__ = function (_) {
 	    return function () {
 	        /**
 	         * A utility wrapper around Bootstrap's modal.
@@ -63888,7 +63884,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 244 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global, module) {//     Underscore.js 1.9.1
@@ -65584,10 +65580,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	  }
 	}());
 
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(118)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(119)(module)))
 
 /***/ }),
-/* 245 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -65970,12 +65966,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 246 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var L = __webpack_require__(4)
-	var fetchJsonp = __webpack_require__(247)
-	var bboxIntersect = __webpack_require__(248)
+	var fetchJsonp = __webpack_require__(248)
+	var bboxIntersect = __webpack_require__(249)
 
 	/**
 	 * Converts tile xyz coordinates to Quadkey
@@ -66252,7 +66248,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 247 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (global, factory) {
@@ -66380,7 +66376,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	});
 
 /***/ }),
-/* 248 */
+/* 249 */
 /***/ (function(module, exports) {
 
 	module.exports = function(bbox1, bbox2){
@@ -66397,7 +66393,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	}
 
 /***/ }),
-/* 249 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -66989,7 +66985,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 250 */
+/* 251 */
 /***/ (function(module, exports) {
 
 	L.Control.Dialog = L.Control.extend({
@@ -67351,7 +67347,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 251 */
+/* 252 */
 /***/ (function(module, exports) {
 
 	(function () {
@@ -67501,7 +67497,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 252 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -67649,14 +67645,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 253 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
 	var L = __webpack_require__(4);
 
 	/*** IMPORTS FROM imports-loader ***/
-	var simpleheat = __webpack_require__(252);
+	var simpleheat = __webpack_require__(253);
 
 	'use strict';
 
@@ -67869,7 +67865,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 254 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -67878,7 +67874,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	(function (factory, window) {
 	    // define an AMD module that relies on 'leaflet'
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(245)], __WEBPACK_AMD_DEFINE_RESULT__ = function (L, Spinner) {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(246)], __WEBPACK_AMD_DEFINE_RESULT__ = function (L, Spinner) {
 	            factory(L, Spinner);
 	        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -67948,7 +67944,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 255 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -68173,7 +68169,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 256 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var require;var require;var __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {/*** IMPORTS FROM imports-loader ***/
@@ -75474,7 +75470,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 257 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -75610,7 +75606,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 258 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -75883,7 +75879,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 259 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -76501,7 +76497,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 260 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -76802,7 +76798,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 261 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -76939,7 +76935,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 262 */
+/* 263 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77136,7 +77132,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 263 */
+/* 264 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77645,7 +77641,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 264 */
+/* 265 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77966,7 +77962,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 265 */
+/* 266 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -78145,7 +78141,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 
 /***/ }),
-/* 266 */
+/* 267 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/

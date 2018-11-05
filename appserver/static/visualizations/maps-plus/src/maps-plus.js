@@ -7,6 +7,7 @@ define([
             'jszip-utils',
             'api/SplunkVisualizationBase',
             'api/SplunkVisualizationUtils',
+            'splunkjs/mvc',
             'load-google-maps-api',
             'moment',
             '../contrib/js/Modal',
@@ -41,6 +42,7 @@ define([
             JSZipUtils,
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
+            mvc,
             loadGoogleMapsAPI,
             moment,
             Modal
@@ -139,33 +141,20 @@ define([
             SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
             this.$el = $(this.el);
             this.isInitializedDom = false;
-            this.splunkVersion = "unknown";
             this.isSplunkSeven = false;
             this.curPage = 0;
             this.allDataProcessed = false;
+            // Get version from global tokens
+            this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
 
-            // Detect version from REST API
-            $.ajax({
-                type: "GET",
-                async: false,
-                context: this,
-                url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-                success: function(s) {                                        
-                    var xml = $(s);
-                    var that = this;
-                    $(xml).find('content').children().children().each(function(i, v) {
-                        if(/name="version"/.test(v.outerHTML)) {
-                            that.splunkVersion = parseFloat(v.textContent);
-                            if(that.splunkVersion >= 7.0) {
-                                that.isSplunkSeven = true;
-                            }
-                        } 
-                    });
-                },
-                error: function(e) {
-                    //console.info(e);
-                }
-            });
+            // Set default for undetected version
+            if(_.isUndefined(this.splunkVersion) || _.isEmpty(this.splunkVersion)) {
+                this.splunkVersion = parseFloat(0.0)
+            }
+
+            if(this.splunkVersion >= 7.0) {
+                this.isSplunkSeven = true;
+            }
         },
   
         // Search data params
@@ -669,7 +658,6 @@ define([
                                                opacity: options.opacity,
                                                fillColor: options.fillColor,
                                                fillOpacity: options.fillOpacity})
-                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
                 if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
                     options.layerFilter[options.layerGroup].circle = {radius: options.radius,
                         color: options.color,
@@ -684,15 +672,17 @@ define([
                                        parseFloat(options.userData['longitude'])],
                                        {icon: options.markerIcon,
                                         layerDescription: options.layerDescription,
-                                        zIndexOffset: options.markerPriority});                
-
-                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
-                // if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
-                //     options.layerFilter[options.layerGroup].icon = options.markerIcon;
-                // }                                        
+                                        zIndexOffset: options.markerPriority,
+                                        contextmenu: true,
+                                        contextmenuItems: [{
+                                            text: 'Marker item',
+                                            index: 0
+                                        }, {
+                                            separator: true,
+                                            index: 1
+                                        }]});                
             }
 
-            // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
             if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
                 options.layerFilter[options.layerGroup].icon = options.markerIcon;
             }

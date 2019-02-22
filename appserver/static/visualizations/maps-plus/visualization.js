@@ -251,6 +251,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 								   'description',
 	                               'icon',
 	                               'customIcon',
+	                               'customIconShadow',
 								   'markerType',
 								   'markerColor',
 								   'markerPriority',
@@ -761,6 +762,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        fillOpacity: options.fillOpacity};
 	                }                                               
 	            } else {
+	                //console.log(options.markerIcon)
 	                var marker = L.marker([parseFloat(options.userData['latitude']),
 	                                       parseFloat(options.userData['longitude'])],
 	                                       {icon: options.markerIcon,
@@ -1451,7 +1453,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
 	                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
 	                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
-	                    customIconShadow = _.has(userData, "customIconShadow") ? userData["customIconShadow"]:null,
+	                    // customIconShadow = _.has(userData, "customIconShadow") ? userData["customIconShadow"]:null,
 	                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
 	                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
 	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
@@ -1484,11 +1486,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 					// SVG and PNG based markers both support hex iconColor do conversion outside
 					iconColor = this.convertHex(iconColor);	
 
-	                if(!_.isNull(customIcon)) {
-	                    markerType = null
+	                markerType = _.isNull(customIcon) ? markerType:"custom"
+
+	                // Create marker
+	                if(markerType == "custom") {
+	                    var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+	                    
 	                    var markerIcon = L.icon({
 	                        iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
-	                        shadowUrl: location.origin + this.contribUri + '/images/' + customIconShadow,
+	                        shadowUrl: customIconShadow,
 	                        iconSize: markerSize,
 	                        iconAnchor: markerAnchor,
 	                        shadowAnchor: shadowAnchor,
@@ -1496,7 +1502,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    });
 	                }
 
-	                // Create marker
 	                if (markerType == "svg") {
 						// Update marker to shade of Awesome Marker blue
 						if(markerColor == "blue") { markerColor = "#38AADD"; }
@@ -1517,7 +1522,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    });
 	                } 
 	                
-	                if(markerType = "png") {
+	                if(markerType == "png") {
 	                    // Create markerIcon
 	                    var markerIcon = L.AwesomeMarkers.icon({
 	                        icon: icon,

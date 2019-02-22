@@ -17,6 +17,7 @@ define([
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
+            'leaflet-ant-path',
             'simpleheat',
             '../contrib/js/HeatLayer',
             '../contrib/js/leaflet.spin',
@@ -196,7 +197,8 @@ define([
                                'title',
                                'tooltip',
 							   'description',
-							   'icon',
+                               'icon',
+                               'customIcon',
 							   'markerType',
 							   'markerColor',
 							   'markerPriority',
@@ -426,6 +428,23 @@ define([
                 var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
                                                                 weight: p[0]['pathWeight'],
                                                                 opacity: p[0]['pathOpacity']}).bindPopup(id);
+
+                // var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+                //                                                 weight: p[0]['pathWeight'],
+                //                                                 opacity: p[0]['pathOpacity'],
+                //                                                 "delay": 800,
+                //                                                 "dashArray": [
+                //                                                     10,
+                //                                                     27
+                //                                                 ],
+                //                                                 "weight": 5,
+                //                                                 //"color": "#0000FF",
+                //                                                 "pulseColor": "#FFFFFF",
+                //                                                 "paused": false,
+                //                                                 "reverse": false,
+                //                                                 "hardwareAccelerated": true
+                //                                             }).bindPopup(id);
+
                 // Apply tooltip to polyline
                 if(p[0]['tooltip'] != "") {
                     pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
@@ -1379,6 +1398,8 @@ define([
 				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
                     markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
                     iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
+                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
+                    customIconShadow = _.has(userData, "customIconShadow") ? userData["customIconShadow"]:null,
                     markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
                     markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
                     shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
@@ -1411,6 +1432,18 @@ define([
 				// SVG and PNG based markers both support hex iconColor do conversion outside
 				iconColor = this.convertHex(iconColor);	
 
+                if(!_.isNull(customIcon)) {
+                    markerType = null
+                    var markerIcon = L.icon({
+                        iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                        shadowUrl: location.origin + this.contribUri + '/images/' + customIconShadow,
+                        iconSize: markerSize,
+                        iconAnchor: markerAnchor,
+                        shadowAnchor: shadowAnchor,
+                        popupAnchor: popupAnchor
+                    });
+                }
+
                 // Create marker
                 if (markerType == "svg") {
 					// Update marker to shade of Awesome Marker blue
@@ -1430,7 +1463,9 @@ define([
                         iconSize: markerSize,
                         iconAnchor: markerAnchor,
                     });
-                } else {
+                } 
+                
+                if(markerType = "png") {
                     // Create markerIcon
                     var markerIcon = L.AwesomeMarkers.icon({
                         icon: icon,

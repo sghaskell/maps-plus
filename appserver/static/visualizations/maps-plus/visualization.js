@@ -284,6 +284,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'circleOpacity',
 	                               'circleFillColor',
 	                               'circleFillOpacity',
+	                               'antPath',
+	                               'antPathDelay',
+	                               'antPathPulseColor',
+	                               'antPathPaused',
+	                               'antPathReverse',
+	                               'antPathDashArray',
 	                               '_time'];
 	            $.each(obj, function(key, value) {
 	                if($.inArray(key, validFields) === -1) {
@@ -477,26 +483,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    options.pathLineLayers[pathFg.options.name] = pathFg;
 	                }
 
-	                // create polyline and bind popup
-	                var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                                                                weight: p[0]['pathWeight'],
-	                                                                opacity: p[0]['pathOpacity']}).bindPopup(id);
-
-	                // var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                //                                                 weight: p[0]['pathWeight'],
-	                //                                                 opacity: p[0]['pathOpacity'],
-	                //                                                 "delay": 800,
-	                //                                                 "dashArray": [
-	                //                                                     10,
-	                //                                                     27
-	                //                                                 ],
-	                //                                                 "weight": 5,
-	                //                                                 //"color": "#0000FF",
-	                //                                                 "pulseColor": "#FFFFFF",
-	                //                                                 "paused": false,
-	                //                                                 "reverse": false,
-	                //                                                 "hardwareAccelerated": true
-	                //                                             }).bindPopup(id);
+	                if(!_.isNull(p[0]['antPath'])) {
+	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+	                                                                            weight: p[0]['pathWeight'],
+	                                                                            opacity: p[0]['pathOpacity'],
+	                                                                            "delay": p[0]['antPathDelay'],
+	                                                                            "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+	                                                                            "pulseColor": p[0]['antPathPulseColor'],
+	                                                                            "paused": p[0]['antPathPaused'],
+	                                                                            "reverse": p[0]['antPathReverse']
+	                                                }).bindPopup(id);       
+	                } else {
+	                    // create polyline and bind popup
+	                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+	                                                                    weight: p[0]['pathWeight'],
+	                                                                    opacity: p[0]['pathOpacity']}).bindPopup(id);
+	                }
 
 	                // Apply tooltip to polyline
 	                if(p[0]['tooltip'] != "") {
@@ -1453,7 +1455,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
 	                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
 	                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
-	                    // customIconShadow = _.has(userData, "customIconShadow") ? userData["customIconShadow"]:null,
 	                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
 	                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
 	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
@@ -1606,10 +1607,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                var paths = _.chain(dataRows)
 	                    .map(function (d) {            
 	                        var colorIndex = 0;
-	                        var pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5;
-	                        var pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5;
-							var dt = _.has(d, "_time") ? moment(d["_time"]):"";
-	                        var tooltip = _.has(d, "tooltip") ? d["tooltip"]:"";
+	                            pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5;
+	                            pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5;
+							    dt = _.has(d, "_time") ? moment(d["_time"]):"";
+	                            tooltip = _.has(d, "tooltip") ? d["tooltip"]:"";
+	                            antPath = _.has(d, "antPath") ? d["antPath"]:null;
+	                            antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000;
+	                            antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF";
+	                            antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false;
+	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false;
+	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20";
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier];
@@ -1629,7 +1636,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'tooltip': tooltip,
 	                            'permanentTooltip': permanentTooltip,
 	                            'stickyTooltip': stickyTooltip,
-	                            'color': color
+	                            'color': color,
+	                            'antPath': antPath,
+	                            'antPathDelay': antPathDelay,
+	                            'antPathPulseColor': antPathPulseColor,
+	                            'antPathPaused': antPathPaused,
+	                            'antPathReverse': antPathReverse,
+	                            'antPathDashArray': antPathDashArray
 	                        }
 	                    })
 	                    .sortBy(function(d) {

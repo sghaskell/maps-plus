@@ -431,7 +431,7 @@ define([
                     options.pathLineLayers[pathFg.options.name] = pathFg;
                 }
 
-                if(!_.isNull(p[0]['antPath'])) {
+                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
                     var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
                                                                             weight: p[0]['pathWeight'],
                                                                             opacity: p[0]['pathOpacity'],

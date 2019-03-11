@@ -440,12 +440,12 @@ define([
                                                                             "pulseColor": p[0]['antPathPulseColor'],
                                                                             "paused": p[0]['antPathPaused'],
                                                                             "reverse": p[0]['antPathReverse']
-                                                }).bindPopup(id);       
+                                                }).bindPopup(p[0]['description']);       
                 } else {
                     // create polyline and bind popup
                     var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
                                                                     weight: p[0]['pathWeight'],
-                                                                    opacity: p[0]['pathOpacity']}).bindPopup(id);
+                                                                    opacity: p[0]['pathOpacity']}).bindPopup(p[0]['description']);
                 }
 
                 // Apply tooltip to polyline
@@ -483,8 +483,11 @@ define([
                     var styleColor = options.layerGroup.circle.fillColor;
                 }
 
-                //var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
-                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
+                if(_.has(options.layerGroup.circle, "fillColor")) {
+                    var iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
+                } else {
+                    var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                }
 
                 options.control.addOverlay(options.layerGroup.group, iconHtml);
                 options.layerGroup.layerExists = true;
@@ -691,7 +694,6 @@ define([
         },
         
         _addMarker: function(options) {
-
             if(options.markerType == "circle") {
                 var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
                                              parseFloat(options.userData["longitude"])],
@@ -701,7 +703,16 @@ define([
                                                stroke: options.stroke,
                                                opacity: options.opacity,
                                                fillColor: options.fillColor,
-                                               fillOpacity: options.fillOpacity})
+                                               fillOpacity: options.fillOpacity,                                    
+                                               contextmenu: true,
+                                               contextmenuItems: [{
+                                                    text: 'Circle item',
+                                                    index: 0
+                                                }, {
+                                                    separator: true,
+                                                    index: 1
+                                                }]
+                                            })
                 if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
                     options.layerFilter[options.layerGroup].circle = {radius: options.radius,
                         color: options.color,
@@ -709,10 +720,10 @@ define([
                         stroke: options.stroke,
                         opacity: options.opacity,
                         fillColor: options.fillColor,
-                        fillOpacity: options.fillOpacity};
+                        fillOpacity: options.fillOpacity,
+                        markerPriority: options.markerPriority};
                 }                                               
             } else {
-                //console.log(options.markerIcon)
                 var marker = L.marker([parseFloat(options.userData['latitude']),
                                        parseFloat(options.userData['longitude'])],
                                        {icon: options.markerIcon,
@@ -778,18 +789,43 @@ define([
         },
 
         _addUnclustered: function(map, options) {
-            // Loop through layer filters
-            _.each(options.layerFilter, function(lg, i) { 
+            var paneZIndex = 400
+
+            _.chain(options.layerFilter)
+            .sortBy(function(d) {
+                if(_.has(d.circle, "markerPriority")){
+                    return +d.circle.markerPriority
+                } else {
+                    return d
+                }                
+            })
+            .each(function(lg) {
+                console.log(lg)
+
+                if(_.has(lg.circle, "markerPriority")){
+                    console.log("creating pane")
+                    map.createPane(paneZIndex.toString())
+                    map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
+                }
+
                 // Loop through markers and add to map
-                _.each(lg.markerList, function(m, k) {
+                _.each(lg.markerList, function(m) {                    
                     if(options.allPopups) {
                         m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup();
                     } else {
                         m.addTo(lg.group);
                     }
                 });
+
+                if(_.has(lg.circle, "markerPriority")){
+                    lg.group.setStyle({pane: paneZIndex.toString()})
+                    lg.group.setZIndex(paneZIndex)
+                }
+
                 // Add layergroup to map
-                lg.group.addTo(map);
+                lg.group.addTo(map)
+                
+                paneZIndex += 1
 
                 // Add layer controls
                 if(options.layerControl) {
@@ -1559,6 +1595,7 @@ define([
                             pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5;
 						    dt = _.has(d, "_time") ? moment(d["_time"]):"";
                             tooltip = _.has(d, "tooltip") ? d["tooltip"]:"";
+                            description = _.has(d, "description") ? d["description"]:"";
                             antPath = _.has(d, "antPath") ? d["antPath"]:null;
                             antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000;
                             antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF";
@@ -1582,6 +1619,7 @@ define([
                             'pathWeight': pathWeight,
                             'pathOpacity': pathOpacity,
                             'tooltip': tooltip,
+                            'description': description,
                             'permanentTooltip': permanentTooltip,
                             'stickyTooltip': stickyTooltip,
                             'color': color,
@@ -1593,12 +1631,9 @@ define([
                             'antPathDashArray': antPathDashArray
                         }
                     })
-                    .sortBy(function(d) {
-                        return -d.time;
-                    })
                     .each(function(d) {
                         var dt = d.time;
-                        if (interval && previousTime - dt > interval) {
+                        if (interval && Math.abs(previousTime - dt) > interval) {
                             intervalCounter++;
                         }
                         d.interval = 'interval' + intervalCounter;

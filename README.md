@@ -33,6 +33,7 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [fontawesome](https://fontawesome.com/)
 ##### [Glyphicons](http://glyphicons.com/)
 ##### [Ionicons](https://ionicons.com/)
+##### [leaflet-ant-path](https://github.com/rubenspgcavalcante/leaflet-ant-path)
 ##### [Mapkey Icons](http://mapkeyicons.com/)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
 ##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
@@ -55,7 +56,7 @@ Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
 ```
 
 ### Required Fields
@@ -201,6 +202,14 @@ Use the following setting to set the marker priority.
 
 ##### markerPriority
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
+
+### Layer Priority
+Use in conjunction with ``layerGroup`` and vector layers ([circle markers]((#circle-markers)) and [paths](#path-lines)) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
+
+Use the following setting to set the layer priority.
+
+##### layerPriority
+Number used to set layer priority when using Circle. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 ### Drilldown
 The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. 

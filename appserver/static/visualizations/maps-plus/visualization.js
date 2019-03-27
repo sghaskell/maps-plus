@@ -254,7 +254,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'customIconShadow',
 								   'markerType',
 								   'markerColor',
-								   'markerPriority',
+	                               'markerPriority',
 								   'markerSize',
 							       'markerAnchor',
 	                               'markerVisibility',
@@ -267,6 +267,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 								   'pathWeight',
 								   'pathOpacity',
 	                               'layerGroup',
+	                               'layerPriority',
 	                               'layerIcon',
 	                               'clusterGroup',
 	                               'pathColor',
@@ -773,7 +774,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        opacity: options.opacity,
 	                        fillColor: options.fillColor,
 	                        fillOpacity: options.fillOpacity,
-	                        markerPriority: options.markerPriority};
+	                        layerPriority: options.layerPriority};
 	                }                                               
 	            } else {
 	                var marker = L.marker([parseFloat(options.userData['latitude']),
@@ -845,8 +846,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	            _.chain(options.layerFilter)
 	            .sortBy(function(d) {
-	                if(_.has(d.circle, "markerPriority")){
-	                    return +d.circle.markerPriority
+	                if(_.has(d.circle, "layerPriority")){
+	                    return +d.circle.layerPriority
 	                } else {
 	                    return d
 	                }                
@@ -854,7 +855,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            .each(function(lg) {
 	                console.log(lg)
 
-	                if(_.has(lg.circle, "markerPriority")){
+	                if(_.has(lg.circle, "layerPriority")){
 	                    console.log("creating pane")
 	                    map.createPane(paneZIndex.toString())
 	                    map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
@@ -869,7 +870,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                });
 
-	                if(_.has(lg.circle, "markerPriority")){
+	                if(_.has(lg.circle, "layerPriority")){
 	                    lg.group.setStyle({pane: paneZIndex.toString()})
 	                    lg.group.setZIndex(paneZIndex)
 	                }
@@ -1496,6 +1497,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
 	                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
 	                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
+	                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):0,
 	                    title = _.has(userData, "title") ? userData["title"]:null,
 	                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
 	                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
@@ -1585,6 +1587,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    markerIcon: markerIcon,
 	                    layerDescription: layerDescription,
 	                    markerPriority: markerPriority,
+	                    layerPriority: layerPriority,
 	                    permanentTooltip: this.isArgTrue(permanentTooltip),
 	                    stickyTooltip: this.isArgTrue(stickyTooltip),
 	                    cluster: this.isArgTrue(cluster),

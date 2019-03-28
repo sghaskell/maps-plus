@@ -56,7 +56,7 @@ Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
 ```
 
 ### Required Fields
@@ -195,6 +195,27 @@ Opacity of path line - **Default** ``0.5``
 ##### pathColor
 The color of the path.  If not specified, the color will be chosen randomly from the set of colors listed in the **Path Colors** option.
 
+#### Path Direction
+Use the following fields to add an ant path animation showing direction of travel. 
+
+##### antPath
+Enable or disable Ant Path animation. Disabled by default. Set to ``true`` to enable.
+
+##### antPathDelay
+Animation delay in milliseconds - **Default** ``1000``
+
+##### antPathPulseColor
+Color of dash - **Default** ``#FFFFFF``
+
+##### antPathPaused
+Pause animation - **Default** ``false``
+
+##### antPathReverse
+Reverse animation - **Default** ``false``
+
+##### antPathDashArray
+Comma separated size of animated dashes - **Default** ``10,20``
+
 ### Marker Priority
 Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.
 
@@ -204,7 +225,7 @@ Use the following setting to set the marker priority.
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 ### Layer Priority
-Use in conjunction with ``layerGroup`` and vector layers ([circle markers]((#circle-markers)) and [paths](#path-lines)) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
+Use in conjunction with ``layerGroup`` and vector layers ([circle markers]((#circle-markers)) and [paths](#path-tracing)) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
 
 Use the following setting to set the layer priority.
 
@@ -392,6 +413,7 @@ Comma-separated list of hex or html colors for path lines (wraps around if more 
 Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
 ###### Path Split Interval
 Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - **Default** `60`
+
 
 #### i18n
 ###### Language

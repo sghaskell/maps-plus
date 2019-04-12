@@ -472,15 +472,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        // Draw path line
 	        drawPath: function(options) {
-	            _.each(options.data, function(p) {
-	                id = p[0]['id'];
+	            _.each(options.data, function(p) {        
+	                var id = p[0]['id'];
+	                var layerDescription = p[0]['layerDescription']
 
 	                // Check if feature group exists for current id. Use existing FG or create new accordingly.
-	                if(_.has(options.pathLineLayers, id)) {
+	                if(_.has(options.pathLineLayers, layerDescription)) {
+	                    var pathFg = options.pathLineLayers[layerDescription]
+	                } else if(_.has(options.pathLineLayers, id)) {
 	                    var pathFg = options.pathLineLayers[id];
 	                } else {
 	                    var pathFg = L.featureGroup();
-	                    pathFg.options.name = id;
+	                    if(layerDescription != "") {
+	                        pathFg.options.name = layerDescription
+	                    } else {
+	                        pathFg.options.name = id
+	                    }
 	                    options.pathLineLayers[pathFg.options.name] = pathFg;
 	                }
 
@@ -1657,6 +1664,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false;
 	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false;
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20";
+	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:""
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier];
@@ -1683,7 +1691,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'antPathPulseColor': antPathPulseColor,
 	                            'antPathPaused': antPathPaused,
 	                            'antPathReverse': antPathReverse,
-	                            'antPathDashArray': antPathDashArray
+	                            'antPathDashArray': antPathDashArray,
+	                            'layerDescription': layerDescription
 	                        }
 	                    })
 	                    .each(function(d) {

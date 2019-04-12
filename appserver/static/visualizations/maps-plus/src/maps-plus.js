@@ -424,7 +424,8 @@ define([
                 var id = p[0]['id'];
                 var layerDescription = p[0]['layerDescription']
 
-                // Check if feature group exists for current id. Use existing FG or create new accordingly.
+                // Check if feature group exists for current layerDescripton or id
+                // Use existing FG or create new accordingly.
                 if(_.has(options.pathLineLayers, layerDescription)) {
                     var pathFg = options.pathLineLayers[layerDescription]
                 } else if(_.has(options.pathLineLayers, id)) {
@@ -811,7 +812,6 @@ define([
                 console.log(lg)
 
                 if(_.has(lg.circle, "layerPriority")){
-                    console.log("creating pane")
                     map.createPane(paneZIndex.toString())
                     map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
                 }

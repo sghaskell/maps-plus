@@ -52,6 +52,7 @@ define([
 
     return SplunkVisualizationBase.extend({
         maxResults: 0,
+        paneZIndex: 400,
         tileLayer: null,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
@@ -420,9 +421,12 @@ define([
 
         // Draw path line
         drawPath: function(options) {
+            //var paneZIndex = 400
+           
             _.each(options.data, function(p) {        
                 var id = p[0]['id'];
                 var layerDescription = p[0]['layerDescription']
+                var layerPriority = p[0]['layerPriority']
 
                 // Check if feature group exists for current layerDescripton or id
                 // Use existing FG or create new accordingly.
@@ -438,8 +442,10 @@ define([
                         pathFg.options.name = id
                     }
                     options.pathLineLayers[pathFg.options.name] = pathFg;
+                    pathFg.options.layerPriority = layerPriority
                 }
 
+                // Ant Path
                 if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
                     var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
                                                                             weight: p[0]['pathWeight'],
@@ -467,6 +473,28 @@ define([
                 // Add polyline to feature group
                 pathFg.addLayer(pl);
             });
+
+            // 
+            // _.chain(options.pathLineLayers)
+            // .sortBy(function(d) {
+            //     //console.log(d)                
+            //     return +d.options.layerPriority
+            // })
+            // .each(function(lg) {
+            //     console.log(lg)
+            //     options.context.map.createPane(paneZIndex.toString())
+            //     options.context.map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
+
+            //     if(_.has(lg.circle, "layerPriority")){
+            //         lg.group.setStyle({pane: paneZIndex.toString()})
+            //         lg.group.setZIndex(paneZIndex)
+            //     }
+
+            //     // Add layergroup to map
+            //     //lg.addTo(options.context.map)
+                
+            //     paneZIndex += 1
+            // });
         },
 
         // Create a control icon and description in the layer control legend
@@ -798,7 +826,7 @@ define([
         },
 
         _addUnclustered: function(map, options) {
-            var paneZIndex = 400
+            //var paneZIndex = 400
 
             _.chain(options.layerFilter)
             .sortBy(function(d) {
@@ -810,8 +838,8 @@ define([
             })
             .each(function(lg) {
                 if(_.has(lg.circle, "layerPriority")){
-                    map.createPane(paneZIndex.toString())
-                    map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
+                    map.createPane(options.paneZIndex.toString())
+                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
                 }
 
                 // Loop through markers and add to map
@@ -824,14 +852,14 @@ define([
                 });
 
                 if(_.has(lg.circle, "layerPriority")){
-                    lg.group.setStyle({pane: paneZIndex.toString()})
-                    lg.group.setZIndex(paneZIndex)
+                    lg.group.setStyle({pane: options.paneZIndex.toString()})
+                    //lg.group.setZIndex(options.paneZIndex)
                 }
 
                 // Add layergroup to map
                 lg.group.addTo(map)
                 
-                paneZIndex += 1
+                options.paneZIndex += 1
 
                 // Add layer controls
                 if(options.layerControl) {
@@ -842,15 +870,47 @@ define([
         
         _renderLayersToMap: function(map, options) {
             // Render hetmap layer on map
-            _.each(options.layers, function(featureGroup) {
-                featureGroup.addTo(map);
+            //var paneZIndex = 400
+
+            console.log(options)
+
+            _.chain(options.layers)
+            .sortBy(function(d) {
+                //console.log(d)                
+                return +d.options.layerPriority
+            })
+            .each(function(fg) {
+                //console.log(fg)
+                //map.createPane(options.paneZIndex.toString())
+                //map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+
+                //fg.setStyle({pane: options.paneZIndex.toString()})
+                //fg.setZIndex(options.paneZIndex)
+                
+                // Add layergroup to map
+                fg.addTo(map)
+        
                 if(options.layerControl) {
                     var layerOptions = {layerType: options.layerType,
-                                        featureGroup: featureGroup,
+                                        featureGroup: fg,
                                         control: options.control};
                     options.context.addLayerToControl(layerOptions);   
-                }   
-            })
+                }
+
+                options.paneZIndex += 1
+            });
+
+            
+            
+            // _.each(options.layers, function(featureGroup) {
+            //     featureGroup.addTo(map);
+            //     if(options.layerControl) {
+            //         var layerOptions = {layerType: options.layerType,
+            //                             featureGroup: featureGroup,
+            //                             control: options.control};
+            //         options.context.addLayerToControl(layerOptions);   
+            //     }   
+            // })
         },
 
         formatData: function(data) {
@@ -966,6 +1026,7 @@ define([
                                                       control: this.control,
                                                       layerControl: this.isArgTrue(layerControl),
                                                       layerType: "heat",
+                                                      paneZIndex: this.paneZIndex,
                                                       context: this})
                 }
 
@@ -975,6 +1036,7 @@ define([
                                                        control: this.control,
                                                        layerControl: this.isArgTrue(layerControl),
                                                        layerType: "path",
+                                                       paneZIndex: this.paneZIndex,
                                                        context: this})
                 }
 
@@ -1580,6 +1642,7 @@ define([
                 this._addUnclustered(this.map, {layerFilter: this.layerFilter,
                                                 layerControl: this.isArgTrue(layerControl),
                                                 allPopups: this.isArgTrue(allPopups),
+                                                paneZIndex: this.paneZIndex,
                                                 control: this.control,
                                                 context: this});
             }
@@ -1610,7 +1673,8 @@ define([
                             antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false;
                             antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false;
                             antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20";
-                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:""
+                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:null
 
                         if (pathIdentifier) {
                             var id = d[pathIdentifier];
@@ -1638,7 +1702,8 @@ define([
                             'antPathPaused': antPathPaused,
                             'antPathReverse': antPathReverse,
                             'antPathDashArray': antPathDashArray,
-                            'layerDescription': layerDescription
+                            'layerDescription': layerDescription,
+                            'layerPriority': layerPriority
                         }
                     })
                     .each(function(d) {
@@ -1719,6 +1784,7 @@ define([
                                                            control: this.control,
                                                            layerControl: this.isArgTrue(layerControl),
                                                            layerType: "heat",
+                                                           paneZIndex: this.paneZIndex,
                                                            context: this})
                     }
 
@@ -1728,6 +1794,7 @@ define([
                                                            control: this.control,
                                                            layerControl: this.isArgTrue(layerControl),
                                                            layerType: "path",
+                                                           paneZIndex: this.paneZIndex,
                                                            context: this})
                     }
 

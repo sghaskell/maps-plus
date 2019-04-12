@@ -1,4 +1,4 @@
-define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/mvc"], function(__WEBPACK_EXTERNAL_MODULE_115__, __WEBPACK_EXTERNAL_MODULE_116__, __WEBPACK_EXTERNAL_MODULE_117__) { return /******/ (function(modules) { // webpackBootstrap
+define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/mvc"], function(__WEBPACK_EXTERNAL_MODULE_93__, __WEBPACK_EXTERNAL_MODULE_94__, __WEBPACK_EXTERNAL_MODULE_95__) { return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -57,35 +57,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            __webpack_require__(5),
 	            __webpack_require__(6),
 	            __webpack_require__(9),
-	            __webpack_require__(114),
-	            __webpack_require__(115),
-	            __webpack_require__(116),
-	            __webpack_require__(117),
-	            __webpack_require__(118),
-	            __webpack_require__(119),
+	            __webpack_require__(92),
+	            __webpack_require__(93),
+	            __webpack_require__(94),
+	            __webpack_require__(95),
+	            __webpack_require__(96),
+	            __webpack_require__(97),
+	            __webpack_require__(226),
+	            __webpack_require__(227),
+	            __webpack_require__(228),
+				__webpack_require__(231),
+				__webpack_require__(232),
+	            __webpack_require__(233),
+	            __webpack_require__(234),
+	            __webpack_require__(235),
+	            __webpack_require__(236),
+	            __webpack_require__(237),
+	            __webpack_require__(238),
+	            __webpack_require__(239),
+	            __webpack_require__(240),
+				__webpack_require__(241),
+	            __webpack_require__(242),
+	            __webpack_require__(243),
 	            __webpack_require__(244),
 	            __webpack_require__(245),
 	            __webpack_require__(246),
-				__webpack_require__(249),
-				__webpack_require__(250),
-	            __webpack_require__(251),
-	            __webpack_require__(252),
-	            __webpack_require__(253),
-	            __webpack_require__(254),
-	            __webpack_require__(255),
-	            __webpack_require__(256),
-	            __webpack_require__(257),
-	            __webpack_require__(258),
-				__webpack_require__(259),
-	            __webpack_require__(260),
-	            __webpack_require__(261),
-	            __webpack_require__(262),
-	            __webpack_require__(263),
-	            __webpack_require__(264),
-	            __webpack_require__(265),
-	            __webpack_require__(266),
-	            __webpack_require__(267),
-	            __webpack_require__(268)
+	            __webpack_require__(247),
+	            __webpack_require__(248),
+	            __webpack_require__(249),
+	            __webpack_require__(250)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
@@ -104,6 +104,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	    return SplunkVisualizationBase.extend({
 	        maxResults: 0,
+	        paneZIndex: 400,
 	        tileLayer: null,
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
@@ -472,11 +473,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        // Draw path line
 	        drawPath: function(options) {
+	            //var paneZIndex = 400
+	           
 	            _.each(options.data, function(p) {        
 	                var id = p[0]['id'];
 	                var layerDescription = p[0]['layerDescription']
+	                var layerPriority = p[0]['layerPriority']
 
-	                // Check if feature group exists for current id. Use existing FG or create new accordingly.
+	                // Check if feature group exists for current layerDescripton or id
+	                // Use existing FG or create new accordingly.
 	                if(_.has(options.pathLineLayers, layerDescription)) {
 	                    var pathFg = options.pathLineLayers[layerDescription]
 	                } else if(_.has(options.pathLineLayers, id)) {
@@ -489,8 +494,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        pathFg.options.name = id
 	                    }
 	                    options.pathLineLayers[pathFg.options.name] = pathFg;
+	                    pathFg.options.layerPriority = layerPriority
 	                }
 
+	                // Ant Path
 	                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
 	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
 	                                                                            weight: p[0]['pathWeight'],
@@ -518,6 +525,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                // Add polyline to feature group
 	                pathFg.addLayer(pl);
 	            });
+
+	            // 
+	            // _.chain(options.pathLineLayers)
+	            // .sortBy(function(d) {
+	            //     //console.log(d)                
+	            //     return +d.options.layerPriority
+	            // })
+	            // .each(function(lg) {
+	            //     console.log(lg)
+	            //     options.context.map.createPane(paneZIndex.toString())
+	            //     options.context.map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
+
+	            //     if(_.has(lg.circle, "layerPriority")){
+	            //         lg.group.setStyle({pane: paneZIndex.toString()})
+	            //         lg.group.setZIndex(paneZIndex)
+	            //     }
+
+	            //     // Add layergroup to map
+	            //     //lg.addTo(options.context.map)
+	                
+	            //     paneZIndex += 1
+	            // });
 	        },
 
 	        // Create a control icon and description in the layer control legend
@@ -849,7 +878,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 
 	        _addUnclustered: function(map, options) {
-	            var paneZIndex = 400
+	            //var paneZIndex = 400
 
 	            _.chain(options.layerFilter)
 	            .sortBy(function(d) {
@@ -860,12 +889,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }                
 	            })
 	            .each(function(lg) {
-	                console.log(lg)
-
 	                if(_.has(lg.circle, "layerPriority")){
-	                    console.log("creating pane")
-	                    map.createPane(paneZIndex.toString())
-	                    map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
+	                    map.createPane(options.paneZIndex.toString())
+	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
 	                }
 
 	                // Loop through markers and add to map
@@ -878,14 +904,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                });
 
 	                if(_.has(lg.circle, "layerPriority")){
-	                    lg.group.setStyle({pane: paneZIndex.toString()})
-	                    lg.group.setZIndex(paneZIndex)
+	                    lg.group.setStyle({pane: options.paneZIndex.toString()})
+	                    //lg.group.setZIndex(options.paneZIndex)
 	                }
 
 	                // Add layergroup to map
 	                lg.group.addTo(map)
 	                
-	                paneZIndex += 1
+	                options.paneZIndex += 1
 
 	                // Add layer controls
 	                if(options.layerControl) {
@@ -896,15 +922,47 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        
 	        _renderLayersToMap: function(map, options) {
 	            // Render hetmap layer on map
-	            _.each(options.layers, function(featureGroup) {
-	                featureGroup.addTo(map);
+	            //var paneZIndex = 400
+
+	            console.log(options)
+
+	            _.chain(options.layers)
+	            .sortBy(function(d) {
+	                //console.log(d)                
+	                return +d.options.layerPriority
+	            })
+	            .each(function(fg) {
+	                //console.log(fg)
+	                //map.createPane(options.paneZIndex.toString())
+	                //map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+
+	                //fg.setStyle({pane: options.paneZIndex.toString()})
+	                //fg.setZIndex(options.paneZIndex)
+	                
+	                // Add layergroup to map
+	                fg.addTo(map)
+	        
 	                if(options.layerControl) {
 	                    var layerOptions = {layerType: options.layerType,
-	                                        featureGroup: featureGroup,
+	                                        featureGroup: fg,
 	                                        control: options.control};
 	                    options.context.addLayerToControl(layerOptions);   
-	                }   
-	            })
+	                }
+
+	                options.paneZIndex += 1
+	            });
+
+	            
+	            
+	            // _.each(options.layers, function(featureGroup) {
+	            //     featureGroup.addTo(map);
+	            //     if(options.layerControl) {
+	            //         var layerOptions = {layerType: options.layerType,
+	            //                             featureGroup: featureGroup,
+	            //                             control: options.control};
+	            //         options.context.addLayerToControl(layerOptions);   
+	            //     }   
+	            // })
 	        },
 
 	        formatData: function(data) {
@@ -1020,6 +1078,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                      control: this.control,
 	                                                      layerControl: this.isArgTrue(layerControl),
 	                                                      layerType: "heat",
+	                                                      paneZIndex: this.paneZIndex,
 	                                                      context: this})
 	                }
 
@@ -1029,6 +1088,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       control: this.control,
 	                                                       layerControl: this.isArgTrue(layerControl),
 	                                                       layerType: "path",
+	                                                       paneZIndex: this.paneZIndex,
 	                                                       context: this})
 	                }
 
@@ -1634,6 +1694,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this._addUnclustered(this.map, {layerFilter: this.layerFilter,
 	                                                layerControl: this.isArgTrue(layerControl),
 	                                                allPopups: this.isArgTrue(allPopups),
+	                                                paneZIndex: this.paneZIndex,
 	                                                control: this.control,
 	                                                context: this});
 	            }
@@ -1664,7 +1725,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false;
 	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false;
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20";
-	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:""
+	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:null
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier];
@@ -1692,7 +1754,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'antPathPaused': antPathPaused,
 	                            'antPathReverse': antPathReverse,
 	                            'antPathDashArray': antPathDashArray,
-	                            'layerDescription': layerDescription
+	                            'layerDescription': layerDescription,
+	                            'layerPriority': layerPriority
 	                        }
 	                    })
 	                    .each(function(d) {
@@ -1773,6 +1836,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                           control: this.control,
 	                                                           layerControl: this.isArgTrue(layerControl),
 	                                                           layerType: "heat",
+	                                                           paneZIndex: this.paneZIndex,
 	                                                           context: this})
 	                    }
 
@@ -1782,6 +1846,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                           control: this.control,
 	                                                           layerControl: this.isArgTrue(layerControl),
 	                                                           layerType: "path",
+	                                                           paneZIndex: this.paneZIndex,
 	                                                           context: this})
 	                    }
 
@@ -1815,7 +1880,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery JavaScript Library v3.3.1
+	 * jQuery JavaScript Library v3.4.0
 	 * https://jquery.com/
 	 *
 	 * Includes Sizzle.js
@@ -1825,7 +1890,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * Released under the MIT license
 	 * https://jquery.org/license
 	 *
-	 * Date: 2018-01-20T17:24Z
+	 * Date: 2019-04-10T19:48Z
 	 */
 	( function( global, factory ) {
 
@@ -1907,20 +1972,33 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		var preservedScriptAttributes = {
 			type: true,
 			src: true,
+			nonce: true,
 			noModule: true
 		};
 
-		function DOMEval( code, doc, node ) {
+		function DOMEval( code, node, doc ) {
 			doc = doc || document;
 
-			var i,
+			var i, val,
 				script = doc.createElement( "script" );
 
 			script.text = code;
 			if ( node ) {
 				for ( i in preservedScriptAttributes ) {
-					if ( node[ i ] ) {
-						script[ i ] = node[ i ];
+
+					// Support: Firefox 64+, Edge 18+
+					// Some browsers don't support the "nonce" property on scripts.
+					// On the other hand, just using `getAttribute` is not enough as
+					// the `nonce` attribute is reset to an empty string whenever it
+					// becomes browsing-context connected.
+					// See https://github.com/whatwg/html/issues/2369
+					// See https://html.spec.whatwg.org/#nonce-attributes
+					// The `node.getAttribute` check was added for the sake of
+					// `jQuery.globalEval` so that it can fake a nonce-containing node
+					// via an object.
+					val = node[ i ] || node.getAttribute && node.getAttribute( i );
+					if ( val ) {
+						script.setAttribute( i, val );
 					}
 				}
 			}
@@ -1945,7 +2023,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 	var
-		version = "3.3.1",
+		version = "3.4.0",
 
 		// Define a local copy of jQuery
 		jQuery = function( selector, context ) {
@@ -2074,25 +2152,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 				// Extend the base object
 				for ( name in options ) {
-					src = target[ name ];
 					copy = options[ name ];
 
+					// Prevent Object.prototype pollution
 					// Prevent never-ending loop
-					if ( target === copy ) {
+					if ( name === "__proto__" || target === copy ) {
 						continue;
 					}
 
 					// Recurse if we're merging plain objects or arrays
 					if ( deep && copy && ( jQuery.isPlainObject( copy ) ||
 						( copyIsArray = Array.isArray( copy ) ) ) ) {
+						src = target[ name ];
 
-						if ( copyIsArray ) {
-							copyIsArray = false;
-							clone = src && Array.isArray( src ) ? src : [];
-
+						// Ensure proper type for the source value
+						if ( copyIsArray && !Array.isArray( src ) ) {
+							clone = [];
+						} else if ( !copyIsArray && !jQuery.isPlainObject( src ) ) {
+							clone = {};
 						} else {
-							clone = src && jQuery.isPlainObject( src ) ? src : {};
+							clone = src;
 						}
+						copyIsArray = false;
 
 						// Never move original objects, clone them
 						target[ name ] = jQuery.extend( deep, clone, copy );
@@ -2145,9 +2226,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		isEmptyObject: function( obj ) {
-
-			/* eslint-disable no-unused-vars */
-			// See https://github.com/eslint/eslint/issues/6125
 			var name;
 
 			for ( name in obj ) {
@@ -2157,8 +2235,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		// Evaluates a script in a global context
-		globalEval: function( code ) {
-			DOMEval( code );
+		globalEval: function( code, options ) {
+			DOMEval( code, { nonce: options && options.nonce } );
 		},
 
 		each: function( obj, callback ) {
@@ -2314,14 +2392,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 	var Sizzle =
 	/*!
-	 * Sizzle CSS Selector Engine v2.3.3
+	 * Sizzle CSS Selector Engine v2.3.4
 	 * https://sizzlejs.com/
 	 *
-	 * Copyright jQuery Foundation and other contributors
+	 * Copyright JS Foundation and other contributors
 	 * Released under the MIT license
-	 * http://jquery.org/license
+	 * https://js.foundation/
 	 *
-	 * Date: 2016-08-08
+	 * Date: 2019-04-08
 	 */
 	(function( window ) {
 
@@ -2355,6 +2433,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		classCache = createCache(),
 		tokenCache = createCache(),
 		compilerCache = createCache(),
+		nonnativeSelectorCache = createCache(),
 		sortOrder = function( a, b ) {
 			if ( a === b ) {
 				hasDuplicate = true;
@@ -2416,8 +2495,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		rcomma = new RegExp( "^" + whitespace + "*," + whitespace + "*" ),
 		rcombinators = new RegExp( "^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*" ),
-
-		rattributeQuotes = new RegExp( "=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g" ),
+		rdescend = new RegExp( whitespace + "|>" ),
 
 		rpseudo = new RegExp( pseudos ),
 		ridentifier = new RegExp( "^" + identifier + "$" ),
@@ -2438,6 +2516,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i" )
 		},
 
+		rhtml = /HTML$/i,
 		rinputs = /^(?:input|select|textarea|button)$/i,
 		rheader = /^h\d$/i,
 
@@ -2492,9 +2571,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			setDocument();
 		},
 
-		disabledAncestor = addCombinator(
+		inDisabledFieldset = addCombinator(
 			function( elem ) {
-				return elem.disabled === true && ("form" in elem || "label" in elem);
+				return elem.disabled === true && elem.nodeName.toLowerCase() === "fieldset";
 			},
 			{ dir: "parentNode", next: "legend" }
 		);
@@ -2607,18 +2686,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 				// Take advantage of querySelectorAll
 				if ( support.qsa &&
-					!compilerCache[ selector + " " ] &&
-					(!rbuggyQSA || !rbuggyQSA.test( selector )) ) {
+					!nonnativeSelectorCache[ selector + " " ] &&
+					(!rbuggyQSA || !rbuggyQSA.test( selector )) &&
 
-					if ( nodeType !== 1 ) {
-						newContext = context;
-						newSelector = selector;
-
-					// qSA looks outside Element context, which is not what we want
-					// Thanks to Andrew Dupont for this workaround technique
-					// Support: IE <=8
+					// Support: IE 8 only
 					// Exclude object elements
-					} else if ( context.nodeName.toLowerCase() !== "object" ) {
+					(nodeType !== 1 || context.nodeName.toLowerCase() !== "object") ) {
+
+					newSelector = selector;
+					newContext = context;
+
+					// qSA considers elements outside a scoping root when evaluating child or
+					// descendant combinators, which is not what we want.
+					// In such cases, we work around the behavior by prefixing every selector in the
+					// list with an ID selector referencing the scope context.
+					// Thanks to Andrew Dupont for this technique.
+					if ( nodeType === 1 && rdescend.test( selector ) ) {
 
 						// Capture the context ID, setting it first if necessary
 						if ( (nid = context.getAttribute( "id" )) ) {
@@ -2640,17 +2723,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 							context;
 					}
 
-					if ( newSelector ) {
-						try {
-							push.apply( results,
-								newContext.querySelectorAll( newSelector )
-							);
-							return results;
-						} catch ( qsaError ) {
-						} finally {
-							if ( nid === expando ) {
-								context.removeAttribute( "id" );
-							}
+					try {
+						push.apply( results,
+							newContext.querySelectorAll( newSelector )
+						);
+						return results;
+					} catch ( qsaError ) {
+						nonnativeSelectorCache( selector, true );
+					} finally {
+						if ( nid === expando ) {
+							context.removeAttribute( "id" );
 						}
 					}
 				}
@@ -2814,7 +2896,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 						// Where there is no isDisabled, check manually
 						/* jshint -W018 */
 						elem.isDisabled !== !disabled &&
-							disabledAncestor( elem ) === disabled;
+							inDisabledFieldset( elem ) === disabled;
 				}
 
 				return elem.disabled === disabled;
@@ -2871,10 +2953,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * @returns {Boolean} True iff elem is a non-HTML XML node
 	 */
 	isXML = Sizzle.isXML = function( elem ) {
-		// documentElement is verified for cases where it doesn't yet exist
-		// (such as loading iframes in IE - #4833)
-		var documentElement = elem && (elem.ownerDocument || elem).documentElement;
-		return documentElement ? documentElement.nodeName !== "HTML" : false;
+		var namespace = elem.namespaceURI,
+			docElem = (elem.ownerDocument || elem).documentElement;
+
+		// Support: IE <=8
+		// Assume HTML when documentElement doesn't yet exist, such as inside loading iframes
+		// https://bugs.jquery.com/ticket/4833
+		return !rhtml.test( namespace || docElem && docElem.nodeName || "HTML" );
 	};
 
 	/**
@@ -3296,11 +3381,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			setDocument( elem );
 		}
 
-		// Make sure that attribute selectors are quoted
-		expr = expr.replace( rattributeQuotes, "='$1']" );
-
 		if ( support.matchesSelector && documentIsHTML &&
-			!compilerCache[ expr + " " ] &&
+			!nonnativeSelectorCache[ expr + " " ] &&
 			( !rbuggyMatches || !rbuggyMatches.test( expr ) ) &&
 			( !rbuggyQSA     || !rbuggyQSA.test( expr ) ) ) {
 
@@ -3314,7 +3396,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 						elem.document && elem.document.nodeType !== 11 ) {
 					return ret;
 				}
-			} catch (e) {}
+			} catch (e) {
+				nonnativeSelectorCache( expr, true );
+			}
 		}
 
 		return Sizzle( expr, document, null, [ elem ] ).length > 0;
@@ -3773,7 +3857,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			"contains": markFunction(function( text ) {
 				text = text.replace( runescape, funescape );
 				return function( elem ) {
-					return ( elem.textContent || elem.innerText || getText( elem ) ).indexOf( text ) > -1;
+					return ( elem.textContent || getText( elem ) ).indexOf( text ) > -1;
 				};
 			}),
 
@@ -3912,7 +3996,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}),
 
 			"lt": createPositionalPseudo(function( matchIndexes, length, argument ) {
-				var i = argument < 0 ? argument + length : argument;
+				var i = argument < 0 ?
+					argument + length :
+					argument > length ?
+						length :
+						argument;
 				for ( ; --i >= 0; ) {
 					matchIndexes.push( i );
 				}
@@ -4962,18 +5050,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			return siblings( elem.firstChild );
 		},
 		contents: function( elem ) {
-	        if ( nodeName( elem, "iframe" ) ) {
-	            return elem.contentDocument;
-	        }
+			if ( typeof elem.contentDocument !== "undefined" ) {
+				return elem.contentDocument;
+			}
 
-	        // Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
-	        // Treat the template element as a regular one in browsers that
-	        // don't support it.
-	        if ( nodeName( elem, "template" ) ) {
-	            elem = elem.content || elem;
-	        }
+			// Support: IE 9 - 11 only, iOS 7 only, Android Browser <=4.3 only
+			// Treat the template element as a regular one in browsers that
+			// don't support it.
+			if ( nodeName( elem, "template" ) ) {
+				elem = elem.content || elem;
+			}
 
-	        return jQuery.merge( [], elem.childNodes );
+			return jQuery.merge( [], elem.childNodes );
 		}
 	}, function( name, fn ) {
 		jQuery.fn[ name ] = function( until, selector ) {
@@ -6282,6 +6370,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	var cssExpand = [ "Top", "Right", "Bottom", "Left" ];
 
+	var documentElement = document.documentElement;
+
+
+
+		var isAttached = function( elem ) {
+				return jQuery.contains( elem.ownerDocument, elem );
+			},
+			composed = { composed: true };
+
+		// Check attachment across shadow DOM boundaries when possible (gh-3504)
+		if ( documentElement.attachShadow ) {
+			isAttached = function( elem ) {
+				return jQuery.contains( elem.ownerDocument, elem ) ||
+					elem.getRootNode( composed ) === elem.ownerDocument;
+			};
+		}
 	var isHiddenWithinTree = function( elem, el ) {
 
 			// isHiddenWithinTree might be called from jQuery#filter function;
@@ -6296,7 +6400,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				// Support: Firefox <=43 - 45
 				// Disconnected elements can have computed display: none, so first confirm that elem is
 				// in the document.
-				jQuery.contains( elem.ownerDocument, elem ) &&
+				isAttached( elem ) &&
 
 				jQuery.css( elem, "display" ) === "none";
 		};
@@ -6338,7 +6442,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			unit = valueParts && valueParts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
 
 			// Starting value computation is required for potential unit mismatches
-			initialInUnit = ( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
+			initialInUnit = elem.nodeType &&
+				( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
 				rcssNum.exec( jQuery.css( elem, prop ) );
 
 		if ( initialInUnit && initialInUnit[ 3 ] !== unit ) {
@@ -6485,7 +6590,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	} );
 	var rcheckableType = ( /^(?:checkbox|radio)$/i );
 
-	var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]+)/i );
+	var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]*)/i );
 
 	var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 
@@ -6557,7 +6662,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	var rhtml = /<|&#?\w+;/;
 
 	function buildFragment( elems, context, scripts, selection, ignored ) {
-		var elem, tmp, tag, wrap, contains, j,
+		var elem, tmp, tag, wrap, attached, j,
 			fragment = context.createDocumentFragment(),
 			nodes = [],
 			i = 0,
@@ -6621,13 +6726,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				continue;
 			}
 
-			contains = jQuery.contains( elem.ownerDocument, elem );
+			attached = isAttached( elem );
 
 			// Append to fragment
 			tmp = getAll( fragment.appendChild( elem ), "script" );
 
 			// Preserve script evaluation history
-			if ( contains ) {
+			if ( attached ) {
 				setGlobalEval( tmp );
 			}
 
@@ -6670,8 +6775,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		div.innerHTML = "<textarea>x</textarea>";
 		support.noCloneChecked = !!div.cloneNode( true ).lastChild.defaultValue;
 	} )();
-	var documentElement = document.documentElement;
-
 
 
 	var
@@ -6687,8 +6790,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		return false;
 	}
 
+	// Support: IE <=9 - 11+
+	// focus() and blur() are asynchronous, except when they are no-op.
+	// So expect focus to be synchronous when the element is already active,
+	// and blur to be synchronous when the element is not already active.
+	// (focus and blur are always synchronous in other supported browsers,
+	// this just defines when we can count on it).
+	function expectSync( elem, type ) {
+		return ( elem === safeActiveElement() ) === ( type === "focus" );
+	}
+
 	// Support: IE <=9 only
-	// See #13393 for more info
+	// Accessing document.activeElement can throw unexpectedly
+	// https://bugs.jquery.com/ticket/13393
 	function safeActiveElement() {
 		try {
 			return document.activeElement;
@@ -6988,9 +7102,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				while ( ( handleObj = matched.handlers[ j++ ] ) &&
 					!event.isImmediatePropagationStopped() ) {
 
-					// Triggered event must either 1) have no namespace, or 2) have namespace(s)
-					// a subset or equal to those in the bound event (both can have no namespace).
-					if ( !event.rnamespace || event.rnamespace.test( handleObj.namespace ) ) {
+					// If the event is namespaced, then each handler is only invoked if it is
+					// specially universal or its namespaces are a superset of the event's.
+					if ( !event.rnamespace || handleObj.namespace === false ||
+						event.rnamespace.test( handleObj.namespace ) ) {
 
 						event.handleObj = handleObj;
 						event.data = handleObj.data;
@@ -7114,39 +7229,53 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				// Prevent triggered image.load events from bubbling to window.load
 				noBubble: true
 			},
-			focus: {
-
-				// Fire native event if possible so blur/focus sequence is correct
-				trigger: function() {
-					if ( this !== safeActiveElement() && this.focus ) {
-						this.focus();
-						return false;
-					}
-				},
-				delegateType: "focusin"
-			},
-			blur: {
-				trigger: function() {
-					if ( this === safeActiveElement() && this.blur ) {
-						this.blur();
-						return false;
-					}
-				},
-				delegateType: "focusout"
-			},
 			click: {
 
-				// For checkbox, fire native event so checked state will be right
-				trigger: function() {
-					if ( this.type === "checkbox" && this.click && nodeName( this, "input" ) ) {
-						this.click();
-						return false;
+				// Utilize native event to ensure correct state for checkable inputs
+				setup: function( data ) {
+
+					// For mutual compressibility with _default, replace `this` access with a local var.
+					// `|| data` is dead code meant only to preserve the variable through minification.
+					var el = this || data;
+
+					// Claim the first handler
+					if ( rcheckableType.test( el.type ) &&
+						el.click && nodeName( el, "input" ) &&
+						dataPriv.get( el, "click" ) === undefined ) {
+
+						// dataPriv.set( el, "click", ... )
+						leverageNative( el, "click", returnTrue );
 					}
+
+					// Return false to allow normal processing in the caller
+					return false;
+				},
+				trigger: function( data ) {
+
+					// For mutual compressibility with _default, replace `this` access with a local var.
+					// `|| data` is dead code meant only to preserve the variable through minification.
+					var el = this || data;
+
+					// Force setup before triggering a click
+					if ( rcheckableType.test( el.type ) &&
+						el.click && nodeName( el, "input" ) &&
+						dataPriv.get( el, "click" ) === undefined ) {
+
+						leverageNative( el, "click" );
+					}
+
+					// Return non-false to allow normal event-path propagation
+					return true;
 				},
 
-				// For cross-browser consistency, don't fire native .click() on links
+				// For cross-browser consistency, suppress native .click() on links
+				// Also prevent it if we're currently inside a leveraged native-event stack
 				_default: function( event ) {
-					return nodeName( event.target, "a" );
+					var target = event.target;
+					return rcheckableType.test( target.type ) &&
+						target.click && nodeName( target, "input" ) &&
+						dataPriv.get( target, "click" ) ||
+						nodeName( target, "a" );
 				}
 			},
 
@@ -7162,6 +7291,85 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 		}
 	};
+
+	// Ensure the presence of an event listener that handles manually-triggered
+	// synthetic events by interrupting progress until reinvoked in response to
+	// *native* events that it fires directly, ensuring that state changes have
+	// already occurred before other listeners are invoked.
+	function leverageNative( el, type, expectSync ) {
+
+		// Missing expectSync indicates a trigger call, which must force setup through jQuery.event.add
+		if ( !expectSync ) {
+			jQuery.event.add( el, type, returnTrue );
+			return;
+		}
+
+		// Register the controller as a special universal handler for all event namespaces
+		dataPriv.set( el, type, false );
+		jQuery.event.add( el, type, {
+			namespace: false,
+			handler: function( event ) {
+				var notAsync, result,
+					saved = dataPriv.get( this, type );
+
+				if ( ( event.isTrigger & 1 ) && this[ type ] ) {
+
+					// Interrupt processing of the outer synthetic .trigger()ed event
+					if ( !saved ) {
+
+						// Store arguments for use when handling the inner native event
+						saved = slice.call( arguments );
+						dataPriv.set( this, type, saved );
+
+						// Trigger the native event and capture its result
+						// Support: IE <=9 - 11+
+						// focus() and blur() are asynchronous
+						notAsync = expectSync( this, type );
+						this[ type ]();
+						result = dataPriv.get( this, type );
+						if ( saved !== result || notAsync ) {
+							dataPriv.set( this, type, false );
+						} else {
+							result = undefined;
+						}
+						if ( saved !== result ) {
+
+							// Cancel the outer synthetic event
+							event.stopImmediatePropagation();
+							event.preventDefault();
+							return result;
+						}
+
+					// If this is an inner synthetic event for an event with a bubbling surrogate
+					// (focus or blur), assume that the surrogate already propagated from triggering the
+					// native event and prevent that from happening again here.
+					// This technically gets the ordering wrong w.r.t. to `.trigger()` (in which the
+					// bubbling surrogate propagates *after* the non-bubbling base), but that seems
+					// less bad than duplication.
+					} else if ( ( jQuery.event.special[ type ] || {} ).delegateType ) {
+						event.stopPropagation();
+					}
+
+				// If this is a native event triggered above, everything is now in order
+				// Fire an inner synthetic event with the original arguments
+				} else if ( saved ) {
+
+					// ...and capture the result
+					dataPriv.set( this, type, jQuery.event.trigger(
+
+						// Support: IE <=9 - 11+
+						// Extend with the prototype to reset the above stopImmediatePropagation()
+						jQuery.extend( saved.shift(), jQuery.Event.prototype ),
+						saved,
+						this
+					) );
+
+					// Abort handling of the native event
+					event.stopImmediatePropagation();
+				}
+			}
+		} );
+	}
 
 	jQuery.removeEvent = function( elem, type, handle ) {
 
@@ -7275,6 +7483,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		shiftKey: true,
 		view: true,
 		"char": true,
+		code: true,
 		charCode: true,
 		key: true,
 		keyCode: true,
@@ -7320,6 +7529,33 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			return event.which;
 		}
 	}, jQuery.event.addProp );
+
+	jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateType ) {
+		jQuery.event.special[ type ] = {
+
+			// Utilize native event if possible so blur/focus sequence is correct
+			setup: function() {
+
+				// Claim the first handler
+				// dataPriv.set( this, "focus", ... )
+				// dataPriv.set( this, "blur", ... )
+				leverageNative( this, type, expectSync );
+
+				// Return false to allow normal processing in the caller
+				return false;
+			},
+			trigger: function() {
+
+				// Force setup before trigger
+				leverageNative( this, type );
+
+				// Return non-false to allow normal event-path propagation
+				return true;
+			},
+
+			delegateType: delegateType
+		};
+	} );
 
 	// Create mouseenter/leave events using mouseover/out and event-time checks
 	// so that event delegation works in jQuery.
@@ -7571,11 +7807,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 							if ( node.src && ( node.type || "" ).toLowerCase()  !== "module" ) {
 
 								// Optional AJAX dependency, but won't run scripts if not present
-								if ( jQuery._evalUrl ) {
-									jQuery._evalUrl( node.src );
+								if ( jQuery._evalUrl && !node.noModule ) {
+									jQuery._evalUrl( node.src, {
+										nonce: node.nonce || node.getAttribute( "nonce" )
+									} );
 								}
 							} else {
-								DOMEval( node.textContent.replace( rcleanScript, "" ), doc, node );
+								DOMEval( node.textContent.replace( rcleanScript, "" ), node, doc );
 							}
 						}
 					}
@@ -7597,7 +7835,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 
 			if ( node.parentNode ) {
-				if ( keepData && jQuery.contains( node.ownerDocument, node ) ) {
+				if ( keepData && isAttached( node ) ) {
 					setGlobalEval( getAll( node, "script" ) );
 				}
 				node.parentNode.removeChild( node );
@@ -7615,7 +7853,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		clone: function( elem, dataAndEvents, deepDataAndEvents ) {
 			var i, l, srcElements, destElements,
 				clone = elem.cloneNode( true ),
-				inPage = jQuery.contains( elem.ownerDocument, elem );
+				inPage = isAttached( elem );
 
 			// Fix IE cloning issues
 			if ( !support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) &&
@@ -7911,8 +8149,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			// Support: IE 9 only
 			// Detect overflow:scroll screwiness (gh-3699)
+			// Support: Chrome <=64
+			// Don't get tricked when zoom affects offsetWidth (gh-4029)
 			div.style.position = "absolute";
-			scrollboxSizeVal = div.offsetWidth === 36 || "absolute";
+			scrollboxSizeVal = roundPixelMeasures( div.offsetWidth / 3 ) === 12;
 
 			documentElement.removeChild( container );
 
@@ -7983,7 +8223,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		if ( computed ) {
 			ret = computed.getPropertyValue( name ) || computed[ name ];
 
-			if ( ret === "" && !jQuery.contains( elem.ownerDocument, elem ) ) {
+			if ( ret === "" && !isAttached( elem ) ) {
 				ret = jQuery.style( elem, name );
 			}
 
@@ -8039,29 +8279,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 
-	var
+	var cssPrefixes = [ "Webkit", "Moz", "ms" ],
+		emptyStyle = document.createElement( "div" ).style,
+		vendorProps = {};
 
-		// Swappable if display is none or starts with table
-		// except "table", "table-cell", or "table-caption"
-		// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
-		rdisplayswap = /^(none|table(?!-c[ea]).+)/,
-		rcustomProp = /^--/,
-		cssShow = { position: "absolute", visibility: "hidden", display: "block" },
-		cssNormalTransform = {
-			letterSpacing: "0",
-			fontWeight: "400"
-		},
-
-		cssPrefixes = [ "Webkit", "Moz", "ms" ],
-		emptyStyle = document.createElement( "div" ).style;
-
-	// Return a css property mapped to a potentially vendor prefixed property
+	// Return a vendor-prefixed property or undefined
 	function vendorPropName( name ) {
-
-		// Shortcut for names that are not vendor prefixed
-		if ( name in emptyStyle ) {
-			return name;
-		}
 
 		// Check for vendor prefixed names
 		var capName = name[ 0 ].toUpperCase() + name.slice( 1 ),
@@ -8075,15 +8298,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		}
 	}
 
-	// Return a property mapped along what jQuery.cssProps suggests or to
-	// a vendor prefixed property.
+	// Return a potentially-mapped jQuery.cssProps or vendor prefixed property
 	function finalPropName( name ) {
-		var ret = jQuery.cssProps[ name ];
-		if ( !ret ) {
-			ret = jQuery.cssProps[ name ] = vendorPropName( name ) || name;
+		var final = jQuery.cssProps[ name ] || vendorProps[ name ];
+
+		if ( final ) {
+			return final;
 		}
-		return ret;
+		if ( name in emptyStyle ) {
+			return name;
+		}
+		return vendorProps[ name ] = vendorPropName( name ) || name;
 	}
+
+
+	var
+
+		// Swappable if display is none or starts with table
+		// except "table", "table-cell", or "table-caption"
+		// See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+		rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+		rcustomProp = /^--/,
+		cssShow = { position: "absolute", visibility: "hidden", display: "block" },
+		cssNormalTransform = {
+			letterSpacing: "0",
+			fontWeight: "400"
+		};
 
 	function setPositiveNumber( elem, value, subtract ) {
 
@@ -8156,7 +8396,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				delta -
 				extra -
 				0.5
-			) );
+
+			// If offsetWidth/offsetHeight is unknown, then we can't determine content-box scroll gutter
+			// Use an explicit zero to avoid NaN (gh-3964)
+			) ) || 0;
 		}
 
 		return delta;
@@ -8166,9 +8409,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		// Start with computed style
 		var styles = getStyles( elem ),
+
+			// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-4322).
+			// Fake content-box until we know it's needed to know the true value.
+			boxSizingNeeded = !support.boxSizingReliable() || extra,
+			isBorderBox = boxSizingNeeded &&
+				jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+			valueIsBorderBox = isBorderBox,
+
 			val = curCSS( elem, dimension, styles ),
-			isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-			valueIsBorderBox = isBorderBox;
+			offsetProp = "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 );
 
 		// Support: Firefox <=54
 		// Return a confounding non-pixel value or feign ignorance, as appropriate.
@@ -8179,22 +8429,29 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			val = "auto";
 		}
 
-		// Check for style in case a browser which returns unreliable values
-		// for getComputedStyle silently falls back to the reliable elem.style
-		valueIsBorderBox = valueIsBorderBox &&
-			( support.boxSizingReliable() || val === elem.style[ dimension ] );
 
 		// Fall back to offsetWidth/offsetHeight when value is "auto"
 		// This happens for inline elements with no explicit setting (gh-3571)
 		// Support: Android <=4.1 - 4.3 only
 		// Also use offsetWidth/offsetHeight for misreported inline dimensions (gh-3602)
-		if ( val === "auto" ||
-			!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) {
+		// Support: IE 9-11 only
+		// Also use offsetWidth/offsetHeight for when box sizing is unreliable
+		// We use getClientRects() to check for hidden/disconnected.
+		// In those cases, the computed value can be trusted to be border-box
+		if ( ( !support.boxSizingReliable() && isBorderBox ||
+			val === "auto" ||
+			!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) &&
+			elem.getClientRects().length ) {
 
-			val = elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ];
+			isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
 
-			// offsetWidth/offsetHeight provide border-box values
-			valueIsBorderBox = true;
+			// Where available, offsetWidth/offsetHeight approximate border box dimensions.
+			// Where not available (e.g., SVG), assume unreliable box-sizing and interpret the
+			// retrieved value as a content box dimension.
+			valueIsBorderBox = offsetProp in elem;
+			if ( valueIsBorderBox ) {
+				val = elem[ offsetProp ];
+			}
 		}
 
 		// Normalize "" and auto
@@ -8240,6 +8497,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			"flexGrow": true,
 			"flexShrink": true,
 			"fontWeight": true,
+			"gridArea": true,
+			"gridColumn": true,
+			"gridColumnEnd": true,
+			"gridColumnStart": true,
+			"gridRow": true,
+			"gridRowEnd": true,
+			"gridRowStart": true,
 			"lineHeight": true,
 			"opacity": true,
 			"order": true,
@@ -8295,7 +8559,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				}
 
 				// If a number was passed in, add the unit (except for certain CSS properties)
-				if ( type === "number" ) {
+				// The isCustomProp check can be removed in jQuery 4.0 when we only auto-append
+				// "px" to a few hardcoded values.
+				if ( type === "number" && !isCustomProp ) {
 					value += ret && ret[ 3 ] || ( jQuery.cssNumber[ origName ] ? "" : "px" );
 				}
 
@@ -8395,18 +8661,29 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			set: function( elem, value, extra ) {
 				var matches,
 					styles = getStyles( elem ),
-					isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
-					subtract = extra && boxModelAdjustment(
-						elem,
-						dimension,
-						extra,
-						isBorderBox,
-						styles
-					);
+
+					// Only read styles.position if the test has a chance to fail
+					// to avoid forcing a reflow.
+					scrollboxSizeBuggy = !support.scrollboxSize() &&
+						styles.position === "absolute",
+
+					// To avoid forcing a reflow, only fetch boxSizing if we need it (gh-3991)
+					boxSizingNeeded = scrollboxSizeBuggy || extra,
+					isBorderBox = boxSizingNeeded &&
+						jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+					subtract = extra ?
+						boxModelAdjustment(
+							elem,
+							dimension,
+							extra,
+							isBorderBox,
+							styles
+						) :
+						0;
 
 				// Account for unreliable border-box dimensions by comparing offset* to computed and
 				// faking a content-box to get border and padding (gh-3699)
-				if ( isBorderBox && support.scrollboxSize() === styles.position ) {
+				if ( isBorderBox && scrollboxSizeBuggy ) {
 					subtract -= Math.ceil(
 						elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ] -
 						parseFloat( styles[ dimension ] ) -
@@ -8574,9 +8851,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				// Use .style if available and use plain properties where available.
 				if ( jQuery.fx.step[ tween.prop ] ) {
 					jQuery.fx.step[ tween.prop ]( tween );
-				} else if ( tween.elem.nodeType === 1 &&
-					( tween.elem.style[ jQuery.cssProps[ tween.prop ] ] != null ||
-						jQuery.cssHooks[ tween.prop ] ) ) {
+				} else if ( tween.elem.nodeType === 1 && (
+						jQuery.cssHooks[ tween.prop ] ||
+						tween.elem.style[ finalPropName( tween.prop ) ] != null ) ) {
 					jQuery.style( tween.elem, tween.prop, tween.now + tween.unit );
 				} else {
 					tween.elem[ tween.prop ] = tween.now;
@@ -10283,6 +10560,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 					encodeURIComponent( value == null ? "" : value );
 			};
 
+		if ( a == null ) {
+			return "";
+		}
+
 		// If an array was passed in, assume that it is an array of form elements.
 		if ( Array.isArray( a ) || ( a.jquery && !jQuery.isPlainObject( a ) ) ) {
 
@@ -10785,12 +11066,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 							if ( !responseHeaders ) {
 								responseHeaders = {};
 								while ( ( match = rheaders.exec( responseHeadersString ) ) ) {
-									responseHeaders[ match[ 1 ].toLowerCase() ] = match[ 2 ];
+									responseHeaders[ match[ 1 ].toLowerCase() + " " ] =
+										( responseHeaders[ match[ 1 ].toLowerCase() + " " ] || [] )
+											.concat( match[ 2 ] );
 								}
 							}
-							match = responseHeaders[ key.toLowerCase() ];
+							match = responseHeaders[ key.toLowerCase() + " " ];
 						}
-						return match == null ? null : match;
+						return match == null ? null : match.join( ", " );
 					},
 
 					// Raw string
@@ -11179,7 +11462,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	} );
 
 
-	jQuery._evalUrl = function( url ) {
+	jQuery._evalUrl = function( url, options ) {
 		return jQuery.ajax( {
 			url: url,
 
@@ -11189,7 +11472,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			cache: true,
 			async: false,
 			global: false,
-			"throws": true
+
+			// Only evaluate the response if it is successful (gh-4126)
+			// dataFilter is not invoked for failure responses, so using it instead
+			// of the default converter is kludgy but it works.
+			converters: {
+				"text script": function() {}
+			},
+			dataFilter: function( response ) {
+				jQuery.globalEval( response, options );
+			}
 		} );
 	};
 
@@ -11472,24 +11764,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// Bind script tag hack transport
 	jQuery.ajaxTransport( "script", function( s ) {
 
-		// This transport only deals with cross domain requests
-		if ( s.crossDomain ) {
+		// This transport only deals with cross domain or forced-by-attrs requests
+		if ( s.crossDomain || s.scriptAttrs ) {
 			var script, callback;
 			return {
 				send: function( _, complete ) {
-					script = jQuery( "<script>" ).prop( {
-						charset: s.scriptCharset,
-						src: s.url
-					} ).on(
-						"load error",
-						callback = function( evt ) {
+					script = jQuery( "<script>" )
+						.attr( s.scriptAttrs || {} )
+						.prop( { charset: s.scriptCharset, src: s.url } )
+						.on( "load error", callback = function( evt ) {
 							script.remove();
 							callback = null;
 							if ( evt ) {
 								complete( evt.type === "error" ? 404 : 200, evt.type );
 							}
-						}
-					);
+						} );
 
 					// Use native DOM manipulation to avoid our domManip AJAX trickery
 					document.head.appendChild( script[ 0 ] );
@@ -13900,7 +14189,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* @preserve
-	 * Leaflet 1.3.4, a JS library for interactive maps. http://leafletjs.com
+	 * Leaflet 1.4.0, a JS library for interactive maps. http://leafletjs.com
 	 * (c) 2010-2018 Vladimir Agafonkin, (c) 2010-2011 CloudMade
 	 */
 
@@ -13910,7 +14199,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		(factory((global.L = {})));
 	}(this, (function (exports) { 'use strict';
 
-	var version = "1.3.4";
+	var version = "1.4.0";
 
 	/*
 	 * @namespace Util
@@ -16191,7 +16480,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// Makes `el` the last child of its parent, so it renders in front of the other children.
 	function toFront(el) {
 		var parent = el.parentNode;
-		if (parent.lastChild !== el) {
+		if (parent && parent.lastChild !== el) {
 			parent.appendChild(el);
 		}
 	}
@@ -16200,7 +16489,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// Makes `el` the first child of its parent, so it renders behind the other children.
 	function toBack(el) {
 		var parent = el.parentNode;
-		if (parent.firstChild !== el) {
+		if (parent && parent.firstChild !== el) {
 			parent.insertBefore(el, parent.firstChild);
 		}
 	}
@@ -16253,6 +16542,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// @function getClass(el: HTMLElement): String
 	// Returns the element's class.
 	function getClass(el) {
+		// Check if the element is an SVGElementInstance and use the correspondingElement instead
+		// (Required for linked SVG elements in IE11.)
+		if (el.correspondingElement) {
+			el = el.correspondingElement;
+		}
 		return el.className.baseVal === undefined ? el.className : el.className.baseVal;
 	}
 
@@ -17014,6 +17308,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		initialize: function (id, options) { // (HTMLElement or String, Object)
 			options = setOptions(this, options);
 
+			// Make sure to assign internal flags at the beginning,
+			// to avoid inconsistent state in some edge cases.
+			this._handlers = [];
+			this._layers = {};
+			this._zoomBoundLayers = {};
+			this._sizeChanged = true;
+
 			this._initContainer(id);
 			this._initLayout();
 
@@ -17033,11 +17334,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			if (options.center && options.zoom !== undefined) {
 				this.setView(toLatLng(options.center), options.zoom, {reset: true});
 			}
-
-			this._handlers = [];
-			this._layers = {};
-			this._zoomBoundLayers = {};
-			this._sizeChanged = true;
 
 			this.callInitHooks();
 
@@ -17394,6 +17690,51 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 
 			this._enforcingBounds = false;
+			return this;
+		},
+
+		// @method panInside(latlng: LatLng, options?: options): this
+		// Pans the map the minimum amount to make the `latlng` visible. Use
+		// `padding`, `paddingTopLeft` and `paddingTopRight` options to fit
+		// the display to more restricted bounds, like [`fitBounds`](#map-fitbounds).
+		// If `latlng` is already within the (optionally padded) display bounds,
+		// the map will not be panned.
+		panInside: function (latlng, options) {
+			options = options || {};
+
+			var paddingTL = toPoint(options.paddingTopLeft || options.padding || [0, 0]),
+			    paddingBR = toPoint(options.paddingBottomRight || options.padding || [0, 0]),
+			    center = this.getCenter(),
+			    pixelCenter = this.project(center),
+			    pixelPoint = this.project(latlng),
+			    pixelBounds = this.getPixelBounds(),
+			    halfPixelBounds = pixelBounds.getSize().divideBy(2),
+			    paddedBounds = toBounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]);
+
+			if (!paddedBounds.contains(pixelPoint)) {
+				this._enforcingBounds = true;
+				var diff = pixelCenter.subtract(pixelPoint),
+				    newCenter = toPoint(pixelPoint.x + diff.x, pixelPoint.y + diff.y);
+
+				if (pixelPoint.x < paddedBounds.min.x || pixelPoint.x > paddedBounds.max.x) {
+					newCenter.x = pixelCenter.x - diff.x;
+					if (diff.x > 0) {
+						newCenter.x += halfPixelBounds.x - paddingTL.x;
+					} else {
+						newCenter.x -= halfPixelBounds.x - paddingBR.x;
+					}
+				}
+				if (pixelPoint.y < paddedBounds.min.y || pixelPoint.y > paddedBounds.max.y) {
+					newCenter.y = pixelCenter.y - diff.y;
+					if (diff.y > 0) {
+						newCenter.y += halfPixelBounds.y - paddingTL.y;
+					} else {
+						newCenter.y -= halfPixelBounds.y - paddingBR.y;
+					}
+				}
+				this.panTo(this.unproject(newCenter), options);
+				this._enforcingBounds = false;
+			}
 			return this;
 		},
 
@@ -18515,7 +18856,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 
 			// @event zoomanim: ZoomAnimEvent
-			// Fired on every frame of a zoom animation
+			// Fired at least once per zoom animation. For continous zoom, like pinch zooming, fired once per frame during zoom.
 			this.fire('zoomanim', {
 				center: center,
 				zoom: zoom,
@@ -18871,13 +19212,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		// Expand the control container if collapsed.
 		expand: function () {
 			addClass(this._container, 'leaflet-control-layers-expanded');
-			this._form.style.height = null;
+			this._section.style.height = null;
 			var acceptableHeight = this._map.getSize().y - (this._container.offsetTop + 50);
-			if (acceptableHeight < this._form.clientHeight) {
-				addClass(this._form, 'leaflet-control-layers-scrollbar');
-				this._form.style.height = acceptableHeight + 'px';
+			if (acceptableHeight < this._section.clientHeight) {
+				addClass(this._section, 'leaflet-control-layers-scrollbar');
+				this._section.style.height = acceptableHeight + 'px';
 			} else {
-				removeClass(this._form, 'leaflet-control-layers-scrollbar');
+				removeClass(this._section, 'leaflet-control-layers-scrollbar');
 			}
 			this._checkDisabledLayers();
 			return this;
@@ -18901,7 +19242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			disableClickPropagation(container);
 			disableScrollPropagation(container);
 
-			var form = this._form = create$1('form', className + '-list');
+			var section = this._section = create$1('section', className + '-list');
 
 			if (collapsed) {
 				this._map.on('click', this.collapse, this);
@@ -18929,11 +19270,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				this.expand();
 			}
 
-			this._baseLayersList = create$1('div', className + '-base', form);
-			this._separator = create$1('div', className + '-separator', form);
-			this._overlaysList = create$1('div', className + '-overlays', form);
+			this._baseLayersList = create$1('div', className + '-base', section);
+			this._separator = create$1('div', className + '-separator', section);
+			this._overlaysList = create$1('div', className + '-overlays', section);
 
-			container.appendChild(form);
+			container.appendChild(section);
 		},
 
 		_getLayer: function (id) {
@@ -20358,7 +20699,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			pane: 'overlayPane',
 
 			// @option attribution: String = null
-			// String to be shown in the attribution control, describes the layer data, e.g. "© Mapbox".
+			// String to be shown in the attribution control, e.g. "© OpenStreetMap contributors". It describes the layer data and is often a legal obligation towards copyright holders and tile providers.
 			attribution: null,
 
 			bubblingMouseEvents: true
@@ -23593,7 +23934,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		_adjustPan: function () {
-			if (!this.options.autoPan || (this._map._panAnim && this._map._panAnim._inProgress)) { return; }
+			if (!this.options.autoPan) { return; }
+			if (this._map._panAnim) { this._map._panAnim.stop(); }
 
 			var map = this._map,
 			    marginBottom = parseInt(getStyle(this._container, 'marginBottom'), 10) || 0,
@@ -25284,12 +25626,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * @class TileLayer
 	 * @inherits GridLayer
 	 * @aka L.TileLayer
-	 * Used to load and display tile layers on the map. Extends `GridLayer`.
+	 * Used to load and display tile layers on the map. Note that most tile servers require attribution, which you can set under `Layer`. Extends `GridLayer`.
 	 *
 	 * @example
 	 *
 	 * ```js
-	 * L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar'}).addTo(map);
+	 * L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map);
 	 * ```
 	 *
 	 * @section URL template
@@ -25389,7 +25731,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		// @method setUrl(url: String, noRedraw?: Boolean): this
 		// Updates the layer's URL template and redraws it (unless `noRedraw` is set to `true`).
+		// If the URL does not change, the layer will not be redrawn unless
+		// the noRedraw parameter is set to false.
 		setUrl: function (url, noRedraw) {
+			if (this._url === url && noRedraw === undefined) {
+				noRedraw = true;
+			}
+
 			this._url = url;
 
 			if (!noRedraw) {
@@ -25896,8 +26244,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		_update: function () {
 			if (this._map._animatingZoom && this._bounds) { return; }
 
-			this._drawnLayers = {};
-
 			Renderer.prototype._update.call(this);
 
 			var b = this._bounds,
@@ -25967,8 +26313,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				this._drawFirst = next;
 			}
 
-			delete this._drawnLayers[layer._leaflet_id];
-
 			delete layer._order;
 
 			delete this._layers[stamp(layer)];
@@ -25996,9 +26340,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			if (typeof layer.options.dashArray === 'string') {
 				var parts = layer.options.dashArray.split(/[, ]+/),
 				    dashArray = [],
+				    dashValue,
 				    i;
 				for (i = 0; i < parts.length; i++) {
-					dashArray.push(Number(parts[i]));
+					dashValue = Number(parts[i]);
+					// Ignore dash array containing invalid lengths
+					if (isNaN(dashValue)) { return; }
+					dashArray.push(dashValue);
 				}
 				layer.options._dashArray = dashArray;
 			} else {
@@ -26080,8 +26428,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			if (!len) { return; }
 
-			this._drawnLayers[layer._leaflet_id] = layer;
-
 			ctx.beginPath();
 
 			for (i = 0; i < len; i++) {
@@ -26107,8 +26453,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			    ctx = this._ctx,
 			    r = Math.max(Math.round(layer._radius), 1),
 			    s = (Math.max(Math.round(layer._radiusY), 1) || r) / r;
-
-			this._drawnLayers[layer._leaflet_id] = layer;
 
 			if (s !== 1) {
 				ctx.save();
@@ -26214,6 +26558,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		_bringToFront: function (layer) {
 			var order = layer._order;
+
+			if (!order) { return; }
+
 			var next = order.next;
 			var prev = order.prev;
 
@@ -26242,6 +26589,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		_bringToBack: function (layer) {
 			var order = layer._order;
+
+			if (!order) { return; }
+
 			var next = order.next;
 			var prev = order.prev;
 
@@ -26297,7 +26647,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/*
 	 * @class SVG
 	 *
-	 * Although SVG is not available on IE7 and IE8, these browsers support [VML](https://en.wikipedia.org/wiki/Vector_Markup_Language), and the SVG renderer will fall back to VML in this case.
 	 *
 	 * VML was deprecated in 2012, which means VML functionality exists only for backwards compatibility
 	 * with old versions of Internet Explorer.
@@ -28414,19 +28763,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    };
 	}
 	JSZip.prototype = __webpack_require__(10);
-	JSZip.prototype.loadAsync = __webpack_require__(105);
+	JSZip.prototype.loadAsync = __webpack_require__(83);
 	JSZip.support = __webpack_require__(13);
-	JSZip.defaults = __webpack_require__(76);
+	JSZip.defaults = __webpack_require__(54);
 
 	// TODO find a better way to handle this version,
 	// a require('package.json').version doesn't work with webpack, see #327
-	JSZip.version = "3.1.5";
+	JSZip.version = "3.2.0";
 
 	JSZip.loadAsync = function (content, options) {
 	    return new JSZip().loadAsync(content, options);
 	};
 
-	JSZip.external = __webpack_require__(69);
+	JSZip.external = __webpack_require__(47);
 	module.exports = JSZip;
 
 
@@ -28437,14 +28786,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	'use strict';
 	var utf8 = __webpack_require__(11);
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
-	var StreamHelper = __webpack_require__(73);
-	var defaults = __webpack_require__(76);
-	var CompressedObject = __webpack_require__(77);
-	var ZipObject = __webpack_require__(82);
-	var generate = __webpack_require__(83);
-	var nodejsUtils = __webpack_require__(47);
-	var NodejsStreamInputAdapter = __webpack_require__(104);
+	var GenericWorker = __webpack_require__(50);
+	var StreamHelper = __webpack_require__(51);
+	var defaults = __webpack_require__(54);
+	var CompressedObject = __webpack_require__(55);
+	var ZipObject = __webpack_require__(60);
+	var generate = __webpack_require__(61);
+	var nodejsUtils = __webpack_require__(45);
+	var NodejsStreamInputAdapter = __webpack_require__(82);
 
 
 	/**
@@ -28833,8 +29182,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	var utils = __webpack_require__(12);
 	var support = __webpack_require__(13);
-	var nodejsUtils = __webpack_require__(47);
-	var GenericWorker = __webpack_require__(72);
+	var nodejsUtils = __webpack_require__(45);
+	var GenericWorker = __webpack_require__(50);
 
 	/**
 	 * The following functions come from pako, from pako/lib/utils/strings
@@ -29113,10 +29462,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	'use strict';
 
 	var support = __webpack_require__(13);
-	var base64 = __webpack_require__(46);
-	var nodejsUtils = __webpack_require__(47);
-	var setImmediate = __webpack_require__(48);
-	var external = __webpack_require__(69);
+	var base64 = __webpack_require__(44);
+	var nodejsUtils = __webpack_require__(45);
+	var setImmediate = __webpack_require__(46);
+	var external = __webpack_require__(47);
 
 
 	/**
@@ -31734,10 +32083,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	inherits(Stream, EE);
 	Stream.Readable = __webpack_require__(22);
-	Stream.Writable = __webpack_require__(42);
-	Stream.Duplex = __webpack_require__(43);
-	Stream.Transform = __webpack_require__(44);
-	Stream.PassThrough = __webpack_require__(45);
+	Stream.Writable = __webpack_require__(40);
+	Stream.Duplex = __webpack_require__(41);
+	Stream.Transform = __webpack_require__(42);
+	Stream.PassThrough = __webpack_require__(43);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -32179,10 +32528,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	exports = module.exports = __webpack_require__(23);
 	exports.Stream = exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(35);
-	exports.Duplex = __webpack_require__(34);
-	exports.Transform = __webpack_require__(40);
-	exports.PassThrough = __webpack_require__(41);
+	exports.Writable = __webpack_require__(33);
+	exports.Duplex = __webpack_require__(32);
+	exports.Transform = __webpack_require__(38);
+	exports.PassThrough = __webpack_require__(39);
 
 
 /***/ }),
@@ -32220,7 +32569,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	module.exports = Readable;
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(25);
+	var isArray = __webpack_require__(17);
 	/*</replacement>*/
 
 	/*<replacement>*/
@@ -32238,12 +32587,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var Stream = __webpack_require__(26);
+	var Stream = __webpack_require__(25);
 	/*</replacement>*/
 
 	/*<replacement>*/
 
-	var Buffer = __webpack_require__(27).Buffer;
+	var Buffer = __webpack_require__(26).Buffer;
 	var OurUint8Array = global.Uint8Array || function () {};
 	function _uint8ArrayToBuffer(chunk) {
 	  return Buffer.from(chunk);
@@ -32255,12 +32604,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var util = __webpack_require__(28);
-	util.inherits = __webpack_require__(29);
+	var util = __webpack_require__(27);
+	util.inherits = __webpack_require__(21);
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(30);
+	var debugUtil = __webpack_require__(28);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -32269,8 +32618,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 	/*</replacement>*/
 
-	var BufferList = __webpack_require__(31);
-	var destroyImpl = __webpack_require__(33);
+	var BufferList = __webpack_require__(29);
+	var destroyImpl = __webpack_require__(31);
 	var StringDecoder;
 
 	util.inherits(Readable, Stream);
@@ -32290,7 +32639,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(34);
+	  Duplex = Duplex || __webpack_require__(32);
 
 	  options = options || {};
 
@@ -32360,14 +32709,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(39).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(37).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(34);
+	  Duplex = Duplex || __webpack_require__(32);
 
 	  if (!(this instanceof Readable)) return new Readable(options);
 
@@ -32516,7 +32865,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(39).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(37).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -33263,24 +33612,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 /***/ }),
 /* 25 */
-/***/ (function(module, exports) {
-
-	var toString = {}.toString;
-
-	module.exports = Array.isArray || function (arr) {
-	  return toString.call(arr) == '[object Array]';
-	};
-
-
-/***/ }),
-/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(20).EventEmitter;
 
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* eslint-disable node/no-deprecated-api */
@@ -33348,7 +33686,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -33462,50 +33800,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer))
 
 /***/ }),
-/* 29 */
-/***/ (function(module, exports) {
-
-	if (typeof Object.create === 'function') {
-	  // implementation from standard node.js 'util' module
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    ctor.prototype = Object.create(superCtor.prototype, {
-	      constructor: {
-	        value: ctor,
-	        enumerable: false,
-	        writable: true,
-	        configurable: true
-	      }
-	    });
-	  };
-	} else {
-	  // old school shim for old browsers
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    var TempCtor = function () {}
-	    TempCtor.prototype = superCtor.prototype
-	    ctor.prototype = new TempCtor()
-	    ctor.prototype.constructor = ctor
-	  }
-	}
-
-
-/***/ }),
-/* 30 */
+/* 28 */
 /***/ (function(module, exports) {
 
 	/* (ignored) */
 
 /***/ }),
-/* 31 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var Buffer = __webpack_require__(27).Buffer;
-	var util = __webpack_require__(32);
+	var Buffer = __webpack_require__(26).Buffer;
+	var util = __webpack_require__(30);
 
 	function copyBuffer(src, target, offset) {
 	  src.copy(target, offset);
@@ -33581,13 +33890,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 /***/ }),
-/* 32 */
+/* 30 */
 /***/ (function(module, exports) {
 
 	/* (ignored) */
 
 /***/ }),
-/* 33 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -33666,7 +33975,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 
 /***/ }),
-/* 34 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -33714,12 +34023,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	module.exports = Duplex;
 
 	/*<replacement>*/
-	var util = __webpack_require__(28);
-	util.inherits = __webpack_require__(29);
+	var util = __webpack_require__(27);
+	util.inherits = __webpack_require__(21);
 	/*</replacement>*/
 
 	var Readable = __webpack_require__(23);
-	var Writable = __webpack_require__(35);
+	var Writable = __webpack_require__(33);
 
 	util.inherits(Duplex, Readable);
 
@@ -33802,7 +34111,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 
 /***/ }),
-/* 35 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate, global) {// Copyright Joyent, Inc. and other Node contributors.
@@ -33871,23 +34180,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	Writable.WritableState = WritableState;
 
 	/*<replacement>*/
-	var util = __webpack_require__(28);
-	util.inherits = __webpack_require__(29);
+	var util = __webpack_require__(27);
+	util.inherits = __webpack_require__(21);
 	/*</replacement>*/
 
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(38)
+	  deprecate: __webpack_require__(36)
 	};
 	/*</replacement>*/
 
 	/*<replacement>*/
-	var Stream = __webpack_require__(26);
+	var Stream = __webpack_require__(25);
 	/*</replacement>*/
 
 	/*<replacement>*/
 
-	var Buffer = __webpack_require__(27).Buffer;
+	var Buffer = __webpack_require__(26).Buffer;
 	var OurUint8Array = global.Uint8Array || function () {};
 	function _uint8ArrayToBuffer(chunk) {
 	  return Buffer.from(chunk);
@@ -33898,14 +34207,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	/*</replacement>*/
 
-	var destroyImpl = __webpack_require__(33);
+	var destroyImpl = __webpack_require__(31);
 
 	util.inherits(Writable, Stream);
 
 	function nop() {}
 
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(34);
+	  Duplex = Duplex || __webpack_require__(32);
 
 	  options = options || {};
 
@@ -34055,7 +34364,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(34);
+	  Duplex = Duplex || __webpack_require__(32);
 
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -34492,10 +34801,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  this.end();
 	  cb(err);
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(36).setImmediate, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(34).setImmediate, (function() { return this; }())))
 
 /***/ }),
-/* 36 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -34551,7 +34860,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 
 	// setimmediate attaches itself to the global object
-	__webpack_require__(37);
+	__webpack_require__(35);
 	// On some exotic environments, it's not clear which object `setimmediate` was
 	// able to install onto.  Search each possibility in the same order as the
 	// `setimmediate` library.
@@ -34565,7 +34874,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 37 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -34758,7 +35067,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(7)))
 
 /***/ }),
-/* 38 */
+/* 36 */
 /***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -34832,7 +35141,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 39 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -34860,7 +35169,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	/*<replacement>*/
 
-	var Buffer = __webpack_require__(27).Buffer;
+	var Buffer = __webpack_require__(26).Buffer;
 	/*</replacement>*/
 
 	var isEncoding = Buffer.isEncoding || function (encoding) {
@@ -35133,7 +35442,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 /***/ }),
-/* 40 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -35203,11 +35512,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(34);
+	var Duplex = __webpack_require__(32);
 
 	/*<replacement>*/
-	var util = __webpack_require__(28);
-	util.inherits = __webpack_require__(29);
+	var util = __webpack_require__(27);
+	util.inherits = __webpack_require__(21);
 	/*</replacement>*/
 
 	util.inherits(Transform, Duplex);
@@ -35352,7 +35661,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 /***/ }),
-/* 41 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -35384,11 +35693,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(40);
+	var Transform = __webpack_require__(38);
 
 	/*<replacement>*/
-	var util = __webpack_require__(28);
-	util.inherits = __webpack_require__(29);
+	var util = __webpack_require__(27);
+	util.inherits = __webpack_require__(21);
 	/*</replacement>*/
 
 	util.inherits(PassThrough, Transform);
@@ -35404,35 +35713,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 
 /***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(33);
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(32);
+
+
+/***/ }),
 /* 42 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(35);
-
-
-/***/ }),
-/* 43 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(34);
-
-
-/***/ }),
-/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(22).Transform
 
 
 /***/ }),
-/* 45 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(22).PassThrough
 
 
 /***/ }),
-/* 46 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35544,7 +35853,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 47 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {'use strict';
@@ -35563,13 +35872,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	     * @return {Buffer} a new Buffer.
 	     */
 	    newBufferFrom: function(data, encoding) {
-	        // XXX We can't use `Buffer.from` which comes from `Uint8Array.from`
-	        // in nodejs v4 (< v.4.5). It's not the expected implementation (and
-	        // has a different signature).
-	        // see https://github.com/nodejs/node/issues/8053
-	        // A condition on nodejs' version won't solve the issue as we don't
-	        // control the Buffer polyfills that may or may not be used.
-	        return new Buffer(data, encoding);
+	        if (Buffer.from && Buffer.from !== Uint8Array.from) {
+	            return Buffer.from(data, encoding);
+	        } else {
+	            if (typeof data === "number") {
+	                // Safeguard for old Node.js versions. On newer versions,
+	                // Buffer.from(number) / Buffer(number, encoding) already throw.
+	                throw new Error("The \"data\" argument must not be a number");
+	            }
+	            return new Buffer(data, encoding);
+	        }
 	    },
 	    /**
 	     * Create a new nodejs Buffer with the specified size.
@@ -35580,7 +35892,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        if (Buffer.alloc) {
 	            return Buffer.alloc(size);
 	        } else {
-	            return new Buffer(size);
+	            var buf = new Buffer(size);
+	            buf.fill(0);
+	            return buf;
 	        }
 	    },
 	    /**
@@ -35603,381 +35917,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer))
 
 /***/ }),
-/* 48 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	__webpack_require__(49);
-	module.exports = __webpack_require__(52).setImmediate;
+	/* WEBPACK VAR INJECTION */(function(setImmediate) {'use strict';
+	module.exports = typeof setImmediate === 'function' ? setImmediate :
+		function setImmediate() {
+			var args = [].slice.apply(arguments);
+			args.splice(1, 0, 0);
+			setTimeout.apply(null, args);
+		};
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(34).setImmediate))
 
 /***/ }),
-/* 49 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var $export = __webpack_require__(50)
-	  , $task   = __webpack_require__(65);
-	$export($export.G + $export.B, {
-	  setImmediate:   $task.set,
-	  clearImmediate: $task.clear
-	});
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var global    = __webpack_require__(51)
-	  , core      = __webpack_require__(52)
-	  , ctx       = __webpack_require__(53)
-	  , hide      = __webpack_require__(55)
-	  , PROTOTYPE = 'prototype';
-
-	var $export = function(type, name, source){
-	  var IS_FORCED = type & $export.F
-	    , IS_GLOBAL = type & $export.G
-	    , IS_STATIC = type & $export.S
-	    , IS_PROTO  = type & $export.P
-	    , IS_BIND   = type & $export.B
-	    , IS_WRAP   = type & $export.W
-	    , exports   = IS_GLOBAL ? core : core[name] || (core[name] = {})
-	    , expProto  = exports[PROTOTYPE]
-	    , target    = IS_GLOBAL ? global : IS_STATIC ? global[name] : (global[name] || {})[PROTOTYPE]
-	    , key, own, out;
-	  if(IS_GLOBAL)source = name;
-	  for(key in source){
-	    // contains in native
-	    own = !IS_FORCED && target && target[key] !== undefined;
-	    if(own && key in exports)continue;
-	    // export native or passed
-	    out = own ? target[key] : source[key];
-	    // prevent global pollution for namespaces
-	    exports[key] = IS_GLOBAL && typeof target[key] != 'function' ? source[key]
-	    // bind timers to global for call from export context
-	    : IS_BIND && own ? ctx(out, global)
-	    // wrap global constructors for prevent change them in library
-	    : IS_WRAP && target[key] == out ? (function(C){
-	      var F = function(a, b, c){
-	        if(this instanceof C){
-	          switch(arguments.length){
-	            case 0: return new C;
-	            case 1: return new C(a);
-	            case 2: return new C(a, b);
-	          } return new C(a, b, c);
-	        } return C.apply(this, arguments);
-	      };
-	      F[PROTOTYPE] = C[PROTOTYPE];
-	      return F;
-	    // make static versions for prototype methods
-	    })(out) : IS_PROTO && typeof out == 'function' ? ctx(Function.call, out) : out;
-	    // export proto methods to core.%CONSTRUCTOR%.methods.%NAME%
-	    if(IS_PROTO){
-	      (exports.virtual || (exports.virtual = {}))[key] = out;
-	      // export proto methods to core.%CONSTRUCTOR%.prototype.%NAME%
-	      if(type & $export.R && expProto && !expProto[key])hide(expProto, key, out);
-	    }
-	  }
-	};
-	// type bitmap
-	$export.F = 1;   // forced
-	$export.G = 2;   // global
-	$export.S = 4;   // static
-	$export.P = 8;   // proto
-	$export.B = 16;  // bind
-	$export.W = 32;  // wrap
-	$export.U = 64;  // safe
-	$export.R = 128; // real proto method for `library` 
-	module.exports = $export;
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports) {
-
-	// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
-	var global = module.exports = typeof window != 'undefined' && window.Math == Math
-	  ? window : typeof self != 'undefined' && self.Math == Math ? self : Function('return this')();
-	if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports) {
-
-	var core = module.exports = {version: '2.3.0'};
-	if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// optional / simple context binding
-	var aFunction = __webpack_require__(54);
-	module.exports = function(fn, that, length){
-	  aFunction(fn);
-	  if(that === undefined)return fn;
-	  switch(length){
-	    case 1: return function(a){
-	      return fn.call(that, a);
-	    };
-	    case 2: return function(a, b){
-	      return fn.call(that, a, b);
-	    };
-	    case 3: return function(a, b, c){
-	      return fn.call(that, a, b, c);
-	    };
-	  }
-	  return function(/* ...args */){
-	    return fn.apply(that, arguments);
-	  };
-	};
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports) {
-
-	module.exports = function(it){
-	  if(typeof it != 'function')throw TypeError(it + ' is not a function!');
-	  return it;
-	};
-
-/***/ }),
-/* 55 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var dP         = __webpack_require__(56)
-	  , createDesc = __webpack_require__(64);
-	module.exports = __webpack_require__(60) ? function(object, key, value){
-	  return dP.f(object, key, createDesc(1, value));
-	} : function(object, key, value){
-	  object[key] = value;
-	  return object;
-	};
-
-/***/ }),
-/* 56 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var anObject       = __webpack_require__(57)
-	  , IE8_DOM_DEFINE = __webpack_require__(59)
-	  , toPrimitive    = __webpack_require__(63)
-	  , dP             = Object.defineProperty;
-
-	exports.f = __webpack_require__(60) ? Object.defineProperty : function defineProperty(O, P, Attributes){
-	  anObject(O);
-	  P = toPrimitive(P, true);
-	  anObject(Attributes);
-	  if(IE8_DOM_DEFINE)try {
-	    return dP(O, P, Attributes);
-	  } catch(e){ /* empty */ }
-	  if('get' in Attributes || 'set' in Attributes)throw TypeError('Accessors not supported!');
-	  if('value' in Attributes)O[P] = Attributes.value;
-	  return O;
-	};
-
-/***/ }),
-/* 57 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var isObject = __webpack_require__(58);
-	module.exports = function(it){
-	  if(!isObject(it))throw TypeError(it + ' is not an object!');
-	  return it;
-	};
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports) {
-
-	module.exports = function(it){
-	  return typeof it === 'object' ? it !== null : typeof it === 'function';
-	};
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = !__webpack_require__(60) && !__webpack_require__(61)(function(){
-	  return Object.defineProperty(__webpack_require__(62)('div'), 'a', {get: function(){ return 7; }}).a != 7;
-	});
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// Thank's IE8 for his funny defineProperty
-	module.exports = !__webpack_require__(61)(function(){
-	  return Object.defineProperty({}, 'a', {get: function(){ return 7; }}).a != 7;
-	});
-
-/***/ }),
-/* 61 */
-/***/ (function(module, exports) {
-
-	module.exports = function(exec){
-	  try {
-	    return !!exec();
-	  } catch(e){
-	    return true;
-	  }
-	};
-
-/***/ }),
-/* 62 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var isObject = __webpack_require__(58)
-	  , document = __webpack_require__(51).document
-	  // in old IE typeof document.createElement is 'object'
-	  , is = isObject(document) && isObject(document.createElement);
-	module.exports = function(it){
-	  return is ? document.createElement(it) : {};
-	};
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	// 7.1.1 ToPrimitive(input [, PreferredType])
-	var isObject = __webpack_require__(58);
-	// instead of the ES6 spec version, we didn't implement @@toPrimitive case
-	// and the second argument - flag - preferred type is a string
-	module.exports = function(it, S){
-	  if(!isObject(it))return it;
-	  var fn, val;
-	  if(S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
-	  if(typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it)))return val;
-	  if(!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it)))return val;
-	  throw TypeError("Can't convert object to primitive value");
-	};
-
-/***/ }),
-/* 64 */
-/***/ (function(module, exports) {
-
-	module.exports = function(bitmap, value){
-	  return {
-	    enumerable  : !(bitmap & 1),
-	    configurable: !(bitmap & 2),
-	    writable    : !(bitmap & 4),
-	    value       : value
-	  };
-	};
-
-/***/ }),
-/* 65 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var ctx                = __webpack_require__(53)
-	  , invoke             = __webpack_require__(66)
-	  , html               = __webpack_require__(67)
-	  , cel                = __webpack_require__(62)
-	  , global             = __webpack_require__(51)
-	  , process            = global.process
-	  , setTask            = global.setImmediate
-	  , clearTask          = global.clearImmediate
-	  , MessageChannel     = global.MessageChannel
-	  , counter            = 0
-	  , queue              = {}
-	  , ONREADYSTATECHANGE = 'onreadystatechange'
-	  , defer, channel, port;
-	var run = function(){
-	  var id = +this;
-	  if(queue.hasOwnProperty(id)){
-	    var fn = queue[id];
-	    delete queue[id];
-	    fn();
-	  }
-	};
-	var listener = function(event){
-	  run.call(event.data);
-	};
-	// Node.js 0.9+ & IE10+ has setImmediate, otherwise:
-	if(!setTask || !clearTask){
-	  setTask = function setImmediate(fn){
-	    var args = [], i = 1;
-	    while(arguments.length > i)args.push(arguments[i++]);
-	    queue[++counter] = function(){
-	      invoke(typeof fn == 'function' ? fn : Function(fn), args);
-	    };
-	    defer(counter);
-	    return counter;
-	  };
-	  clearTask = function clearImmediate(id){
-	    delete queue[id];
-	  };
-	  // Node.js 0.8-
-	  if(__webpack_require__(68)(process) == 'process'){
-	    defer = function(id){
-	      process.nextTick(ctx(run, id, 1));
-	    };
-	  // Browsers with MessageChannel, includes WebWorkers
-	  } else if(MessageChannel){
-	    channel = new MessageChannel;
-	    port    = channel.port2;
-	    channel.port1.onmessage = listener;
-	    defer = ctx(port.postMessage, port, 1);
-	  // Browsers with postMessage, skip WebWorkers
-	  // IE8 has postMessage, but it's sync & typeof its postMessage is 'object'
-	  } else if(global.addEventListener && typeof postMessage == 'function' && !global.importScripts){
-	    defer = function(id){
-	      global.postMessage(id + '', '*');
-	    };
-	    global.addEventListener('message', listener, false);
-	  // IE8-
-	  } else if(ONREADYSTATECHANGE in cel('script')){
-	    defer = function(id){
-	      html.appendChild(cel('script'))[ONREADYSTATECHANGE] = function(){
-	        html.removeChild(this);
-	        run.call(id);
-	      };
-	    };
-	  // Rest old browsers
-	  } else {
-	    defer = function(id){
-	      setTimeout(ctx(run, id, 1), 0);
-	    };
-	  }
-	}
-	module.exports = {
-	  set:   setTask,
-	  clear: clearTask
-	};
-
-/***/ }),
-/* 66 */
-/***/ (function(module, exports) {
-
-	// fast apply, http://jsperf.lnkit.com/fast-apply/5
-	module.exports = function(fn, args, that){
-	  var un = that === undefined;
-	  switch(args.length){
-	    case 0: return un ? fn()
-	                      : fn.call(that);
-	    case 1: return un ? fn(args[0])
-	                      : fn.call(that, args[0]);
-	    case 2: return un ? fn(args[0], args[1])
-	                      : fn.call(that, args[0], args[1]);
-	    case 3: return un ? fn(args[0], args[1], args[2])
-	                      : fn.call(that, args[0], args[1], args[2]);
-	    case 4: return un ? fn(args[0], args[1], args[2], args[3])
-	                      : fn.call(that, args[0], args[1], args[2], args[3]);
-	  } return              fn.apply(that, args);
-	};
-
-/***/ }),
-/* 67 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(51).document && document.documentElement;
-
-/***/ }),
-/* 68 */
-/***/ (function(module, exports) {
-
-	var toString = {}.toString;
-
-	module.exports = function(it){
-	  return toString.call(it).slice(8, -1);
-	};
-
-/***/ }),
-/* 69 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* global Promise */
@@ -35990,7 +35944,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	if (typeof Promise !== "undefined") {
 	    ES6Promise = Promise;
 	} else {
-	    ES6Promise = __webpack_require__(70);
+	    ES6Promise = __webpack_require__(48);
 	}
 
 	/**
@@ -36002,11 +35956,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 70 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var immediate = __webpack_require__(71);
+	var immediate = __webpack_require__(49);
 
 	/* istanbul ignore next */
 	function INTERNAL() {}
@@ -36031,6 +35985,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  }
 	}
 
+	Promise.prototype["finally"] = function (callback) {
+	  if (typeof callback !== 'function') {
+	    return this;
+	  }
+	  var p = this.constructor;
+	  return this.then(resolve, reject);
+
+	  function resolve(value) {
+	    function yes () {
+	      return value;
+	    }
+	    return p.resolve(callback()).then(yes);
+	  }
+	  function reject(reason) {
+	    function no () {
+	      throw reason;
+	    }
+	    return p.resolve(callback()).then(no);
+	  }
+	};
 	Promise.prototype["catch"] = function (onRejected) {
 	  return this.then(null, onRejected);
 	};
@@ -36261,7 +36235,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 71 */
+/* 49 */
 /***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -36337,7 +36311,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 72 */
+/* 50 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -36606,22 +36580,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 73 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {'use strict';
 
 	var utils = __webpack_require__(12);
-	var ConvertWorker = __webpack_require__(74);
-	var GenericWorker = __webpack_require__(72);
-	var base64 = __webpack_require__(46);
+	var ConvertWorker = __webpack_require__(52);
+	var GenericWorker = __webpack_require__(50);
+	var base64 = __webpack_require__(44);
 	var support = __webpack_require__(13);
-	var external = __webpack_require__(69);
+	var external = __webpack_require__(47);
 
 	var NodejsStreamOutputAdapter = null;
 	if (support.nodestream) {
 	    try {
-	        NodejsStreamOutputAdapter = __webpack_require__(75);
+	        NodejsStreamOutputAdapter = __webpack_require__(53);
 	    } catch(e) {}
 	}
 
@@ -36825,12 +36799,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(14).Buffer))
 
 /***/ }),
-/* 74 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 	var utils = __webpack_require__(12);
 
 	/**
@@ -36857,7 +36831,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 75 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36905,7 +36879,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 76 */
+/* 54 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -36922,16 +36896,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 77 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var external = __webpack_require__(69);
-	var DataWorker = __webpack_require__(78);
-	var DataLengthProbe = __webpack_require__(79);
-	var Crc32Probe = __webpack_require__(80);
-	var DataLengthProbe = __webpack_require__(79);
+	var external = __webpack_require__(47);
+	var DataWorker = __webpack_require__(56);
+	var DataLengthProbe = __webpack_require__(57);
+	var Crc32Probe = __webpack_require__(58);
+	var DataLengthProbe = __webpack_require__(57);
 
 	/**
 	 * Represent a compressed object, with everything needed to decompress it.
@@ -37003,13 +36977,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 78 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 
 	// the size of the generated chunks
 	// TODO expose this as a public variable
@@ -37125,13 +37099,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 79 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 
 	/**
 	 * A worker which calculate the total length of the data flowing through.
@@ -37160,13 +37134,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 80 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var GenericWorker = __webpack_require__(72);
-	var crc32 = __webpack_require__(81);
+	var GenericWorker = __webpack_require__(50);
+	var crc32 = __webpack_require__(59);
 	var utils = __webpack_require__(12);
 
 	/**
@@ -37190,7 +37164,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 81 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37273,16 +37247,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 82 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var StreamHelper = __webpack_require__(73);
-	var DataWorker = __webpack_require__(78);
+	var StreamHelper = __webpack_require__(51);
+	var DataWorker = __webpack_require__(56);
 	var utf8 = __webpack_require__(11);
-	var CompressedObject = __webpack_require__(77);
-	var GenericWorker = __webpack_require__(72);
+	var CompressedObject = __webpack_require__(55);
+	var GenericWorker = __webpack_require__(50);
 
 	/**
 	 * A simple object representing a file in the zip file.
@@ -37412,13 +37386,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 83 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var compressions = __webpack_require__(84);
-	var ZipFileWorker = __webpack_require__(102);
+	var compressions = __webpack_require__(62);
+	var ZipFileWorker = __webpack_require__(80);
 
 	/**
 	 * Find the compression to use.
@@ -37475,12 +37449,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 84 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 
 	exports.STORE = {
 	    magic: "\x00\x00",
@@ -37491,19 +37465,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        return new GenericWorker("STORE decompression");
 	    }
 	};
-	exports.DEFLATE = __webpack_require__(85);
+	exports.DEFLATE = __webpack_require__(63);
 
 
 /***/ }),
-/* 85 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
-	var pako = __webpack_require__(86);
+	var pako = __webpack_require__(64);
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 
 	var ARRAY_TYPE = USE_TYPEDARRAY ? "uint8array" : "array";
 
@@ -37586,17 +37560,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 86 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Top level file is just a mixin of submodules & constants
 	'use strict';
 
-	var assign    = __webpack_require__(87).assign;
+	var assign    = __webpack_require__(65).assign;
 
-	var deflate   = __webpack_require__(88);
-	var inflate   = __webpack_require__(96);
-	var constants = __webpack_require__(100);
+	var deflate   = __webpack_require__(66);
+	var inflate   = __webpack_require__(74);
+	var constants = __webpack_require__(78);
 
 	var pako = {};
 
@@ -37606,7 +37580,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 87 */
+/* 65 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -37717,17 +37691,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 88 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 
-	var zlib_deflate = __webpack_require__(89);
-	var utils        = __webpack_require__(87);
-	var strings      = __webpack_require__(94);
-	var msg          = __webpack_require__(93);
-	var ZStream      = __webpack_require__(95);
+	var zlib_deflate = __webpack_require__(67);
+	var utils        = __webpack_require__(65);
+	var strings      = __webpack_require__(72);
+	var msg          = __webpack_require__(71);
+	var ZStream      = __webpack_require__(73);
 
 	var toString = Object.prototype.toString;
 
@@ -38123,7 +38097,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 89 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -38147,11 +38121,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	//   misrepresented as being the original software.
 	// 3. This notice may not be removed or altered from any source distribution.
 
-	var utils   = __webpack_require__(87);
-	var trees   = __webpack_require__(90);
-	var adler32 = __webpack_require__(91);
-	var crc32   = __webpack_require__(92);
-	var msg     = __webpack_require__(93);
+	var utils   = __webpack_require__(65);
+	var trees   = __webpack_require__(68);
+	var adler32 = __webpack_require__(69);
+	var crc32   = __webpack_require__(70);
+	var msg     = __webpack_require__(71);
 
 	/* Public constants ==========================================================*/
 	/* ===========================================================================*/
@@ -39582,7 +39556,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    (!s.gzhead.extra ? 0 : 4) +
 	                    (!s.gzhead.name ? 0 : 8) +
 	                    (!s.gzhead.comment ? 0 : 16)
-	                );
+	        );
 	        put_byte(s, s.gzhead.time & 0xff);
 	        put_byte(s, (s.gzhead.time >> 8) & 0xff);
 	        put_byte(s, (s.gzhead.time >> 16) & 0xff);
@@ -40003,7 +39977,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 90 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -40027,7 +40001,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	//   misrepresented as being the original software.
 	// 3. This notice may not be removed or altered from any source distribution.
 
-	var utils = __webpack_require__(87);
+	/* eslint-disable space-unary-ops */
+
+	var utils = __webpack_require__(65);
 
 	/* Public constants ==========================================================*/
 	/* ===========================================================================*/
@@ -41229,7 +41205,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 91 */
+/* 69 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -41286,7 +41262,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 92 */
+/* 70 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -41351,7 +41327,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 93 */
+/* 71 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -41389,14 +41365,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 94 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// String encode/decode helpers
 	'use strict';
 
 
-	var utils = __webpack_require__(87);
+	var utils = __webpack_require__(65);
 
 
 	// Quick check if we can use fast array to bin string conversion
@@ -41477,8 +41453,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	// Helper (used in 2 places)
 	function buf2binstring(buf, len) {
-	  // use fallback for big arrays to avoid stack overflow
-	  if (len < 65537) {
+	  // On Chrome, the arguments in a function call that are allowed is `65534`.
+	  // If the length of the buffer is smaller than that, we can use this optimization,
+	  // otherwise we will take a slower path.
+	  if (len < 65534) {
 	    if ((buf.subarray && STR_APPLY_UIA_OK) || (!buf.subarray && STR_APPLY_OK)) {
 	      return String.fromCharCode.apply(null, utils.shrinkBuf(buf, len));
 	    }
@@ -41580,7 +41558,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 95 */
+/* 73 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -41633,19 +41611,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 96 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 
-	var zlib_inflate = __webpack_require__(97);
-	var utils        = __webpack_require__(87);
-	var strings      = __webpack_require__(94);
-	var c            = __webpack_require__(100);
-	var msg          = __webpack_require__(93);
-	var ZStream      = __webpack_require__(95);
-	var GZheader     = __webpack_require__(101);
+	var zlib_inflate = __webpack_require__(75);
+	var utils        = __webpack_require__(65);
+	var strings      = __webpack_require__(72);
+	var c            = __webpack_require__(78);
+	var msg          = __webpack_require__(71);
+	var ZStream      = __webpack_require__(73);
+	var GZheader     = __webpack_require__(79);
 
 	var toString = Object.prototype.toString;
 
@@ -41782,6 +41760,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  this.header = new GZheader();
 
 	  zlib_inflate.inflateGetHeader(this.strm, this.header);
+
+	  // Setup dictionary
+	  if (opt.dictionary) {
+	    // Convert data if needed
+	    if (typeof opt.dictionary === 'string') {
+	      opt.dictionary = strings.string2buf(opt.dictionary);
+	    } else if (toString.call(opt.dictionary) === '[object ArrayBuffer]') {
+	      opt.dictionary = new Uint8Array(opt.dictionary);
+	    }
+	    if (opt.raw) { //In raw mode we need to set the dictionary early
+	      status = zlib_inflate.inflateSetDictionary(this.strm, opt.dictionary);
+	      if (status !== c.Z_OK) {
+	        throw new Error(msg[status]);
+	      }
+	    }
+	  }
 	}
 
 	/**
@@ -41818,7 +41812,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  var dictionary = this.options.dictionary;
 	  var status, _mode;
 	  var next_out_utf8, tail, utf8str;
-	  var dict;
 
 	  // Flag to properly process Z_BUF_ERROR on testing inflate call
 	  // when we check that all output data was flushed.
@@ -41850,17 +41843,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    status = zlib_inflate.inflate(strm, c.Z_NO_FLUSH);    /* no bad return value */
 
 	    if (status === c.Z_NEED_DICT && dictionary) {
-	      // Convert data if needed
-	      if (typeof dictionary === 'string') {
-	        dict = strings.string2buf(dictionary);
-	      } else if (toString.call(dictionary) === '[object ArrayBuffer]') {
-	        dict = new Uint8Array(dictionary);
-	      } else {
-	        dict = dictionary;
-	      }
-
-	      status = zlib_inflate.inflateSetDictionary(this.strm, dict);
-
+	      status = zlib_inflate.inflateSetDictionary(this.strm, dictionary);
 	    }
 
 	    if (status === c.Z_BUF_ERROR && allowBufError === true) {
@@ -42057,7 +42040,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 97 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -42081,11 +42064,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	//   misrepresented as being the original software.
 	// 3. This notice may not be removed or altered from any source distribution.
 
-	var utils         = __webpack_require__(87);
-	var adler32       = __webpack_require__(91);
-	var crc32         = __webpack_require__(92);
-	var inflate_fast  = __webpack_require__(98);
-	var inflate_table = __webpack_require__(99);
+	var utils         = __webpack_require__(65);
+	var adler32       = __webpack_require__(69);
+	var crc32         = __webpack_require__(70);
+	var inflate_fast  = __webpack_require__(76);
+	var inflate_table = __webpack_require__(77);
 
 	var CODES = 0;
 	var LENS = 1;
@@ -43619,7 +43602,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 98 */
+/* 76 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -43970,7 +43953,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 99 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43994,7 +43977,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	//   misrepresented as being the original software.
 	// 3. This notice may not be removed or altered from any source distribution.
 
-	var utils = __webpack_require__(87);
+	var utils = __webpack_require__(65);
 
 	var MAXBITS = 15;
 	var ENOUGH_LENS = 852;
@@ -44319,7 +44302,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 100 */
+/* 78 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -44393,7 +44376,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 101 */
+/* 79 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -44457,16 +44440,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 102 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 	var utf8 = __webpack_require__(11);
-	var crc32 = __webpack_require__(81);
-	var signature = __webpack_require__(103);
+	var crc32 = __webpack_require__(59);
+	var signature = __webpack_require__(81);
 
 	/**
 	 * Transform an integer into a string in hexadecimal.
@@ -45003,7 +44986,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 103 */
+/* 81 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -45016,13 +44999,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 104 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 
 	var utils = __webpack_require__(12);
-	var GenericWorker = __webpack_require__(72);
+	var GenericWorker = __webpack_require__(50);
 
 	/**
 	 * A worker that use a nodejs stream as source.
@@ -45096,17 +45079,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 105 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	var utils = __webpack_require__(12);
-	var external = __webpack_require__(69);
+	var external = __webpack_require__(47);
 	var utf8 = __webpack_require__(11);
 	var utils = __webpack_require__(12);
-	var ZipEntries = __webpack_require__(106);
-	var Crc32Probe = __webpack_require__(80);
-	var nodejsUtils = __webpack_require__(47);
+	var ZipEntries = __webpack_require__(84);
+	var Crc32Probe = __webpack_require__(58);
+	var nodejsUtils = __webpack_require__(45);
 
 	/**
 	 * Check the CRC32 of an entry.
@@ -45184,14 +45167,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 106 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var readerFor = __webpack_require__(107);
+	var readerFor = __webpack_require__(85);
 	var utils = __webpack_require__(12);
-	var sig = __webpack_require__(103);
-	var ZipEntry = __webpack_require__(113);
+	var sig = __webpack_require__(81);
+	var ZipEntry = __webpack_require__(91);
 	var utf8 = __webpack_require__(11);
 	var support = __webpack_require__(13);
 	//  class ZipEntries {{{
@@ -45452,17 +45435,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 107 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var utils = __webpack_require__(12);
 	var support = __webpack_require__(13);
-	var ArrayReader = __webpack_require__(108);
-	var StringReader = __webpack_require__(110);
-	var NodeBufferReader = __webpack_require__(111);
-	var Uint8ArrayReader = __webpack_require__(112);
+	var ArrayReader = __webpack_require__(86);
+	var StringReader = __webpack_require__(88);
+	var NodeBufferReader = __webpack_require__(89);
+	var Uint8ArrayReader = __webpack_require__(90);
 
 	/**
 	 * Create a reader adapted to the data.
@@ -45486,11 +45469,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 108 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var DataReader = __webpack_require__(109);
+	var DataReader = __webpack_require__(87);
 	var utils = __webpack_require__(12);
 
 	function ArrayReader(data) {
@@ -45549,7 +45532,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 109 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -45671,11 +45654,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 110 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var DataReader = __webpack_require__(109);
+	var DataReader = __webpack_require__(87);
 	var utils = __webpack_require__(12);
 
 	function StringReader(data) {
@@ -45715,11 +45698,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 111 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var Uint8ArrayReader = __webpack_require__(112);
+	var Uint8ArrayReader = __webpack_require__(90);
 	var utils = __webpack_require__(12);
 
 	function NodeBufferReader(data) {
@@ -45740,11 +45723,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 112 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var ArrayReader = __webpack_require__(108);
+	var ArrayReader = __webpack_require__(86);
 	var utils = __webpack_require__(12);
 
 	function Uint8ArrayReader(data) {
@@ -45768,16 +45751,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 113 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var readerFor = __webpack_require__(107);
+	var readerFor = __webpack_require__(85);
 	var utils = __webpack_require__(12);
-	var CompressedObject = __webpack_require__(77);
-	var crc32fn = __webpack_require__(81);
+	var CompressedObject = __webpack_require__(55);
+	var crc32fn = __webpack_require__(59);
 	var utf8 = __webpack_require__(11);
-	var compressions = __webpack_require__(84);
+	var compressions = __webpack_require__(62);
 	var support = __webpack_require__(13);
 
 	var MADE_BY_DOS = 0x00;
@@ -46066,7 +46049,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 114 */
+/* 92 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -46175,25 +46158,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 115 */
+/* 93 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_115__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_93__;
 
 /***/ }),
-/* 116 */
+/* 94 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_116__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_94__;
 
 /***/ }),
-/* 117 */
+/* 95 */
 /***/ (function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_117__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_95__;
 
 /***/ }),
-/* 118 */
+/* 96 */
 /***/ (function(module, exports) {
 
 	var CALLBACK_NAME = '__googleMapsApiOnLoadCallback'
@@ -46246,7 +46229,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 119 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var require;/* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -47393,22 +47376,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    function createDate (y, m, d, h, M, s, ms) {
 	        // can't just apply() to create a date:
 	        // https://stackoverflow.com/q/181348
-	        var date = new Date(y, m, d, h, M, s, ms);
-
+	        var date;
 	        // the date constructor remaps years 0-99 to 1900-1999
-	        if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
-	            date.setFullYear(y);
+	        if (y < 100 && y >= 0) {
+	            // preserve leap years using a full 400 year cycle, then reset
+	            date = new Date(y + 400, m, d, h, M, s, ms);
+	            if (isFinite(date.getFullYear())) {
+	                date.setFullYear(y);
+	            }
+	        } else {
+	            date = new Date(y, m, d, h, M, s, ms);
 	        }
+
 	        return date;
 	    }
 
 	    function createUTCDate (y) {
-	        var date = new Date(Date.UTC.apply(null, arguments));
-
+	        var date;
 	        // the Date.UTC function remaps years 0-99 to 1900-1999
-	        if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
-	            date.setUTCFullYear(y);
+	        if (y < 100 && y >= 0) {
+	            var args = Array.prototype.slice.call(arguments);
+	            // preserve leap years using a full 400 year cycle, then reset
+	            args[0] = y + 400;
+	            date = new Date(Date.UTC.apply(null, args));
+	            if (isFinite(date.getUTCFullYear())) {
+	                date.setUTCFullYear(y);
+	            }
+	        } else {
+	            date = new Date(Date.UTC.apply(null, arguments));
 	        }
+
 	        return date;
 	    }
 
@@ -47510,7 +47507,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	    var defaultLocaleWeek = {
 	        dow : 0, // Sunday is the first day of the week.
-	        doy : 6  // The week that contains Jan 1st is the first week of the year.
+	        doy : 6  // The week that contains Jan 6th is the first week of the year.
 	    };
 
 	    function localeFirstDayOfWeek () {
@@ -47619,25 +47616,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    }
 
 	    // LOCALES
+	    function shiftWeekdays (ws, n) {
+	        return ws.slice(n, 7).concat(ws.slice(0, n));
+	    }
 
 	    var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
 	    function localeWeekdays (m, format) {
-	        if (!m) {
-	            return isArray(this._weekdays) ? this._weekdays :
-	                this._weekdays['standalone'];
-	        }
-	        return isArray(this._weekdays) ? this._weekdays[m.day()] :
-	            this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
+	        var weekdays = isArray(this._weekdays) ? this._weekdays :
+	            this._weekdays[(m && m !== true && this._weekdays.isFormat.test(format)) ? 'format' : 'standalone'];
+	        return (m === true) ? shiftWeekdays(weekdays, this._week.dow)
+	            : (m) ? weekdays[m.day()] : weekdays;
 	    }
 
 	    var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
 	    function localeWeekdaysShort (m) {
-	        return (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;
+	        return (m === true) ? shiftWeekdays(this._weekdaysShort, this._week.dow)
+	            : (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;
 	    }
 
 	    var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
 	    function localeWeekdaysMin (m) {
-	        return (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;
+	        return (m === true) ? shiftWeekdays(this._weekdaysMin, this._week.dow)
+	            : (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;
 	    }
 
 	    function handleStrictParse$1(weekdayName, format, strict) {
@@ -48084,7 +48084,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            try {
 	                oldLocale = globalLocale._abbr;
 	                var aliasedRequire = require;
-	                __webpack_require__(120)("./" + name);
+	                __webpack_require__(98)("./" + name);
 	                getSetGlobalLocale(oldLocale);
 	            } catch (e) {}
 	        }
@@ -48386,13 +48386,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    weekdayOverflow = true;
 	                }
 	            } else if (w.e != null) {
-	                // local weekday -- counting starts from begining of week
+	                // local weekday -- counting starts from beginning of week
 	                weekday = w.e + dow;
 	                if (w.e < 0 || w.e > 6) {
 	                    weekdayOverflow = true;
 	                }
 	            } else {
-	                // default to begining of week
+	                // default to beginning of week
 	                weekday = dow;
 	            }
 	        }
@@ -48986,7 +48986,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            years = normalizedInput.year || 0,
 	            quarters = normalizedInput.quarter || 0,
 	            months = normalizedInput.month || 0,
-	            weeks = normalizedInput.week || 0,
+	            weeks = normalizedInput.week || normalizedInput.isoWeek || 0,
 	            days = normalizedInput.day || 0,
 	            hours = normalizedInput.hour || 0,
 	            minutes = normalizedInput.minute || 0,
@@ -49290,7 +49290,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
 	            };
 	        } else if (!!(match = isoRegex.exec(input))) {
-	            sign = (match[1] === '-') ? -1 : (match[1] === '+') ? 1 : 1;
+	            sign = (match[1] === '-') ? -1 : 1;
 	            duration = {
 	                y : parseIso(match[2], sign),
 	                M : parseIso(match[3], sign),
@@ -49332,7 +49332,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    }
 
 	    function positiveMomentsDifference(base, other) {
-	        var res = {milliseconds: 0, months: 0};
+	        var res = {};
 
 	        res.months = other.month() - base.month() +
 	            (other.year() - base.year()) * 12;
@@ -49441,7 +49441,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        if (!(this.isValid() && localInput.isValid())) {
 	            return false;
 	        }
-	        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+	        units = normalizeUnits(units) || 'millisecond';
 	        if (units === 'millisecond') {
 	            return this.valueOf() > localInput.valueOf();
 	        } else {
@@ -49454,7 +49454,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        if (!(this.isValid() && localInput.isValid())) {
 	            return false;
 	        }
-	        units = normalizeUnits(!isUndefined(units) ? units : 'millisecond');
+	        units = normalizeUnits(units) || 'millisecond';
 	        if (units === 'millisecond') {
 	            return this.valueOf() < localInput.valueOf();
 	        } else {
@@ -49463,9 +49463,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    }
 
 	    function isBetween (from, to, units, inclusivity) {
+	        var localFrom = isMoment(from) ? from : createLocal(from),
+	            localTo = isMoment(to) ? to : createLocal(to);
+	        if (!(this.isValid() && localFrom.isValid() && localTo.isValid())) {
+	            return false;
+	        }
 	        inclusivity = inclusivity || '()';
-	        return (inclusivity[0] === '(' ? this.isAfter(from, units) : !this.isBefore(from, units)) &&
-	            (inclusivity[1] === ')' ? this.isBefore(to, units) : !this.isAfter(to, units));
+	        return (inclusivity[0] === '(' ? this.isAfter(localFrom, units) : !this.isBefore(localFrom, units)) &&
+	            (inclusivity[1] === ')' ? this.isBefore(localTo, units) : !this.isAfter(localTo, units));
 	    }
 
 	    function isSame (input, units) {
@@ -49474,7 +49479,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        if (!(this.isValid() && localInput.isValid())) {
 	            return false;
 	        }
-	        units = normalizeUnits(units || 'millisecond');
+	        units = normalizeUnits(units) || 'millisecond';
 	        if (units === 'millisecond') {
 	            return this.valueOf() === localInput.valueOf();
 	        } else {
@@ -49484,11 +49489,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    }
 
 	    function isSameOrAfter (input, units) {
-	        return this.isSame(input, units) || this.isAfter(input,units);
+	        return this.isSame(input, units) || this.isAfter(input, units);
 	    }
 
 	    function isSameOrBefore (input, units) {
-	        return this.isSame(input, units) || this.isBefore(input,units);
+	        return this.isSame(input, units) || this.isBefore(input, units);
 	    }
 
 	    function diff (input, units, asFloat) {
@@ -49665,62 +49670,130 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        return this._locale;
 	    }
 
+	    var MS_PER_SECOND = 1000;
+	    var MS_PER_MINUTE = 60 * MS_PER_SECOND;
+	    var MS_PER_HOUR = 60 * MS_PER_MINUTE;
+	    var MS_PER_400_YEARS = (365 * 400 + 97) * 24 * MS_PER_HOUR;
+
+	    // actual modulo - handles negative numbers (for dates before 1970):
+	    function mod$1(dividend, divisor) {
+	        return (dividend % divisor + divisor) % divisor;
+	    }
+
+	    function localStartOfDate(y, m, d) {
+	        // the date constructor remaps years 0-99 to 1900-1999
+	        if (y < 100 && y >= 0) {
+	            // preserve leap years using a full 400 year cycle, then reset
+	            return new Date(y + 400, m, d) - MS_PER_400_YEARS;
+	        } else {
+	            return new Date(y, m, d).valueOf();
+	        }
+	    }
+
+	    function utcStartOfDate(y, m, d) {
+	        // Date.UTC remaps years 0-99 to 1900-1999
+	        if (y < 100 && y >= 0) {
+	            // preserve leap years using a full 400 year cycle, then reset
+	            return Date.UTC(y + 400, m, d) - MS_PER_400_YEARS;
+	        } else {
+	            return Date.UTC(y, m, d);
+	        }
+	    }
+
 	    function startOf (units) {
+	        var time;
 	        units = normalizeUnits(units);
-	        // the following switch intentionally omits break keywords
-	        // to utilize falling through the cases.
+	        if (units === undefined || units === 'millisecond' || !this.isValid()) {
+	            return this;
+	        }
+
+	        var startOfDate = this._isUTC ? utcStartOfDate : localStartOfDate;
+
 	        switch (units) {
 	            case 'year':
-	                this.month(0);
-	                /* falls through */
+	                time = startOfDate(this.year(), 0, 1);
+	                break;
 	            case 'quarter':
+	                time = startOfDate(this.year(), this.month() - this.month() % 3, 1);
+	                break;
 	            case 'month':
-	                this.date(1);
-	                /* falls through */
+	                time = startOfDate(this.year(), this.month(), 1);
+	                break;
 	            case 'week':
+	                time = startOfDate(this.year(), this.month(), this.date() - this.weekday());
+	                break;
 	            case 'isoWeek':
+	                time = startOfDate(this.year(), this.month(), this.date() - (this.isoWeekday() - 1));
+	                break;
 	            case 'day':
 	            case 'date':
-	                this.hours(0);
-	                /* falls through */
+	                time = startOfDate(this.year(), this.month(), this.date());
+	                break;
 	            case 'hour':
-	                this.minutes(0);
-	                /* falls through */
+	                time = this._d.valueOf();
+	                time -= mod$1(time + (this._isUTC ? 0 : this.utcOffset() * MS_PER_MINUTE), MS_PER_HOUR);
+	                break;
 	            case 'minute':
-	                this.seconds(0);
-	                /* falls through */
+	                time = this._d.valueOf();
+	                time -= mod$1(time, MS_PER_MINUTE);
+	                break;
 	            case 'second':
-	                this.milliseconds(0);
+	                time = this._d.valueOf();
+	                time -= mod$1(time, MS_PER_SECOND);
+	                break;
 	        }
 
-	        // weeks are a special case
-	        if (units === 'week') {
-	            this.weekday(0);
-	        }
-	        if (units === 'isoWeek') {
-	            this.isoWeekday(1);
-	        }
-
-	        // quarters are also special
-	        if (units === 'quarter') {
-	            this.month(Math.floor(this.month() / 3) * 3);
-	        }
-
+	        this._d.setTime(time);
+	        hooks.updateOffset(this, true);
 	        return this;
 	    }
 
 	    function endOf (units) {
+	        var time;
 	        units = normalizeUnits(units);
-	        if (units === undefined || units === 'millisecond') {
+	        if (units === undefined || units === 'millisecond' || !this.isValid()) {
 	            return this;
 	        }
 
-	        // 'date' is an alias for 'day', so it should be considered as such.
-	        if (units === 'date') {
-	            units = 'day';
+	        var startOfDate = this._isUTC ? utcStartOfDate : localStartOfDate;
+
+	        switch (units) {
+	            case 'year':
+	                time = startOfDate(this.year() + 1, 0, 1) - 1;
+	                break;
+	            case 'quarter':
+	                time = startOfDate(this.year(), this.month() - this.month() % 3 + 3, 1) - 1;
+	                break;
+	            case 'month':
+	                time = startOfDate(this.year(), this.month() + 1, 1) - 1;
+	                break;
+	            case 'week':
+	                time = startOfDate(this.year(), this.month(), this.date() - this.weekday() + 7) - 1;
+	                break;
+	            case 'isoWeek':
+	                time = startOfDate(this.year(), this.month(), this.date() - (this.isoWeekday() - 1) + 7) - 1;
+	                break;
+	            case 'day':
+	            case 'date':
+	                time = startOfDate(this.year(), this.month(), this.date() + 1) - 1;
+	                break;
+	            case 'hour':
+	                time = this._d.valueOf();
+	                time += MS_PER_HOUR - mod$1(time + (this._isUTC ? 0 : this.utcOffset() * MS_PER_MINUTE), MS_PER_HOUR) - 1;
+	                break;
+	            case 'minute':
+	                time = this._d.valueOf();
+	                time += MS_PER_MINUTE - mod$1(time, MS_PER_MINUTE) - 1;
+	                break;
+	            case 'second':
+	                time = this._d.valueOf();
+	                time += MS_PER_SECOND - mod$1(time, MS_PER_SECOND) - 1;
+	                break;
 	        }
 
-	        return this.startOf(units).add(1, (units === 'isoWeek' ? 'week' : units)).subtract(1, 'ms');
+	        this._d.setTime(time);
+	        hooks.updateOffset(this, true);
+	        return this;
 	    }
 
 	    function valueOf () {
@@ -50426,10 +50499,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        units = normalizeUnits(units);
 
-	        if (units === 'month' || units === 'year') {
-	            days   = this._days   + milliseconds / 864e5;
+	        if (units === 'month' || units === 'quarter' || units === 'year') {
+	            days = this._days + milliseconds / 864e5;
 	            months = this._months + daysToMonths(days);
-	            return units === 'month' ? months : months / 12;
+	            switch (units) {
+	                case 'month':   return months;
+	                case 'quarter': return months / 3;
+	                case 'year':    return months / 12;
+	            }
 	        } else {
 	            // handle milliseconds separately because of floating point math errors (issue #1867)
 	            days = this._days + Math.round(monthsToDays(this._months));
@@ -50472,6 +50549,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    var asDays         = makeAs('d');
 	    var asWeeks        = makeAs('w');
 	    var asMonths       = makeAs('M');
+	    var asQuarters     = makeAs('Q');
 	    var asYears        = makeAs('y');
 
 	    function clone$1 () {
@@ -50663,6 +50741,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    proto$2.asDays         = asDays;
 	    proto$2.asWeeks        = asWeeks;
 	    proto$2.asMonths       = asMonths;
+	    proto$2.asQuarters     = asQuarters;
 	    proto$2.asYears        = asYears;
 	    proto$2.valueOf        = valueOf$1;
 	    proto$2._bubble        = bubble;
@@ -50707,7 +50786,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    // Side effect imports
 
 
-	    hooks.version = '2.22.2';
+	    hooks.version = '2.24.0';
 
 	    setHookCallback(createLocal);
 
@@ -50748,7 +50827,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        TIME: 'HH:mm',                                  // <input type="time" />
 	        TIME_SECONDS: 'HH:mm:ss',                       // <input type="time" step="1" />
 	        TIME_MS: 'HH:mm:ss.SSS',                        // <input type="time" step="0.001" />
-	        WEEK: 'YYYY-[W]WW',                             // <input type="week" />
+	        WEEK: 'GGGG-[W]WW',                             // <input type="week" />
 	        MONTH: 'YYYY-MM'                                // <input type="month" />
 	    };
 
@@ -50759,256 +50838,264 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
 
 /***/ }),
-/* 120 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var map = {
-		"./af": 121,
-		"./af.js": 121,
-		"./ar": 122,
-		"./ar-dz": 123,
-		"./ar-dz.js": 123,
-		"./ar-kw": 124,
-		"./ar-kw.js": 124,
-		"./ar-ly": 125,
-		"./ar-ly.js": 125,
-		"./ar-ma": 126,
-		"./ar-ma.js": 126,
-		"./ar-sa": 127,
-		"./ar-sa.js": 127,
-		"./ar-tn": 128,
-		"./ar-tn.js": 128,
-		"./ar.js": 122,
-		"./az": 129,
-		"./az.js": 129,
-		"./be": 130,
-		"./be.js": 130,
-		"./bg": 131,
-		"./bg.js": 131,
-		"./bm": 132,
-		"./bm.js": 132,
-		"./bn": 133,
-		"./bn.js": 133,
-		"./bo": 134,
-		"./bo.js": 134,
-		"./br": 135,
-		"./br.js": 135,
-		"./bs": 136,
-		"./bs.js": 136,
-		"./ca": 137,
-		"./ca.js": 137,
-		"./cs": 138,
-		"./cs.js": 138,
-		"./cv": 139,
-		"./cv.js": 139,
-		"./cy": 140,
-		"./cy.js": 140,
-		"./da": 141,
-		"./da.js": 141,
-		"./de": 142,
-		"./de-at": 143,
-		"./de-at.js": 143,
-		"./de-ch": 144,
-		"./de-ch.js": 144,
-		"./de.js": 142,
-		"./dv": 145,
-		"./dv.js": 145,
-		"./el": 146,
-		"./el.js": 146,
-		"./en-au": 147,
-		"./en-au.js": 147,
-		"./en-ca": 148,
-		"./en-ca.js": 148,
-		"./en-gb": 149,
-		"./en-gb.js": 149,
-		"./en-ie": 150,
-		"./en-ie.js": 150,
-		"./en-il": 151,
-		"./en-il.js": 151,
-		"./en-nz": 152,
-		"./en-nz.js": 152,
-		"./eo": 153,
-		"./eo.js": 153,
-		"./es": 154,
-		"./es-do": 155,
-		"./es-do.js": 155,
-		"./es-us": 156,
-		"./es-us.js": 156,
-		"./es.js": 154,
-		"./et": 157,
-		"./et.js": 157,
-		"./eu": 158,
-		"./eu.js": 158,
-		"./fa": 159,
-		"./fa.js": 159,
-		"./fi": 160,
-		"./fi.js": 160,
-		"./fo": 161,
-		"./fo.js": 161,
-		"./fr": 162,
-		"./fr-ca": 163,
-		"./fr-ca.js": 163,
-		"./fr-ch": 164,
-		"./fr-ch.js": 164,
-		"./fr.js": 162,
-		"./fy": 165,
-		"./fy.js": 165,
-		"./gd": 166,
-		"./gd.js": 166,
-		"./gl": 167,
-		"./gl.js": 167,
-		"./gom-latn": 168,
-		"./gom-latn.js": 168,
-		"./gu": 169,
-		"./gu.js": 169,
-		"./he": 170,
-		"./he.js": 170,
-		"./hi": 171,
-		"./hi.js": 171,
-		"./hr": 172,
-		"./hr.js": 172,
-		"./hu": 173,
-		"./hu.js": 173,
-		"./hy-am": 174,
-		"./hy-am.js": 174,
-		"./id": 175,
-		"./id.js": 175,
-		"./is": 176,
-		"./is.js": 176,
-		"./it": 177,
-		"./it.js": 177,
-		"./ja": 178,
-		"./ja.js": 178,
-		"./jv": 179,
-		"./jv.js": 179,
-		"./ka": 180,
-		"./ka.js": 180,
-		"./kk": 181,
-		"./kk.js": 181,
-		"./km": 182,
-		"./km.js": 182,
-		"./kn": 183,
-		"./kn.js": 183,
-		"./ko": 184,
-		"./ko.js": 184,
-		"./ky": 185,
-		"./ky.js": 185,
-		"./lb": 186,
-		"./lb.js": 186,
-		"./lo": 187,
-		"./lo.js": 187,
-		"./lt": 188,
-		"./lt.js": 188,
-		"./lv": 189,
-		"./lv.js": 189,
-		"./me": 190,
-		"./me.js": 190,
-		"./mi": 191,
-		"./mi.js": 191,
-		"./mk": 192,
-		"./mk.js": 192,
-		"./ml": 193,
-		"./ml.js": 193,
-		"./mn": 194,
-		"./mn.js": 194,
-		"./mr": 195,
-		"./mr.js": 195,
-		"./ms": 196,
-		"./ms-my": 197,
-		"./ms-my.js": 197,
-		"./ms.js": 196,
-		"./mt": 198,
-		"./mt.js": 198,
-		"./my": 199,
-		"./my.js": 199,
-		"./nb": 200,
-		"./nb.js": 200,
-		"./ne": 201,
-		"./ne.js": 201,
-		"./nl": 202,
-		"./nl-be": 203,
-		"./nl-be.js": 203,
-		"./nl.js": 202,
-		"./nn": 204,
-		"./nn.js": 204,
-		"./pa-in": 205,
-		"./pa-in.js": 205,
-		"./pl": 206,
-		"./pl.js": 206,
-		"./pt": 207,
-		"./pt-br": 208,
-		"./pt-br.js": 208,
-		"./pt.js": 207,
-		"./ro": 209,
-		"./ro.js": 209,
-		"./ru": 210,
-		"./ru.js": 210,
-		"./sd": 211,
-		"./sd.js": 211,
-		"./se": 212,
-		"./se.js": 212,
-		"./si": 213,
-		"./si.js": 213,
-		"./sk": 214,
-		"./sk.js": 214,
-		"./sl": 215,
-		"./sl.js": 215,
-		"./sq": 216,
-		"./sq.js": 216,
-		"./sr": 217,
-		"./sr-cyrl": 218,
-		"./sr-cyrl.js": 218,
-		"./sr.js": 217,
-		"./ss": 219,
-		"./ss.js": 219,
-		"./sv": 220,
-		"./sv.js": 220,
-		"./sw": 221,
-		"./sw.js": 221,
-		"./ta": 222,
-		"./ta.js": 222,
-		"./te": 223,
-		"./te.js": 223,
-		"./tet": 224,
-		"./tet.js": 224,
-		"./tg": 225,
-		"./tg.js": 225,
-		"./th": 226,
-		"./th.js": 226,
-		"./tl-ph": 227,
-		"./tl-ph.js": 227,
-		"./tlh": 228,
-		"./tlh.js": 228,
-		"./tr": 229,
-		"./tr.js": 229,
-		"./tzl": 230,
-		"./tzl.js": 230,
-		"./tzm": 231,
-		"./tzm-latn": 232,
-		"./tzm-latn.js": 232,
-		"./tzm.js": 231,
-		"./ug-cn": 233,
-		"./ug-cn.js": 233,
-		"./uk": 234,
-		"./uk.js": 234,
-		"./ur": 235,
-		"./ur.js": 235,
-		"./uz": 236,
-		"./uz-latn": 237,
-		"./uz-latn.js": 237,
-		"./uz.js": 236,
-		"./vi": 238,
-		"./vi.js": 238,
-		"./x-pseudo": 239,
-		"./x-pseudo.js": 239,
-		"./yo": 240,
-		"./yo.js": 240,
-		"./zh-cn": 241,
-		"./zh-cn.js": 241,
-		"./zh-hk": 242,
-		"./zh-hk.js": 242,
-		"./zh-tw": 243,
-		"./zh-tw.js": 243
+		"./af": 99,
+		"./af.js": 99,
+		"./ar": 100,
+		"./ar-dz": 101,
+		"./ar-dz.js": 101,
+		"./ar-kw": 102,
+		"./ar-kw.js": 102,
+		"./ar-ly": 103,
+		"./ar-ly.js": 103,
+		"./ar-ma": 104,
+		"./ar-ma.js": 104,
+		"./ar-sa": 105,
+		"./ar-sa.js": 105,
+		"./ar-tn": 106,
+		"./ar-tn.js": 106,
+		"./ar.js": 100,
+		"./az": 107,
+		"./az.js": 107,
+		"./be": 108,
+		"./be.js": 108,
+		"./bg": 109,
+		"./bg.js": 109,
+		"./bm": 110,
+		"./bm.js": 110,
+		"./bn": 111,
+		"./bn.js": 111,
+		"./bo": 112,
+		"./bo.js": 112,
+		"./br": 113,
+		"./br.js": 113,
+		"./bs": 114,
+		"./bs.js": 114,
+		"./ca": 115,
+		"./ca.js": 115,
+		"./cs": 116,
+		"./cs.js": 116,
+		"./cv": 117,
+		"./cv.js": 117,
+		"./cy": 118,
+		"./cy.js": 118,
+		"./da": 119,
+		"./da.js": 119,
+		"./de": 120,
+		"./de-at": 121,
+		"./de-at.js": 121,
+		"./de-ch": 122,
+		"./de-ch.js": 122,
+		"./de.js": 120,
+		"./dv": 123,
+		"./dv.js": 123,
+		"./el": 124,
+		"./el.js": 124,
+		"./en-SG": 125,
+		"./en-SG.js": 125,
+		"./en-au": 126,
+		"./en-au.js": 126,
+		"./en-ca": 127,
+		"./en-ca.js": 127,
+		"./en-gb": 128,
+		"./en-gb.js": 128,
+		"./en-ie": 129,
+		"./en-ie.js": 129,
+		"./en-il": 130,
+		"./en-il.js": 130,
+		"./en-nz": 131,
+		"./en-nz.js": 131,
+		"./eo": 132,
+		"./eo.js": 132,
+		"./es": 133,
+		"./es-do": 134,
+		"./es-do.js": 134,
+		"./es-us": 135,
+		"./es-us.js": 135,
+		"./es.js": 133,
+		"./et": 136,
+		"./et.js": 136,
+		"./eu": 137,
+		"./eu.js": 137,
+		"./fa": 138,
+		"./fa.js": 138,
+		"./fi": 139,
+		"./fi.js": 139,
+		"./fo": 140,
+		"./fo.js": 140,
+		"./fr": 141,
+		"./fr-ca": 142,
+		"./fr-ca.js": 142,
+		"./fr-ch": 143,
+		"./fr-ch.js": 143,
+		"./fr.js": 141,
+		"./fy": 144,
+		"./fy.js": 144,
+		"./ga": 145,
+		"./ga.js": 145,
+		"./gd": 146,
+		"./gd.js": 146,
+		"./gl": 147,
+		"./gl.js": 147,
+		"./gom-latn": 148,
+		"./gom-latn.js": 148,
+		"./gu": 149,
+		"./gu.js": 149,
+		"./he": 150,
+		"./he.js": 150,
+		"./hi": 151,
+		"./hi.js": 151,
+		"./hr": 152,
+		"./hr.js": 152,
+		"./hu": 153,
+		"./hu.js": 153,
+		"./hy-am": 154,
+		"./hy-am.js": 154,
+		"./id": 155,
+		"./id.js": 155,
+		"./is": 156,
+		"./is.js": 156,
+		"./it": 157,
+		"./it-ch": 158,
+		"./it-ch.js": 158,
+		"./it.js": 157,
+		"./ja": 159,
+		"./ja.js": 159,
+		"./jv": 160,
+		"./jv.js": 160,
+		"./ka": 161,
+		"./ka.js": 161,
+		"./kk": 162,
+		"./kk.js": 162,
+		"./km": 163,
+		"./km.js": 163,
+		"./kn": 164,
+		"./kn.js": 164,
+		"./ko": 165,
+		"./ko.js": 165,
+		"./ku": 166,
+		"./ku.js": 166,
+		"./ky": 167,
+		"./ky.js": 167,
+		"./lb": 168,
+		"./lb.js": 168,
+		"./lo": 169,
+		"./lo.js": 169,
+		"./lt": 170,
+		"./lt.js": 170,
+		"./lv": 171,
+		"./lv.js": 171,
+		"./me": 172,
+		"./me.js": 172,
+		"./mi": 173,
+		"./mi.js": 173,
+		"./mk": 174,
+		"./mk.js": 174,
+		"./ml": 175,
+		"./ml.js": 175,
+		"./mn": 176,
+		"./mn.js": 176,
+		"./mr": 177,
+		"./mr.js": 177,
+		"./ms": 178,
+		"./ms-my": 179,
+		"./ms-my.js": 179,
+		"./ms.js": 178,
+		"./mt": 180,
+		"./mt.js": 180,
+		"./my": 181,
+		"./my.js": 181,
+		"./nb": 182,
+		"./nb.js": 182,
+		"./ne": 183,
+		"./ne.js": 183,
+		"./nl": 184,
+		"./nl-be": 185,
+		"./nl-be.js": 185,
+		"./nl.js": 184,
+		"./nn": 186,
+		"./nn.js": 186,
+		"./pa-in": 187,
+		"./pa-in.js": 187,
+		"./pl": 188,
+		"./pl.js": 188,
+		"./pt": 189,
+		"./pt-br": 190,
+		"./pt-br.js": 190,
+		"./pt.js": 189,
+		"./ro": 191,
+		"./ro.js": 191,
+		"./ru": 192,
+		"./ru.js": 192,
+		"./sd": 193,
+		"./sd.js": 193,
+		"./se": 194,
+		"./se.js": 194,
+		"./si": 195,
+		"./si.js": 195,
+		"./sk": 196,
+		"./sk.js": 196,
+		"./sl": 197,
+		"./sl.js": 197,
+		"./sq": 198,
+		"./sq.js": 198,
+		"./sr": 199,
+		"./sr-cyrl": 200,
+		"./sr-cyrl.js": 200,
+		"./sr.js": 199,
+		"./ss": 201,
+		"./ss.js": 201,
+		"./sv": 202,
+		"./sv.js": 202,
+		"./sw": 203,
+		"./sw.js": 203,
+		"./ta": 204,
+		"./ta.js": 204,
+		"./te": 205,
+		"./te.js": 205,
+		"./tet": 206,
+		"./tet.js": 206,
+		"./tg": 207,
+		"./tg.js": 207,
+		"./th": 208,
+		"./th.js": 208,
+		"./tl-ph": 209,
+		"./tl-ph.js": 209,
+		"./tlh": 210,
+		"./tlh.js": 210,
+		"./tr": 211,
+		"./tr.js": 211,
+		"./tzl": 212,
+		"./tzl.js": 212,
+		"./tzm": 213,
+		"./tzm-latn": 214,
+		"./tzm-latn.js": 214,
+		"./tzm.js": 213,
+		"./ug-cn": 215,
+		"./ug-cn.js": 215,
+		"./uk": 216,
+		"./uk.js": 216,
+		"./ur": 217,
+		"./ur.js": 217,
+		"./uz": 218,
+		"./uz-latn": 219,
+		"./uz-latn.js": 219,
+		"./uz.js": 218,
+		"./vi": 220,
+		"./vi.js": 220,
+		"./x-pseudo": 221,
+		"./x-pseudo.js": 221,
+		"./yo": 222,
+		"./yo.js": 222,
+		"./zh-cn": 223,
+		"./zh-cn.js": 223,
+		"./zh-hk": 224,
+		"./zh-hk.js": 224,
+		"./zh-tw": 225,
+		"./zh-tw.js": 225
 	};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
@@ -51021,17 +51108,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 	webpackContext.resolve = webpackContextResolve;
 	module.exports = webpackContext;
-	webpackContext.id = 120;
+	webpackContext.id = 98;
 
 
 /***/ }),
-/* 121 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51102,13 +51189,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 122 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51231,7 +51318,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -51241,13 +51328,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 123 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51294,7 +51381,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 4  // The week that contains Jan 1st is the first week of the year.
+	            doy : 4  // The week that contains Jan 4th is the first week of the year.
 	        }
 	    });
 
@@ -51304,13 +51391,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 124 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51357,7 +51444,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -51367,13 +51454,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 125 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51483,7 +51570,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -51493,13 +51580,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 126 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51546,7 +51633,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -51556,13 +51643,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 127 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51654,7 +51741,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -51664,13 +51751,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 128 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51727,13 +51814,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 129 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51826,7 +51913,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -51836,13 +51923,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 130 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -51962,7 +52049,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -51972,13 +52059,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 131 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52056,7 +52143,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -52066,13 +52153,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 132 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52128,13 +52215,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 133 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52241,7 +52328,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -52251,13 +52338,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 134 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52364,7 +52451,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -52374,13 +52461,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 135 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52486,13 +52573,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 136 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52631,7 +52718,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -52641,13 +52728,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 137 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52733,13 +52820,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 138 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52747,6 +52834,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	    var months = 'leden_únor_březen_duben_květen_červen_červenec_srpen_září_říjen_listopad_prosinec'.split('_'),
 	        monthsShort = 'led_úno_bře_dub_kvě_čvn_čvc_srp_zář_říj_lis_pro'.split('_');
+
+	    var monthsParse = [/^led/i, /^úno/i, /^bře/i, /^dub/i, /^kvě/i, /^(čvn|červen$|června)/i, /^(čvc|červenec|července)/i, /^srp/i, /^zář/i, /^říj/i, /^lis/i, /^pro/i];
+	    // NOTE: 'červen' is substring of 'červenec'; therefore 'červenec' must precede 'červen' in the regex to be fully matched.
+	    // Otherwise parser matches '1. červenec' as '1. červen' + 'ec'.
+	    var monthsRegex = /^(leden|únor|březen|duben|květen|červenec|července|červen|června|srpen|září|říjen|listopad|prosinec|led|úno|bře|dub|kvě|čvn|čvc|srp|zář|říj|lis|pro)/i;
+
 	    function plural(n) {
 	        return (n > 1) && (n < 5) && (~~(n / 10) !== 1);
 	    }
@@ -52813,28 +52906,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    var cs = moment.defineLocale('cs', {
 	        months : months,
 	        monthsShort : monthsShort,
-	        monthsParse : (function (months, monthsShort) {
-	            var i, _monthsParse = [];
-	            for (i = 0; i < 12; i++) {
-	                // use custom parser to solve problem with July (červenec)
-	                _monthsParse[i] = new RegExp('^' + months[i] + '$|^' + monthsShort[i] + '$', 'i');
-	            }
-	            return _monthsParse;
-	        }(months, monthsShort)),
-	        shortMonthsParse : (function (monthsShort) {
-	            var i, _shortMonthsParse = [];
-	            for (i = 0; i < 12; i++) {
-	                _shortMonthsParse[i] = new RegExp('^' + monthsShort[i] + '$', 'i');
-	            }
-	            return _shortMonthsParse;
-	        }(monthsShort)),
-	        longMonthsParse : (function (months) {
-	            var i, _longMonthsParse = [];
-	            for (i = 0; i < 12; i++) {
-	                _longMonthsParse[i] = new RegExp('^' + months[i] + '$', 'i');
-	            }
-	            return _longMonthsParse;
-	        }(months)),
+	        monthsRegex : monthsRegex,
+	        monthsShortRegex : monthsRegex,
+	        // NOTE: 'červen' is substring of 'červenec'; therefore 'červenec' must precede 'červen' in the regex to be fully matched.
+	        // Otherwise parser matches '1. červenec' as '1. červen' + 'ec'.
+	        monthsStrictRegex : /^(leden|ledna|února|únor|březen|března|duben|dubna|květen|května|červenec|července|červen|června|srpen|srpna|září|říjen|října|listopadu|listopad|prosinec|prosince)/i,
+	        monthsShortStrictRegex : /^(led|úno|bře|dub|kvě|čvn|čvc|srp|zář|říj|lis|pro)/i,
+	        monthsParse : monthsParse,
+	        longMonthsParse : monthsParse,
+	        shortMonthsParse : monthsParse,
 	        weekdays : 'neděle_pondělí_úterý_středa_čtvrtek_pátek_sobota'.split('_'),
 	        weekdaysShort : 'ne_po_út_st_čt_pá_so'.split('_'),
 	        weekdaysMin : 'ne_po_út_st_čt_pá_so'.split('_'),
@@ -52916,13 +52996,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 139 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -52973,7 +53053,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d-мӗш',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -52983,13 +53063,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 140 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53067,13 +53147,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 141 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53131,13 +53211,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 142 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53211,13 +53291,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 143 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53291,13 +53371,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 144 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53371,13 +53451,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 145 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53464,7 +53544,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 7,  // Sunday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -53474,13 +53554,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 146 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53578,13 +53658,84 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 147 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
+	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+	   factory(global.moment)
+	}(this, (function (moment) { 'use strict';
+
+
+	    var enSG = moment.defineLocale('en-SG', {
+	        months : 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_'),
+	        monthsShort : 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_'),
+	        weekdays : 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_'),
+	        weekdaysShort : 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_'),
+	        weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
+	        longDateFormat : {
+	            LT : 'HH:mm',
+	            LTS : 'HH:mm:ss',
+	            L : 'DD/MM/YYYY',
+	            LL : 'D MMMM YYYY',
+	            LLL : 'D MMMM YYYY HH:mm',
+	            LLLL : 'dddd, D MMMM YYYY HH:mm'
+	        },
+	        calendar : {
+	            sameDay : '[Today at] LT',
+	            nextDay : '[Tomorrow at] LT',
+	            nextWeek : 'dddd [at] LT',
+	            lastDay : '[Yesterday at] LT',
+	            lastWeek : '[Last] dddd [at] LT',
+	            sameElse : 'L'
+	        },
+	        relativeTime : {
+	            future : 'in %s',
+	            past : '%s ago',
+	            s : 'a few seconds',
+	            ss : '%d seconds',
+	            m : 'a minute',
+	            mm : '%d minutes',
+	            h : 'an hour',
+	            hh : '%d hours',
+	            d : 'a day',
+	            dd : '%d days',
+	            M : 'a month',
+	            MM : '%d months',
+	            y : 'a year',
+	            yy : '%d years'
+	        },
+	        dayOfMonthOrdinalParse: /\d{1,2}(st|nd|rd|th)/,
+	        ordinal : function (number) {
+	            var b = number % 10,
+	                output = (~~(number % 100 / 10) === 1) ? 'th' :
+	                (b === 1) ? 'st' :
+	                (b === 2) ? 'nd' :
+	                (b === 3) ? 'rd' : 'th';
+	            return number + output;
+	        },
+	        week : {
+	            dow : 1, // Monday is the first day of the week.
+	            doy : 4  // The week that contains Jan 4th is the first week of the year.
+	        }
+	    });
+
+	    return enSG;
+
+	})));
+
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	//! moment.js locale configuration
+
+	;(function (global, factory) {
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53649,13 +53800,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 148 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53716,13 +53867,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 149 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53787,13 +53938,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 150 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53808,7 +53959,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        longDateFormat : {
 	            LT : 'HH:mm',
 	            LTS : 'HH:mm:ss',
-	            L : 'DD-MM-YYYY',
+	            L : 'DD/MM/YYYY',
 	            LL : 'D MMMM YYYY',
 	            LLL : 'D MMMM YYYY HH:mm',
 	            LLLL : 'dddd D MMMM YYYY HH:mm'
@@ -53858,13 +54009,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 151 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53924,13 +54075,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 152 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -53995,13 +54146,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 153 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54060,7 +54211,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%da',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -54070,13 +54221,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 154 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54166,13 +54317,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 155 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54262,13 +54413,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 156 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54276,6 +54427,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	    var monthsShortDot = 'ene._feb._mar._abr._may._jun._jul._ago._sep._oct._nov._dic.'.split('_'),
 	        monthsShort = 'ene_feb_mar_abr_may_jun_jul_ago_sep_oct_nov_dic'.split('_');
+
+	    var monthsParse = [/^ene/i, /^feb/i, /^mar/i, /^abr/i, /^may/i, /^jun/i, /^jul/i, /^ago/i, /^sep/i, /^oct/i, /^nov/i, /^dic/i];
+	    var monthsRegex = /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene\.?|feb\.?|mar\.?|abr\.?|may\.?|jun\.?|jul\.?|ago\.?|sep\.?|oct\.?|nov\.?|dic\.?)/i;
 
 	    var esUs = moment.defineLocale('es-us', {
 	        months : 'enero_febrero_marzo_abril_mayo_junio_julio_agosto_septiembre_octubre_noviembre_diciembre'.split('_'),
@@ -54288,7 +54442,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                return monthsShortDot[m.month()];
 	            }
 	        },
-	        monthsParseExact : true,
+	        monthsRegex: monthsRegex,
+	        monthsShortRegex: monthsRegex,
+	        monthsStrictRegex: /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/i,
+	        monthsShortStrictRegex: /^(ene\.?|feb\.?|mar\.?|abr\.?|may\.?|jun\.?|jul\.?|ago\.?|sep\.?|oct\.?|nov\.?|dic\.?)/i,
+	        monthsParse: monthsParse,
+	        longMonthsParse: monthsParse,
+	        shortMonthsParse: monthsParse,
 	        weekdays : 'domingo_lunes_martes_miércoles_jueves_viernes_sábado'.split('_'),
 	        weekdaysShort : 'dom._lun._mar._mié._jue._vie._sáb.'.split('_'),
 	        weekdaysMin : 'do_lu_ma_mi_ju_vi_sá'.split('_'),
@@ -54297,9 +54457,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            LT : 'h:mm A',
 	            LTS : 'h:mm:ss A',
 	            L : 'MM/DD/YYYY',
-	            LL : 'MMMM [de] D [de] YYYY',
-	            LLL : 'MMMM [de] D [de] YYYY h:mm A',
-	            LLLL : 'dddd, MMMM [de] D [de] YYYY h:mm A'
+	            LL : 'D [de] MMMM [de] YYYY',
+	            LLL : 'D [de] MMMM [de] YYYY h:mm A',
+	            LLLL : 'dddd, D [de] MMMM [de] YYYY h:mm A'
 	        },
 	        calendar : {
 	            sameDay : function () {
@@ -54339,7 +54499,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%dº',
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -54349,13 +54509,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 157 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54433,13 +54593,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 158 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54493,7 +54653,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -54503,13 +54663,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 159 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54603,7 +54763,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%dم',
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12 // The week that contains Jan 1st is the first week of the year.
+	            doy : 12 // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -54613,13 +54773,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 160 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54726,13 +54886,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 161 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54765,13 +54925,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            past : '%s síðani',
 	            s : 'fá sekund',
 	            ss : '%d sekundir',
-	            m : 'ein minutt',
+	            m : 'ein minuttur',
 	            mm : '%d minuttir',
 	            h : 'ein tími',
 	            hh : '%d tímar',
 	            d : 'ein dagur',
 	            dd : '%d dagar',
-	            M : 'ein mánaði',
+	            M : 'ein mánaður',
 	            MM : '%d mánaðir',
 	            y : 'eitt ár',
 	            yy : '%d ár'
@@ -54790,13 +54950,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 162 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54877,13 +55037,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 163 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -54955,13 +55115,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 164 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55037,13 +55197,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 165 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55116,13 +55276,94 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 166 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
+	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+	   factory(global.moment)
+	}(this, (function (moment) { 'use strict';
+
+
+
+	    var months = [
+	        'Eanáir', 'Feabhra', 'Márta', 'Aibreán', 'Bealtaine', 'Méitheamh', 'Iúil', 'Lúnasa', 'Meán Fómhair', 'Deaireadh Fómhair', 'Samhain', 'Nollaig'
+	    ];
+
+	    var monthsShort = ['Eaná', 'Feab', 'Márt', 'Aibr', 'Beal', 'Méit', 'Iúil', 'Lúna', 'Meán', 'Deai', 'Samh', 'Noll'];
+
+	    var weekdays = ['Dé Domhnaigh', 'Dé Luain', 'Dé Máirt', 'Dé Céadaoin', 'Déardaoin', 'Dé hAoine', 'Dé Satharn'];
+
+	    var weekdaysShort = ['Dom', 'Lua', 'Mái', 'Céa', 'Déa', 'hAo', 'Sat'];
+
+	    var weekdaysMin = ['Do', 'Lu', 'Má', 'Ce', 'Dé', 'hA', 'Sa'];
+
+	    var ga = moment.defineLocale('ga', {
+	        months: months,
+	        monthsShort: monthsShort,
+	        monthsParseExact: true,
+	        weekdays: weekdays,
+	        weekdaysShort: weekdaysShort,
+	        weekdaysMin: weekdaysMin,
+	        longDateFormat: {
+	            LT: 'HH:mm',
+	            LTS: 'HH:mm:ss',
+	            L: 'DD/MM/YYYY',
+	            LL: 'D MMMM YYYY',
+	            LLL: 'D MMMM YYYY HH:mm',
+	            LLLL: 'dddd, D MMMM YYYY HH:mm'
+	        },
+	        calendar: {
+	            sameDay: '[Inniu ag] LT',
+	            nextDay: '[Amárach ag] LT',
+	            nextWeek: 'dddd [ag] LT',
+	            lastDay: '[Inné aig] LT',
+	            lastWeek: 'dddd [seo caite] [ag] LT',
+	            sameElse: 'L'
+	        },
+	        relativeTime: {
+	            future: 'i %s',
+	            past: '%s ó shin',
+	            s: 'cúpla soicind',
+	            ss: '%d soicind',
+	            m: 'nóiméad',
+	            mm: '%d nóiméad',
+	            h: 'uair an chloig',
+	            hh: '%d uair an chloig',
+	            d: 'lá',
+	            dd: '%d lá',
+	            M: 'mí',
+	            MM: '%d mí',
+	            y: 'bliain',
+	            yy: '%d bliain'
+	        },
+	        dayOfMonthOrdinalParse: /\d{1,2}(d|na|mh)/,
+	        ordinal: function (number) {
+	            var output = number === 1 ? 'd' : number % 10 === 2 ? 'na' : 'mh';
+	            return number + output;
+	        },
+	        week: {
+	            dow: 1, // Monday is the first day of the week.
+	            doy: 4  // The week that contains Jan 4th is the first week of the year.
+	        }
+	    });
+
+	    return ga;
+
+	})));
+
+
+/***/ }),
+/* 146 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	//! moment.js locale configuration
+
+	;(function (global, factory) {
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55196,13 +55437,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 167 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55277,13 +55518,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 168 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55295,8 +55536,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            'ss': [number + ' secondanim', number + ' second'],
 	            'm': ['eka mintan', 'ek minute'],
 	            'mm': [number + ' mintanim', number + ' mintam'],
-	            'h': ['eka horan', 'ek hor'],
-	            'hh': [number + ' horanim', number + ' horam'],
+	            'h': ['eka voran', 'ek vor'],
+	            'hh': [number + ' voranim', number + ' voram'],
 	            'd': ['eka disan', 'ek dis'],
 	            'dd': [number + ' disanim', number + ' dis'],
 	            'M': ['eka mhoinean', 'ek mhoino'],
@@ -55404,13 +55645,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 169 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55522,7 +55763,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week: {
 	            dow: 0, // Sunday is the first day of the week.
-	            doy: 6 // The week that contains Jan 1st is the first week of the year.
+	            doy: 6 // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -55532,13 +55773,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 170 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55633,13 +55874,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 171 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55751,7 +55992,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -55761,13 +56002,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 172 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -55909,7 +56150,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -55919,13 +56160,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 173 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56033,13 +56274,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 174 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56122,7 +56363,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -56132,13 +56373,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 175 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56208,7 +56449,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -56218,13 +56459,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 176 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56354,13 +56595,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 177 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56427,20 +56668,93 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 178 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
+	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+	   factory(global.moment)
+	}(this, (function (moment) { 'use strict';
+
+
+	    var itCh = moment.defineLocale('it-ch', {
+	        months : 'gennaio_febbraio_marzo_aprile_maggio_giugno_luglio_agosto_settembre_ottobre_novembre_dicembre'.split('_'),
+	        monthsShort : 'gen_feb_mar_apr_mag_giu_lug_ago_set_ott_nov_dic'.split('_'),
+	        weekdays : 'domenica_lunedì_martedì_mercoledì_giovedì_venerdì_sabato'.split('_'),
+	        weekdaysShort : 'dom_lun_mar_mer_gio_ven_sab'.split('_'),
+	        weekdaysMin : 'do_lu_ma_me_gi_ve_sa'.split('_'),
+	        longDateFormat : {
+	            LT : 'HH:mm',
+	            LTS : 'HH:mm:ss',
+	            L : 'DD.MM.YYYY',
+	            LL : 'D MMMM YYYY',
+	            LLL : 'D MMMM YYYY HH:mm',
+	            LLLL : 'dddd D MMMM YYYY HH:mm'
+	        },
+	        calendar : {
+	            sameDay: '[Oggi alle] LT',
+	            nextDay: '[Domani alle] LT',
+	            nextWeek: 'dddd [alle] LT',
+	            lastDay: '[Ieri alle] LT',
+	            lastWeek: function () {
+	                switch (this.day()) {
+	                    case 0:
+	                        return '[la scorsa] dddd [alle] LT';
+	                    default:
+	                        return '[lo scorso] dddd [alle] LT';
+	                }
+	            },
+	            sameElse: 'L'
+	        },
+	        relativeTime : {
+	            future : function (s) {
+	                return ((/^[0-9].+$/).test(s) ? 'tra' : 'in') + ' ' + s;
+	            },
+	            past : '%s fa',
+	            s : 'alcuni secondi',
+	            ss : '%d secondi',
+	            m : 'un minuto',
+	            mm : '%d minuti',
+	            h : 'un\'ora',
+	            hh : '%d ore',
+	            d : 'un giorno',
+	            dd : '%d giorni',
+	            M : 'un mese',
+	            MM : '%d mesi',
+	            y : 'un anno',
+	            yy : '%d anni'
+	        },
+	        dayOfMonthOrdinalParse : /\d{1,2}º/,
+	        ordinal: '%dº',
+	        week : {
+	            dow : 1, // Monday is the first day of the week.
+	            doy : 4  // The week that contains Jan 4th is the first week of the year.
+	        }
+	    });
+
+	    return itCh;
+
+	})));
+
+
+/***/ }),
+/* 159 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	//! moment.js locale configuration
+
+	;(function (global, factory) {
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
 
 
 	    var ja = moment.defineLocale('ja', {
-	        months : '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
+	        months : '一月_二月_三月_四月_五月_六月_七月_八月_九月_十月_十一月_十二月'.split('_'),
 	        monthsShort : '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
 	        weekdays : '日曜日_月曜日_火曜日_水曜日_木曜日_金曜日_土曜日'.split('_'),
 	        weekdaysShort : '日_月_火_水_木_金_土'.split('_'),
@@ -56523,13 +56837,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 179 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56599,7 +56913,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -56609,13 +56923,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 180 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56702,13 +57016,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 181 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56783,7 +57097,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -56793,13 +57107,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 182 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -56907,13 +57221,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 183 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57027,7 +57341,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -57037,13 +57351,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 184 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57122,13 +57436,136 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 185 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
+	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+	   factory(global.moment)
+	}(this, (function (moment) { 'use strict';
+
+
+	    var symbolMap = {
+	        '1': '١',
+	        '2': '٢',
+	        '3': '٣',
+	        '4': '٤',
+	        '5': '٥',
+	        '6': '٦',
+	        '7': '٧',
+	        '8': '٨',
+	        '9': '٩',
+	        '0': '٠'
+	    }, numberMap = {
+	        '١': '1',
+	        '٢': '2',
+	        '٣': '3',
+	        '٤': '4',
+	        '٥': '5',
+	        '٦': '6',
+	        '٧': '7',
+	        '٨': '8',
+	        '٩': '9',
+	        '٠': '0'
+	    },
+	    months = [
+	        'کانونی دووەم',
+	        'شوبات',
+	        'ئازار',
+	        'نیسان',
+	        'ئایار',
+	        'حوزەیران',
+	        'تەمموز',
+	        'ئاب',
+	        'ئەیلوول',
+	        'تشرینی یەكەم',
+	        'تشرینی دووەم',
+	        'كانونی یەکەم'
+	    ];
+
+
+	    var ku = moment.defineLocale('ku', {
+	        months : months,
+	        monthsShort : months,
+	        weekdays : 'یه‌كشه‌ممه‌_دووشه‌ممه‌_سێشه‌ممه‌_چوارشه‌ممه‌_پێنجشه‌ممه‌_هه‌ینی_شه‌ممه‌'.split('_'),
+	        weekdaysShort : 'یه‌كشه‌م_دووشه‌م_سێشه‌م_چوارشه‌م_پێنجشه‌م_هه‌ینی_شه‌ممه‌'.split('_'),
+	        weekdaysMin : 'ی_د_س_چ_پ_ه_ش'.split('_'),
+	        weekdaysParseExact : true,
+	        longDateFormat : {
+	            LT : 'HH:mm',
+	            LTS : 'HH:mm:ss',
+	            L : 'DD/MM/YYYY',
+	            LL : 'D MMMM YYYY',
+	            LLL : 'D MMMM YYYY HH:mm',
+	            LLLL : 'dddd, D MMMM YYYY HH:mm'
+	        },
+	        meridiemParse: /ئێواره‌|به‌یانی/,
+	        isPM: function (input) {
+	            return /ئێواره‌/.test(input);
+	        },
+	        meridiem : function (hour, minute, isLower) {
+	            if (hour < 12) {
+	                return 'به‌یانی';
+	            } else {
+	                return 'ئێواره‌';
+	            }
+	        },
+	        calendar : {
+	            sameDay : '[ئه‌مرۆ كاتژمێر] LT',
+	            nextDay : '[به‌یانی كاتژمێر] LT',
+	            nextWeek : 'dddd [كاتژمێر] LT',
+	            lastDay : '[دوێنێ كاتژمێر] LT',
+	            lastWeek : 'dddd [كاتژمێر] LT',
+	            sameElse : 'L'
+	        },
+	        relativeTime : {
+	            future : 'له‌ %s',
+	            past : '%s',
+	            s : 'چه‌ند چركه‌یه‌ك',
+	            ss : 'چركه‌ %d',
+	            m : 'یه‌ك خوله‌ك',
+	            mm : '%d خوله‌ك',
+	            h : 'یه‌ك كاتژمێر',
+	            hh : '%d كاتژمێر',
+	            d : 'یه‌ك ڕۆژ',
+	            dd : '%d ڕۆژ',
+	            M : 'یه‌ك مانگ',
+	            MM : '%d مانگ',
+	            y : 'یه‌ك ساڵ',
+	            yy : '%d ساڵ'
+	        },
+	        preparse: function (string) {
+	            return string.replace(/[١٢٣٤٥٦٧٨٩٠]/g, function (match) {
+	                return numberMap[match];
+	            }).replace(/،/g, ',');
+	        },
+	        postformat: function (string) {
+	            return string.replace(/\d/g, function (match) {
+	                return symbolMap[match];
+	            }).replace(/,/g, '،');
+	        },
+	        week : {
+	            dow : 6, // Saturday is the first day of the week.
+	            doy : 12 // The week that contains Jan 12th is the first week of the year.
+	        }
+	    });
+
+	    return ku;
+
+	})));
+
+
+/***/ }),
+/* 167 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	//! moment.js locale configuration
+
+	;(function (global, factory) {
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57175,8 +57612,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            sameDay : '[Бүгүн саат] LT',
 	            nextDay : '[Эртең саат] LT',
 	            nextWeek : 'dddd [саат] LT',
-	            lastDay : '[Кече саат] LT',
-	            lastWeek : '[Өткен аптанын] dddd [күнү] [саат] LT',
+	            lastDay : '[Кечээ саат] LT',
+	            lastWeek : '[Өткөн аптанын] dddd [күнү] [саат] LT',
 	            sameElse : 'L'
 	        },
 	        relativeTime : {
@@ -57203,7 +57640,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -57213,13 +57650,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 186 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57353,13 +57790,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 187 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57427,13 +57864,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 188 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57549,13 +57986,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 189 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57650,13 +58087,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 190 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57756,7 +58193,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -57766,13 +58203,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 191 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57834,13 +58271,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 192 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -57918,7 +58355,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -57928,13 +58365,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 193 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58013,13 +58450,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 194 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58121,13 +58558,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 195 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58275,7 +58712,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -58285,13 +58722,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 196 */
+/* 178 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58361,7 +58798,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -58371,13 +58808,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 197 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58447,7 +58884,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -58457,13 +58894,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 198 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58521,13 +58958,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 199 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58608,7 +59045,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week: {
 	            dow: 1, // Monday is the first day of the week.
-	            doy: 4 // The week that contains Jan 1st is the first week of the year.
+	            doy: 4 // The week that contains Jan 4th is the first week of the year.
 	        }
 	    });
 
@@ -58618,13 +59055,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 200 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58684,13 +59121,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 201 */
+/* 183 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58801,7 +59238,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -58811,13 +59248,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 202 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58827,7 +59264,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        monthsShortWithoutDots = 'jan_feb_mrt_apr_mei_jun_jul_aug_sep_okt_nov_dec'.split('_');
 
 	    var monthsParse = [/^jan/i, /^feb/i, /^maart|mrt.?$/i, /^apr/i, /^mei$/i, /^jun[i.]?$/i, /^jul[i.]?$/i, /^aug/i, /^sep/i, /^okt/i, /^nov/i, /^dec/i];
-	    var monthsRegex = /^(januari|februari|maart|april|mei|april|ju[nl]i|augustus|september|oktober|november|december|jan\.?|feb\.?|mrt\.?|apr\.?|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i;
+	    var monthsRegex = /^(januari|februari|maart|april|mei|ju[nl]i|augustus|september|oktober|november|december|jan\.?|feb\.?|mrt\.?|apr\.?|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i;
 
 	    var nl = moment.defineLocale('nl', {
 	        months : 'januari_februari_maart_april_mei_juni_juli_augustus_september_oktober_november_december'.split('_'),
@@ -58843,7 +59280,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        monthsRegex: monthsRegex,
 	        monthsShortRegex: monthsRegex,
-	        monthsStrictRegex: /^(januari|februari|maart|mei|ju[nl]i|april|augustus|september|oktober|november|december)/i,
+	        monthsStrictRegex: /^(januari|februari|maart|april|mei|ju[nl]i|augustus|september|oktober|november|december)/i,
 	        monthsShortStrictRegex: /^(jan\.?|feb\.?|mrt\.?|apr\.?|mei|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i,
 
 	        monthsParse : monthsParse,
@@ -58902,13 +59339,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 203 */
+/* 185 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -58918,7 +59355,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        monthsShortWithoutDots = 'jan_feb_mrt_apr_mei_jun_jul_aug_sep_okt_nov_dec'.split('_');
 
 	    var monthsParse = [/^jan/i, /^feb/i, /^maart|mrt.?$/i, /^apr/i, /^mei$/i, /^jun[i.]?$/i, /^jul[i.]?$/i, /^aug/i, /^sep/i, /^okt/i, /^nov/i, /^dec/i];
-	    var monthsRegex = /^(januari|februari|maart|april|mei|april|ju[nl]i|augustus|september|oktober|november|december|jan\.?|feb\.?|mrt\.?|apr\.?|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i;
+	    var monthsRegex = /^(januari|februari|maart|april|mei|ju[nl]i|augustus|september|oktober|november|december|jan\.?|feb\.?|mrt\.?|apr\.?|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i;
 
 	    var nlBe = moment.defineLocale('nl-be', {
 	        months : 'januari_februari_maart_april_mei_juni_juli_augustus_september_oktober_november_december'.split('_'),
@@ -58934,7 +59371,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        monthsRegex: monthsRegex,
 	        monthsShortRegex: monthsRegex,
-	        monthsStrictRegex: /^(januari|februari|maart|mei|ju[nl]i|april|augustus|september|oktober|november|december)/i,
+	        monthsStrictRegex: /^(januari|februari|maart|april|mei|ju[nl]i|augustus|september|oktober|november|december)/i,
 	        monthsShortStrictRegex: /^(jan\.?|feb\.?|mrt\.?|apr\.?|mei|ju[nl]\.?|aug\.?|sep\.?|okt\.?|nov\.?|dec\.?)/i,
 
 	        monthsParse : monthsParse,
@@ -58993,13 +59430,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 204 */
+/* 186 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59057,13 +59494,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 205 */
+/* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59095,7 +59532,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    };
 
 	    var paIn = moment.defineLocale('pa-in', {
-	        // There are months name as per Nanakshahi Calender but they are not used as rigidly in modern Punjabi.
+	        // There are months name as per Nanakshahi Calendar but they are not used as rigidly in modern Punjabi.
 	        months : 'ਜਨਵਰੀ_ਫ਼ਰਵਰੀ_ਮਾਰਚ_ਅਪ੍ਰੈਲ_ਮਈ_ਜੂਨ_ਜੁਲਾਈ_ਅਗਸਤ_ਸਤੰਬਰ_ਅਕਤੂਬਰ_ਨਵੰਬਰ_ਦਸੰਬਰ'.split('_'),
 	        monthsShort : 'ਜਨਵਰੀ_ਫ਼ਰਵਰੀ_ਮਾਰਚ_ਅਪ੍ਰੈਲ_ਮਈ_ਜੂਨ_ਜੁਲਾਈ_ਅਗਸਤ_ਸਤੰਬਰ_ਅਕਤੂਬਰ_ਨਵੰਬਰ_ਦਸੰਬਰ'.split('_'),
 	        weekdays : 'ਐਤਵਾਰ_ਸੋਮਵਾਰ_ਮੰਗਲਵਾਰ_ਬੁਧਵਾਰ_ਵੀਰਵਾਰ_ਸ਼ੁੱਕਰਵਾਰ_ਸ਼ਨੀਚਰਵਾਰ'.split('_'),
@@ -59175,7 +59612,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -59185,13 +59622,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 206 */
+/* 188 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59315,21 +59752,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 207 */
+/* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
 
 
 	    var pt = moment.defineLocale('pt', {
-	        months : 'janeiro_fevereiro_março_abril_maio_junho_julho_agosto_setembro_outubro_novembro_dezembro'.split('_'),
-	        monthsShort : 'jan_fev_mar_abr_mai_jun_jul_ago_set_out_nov_dez'.split('_'),
+	        months : 'Janeiro_Fevereiro_Março_Abril_Maio_Junho_Julho_Agosto_Setembro_Outubro_Novembro_Dezembro'.split('_'),
+	        monthsShort : 'Jan_Fev_Mar_Abr_Mai_Jun_Jul_Ago_Set_Out_Nov_Dez'.split('_'),
 	        weekdays : 'Domingo_Segunda-feira_Terça-feira_Quarta-feira_Quinta-feira_Sexta-feira_Sábado'.split('_'),
 	        weekdaysShort : 'Dom_Seg_Ter_Qua_Qui_Sex_Sáb'.split('_'),
 	        weekdaysMin : 'Do_2ª_3ª_4ª_5ª_6ª_Sá'.split('_'),
@@ -59384,21 +59821,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 208 */
+/* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
 
 
 	    var ptBr = moment.defineLocale('pt-br', {
-	        months : 'janeiro_fevereiro_março_abril_maio_junho_julho_agosto_setembro_outubro_novembro_dezembro'.split('_'),
-	        monthsShort : 'jan_fev_mar_abr_mai_jun_jul_ago_set_out_nov_dez'.split('_'),
+	        months : 'Janeiro_Fevereiro_Março_Abril_Maio_Junho_Julho_Agosto_Setembro_Outubro_Novembro_Dezembro'.split('_'),
+	        monthsShort : 'Jan_Fev_Mar_Abr_Mai_Jun_Jul_Ago_Set_Out_Nov_Dez'.split('_'),
 	        weekdays : 'Domingo_Segunda-feira_Terça-feira_Quarta-feira_Quinta-feira_Sexta-feira_Sábado'.split('_'),
 	        weekdaysShort : 'Dom_Seg_Ter_Qua_Qui_Sex_Sáb'.split('_'),
 	        weekdaysMin : 'Do_2ª_3ª_4ª_5ª_6ª_Sá'.split('_'),
@@ -59449,13 +59886,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 209 */
+/* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59518,7 +59955,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -59528,13 +59965,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 210 */
+/* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59714,13 +60151,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 211 */
+/* 193 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59816,13 +60253,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 212 */
+/* 194 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59880,13 +60317,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 213 */
+/* 195 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -59955,13 +60392,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 214 */
+/* 196 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60115,13 +60552,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 215 */
+/* 197 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60140,7 +60577,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                } else if (number < 5) {
 	                    result += withoutSuffix || isFuture ? 'sekunde' : 'sekundah';
 	                } else {
-	                    result += withoutSuffix || isFuture ? 'sekund' : 'sekund';
+	                    result += 'sekund';
 	                }
 	                return result;
 	            case 'm':
@@ -60282,7 +60719,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -60292,13 +60729,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 216 */
+/* 198 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60364,13 +60801,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 217 */
+/* 199 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60469,7 +60906,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -60479,13 +60916,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 218 */
+/* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60584,7 +61021,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ordinal : '%d.',
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -60594,13 +61031,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 219 */
+/* 201 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60686,13 +61123,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 220 */
+/* 202 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60759,13 +61196,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 221 */
+/* 203 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60812,7 +61249,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -60822,13 +61259,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 222 */
+/* 204 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -60945,7 +61382,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -60955,21 +61392,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 223 */
+/* 205 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
 
 
 	    var te = moment.defineLocale('te', {
-	        months : 'జనవరి_ఫిబ్రవరి_మార్చి_ఏప్రిల్_మే_జూన్_జూలై_ఆగస్టు_సెప్టెంబర్_అక్టోబర్_నవంబర్_డిసెంబర్'.split('_'),
-	        monthsShort : 'జన._ఫిబ్ర._మార్చి_ఏప్రి._మే_జూన్_జూలై_ఆగ._సెప్._అక్టో._నవ._డిసె.'.split('_'),
+	        months : 'జనవరి_ఫిబ్రవరి_మార్చి_ఏప్రిల్_మే_జూన్_జులై_ఆగస్టు_సెప్టెంబర్_అక్టోబర్_నవంబర్_డిసెంబర్'.split('_'),
+	        monthsShort : 'జన._ఫిబ్ర._మార్చి_ఏప్రి._మే_జూన్_జులై_ఆగ._సెప్._అక్టో._నవ._డిసె.'.split('_'),
 	        monthsParseExact : true,
 	        weekdays : 'ఆదివారం_సోమవారం_మంగళవారం_బుధవారం_గురువారం_శుక్రవారం_శనివారం'.split('_'),
 	        weekdaysShort : 'ఆది_సోమ_మంగళ_బుధ_గురు_శుక్ర_శని'.split('_'),
@@ -61038,7 +61475,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 0, // Sunday is the first day of the week.
-	            doy : 6  // The week that contains Jan 1st is the first week of the year.
+	            doy : 6  // The week that contains Jan 6th is the first week of the year.
 	        }
 	    });
 
@@ -61048,13 +61485,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 224 */
+/* 206 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61119,13 +61556,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 225 */
+/* 207 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61239,13 +61676,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 226 */
+/* 208 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61310,13 +61747,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 227 */
+/* 209 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61376,13 +61813,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 228 */
+/* 210 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61502,12 +61939,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 229 */
+/* 211 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61590,7 +62027,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -61600,13 +62037,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 230 */
+/* 212 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61695,13 +62132,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 231 */
+/* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61747,7 +62184,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -61757,13 +62194,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 232 */
+/* 214 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61809,7 +62246,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 6, // Saturday is the first day of the week.
-	            doy : 12  // The week that contains Jan 1st is the first week of the year.
+	            doy : 12  // The week that contains Jan 12th is the first week of the year.
 	        }
 	    });
 
@@ -61819,13 +62256,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 233 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js language configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61942,13 +62379,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 234 */
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -61984,6 +62421,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            'genitive': 'неділі_понеділка_вівторка_середи_четверга_п’ятниці_суботи'.split('_')
 	        };
 
+	        if (m === true) {
+	            return weekdays['nominative'].slice(1, 7).concat(weekdays['nominative'].slice(0, 1));
+	        }
 	        if (!m) {
 	            return weekdays['nominative'];
 	        }
@@ -62087,7 +62527,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -62097,13 +62537,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 235 */
+/* 217 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62199,13 +62639,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 236 */
+/* 218 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62261,13 +62701,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 237 */
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62313,7 +62753,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        week : {
 	            dow : 1, // Monday is the first day of the week.
-	            doy : 7  // The week that contains Jan 1st is the first week of the year.
+	            doy : 7  // The week that contains Jan 7th is the first week of the year.
 	        }
 	    });
 
@@ -62323,13 +62763,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 238 */
+/* 220 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62406,13 +62846,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 239 */
+/* 221 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62478,13 +62918,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 240 */
+/* 222 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62542,13 +62982,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 241 */
+/* 223 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62656,13 +63096,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 242 */
+/* 224 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62763,13 +63203,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 243 */
+/* 225 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	//! moment.js locale configuration
 
 	;(function (global, factory) {
-	    true ? factory(__webpack_require__(119)) :
+	    true ? factory(__webpack_require__(97)) :
 	   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
 	   factory(global.moment)
 	}(this, (function (moment) { 'use strict';
@@ -62870,7 +63310,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 244 */
+/* 226 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -63013,7 +63453,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 245 */
+/* 227 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/**
@@ -63396,12 +63836,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 246 */
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var L = __webpack_require__(5)
-	var fetchJsonp = __webpack_require__(247)
-	var bboxIntersect = __webpack_require__(248)
+	var fetchJsonp = __webpack_require__(229)
+	var bboxIntersect = __webpack_require__(230)
 
 	/**
 	 * Converts tile xyz coordinates to Quadkey
@@ -63678,7 +64118,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 247 */
+/* 229 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (global, factory) {
@@ -63806,7 +64246,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	});
 
 /***/ }),
-/* 248 */
+/* 230 */
 /***/ (function(module, exports) {
 
 	module.exports = function(bbox1, bbox2){
@@ -63823,7 +64263,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	}
 
 /***/ }),
-/* 249 */
+/* 231 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -64415,7 +64855,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 250 */
+/* 232 */
 /***/ (function(module, exports) {
 
 	L.Control.Dialog = L.Control.extend({
@@ -64424,63 +64864,64 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    minSize: [ 100, 100 ],
 	    maxSize: [ 350, 350 ],
 	    anchor: [ 250, 250 ],
-	    position: 'topleft',
+	    position: "topleft",
 	    initOpen: true
 	  },
 
-	  initialize: function (options){
+	  initialize: function(options) {
 	    this.options = JSON.parse(JSON.stringify(this.options));
 	    L.setOptions(this, options);
 
 	    this._attributions = {};
 	  },
 
-	  onAdd: function (map){
-
+	  onAdd: function(map) {
 	    this._initLayout();
 	    this._map = map;
 
 	    this.update();
 
-	    if(!this.options.initOpen){
+	    if (!this.options.initOpen) {
 	      this.close();
 	    }
 
 	    return this._container;
 	  },
 
-	  open: function(){
-	    if(!this._map){
+	  open: function() {
+	    if (!this._map) {
 	      return;
 	    }
-	    this._container.style.visibility = '';
+	    this._container.style.visibility = "";
 
-	    this._map.fire('dialog:opened', this);
+	    this._map.fire("dialog:opened", this);
 
 	    return this;
 	  },
 
-	  close: function(){
-	    this._container.style.visibility = 'hidden';
+	  close: function() {
+	    this._container.style.visibility = "hidden";
 
-	    this._map.fire('dialog:closed', this);
+	    this._map.fire("dialog:closed", this);
 	    return this;
 	  },
 
-	  destroy: function(){
-	    if(!this._map){ return this; }
+	  destroy: function() {
+	    if (!this._map) {
+	      return this;
+	    }
 
-	    this.removeFrom(this._map);
+	    this._map.fire("dialog:destroyed", this);
+	    this.remove();
 
 	    if (this.onRemove) {
 	      this.onRemove(this._map);
 	    }
 
-	    this._map.fire('dialog:destroyed', this);
 	    return this;
 	  },
 
-	  setLocation: function(location){
+	  setLocation: function(location) {
 	    location = location || [ 250, 250 ];
 
 	    this.options.anchor[0] = 0;
@@ -64493,7 +64934,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    return this;
 	  },
 
-	  setSize: function(size){
+	  setSize: function(size) {
 	    size = size || [ 300, 300 ];
 
 	    this.options.size[0] = 0;
@@ -64506,135 +64947,150 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    return this;
 	  },
 
-	  lock: function(){
-	    this._resizerNode.style.visibility = 'hidden';
-	    this._grabberNode.style.visibility = 'hidden';
-	    this._closeNode.style.visibility = 'hidden';
+	  lock: function() {
+	    this._resizerNode.style.visibility = "hidden";
+	    this._grabberNode.style.visibility = "hidden";
+	    this._closeNode.style.visibility = "hidden";
 
-	    this._map.fire('dialog:locked', this);
+	    this._map.fire("dialog:locked", this);
 	    return this;
 	  },
 
-	  unlock: function(){
-	    this._resizerNode.style.visibility = '';
-	    this._grabberNode.style.visibility = '';
-	    this._closeNode.style.visibility = '';
+	  unlock: function() {
+	    this._resizerNode.style.visibility = "";
+	    this._grabberNode.style.visibility = "";
+	    this._closeNode.style.visibility = "";
 
-	    this._map.fire('dialog:unlocked', this);
+	    this._map.fire("dialog:unlocked", this);
 	    return this;
 	  },
 
-	  freeze: function(){
-	    this._resizerNode.style.visibility = 'hidden';
-	    this._grabberNode.style.visibility = 'hidden';
+	  freeze: function() {
+	    this._resizerNode.style.visibility = "hidden";
+	    this._grabberNode.style.visibility = "hidden";
 
-	    this._map.fire('dialog:frozen', this);
+	    this._map.fire("dialog:frozen", this);
 	    return this;
 	  },
 
-	  unfreeze : function(){
-	    this._resizerNode.style.visibility = '';
-	    this._grabberNode.style.visibility = '';
+	  unfreeze: function() {
+	    this._resizerNode.style.visibility = "";
+	    this._grabberNode.style.visibility = "";
 
-	    this._map.fire('dialog:unfrozen', this);
+	    this._map.fire("dialog:unfrozen", this);
 	    return this;
 	  },
 
-	  hideClose: function(){
-	    this._closeNode.style.visibility = 'hidden';
+	  hideClose: function() {
+	    this._closeNode.style.visibility = "hidden";
 
-	    this._map.fire('dialog:closehidden', this);
+	    this._map.fire("dialog:closehidden", this);
 	    return this;
 	  },
 
-	  showClose: function(){
-	    this._closeNode.style.visibility = '';
+	  showClose: function() {
+	    this._closeNode.style.visibility = "";
 
-	    this._map.fire('dialog:closeshown', this);
+	    this._map.fire("dialog:closeshown", this);
 	    return this;
 	  },
 
-	  hideResize: function(){
-	    this._resizerNode.style.visibility = 'hidden';
+	  hideResize: function() {
+	    this._resizerNode.style.visibility = "hidden";
 
-	    this._map.fire('dialog:resizehidden', this);
+	    this._map.fire("dialog:resizehidden", this);
 	    return this;
 	  },
 
-	  showResize: function(){
-	    this._resizerNode.style.visibility = '';
+	  showResize: function() {
+	    this._resizerNode.style.visibility = "";
 
-	    this._map.fire('dialog:resizeshown', this);
+	    this._map.fire("dialog:resizeshown", this);
 	    return this;
 	  },
 
-	  setContent: function(content){
+	  setContent: function(content) {
 	    this._content = content;
 	    this.update();
 	    return this;
 	  },
 
-	  getContent: function(){
+	  getContent: function() {
 	    return this._content;
 	  },
 
-	  getElement: function(){
+	  getElement: function() {
 	    return this._container;
 	  },
 
-	  update: function(){
-	    if (!this._map) { return; }
+	  update: function() {
+	    if (!this._map) {
+	      return;
+	    }
 
-	    this._container.style.visibility = 'hidden';
+	    this._container.style.visibility = "hidden";
 
 	    this._updateContent();
 	    this._updateLayout();
 
-	    this._container.style.visibility = '';
-	    this._map.fire('dialog:updated', this);
-
+	    this._container.style.visibility = "";
+	    this._map.fire("dialog:updated", this);
 	  },
 
-	  _initLayout: function(){
-	    var className = 'leaflet-control-dialog',
-	      container = this._container = L.DomUtil.create('div', className);
+	  _initLayout: function() {
+	    var className = "leaflet-control-dialog",
+	      container = (this._container = L.DomUtil.create("div", className));
 
-	    container.style.width = this.options.size[0] + 'px';
-	    container.style.height = this.options.size[1] + 'px';
+	    container.style.width = this.options.size[0] + "px";
+	    container.style.height = this.options.size[1] + "px";
 
-	    container.style.top = this.options.anchor[0] + 'px';
-	    container.style.left = this.options.anchor[1] + 'px';
+	    container.style.top = this.options.anchor[0] + "px";
+	    container.style.left = this.options.anchor[1] + "px";
 
 	    var stop = L.DomEvent.stopPropagation;
-	    L.DomEvent
-	        .on(container, 'click', stop)
-	        .on(container, 'mousedown', stop)
-	        .on(container, 'touchstart', stop)
-	        .on(container, 'dblclick', stop)
-	        .on(container, 'mousewheel', stop)
-	        .on(container, 'contextmenu', stop)
-	        .on(container, 'MozMousePixelScroll', stop);
+	    L.DomEvent.on(container, "click", stop)
+	      .on(container, "mousedown", stop)
+	      .on(container, "touchstart", stop)
+	      .on(container, "dblclick", stop)
+	      .on(container, "mousewheel", stop)
+	      .on(container, "contextmenu", stop)
+	      .on(container, "MozMousePixelScroll", stop);
 
-	    var innerContainer = this._innerContainer = L.DomUtil.create('div', className + '-inner');
+	    var innerContainer = (this._innerContainer = L.DomUtil.create(
+	      "div",
+	      className + "-inner"
+	    ));
 
-	    var grabberNode = this._grabberNode = L.DomUtil.create('div', className + '-grabber');
-	    var grabberIcon = L.DomUtil.create('i', 'fa fa-arrows');
+	    var grabberNode = (this._grabberNode = L.DomUtil.create(
+	      "div",
+	      className + "-grabber"
+	    ));
+	    var grabberIcon = L.DomUtil.create("i", "fa fa-arrows");
 	    grabberNode.appendChild(grabberIcon);
 
-	    L.DomEvent.on(grabberNode, 'mousedown', this._handleMoveStart, this);
+	    L.DomEvent.on(grabberNode, "mousedown", this._handleMoveStart, this);
 
-	    var closeNode = this._closeNode = L.DomUtil.create('div', className + '-close');
-	    var closeIcon = L.DomUtil.create('i', 'fa fa-times');
+	    var closeNode = (this._closeNode = L.DomUtil.create(
+	      "div",
+	      className + "-close"
+	    ));
+	    var closeIcon = L.DomUtil.create("i", "fa fa-times");
 	    closeNode.appendChild(closeIcon);
-	    L.DomEvent.on(closeNode, 'click', this._handleClose, this);
+	    L.DomEvent.on(closeNode, "click", this._handleClose, this);
 
-	    var resizerNode = this._resizerNode = L.DomUtil.create('div', className + '-resizer');
-	    var resizeIcon = L.DomUtil.create('i', 'fa fa-arrows-h fa-rotate-45');
+	    var resizerNode = (this._resizerNode = L.DomUtil.create(
+	      "div",
+	      className + "-resizer"
+	    ));
+	    var resizeIcon = L.DomUtil.create("i", "fa fa-arrows-h fa-rotate-45");
 	    resizerNode.appendChild(resizeIcon);
 
-	    L.DomEvent.on(resizerNode, 'mousedown', this._handleResizeStart, this);
+	    L.DomEvent.on(resizerNode, "mousedown", this._handleResizeStart, this);
 
-	    var contentNode = this._contentNode = L.DomUtil.create('div', className + "-contents");
+	    var contentNode = (this._contentNode = L.DomUtil.create(
+	      "div",
+	      className + "-contents"
+	    ));
 
 	    container.appendChild(innerContainer);
 
@@ -64644,140 +65100,140 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    innerContainer.appendChild(resizerNode);
 
 	    this._oldMousePos = { x: 0, y: 0 };
-
 	  },
 
-	  _handleClose: function(){
+	  _handleClose: function() {
 	    this.close();
 	  },
 
-	  _handleResizeStart: function(e){
+	  _handleResizeStart: function(e) {
 	    this._oldMousePos.x = e.clientX;
 	    this._oldMousePos.y = e.clientY;
 
-	    L.DomEvent.on(this._map, 'mousemove', this._handleMouseMove, this);
-	    L.DomEvent.on(this._map, 'mouseup', this._handleMouseUp, this);
+	    L.DomEvent.on(this._map, "mousemove", this._handleMouseMove, this);
+	    L.DomEvent.on(this._map, "mouseup", this._handleMouseUp, this);
 
-	    this._map.fire('dialog:resizestart', this);
+	    this._map.fire("dialog:resizestart", this);
 	    this._resizing = true;
 	  },
 
-	  _handleMoveStart: function(e){
+	  _handleMoveStart: function(e) {
 	    this._oldMousePos.x = e.clientX;
 	    this._oldMousePos.y = e.clientY;
 
-	    L.DomEvent.on(this._map, 'mousemove', this._handleMouseMove, this);
-	    L.DomEvent.on(this._map, 'mouseup', this._handleMouseUp, this);
+	    L.DomEvent.on(this._map, "mousemove", this._handleMouseMove, this);
+	    L.DomEvent.on(this._map, "mouseup", this._handleMouseUp, this);
 
-	    this._map.fire('dialog:movestart', this);
+	    this._map.fire("dialog:movestart", this);
 	    this._moving = true;
 	  },
 
-	  _handleMouseMove: function(e){
+	  _handleMouseMove: function(e) {
 	    var diffX = e.originalEvent.clientX - this._oldMousePos.x,
 	      diffY = e.originalEvent.clientY - this._oldMousePos.y;
 
-	      // this helps prevent accidental highlighting on drag:
-	    if(e.originalEvent.stopPropagation){ e.originalEvent.stopPropagation(); }
-	    if(e.originalEvent.preventDefault){ e.originalEvent.preventDefault(); }
+	    // this helps prevent accidental highlighting on drag:
+	    if (e.originalEvent.stopPropagation) {
+	      e.originalEvent.stopPropagation();
+	    }
+	    if (e.originalEvent.preventDefault) {
+	      e.originalEvent.preventDefault();
+	    }
 
-	    if(this._resizing){
+	    if (this._resizing) {
 	      this._resize(diffX, diffY);
 	    }
 
-	    if(this._moving){
+	    if (this._moving) {
 	      this._move(diffX, diffY);
 	    }
 	  },
 
-	  _handleMouseUp: function(){
-	    L.DomEvent.off(this._map, 'mousemove', this._handleMouseMove, this);
-	    L.DomEvent.off(this._map, 'mouseup', this._handleMouseUp, this);
+	  _handleMouseUp: function() {
+	    L.DomEvent.off(this._map, "mousemove", this._handleMouseMove, this);
+	    L.DomEvent.off(this._map, "mouseup", this._handleMouseUp, this);
 
-	    if(this._resizing){
+	    if (this._resizing) {
 	      this._resizing = false;
-	      this._map.fire('dialog:resizeend', this);
+	      this._map.fire("dialog:resizeend", this);
 	    }
 
-	    if(this._moving){
+	    if (this._moving) {
 	      this._moving = false;
-	      this._map.fire('dialog:moveend', this);
+	      this._map.fire("dialog:moveend", this);
 	    }
 	  },
 
-	  _move: function(diffX, diffY){
+	  _move: function(diffX, diffY) {
 	    var newY = this.options.anchor[0] + diffY;
 	    var newX = this.options.anchor[1] + diffX;
 
 	    this.options.anchor[0] = newY;
 	    this.options.anchor[1] = newX;
 
-	    this._container.style.top = this.options.anchor[0] + 'px';
-	    this._container.style.left = this.options.anchor[1] + 'px';
+	    this._container.style.top = this.options.anchor[0] + "px";
+	    this._container.style.left = this.options.anchor[1] + "px";
 
-	    this._map.fire('dialog:moving', this);
+	    this._map.fire("dialog:moving", this);
 
 	    this._oldMousePos.y += diffY;
 	    this._oldMousePos.x += diffX;
 	  },
 
-	  _resize: function(diffX, diffY){
+	  _resize: function(diffX, diffY) {
 	    var newX = this.options.size[0] + diffX;
 	    var newY = this.options.size[1] + diffY;
 
-	    if( newX <= this.options.maxSize[0] && newX >= this.options.minSize[0]){
+	    if (newX <= this.options.maxSize[0] && newX >= this.options.minSize[0]) {
 	      this.options.size[0] = newX;
-	      this._container.style.width = this.options.size[0] + 'px';
+	      this._container.style.width = this.options.size[0] + "px";
 	      this._oldMousePos.x += diffX;
 	    }
 
-	    if(newY <= this.options.maxSize[1] && newY >= this.options.minSize[1] ){
+	    if (newY <= this.options.maxSize[1] && newY >= this.options.minSize[1]) {
 	      this.options.size[1] = newY;
-	      this._container.style.height = this.options.size[1] + 'px';
+	      this._container.style.height = this.options.size[1] + "px";
 	      this._oldMousePos.y += diffY;
 	    }
 
-	    this._map.fire('dialog:resizing', this);
+	    this._map.fire("dialog:resizing", this);
 	  },
 
-	  _updateContent: function(){
-
-	    if(!this._content){ return; }
+	  _updateContent: function() {
+	    if (!this._content) {
+	      return;
+	    }
 
 	    var node = this._contentNode;
-	    var content = (typeof this._content === 'function') ? this._content(this) : this._content;
+	    var content =
+	      typeof this._content === "function" ? this._content(this) : this._content;
 
-	    if(typeof content === 'string'){
+	    if (typeof content === "string") {
 	      node.innerHTML = content;
-	    }
-	    else{
-	      while(node.hasChildNodes()){
+	    } else {
+	      while (node.hasChildNodes()) {
 	        node.removeChild(node.firstChild);
 	      }
 	      node.appendChild(content);
 	    }
-
 	  },
 
-	  _updateLayout: function(){
+	  _updateLayout: function() {
+	    this._container.style.width = this.options.size[0] + "px";
+	    this._container.style.height = this.options.size[1] + "px";
 
-	    this._container.style.width = this.options.size[0] + 'px';
-	    this._container.style.height = this.options.size[1] + 'px';
-
-	    this._container.style.top = this.options.anchor[0] + 'px';
-	    this._container.style.left = this.options.anchor[1] + 'px';
-
+	    this._container.style.top = this.options.anchor[0] + "px";
+	    this._container.style.left = this.options.anchor[1] + "px";
 	  }
-
 	});
 
-	L.control.dialog = function (options) {
+	L.control.dialog = function(options) {
 	  return new L.Control.Dialog(options);
 	};
 
 
 /***/ }),
-/* 251 */
+/* 233 */
 /***/ (function(module, exports) {
 
 	(function () {
@@ -64927,11 +65383,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 252 */
+/* 234 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*
-	 * Leaflet.markercluster 1.4.0+master.86ce41f,
+	 * Leaflet.markercluster 1.4.1+master.94f9815,
 	 * Provides Beautiful Animated Marker Clustering functionality for Leaflet, a JS library for interactive maps.
 	 * https://github.com/Leaflet/Leaflet.markercluster
 	 * (c) 2012-2017, Dave Leaver, smartrak
@@ -65652,10 +66108,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		_childMarkerDragEnd: function (e) {
-			if (e.target.__dragStart) {
-				this._moveChild(e.target, e.target.__dragStart, e.target._latlng);
-			}
+			var dragStart = e.target.__dragStart;
 			delete e.target.__dragStart;
+			if (dragStart) {
+				this._moveChild(e.target, dragStart, e.target._latlng);
+			}		
 		},
 
 
@@ -66344,7 +66801,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		//Recursively retrieve all child markers of this cluster
-		getAllChildMarkers: function (storageArray) {
+		getAllChildMarkers: function (storageArray, ignoreDraggedMarker) {
 			storageArray = storageArray || [];
 
 			for (var i = this._childClusters.length - 1; i >= 0; i--) {
@@ -66352,6 +66809,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 
 			for (var j = this._markers.length - 1; j >= 0; j--) {
+				if (ignoreDraggedMarker && this._markers[j].__dragStart) {
+					continue;
+				}
 				storageArray.push(this._markers[j]);
 			}
 
@@ -67045,7 +67505,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				return;
 			}
 
-			var childMarkers = this.getAllChildMarkers(),
+			var childMarkers = this.getAllChildMarkers(null, true),
 				group = this._group,
 				map = group._map,
 				center = map.latLngToLayerPoint(this._latlng),
@@ -67123,7 +67583,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			var group = this._group,
 				map = group._map,
 				fg = group._featureGroup,
-				childMarkers = this.getAllChildMarkers(),
+				childMarkers = this.getAllChildMarkers(null, true),
 				m, i;
 
 			group._ignoreMove = true;
@@ -67316,7 +67776,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				map = group._map,
 				fg = group._featureGroup,
 				thisLayerPos = zoomDetails ? map._latLngToNewLayerPoint(this._latlng, zoomDetails.zoom, zoomDetails.center) : map.latLngToLayerPoint(this._latlng),
-				childMarkers = this.getAllChildMarkers(),
+				childMarkers = this.getAllChildMarkers(null, true),
 				svg = L.Path.SVG,
 				m, i, leg, legPath, legLength, nonAnimatable;
 
@@ -67619,14 +68079,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 253 */
+/* 235 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	!function(t,e){ true?module.exports=e(__webpack_require__(5)):"function"==typeof define&&define.amd?define(["leaflet"],e):"object"==typeof exports?exports["leaflet-ant-path"]=e(require("leaflet")):t["leaflet-ant-path"]=e(t.L)}(window,function(t){return function(t){var e={};function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var o in t)n.d(r,o,function(e){return t[e]}.bind(null,o));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=47)}([function(t,e,n){var r=n(4);t.exports=function(t){if(!r(t))throw TypeError(t+" is not an object!");return t}},function(e,n){e.exports=t},function(t,e,n){var r=n(3),o=n(10),i=n(16),a=n(26),u=n(41),c=function(t,e,n){var s,f,l,p,h=t&c.F,y=t&c.G,v=t&c.S,d=t&c.P,m=t&c.B,g=y?r:v?r[e]||(r[e]={}):(r[e]||{}).prototype,b=y?o:o[e]||(o[e]={}),w=b.prototype||(b.prototype={});for(s in y&&(n=e),n)l=((f=!h&&g&&void 0!==g[s])?g:n)[s],p=m&&f?u(l,r):d&&"function"==typeof l?u(Function.call,l):l,g&&a(g,s,l,t&c.U),b[s]!=l&&i(b,s,p),d&&w[s]!=l&&(w[s]=l)};r.core=o,c.F=1,c.G=2,c.S=4,c.P=8,c.B=16,c.W=32,c.U=64,c.R=128,t.exports=c},function(t,e){var n=t.exports="undefined"!=typeof window&&window.Math==Math?window:"undefined"!=typeof self&&self.Math==Math?self:Function("return this")();"number"==typeof __g&&(__g=n)},function(t,e){t.exports=function(t){return"object"==typeof t?null!==t:"function"==typeof t}},function(t,e){var n={}.hasOwnProperty;t.exports=function(t,e){return n.call(t,e)}},function(t,e,n){var r=n(0),o=n(39),i=n(17),a=Object.defineProperty;e.f=n(9)?Object.defineProperty:function(t,e,n){if(r(t),e=i(e,!0),r(n),o)try{return a(t,e,n)}catch(t){}if("get"in n||"set"in n)throw TypeError("Accessors not supported!");return"value"in n&&(t[e]=n.value),t}},function(t,e){t.exports=function(t){try{return!!t()}catch(t){return!0}}},function(t,e,n){t.exports=n(19)},function(t,e,n){t.exports=!n(7)(function(){return 7!=Object.defineProperty({},"a",{get:function(){return 7}}).a})},function(t,e){var n=t.exports={version:"2.6.1"};"number"==typeof __e&&(__e=n)},function(t,e,n){var r=n(27)("wks"),o=n(14),i=n(3).Symbol,a="function"==typeof i;(t.exports=function(t){return r[t]||(r[t]=a&&i[t]||(a?i:o)("Symbol."+t))}).store=r},function(t,e,n){var r=n(34),o=n(13),i=n(15),a=n(17),u=n(5),c=n(39),s=Object.getOwnPropertyDescriptor;e.f=n(9)?s:function(t,e){if(t=i(t),e=a(e,!0),c)try{return s(t,e)}catch(t){}if(u(t,e))return o(!r.f.call(t,e),t[e])}},function(t,e){t.exports=function(t,e){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:e}}},function(t,e){var n=0,r=Math.random();t.exports=function(t){return"Symbol(".concat(void 0===t?"":t,")_",(++n+r).toString(36))}},function(t,e,n){var r=n(53),o=n(45);t.exports=function(t){return r(o(t))}},function(t,e,n){var r=n(6),o=n(13);t.exports=n(9)?function(t,e,n){return r.f(t,e,o(1,n))}:function(t,e,n){return t[e]=n,t}},function(t,e,n){var r=n(4);t.exports=function(t,e){if(!r(t))return t;var n,o;if(e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;if("function"==typeof(n=t.valueOf)&&!r(o=n.call(t)))return o;if(!e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;throw TypeError("Can't convert object to primitive value")}},function(t,e){t.exports=function(t){if("function"!=typeof t)throw TypeError(t+" is not a function!");return t}},function(t,e,n){var r=function(){return this||"object"==typeof self&&self}()||Function("return this")(),o=r.regeneratorRuntime&&Object.getOwnPropertyNames(r).indexOf("regeneratorRuntime")>=0,i=o&&r.regeneratorRuntime;if(r.regeneratorRuntime=void 0,t.exports=n(20),o)r.regeneratorRuntime=i;else try{delete r.regeneratorRuntime}catch(t){r.regeneratorRuntime=void 0}},function(t,e){!function(e){"use strict";var n,r=Object.prototype,o=r.hasOwnProperty,i="function"==typeof Symbol?Symbol:{},a=i.iterator||"@@iterator",u=i.asyncIterator||"@@asyncIterator",c=i.toStringTag||"@@toStringTag",s="object"==typeof t,f=e.regeneratorRuntime;if(f)s&&(t.exports=f);else{(f=e.regeneratorRuntime=s?t.exports:{}).wrap=w;var l="suspendedStart",p="suspendedYield",h="executing",y="completed",v={},d={};d[a]=function(){return this};var m=Object.getPrototypeOf,g=m&&m(m(R([])));g&&g!==r&&o.call(g,a)&&(d=g);var b=S.prototype=_.prototype=Object.create(d);x.prototype=b.constructor=S,S.constructor=x,S[c]=x.displayName="GeneratorFunction",f.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===x||"GeneratorFunction"===(e.displayName||e.name))},f.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,S):(t.__proto__=S,c in t||(t[c]="GeneratorFunction")),t.prototype=Object.create(b),t},f.awrap=function(t){return{__await:t}},j(L.prototype),L.prototype[u]=function(){return this},f.AsyncIterator=L,f.async=function(t,e,n,r){var o=new L(w(t,e,n,r));return f.isGeneratorFunction(e)?o:o.next().then(function(t){return t.done?t.value:o.next()})},j(b),b[c]="Generator",b[a]=function(){return this},b.toString=function(){return"[object Generator]"},f.keys=function(t){var e=[];for(var n in t)e.push(n);return e.reverse(),function n(){for(;e.length;){var r=e.pop();if(r in t)return n.value=r,n.done=!1,n}return n.done=!0,n}},f.values=R,A.prototype={constructor:A,reset:function(t){if(this.prev=0,this.next=0,this.sent=this._sent=n,this.done=!1,this.delegate=null,this.method="next",this.arg=n,this.tryEntries.forEach(E),!t)for(var e in this)"t"===e.charAt(0)&&o.call(this,e)&&!isNaN(+e.slice(1))&&(this[e]=n)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(t){if(this.done)throw t;var e=this;function r(r,o){return u.type="throw",u.arg=t,e.next=r,o&&(e.method="next",e.arg=n),!!o}for(var i=this.tryEntries.length-1;i>=0;--i){var a=this.tryEntries[i],u=a.completion;if("root"===a.tryLoc)return r("end");if(a.tryLoc<=this.prev){var c=o.call(a,"catchLoc"),s=o.call(a,"finallyLoc");if(c&&s){if(this.prev<a.catchLoc)return r(a.catchLoc,!0);if(this.prev<a.finallyLoc)return r(a.finallyLoc)}else if(c){if(this.prev<a.catchLoc)return r(a.catchLoc,!0)}else{if(!s)throw new Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return r(a.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var r=this.tryEntries[n];if(r.tryLoc<=this.prev&&o.call(r,"finallyLoc")&&this.prev<r.finallyLoc){var i=r;break}}i&&("break"===t||"continue"===t)&&i.tryLoc<=e&&e<=i.finallyLoc&&(i=null);var a=i?i.completion:{};return a.type=t,a.arg=e,i?(this.method="next",this.next=i.finallyLoc,v):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),v},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),E(n),v}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var o=r.arg;E(n)}return o}}throw new Error("illegal catch attempt")},delegateYield:function(t,e,r){return this.delegate={iterator:R(t),resultName:e,nextLoc:r},"next"===this.method&&(this.arg=n),v}}}function w(t,e,n,r){var o=e&&e.prototype instanceof _?e:_,i=Object.create(o.prototype),a=new A(r||[]);return i._invoke=function(t,e,n){var r=l;return function(o,i){if(r===h)throw new Error("Generator is already running");if(r===y){if("throw"===o)throw i;return F()}for(n.method=o,n.arg=i;;){var a=n.delegate;if(a){var u=k(a,n);if(u){if(u===v)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(r===l)throw r=y,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);r=h;var c=O(t,e,n);if("normal"===c.type){if(r=n.done?y:p,c.arg===v)continue;return{value:c.arg,done:n.done}}"throw"===c.type&&(r=y,n.method="throw",n.arg=c.arg)}}}(t,n,a),i}function O(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}function _(){}function x(){}function S(){}function j(t){["next","throw","return"].forEach(function(e){t[e]=function(t){return this._invoke(e,t)}})}function L(t){var e;this._invoke=function(n,r){function i(){return new Promise(function(e,i){!function e(n,r,i,a){var u=O(t[n],t,r);if("throw"!==u.type){var c=u.arg,s=c.value;return s&&"object"==typeof s&&o.call(s,"__await")?Promise.resolve(s.__await).then(function(t){e("next",t,i,a)},function(t){e("throw",t,i,a)}):Promise.resolve(s).then(function(t){c.value=t,i(c)},function(t){return e("throw",t,i,a)})}a(u.arg)}(n,r,e,i)})}return e=e?e.then(i,i):i()}}function k(t,e){var r=t.iterator[e.method];if(r===n){if(e.delegate=null,"throw"===e.method){if(t.iterator.return&&(e.method="return",e.arg=n,k(t,e),"throw"===e.method))return v;e.method="throw",e.arg=new TypeError("The iterator does not provide a 'throw' method")}return v}var o=O(r,t.iterator,e.arg);if("throw"===o.type)return e.method="throw",e.arg=o.arg,e.delegate=null,v;var i=o.arg;return i?i.done?(e[t.resultName]=i.value,e.next=t.nextLoc,"return"!==e.method&&(e.method="next",e.arg=n),e.delegate=null,v):i:(e.method="throw",e.arg=new TypeError("iterator result is not an object"),e.delegate=null,v)}function P(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function E(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function A(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(P,this),this.reset(!0)}function R(t){if(t){var e=t[a];if(e)return e.call(t);if("function"==typeof t.next)return t;if(!isNaN(t.length)){var r=-1,i=function e(){for(;++r<t.length;)if(o.call(t,r))return e.value=t[r],e.done=!1,e;return e.value=n,e.done=!0,e};return i.next=i}}return{next:F}}function F(){return{value:n,done:!0}}}(function(){return this||"object"==typeof self&&self}()||Function("return this")())},function(t,e,n){var r=n(22);"string"==typeof r&&(r=[[t.i,r,""]]);var o={hmr:!0,transform:void 0,insertInto:void 0};n(24)(r,o);r.locals&&(t.exports=r.locals)},function(t,e,n){(t.exports=n(23)(!1)).push([t.i,"@-webkit-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-moz-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-ms-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-o-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\npath.leaflet-ant-path {\n  fill: none;\n  -webkit-animation: linear infinite leaflet-ant-path-animation;\n  -moz-animation: linear infinite leaflet-ant-path-animation;\n  -ms-animation: linear infinite leaflet-ant-path-animation;\n  -o-animation: linear infinite leaflet-ant-path-animation;\n  animation: linear infinite leaflet-ant-path-animation; }\n  path.leaflet-ant-path__hardware-acceleration {\n    -webkit-transform: translateZ(0);\n    -moz-transform: translateZ(0);\n    -ms-transform: translateZ(0);\n    -o-transform: translateZ(0);\n    transform: translateZ(0); }\n  path.leaflet-ant-path__reverse {\n    -webkit-animation-direction: reverse;\n    -moz-animation-direction: reverse;\n    -ms-animation-direction: reverse;\n    -o-animation-direction: reverse;\n    animation-direction: reverse; }\n",""])},function(t,e,n){"use strict";t.exports=function(t){var e=[];return e.toString=function(){return this.map(function(e){var n=function(t,e){var n=t[1]||"",r=t[3];if(!r)return n;if(e&&"function"==typeof btoa){var o=(a=r,"/*# sourceMappingURL=data:application/json;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+" */"),i=r.sources.map(function(t){return"/*# sourceURL="+r.sourceRoot+t+" */"});return[n].concat(i).concat([o]).join("\n")}var a;return[n].join("\n")}(e,t);return e[2]?"@media "+e[2]+"{"+n+"}":n}).join("")},e.i=function(t,n){"string"==typeof t&&(t=[[null,t,""]]);for(var r={},o=0;o<this.length;o++){var i=this[o][0];null!=i&&(r[i]=!0)}for(o=0;o<t.length;o++){var a=t[o];null!=a[0]&&r[a[0]]||(n&&!a[2]?a[2]=n:n&&(a[2]="("+a[2]+") and ("+n+")"),e.push(a))}},e}},function(t,e,n){var r,o,i={},a=(r=function(){return window&&document&&document.all&&!window.atob},function(){return void 0===o&&(o=r.apply(this,arguments)),o}),u=function(t){var e={};return function(t,n){if("function"==typeof t)return t();if(void 0===e[t]){var r=function(t,e){return e?e.querySelector(t):document.querySelector(t)}.call(this,t,n);if(window.HTMLIFrameElement&&r instanceof window.HTMLIFrameElement)try{r=r.contentDocument.head}catch(t){r=null}e[t]=r}return e[t]}}(),c=null,s=0,f=[],l=n(25);function p(t,e){for(var n=0;n<t.length;n++){var r=t[n],o=i[r.id];if(o){o.refs++;for(var a=0;a<o.parts.length;a++)o.parts[a](r.parts[a]);for(;a<r.parts.length;a++)o.parts.push(g(r.parts[a],e))}else{var u=[];for(a=0;a<r.parts.length;a++)u.push(g(r.parts[a],e));i[r.id]={id:r.id,refs:1,parts:u}}}}function h(t,e){for(var n=[],r={},o=0;o<t.length;o++){var i=t[o],a=e.base?i[0]+e.base:i[0],u={css:i[1],media:i[2],sourceMap:i[3]};r[a]?r[a].parts.push(u):n.push(r[a]={id:a,parts:[u]})}return n}function y(t,e){var n=u(t.insertInto);if(!n)throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var r=f[f.length-1];if("top"===t.insertAt)r?r.nextSibling?n.insertBefore(e,r.nextSibling):n.appendChild(e):n.insertBefore(e,n.firstChild),f.push(e);else if("bottom"===t.insertAt)n.appendChild(e);else{if("object"!=typeof t.insertAt||!t.insertAt.before)throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var o=u(t.insertAt.before,n);n.insertBefore(e,o)}}function v(t){if(null===t.parentNode)return!1;t.parentNode.removeChild(t);var e=f.indexOf(t);e>=0&&f.splice(e,1)}function d(t){var e=document.createElement("style");if(void 0===t.attrs.type&&(t.attrs.type="text/css"),void 0===t.attrs.nonce){var r=function(){0;return n.nc}();r&&(t.attrs.nonce=r)}return m(e,t.attrs),y(t,e),e}function m(t,e){Object.keys(e).forEach(function(n){t.setAttribute(n,e[n])})}function g(t,e){var n,r,o,i;if(e.transform&&t.css){if(!(i="function"==typeof e.transform?e.transform(t.css):e.transform.default(t.css)))return function(){};t.css=i}if(e.singleton){var a=s++;n=c||(c=d(e)),r=O.bind(null,n,a,!1),o=O.bind(null,n,a,!0)}else t.sourceMap&&"function"==typeof URL&&"function"==typeof URL.createObjectURL&&"function"==typeof URL.revokeObjectURL&&"function"==typeof Blob&&"function"==typeof btoa?(n=function(t){var e=document.createElement("link");return void 0===t.attrs.type&&(t.attrs.type="text/css"),t.attrs.rel="stylesheet",m(e,t.attrs),y(t,e),e}(e),r=function(t,e,n){var r=n.css,o=n.sourceMap,i=void 0===e.convertToAbsoluteUrls&&o;(e.convertToAbsoluteUrls||i)&&(r=l(r));o&&(r+="\n/*# sourceMappingURL=data:application/json;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(o))))+" */");var a=new Blob([r],{type:"text/css"}),u=t.href;t.href=URL.createObjectURL(a),u&&URL.revokeObjectURL(u)}.bind(null,n,e),o=function(){v(n),n.href&&URL.revokeObjectURL(n.href)}):(n=d(e),r=function(t,e){var n=e.css,r=e.media;r&&t.setAttribute("media",r);if(t.styleSheet)t.styleSheet.cssText=n;else{for(;t.firstChild;)t.removeChild(t.firstChild);t.appendChild(document.createTextNode(n))}}.bind(null,n),o=function(){v(n)});return r(t),function(e){if(e){if(e.css===t.css&&e.media===t.media&&e.sourceMap===t.sourceMap)return;r(t=e)}else o()}}t.exports=function(t,e){if(false)throw new Error("The style-loader cannot be used in a non-browser environment");(e=e||{}).attrs="object"==typeof e.attrs?e.attrs:{},e.singleton||"boolean"==typeof e.singleton||(e.singleton=a()),e.insertInto||(e.insertInto="head"),e.insertAt||(e.insertAt="bottom");var n=h(t,e);return p(n,e),function(t){for(var r=[],o=0;o<n.length;o++){var a=n[o];(u=i[a.id]).refs--,r.push(u)}t&&p(h(t,e),e);for(o=0;o<r.length;o++){var u;if(0===(u=r[o]).refs){for(var c=0;c<u.parts.length;c++)u.parts[c]();delete i[u.id]}}}};var b,w=(b=[],function(t,e){return b[t]=e,b.filter(Boolean).join("\n")});function O(t,e,n,r){var o=n?"":r.css;if(t.styleSheet)t.styleSheet.cssText=w(e,o);else{var i=document.createTextNode(o),a=t.childNodes;a[e]&&t.removeChild(a[e]),a.length?t.insertBefore(i,a[e]):t.appendChild(i)}}},function(t,e){t.exports=function(t){var e="undefined"!=typeof window&&window.location;if(!e)throw new Error("fixUrls requires window.location");if(!t||"string"!=typeof t)return t;var n=e.protocol+"//"+e.host,r=n+e.pathname.replace(/\/[^\/]*$/,"/");return t.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi,function(t,e){var o,i=e.trim().replace(/^"(.*)"$/,function(t,e){return e}).replace(/^'(.*)'$/,function(t,e){return e});return/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(i)?t:(o=0===i.indexOf("//")?i:0===i.indexOf("/")?n+i:r+i.replace(/^\.\//,""),"url("+JSON.stringify(o)+")")})}},function(t,e,n){var r=n(3),o=n(16),i=n(5),a=n(14)("src"),u=Function.toString,c=(""+u).split("toString");n(10).inspectSource=function(t){return u.call(t)},(t.exports=function(t,e,n,u){var s="function"==typeof n;s&&(i(n,"name")||o(n,"name",e)),t[e]!==n&&(s&&(i(n,a)||o(n,a,t[e]?""+t[e]:c.join(String(e)))),t===r?t[e]=n:u?t[e]?t[e]=n:o(t,e,n):(delete t[e],o(t,e,n)))})(Function.prototype,"toString",function(){return"function"==typeof this&&this[a]||u.call(this)})},function(t,e,n){var r=n(10),o=n(3),i=o["__core-js_shared__"]||(o["__core-js_shared__"]={});(t.exports=function(t,e){return i[t]||(i[t]=void 0!==e?e:{})})("versions",[]).push({version:r.version,mode:n(28)?"pure":"global",copyright:"© 2018 Denis Pushkarev (zloirock.ru)"})},function(t,e){t.exports=!1},function(t,e,n){var r=n(44),o=n(32);t.exports=Object.keys||function(t){return r(t,o)}},function(t,e){var n={}.toString;t.exports=function(t){return n.call(t).slice(8,-1)}},function(t,e,n){var r=n(27)("keys"),o=n(14);t.exports=function(t){return r[t]||(r[t]=o(t))}},function(t,e){t.exports="constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf".split(",")},function(t,e){e.f=Object.getOwnPropertySymbols},function(t,e){e.f={}.propertyIsEnumerable},function(t,e,n){var r=n(0),o=n(58),i=n(32),a=n(31)("IE_PROTO"),u=function(){},c=function(){var t,e=n(40)("iframe"),r=i.length;for(e.style.display="none",n(59).appendChild(e),e.src="javascript:",(t=e.contentWindow.document).open(),t.write("<script>document.F=Object<\/script>"),t.close(),c=t.F;r--;)delete c.prototype[i[r]];return c()};t.exports=Object.create||function(t,e){var n;return null!==t?(u.prototype=r(t),n=new u,u.prototype=null,n[a]=t):n=c(),void 0===e?n:o(n,e)}},function(t,e,n){var r=n(44),o=n(32).concat("length","prototype");e.f=Object.getOwnPropertyNames||function(t){return r(t,o)}},function(t,e,n){var r=n(5),o=n(73),i=n(31)("IE_PROTO"),a=Object.prototype;t.exports=Object.getPrototypeOf||function(t){return t=o(t),r(t,i)?t[i]:"function"==typeof t.constructor&&t instanceof t.constructor?t.constructor.prototype:t instanceof Object?a:null}},function(t,e,n){"use strict";n.r(e);var r=n(1),o=n(8),i=n.n(o);function a(t){return(a="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}function u(t){return function(t){if(Array.isArray(t)){for(var e=0,n=new Array(t.length);e<t.length;e++)n[e]=t[e];return n}}(t)||function(t){if(Symbol.iterator in Object(t)||"[object Arguments]"===Object.prototype.toString.call(t))return Array.from(t)}(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance")}()}function c(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{},r=Object.keys(n);"function"==typeof Object.getOwnPropertySymbols&&(r=r.concat(Object.getOwnPropertySymbols(n).filter(function(t){return Object.getOwnPropertyDescriptor(n,t).enumerable}))),r.forEach(function(e){h(t,e,n[e])})}return t}function s(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}function f(t){return(f=Object.setPrototypeOf?Object.getPrototypeOf:function(t){return t.__proto__||Object.getPrototypeOf(t)})(t)}function l(t,e){return(l=Object.setPrototypeOf||function(t,e){return t.__proto__=e,t})(t,e)}function p(t){if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function h(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}var y={main:Symbol("main"),pulse:Symbol("pulse")},v=y.main,d=y.pulse,m=Symbol.species,g=Symbol.toStringTag,b=Symbol.iterator,w=function(t){function e(t){var n,o,i,u=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),o=this,n=!(i=f(e).call(this))||"object"!==a(i)&&"function"!=typeof i?p(o):i,h(p(p(n)),v,null),h(p(p(n)),d,null),h(p(p(n)),"_map",null),h(p(p(n)),"_path",null),h(p(p(n)),"_animatedPathId",null),h(p(p(n)),"_animatedPathClass","leaflet-ant-path"),h(p(p(n)),"_reversePathClass","".concat(n._animatedPathClass,"__reverse")),h(p(p(n)),"_hardwareAccClass","hardware-acceleration"),h(p(p(n)),"_defaultOptions",{use:r.polyline,paused:!1,reverse:!1,hardwareAcceleration:!1,renderer:Object(r.svg)(),delay:400,dashArray:[10,20],weight:5,opacity:.5,color:"#0000FF",pulseColor:"#FFFFFF"}),r.Util.setOptions(p(p(n)),c({},n._defaultOptions,u)),n._path=t,n._animatedPathId="ant-path-".concat((new Date).getTime()),n._mount(),n}var n,o,w;return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function");t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,writable:!0,configurable:!0}}),e&&l(t,e)}(e,r["FeatureGroup"]),n=e,w=[{key:m,get:function(){return this}}],(o=[{key:"map",value:function(t){return new(0,this.constructor[Symbol.species])(this._path.map(t),c({},this.options))}},{key:b,value:i.a.mark(function t(){return i.a.wrap(function(t){for(;;)switch(t.prev=t.next){case 0:return t.delegateYield(this._path,"t0",1);case 1:case"end":return t.stop()}},t,this)})},{key:"_processOptions",value:function(){var t=this.options,e=this._animatedPathClass,n=this._reversePathClass,r=this._hardwareAccClass,o=this._animatedPathId,i=t.reverse,a=t.hardwareAcceleration,u=c({},t),s=c({},t);return s.color=s.pulseColor||t.pulseColor,s.className=[e,o,i?n:"",a?"".concat(e,"__").concat(r):""].join(" "),delete u.dashArray,Array.isArray(s.dashArray)&&(s.dashArray=String(s.dashArray)),{pathOpts:u,pulseOpts:s}}},{key:"_mount",value:function(){var t=this._processOptions(),e=t.pathOpts,n=t.pulseOpts,r=this.options.use;this.addLayer(this[y.main]=r(this._path,e)),this.addLayer(this[y.pulse]=r(this._path,n))}},{key:"_calculateAnimationSpeed",value:function(){var t=this.options,e=this._map,n=this._animatedPathId;if(!t.paused&&e){var r=e.getZoom(),o=document.getElementsByClassName(n),i=1+t.delay/3/r+"s",a=["-webkit-","-moz-","-ms-","-o-",""].map(function(t){return"".concat(t,"animation-duration: ").concat(i)}).join(";");Array.from(o,function(t){t.style.cssText=a,t.setAttribute("data-animated","true")})}}},{key:"_pureReverse",value:function(){var t=this[y.pulse].getElement();t&&(this.options.reverse?t.classList.remove(this._reversePathClass):t.classList.add(this._reversePathClass))}},{key:"onAdd",value:function(t){return this._map=t,this._map.on("zoomend",this._calculateAnimationSpeed,this),this._mount(),this._calculateAnimationSpeed(),this}},{key:"onRemove",value:function(t){return this._map&&(this._map.off("zoomend",this._calculateAnimationSpeed,this),this._map=null),t&&t.removeLayer(this[y.main]).removeLayer(this[y.pulse]),this}},{key:"pause",value:function(){if(!this.options.paused){var t=this[y.pulse].getElement();return this.options.paused=!0,t&&(t.removeAttribute("style"),t.setAttribute("data-animated","true")),!0}return!1}},{key:"resume",value:function(){var t=this.options;return!!t.paused&&(t.paused=!1,this._calculateAnimationSpeed(),!0)}},{key:"bringToFront",value:function(){return this[y.main].bringToFront(),this[y.pulse].bringToFront(),this}},{key:"bringToBack",value:function(){return this[y.pulse].bringToBack(),this[y.main].bringToBack(),this}},{key:"removeFrom",value:function(t){return t&&t.hasLayer(this)&&t.removeLayer(this),this}},{key:"setStyle",value:function(t){var e=t.paused,n=t.delay,r=t.reverse;e?this.pause():this.resume(),n!==this.options.delay&&(this.options.delay=n||this._defaultOptions.delay,this._calculateAnimationSpeed()),void 0!==r&&r!==this.options.reverse&&this._pureReverse(),this.options=c({},this.options,t);var o=this._processOptions(),i=o.pathOpts,a=o.pulseOpts;return this[y.main].setStyle(i),this[y.pulse].setStyle(a),this}},{key:"reverse",value:function(){return this._pureReverse(),this.options.reverse=!this.options.reverse,this}},{key:"redraw",value:function(){return this[y.main].redraw(),this[y.pulse].redraw(),this}},{key:"addLatLng",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=[].concat(u(this._path),[r]),(t=this[y.main]).addLatLng.apply(t,r),(e=this[y.pulse]).addLatLng.apply(e,r),this}},{key:"setLatLngs",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=r,(t=this[y.main]).setLatLngs.apply(t,r),(e=this[y.pulse]).setLatLngs.apply(e,r),this}},{key:"getLatLngs",value:function(){return this[y.main].getLatLngs()}},{key:"spliceLatLngs",value:function(){var t,e,n=(t=this[y.main]).spliceLatLngs.apply(t,arguments);return(e=this[y.pulse]).spliceLatLngs.apply(e,arguments),n}},{key:"getBounds",value:function(){return this[y.main].getBounds()}},{key:"toGeoJSON",value:function(){return this[y.main].toGeoJSON()}},{key:g,get:function(){return"L.Polyline.AntPath"}}])&&s(n.prototype,o),w&&s(n,w),e}(),O=function(t,e){return Reflect.construct(w,[t,e])};n(21);n.d(e,"AntPath",function(){return _}),n.d(e,"antPath",function(){return x}),r.Polyline.AntPath=w,r.polyline.antPath=O;var _=w,x=O;e.default={AntPath:_,antPath:x}},function(t,e,n){t.exports=!n(9)&&!n(7)(function(){return 7!=Object.defineProperty(n(40)("div"),"a",{get:function(){return 7}}).a})},function(t,e,n){var r=n(4),o=n(3).document,i=r(o)&&r(o.createElement);t.exports=function(t){return i?o.createElement(t):{}}},function(t,e,n){var r=n(18);t.exports=function(t,e,n){if(r(t),void 0===e)return t;switch(n){case 1:return function(n){return t.call(e,n)};case 2:return function(n,r){return t.call(e,n,r)};case 3:return function(n,r,o){return t.call(e,n,r,o)}}return function(){return t.apply(e,arguments)}}},function(t,e,n){var r=n(6).f,o=n(5),i=n(11)("toStringTag");t.exports=function(t,e,n){t&&!o(t=n?t:t.prototype,i)&&r(t,i,{configurable:!0,value:e})}},function(t,e,n){e.f=n(11)},function(t,e,n){var r=n(5),o=n(15),i=n(54)(!1),a=n(31)("IE_PROTO");t.exports=function(t,e){var n,u=o(t),c=0,s=[];for(n in u)n!=a&&r(u,n)&&s.push(n);for(;e.length>c;)r(u,n=e[c++])&&(~i(s,n)||s.push(n));return s}},function(t,e){t.exports=function(t){if(null==t)throw TypeError("Can't call method on  "+t);return t}},function(t,e){var n=Math.ceil,r=Math.floor;t.exports=function(t){return isNaN(t=+t)?0:(t>0?r:n)(t)}},function(t,e,n){n(48),n(63),t.exports=n(38)},function(t,e,n){n(49),n(61),t.exports=n(10).Symbol},function(t,e,n){"use strict";var r=n(3),o=n(5),i=n(9),a=n(2),u=n(26),c=n(50).KEY,s=n(7),f=n(27),l=n(42),p=n(14),h=n(11),y=n(43),v=n(51),d=n(52),m=n(57),g=n(0),b=n(4),w=n(15),O=n(17),_=n(13),x=n(35),S=n(60),j=n(12),L=n(6),k=n(29),P=j.f,E=L.f,A=S.f,R=r.Symbol,F=r.JSON,T=F&&F.stringify,N=h("_hidden"),C=h("toPrimitive"),I={}.propertyIsEnumerable,M=f("symbol-registry"),U=f("symbols"),B=f("op-symbols"),G=Object.prototype,z="function"==typeof R,D=r.QObject,J=!D||!D.prototype||!D.prototype.findChild,Z=i&&s(function(){return 7!=x(E({},"a",{get:function(){return E(this,"a",{value:7}).a}})).a})?function(t,e,n){var r=P(G,e);r&&delete G[e],E(t,e,n),r&&t!==G&&E(G,e,r)}:E,q=function(t){var e=U[t]=x(R.prototype);return e._k=t,e},K=z&&"symbol"==typeof R.iterator?function(t){return"symbol"==typeof t}:function(t){return t instanceof R},W=function(t,e,n){return t===G&&W(B,e,n),g(t),e=O(e,!0),g(n),o(U,e)?(n.enumerable?(o(t,N)&&t[N][e]&&(t[N][e]=!1),n=x(n,{enumerable:_(0,!1)})):(o(t,N)||E(t,N,_(1,{})),t[N][e]=!0),Z(t,e,n)):E(t,e,n)},Y=function(t,e){g(t);for(var n,r=d(e=w(e)),o=0,i=r.length;i>o;)W(t,n=r[o++],e[n]);return t},$=function(t){var e=I.call(this,t=O(t,!0));return!(this===G&&o(U,t)&&!o(B,t))&&(!(e||!o(this,t)||!o(U,t)||o(this,N)&&this[N][t])||e)},H=function(t,e){if(t=w(t),e=O(e,!0),t!==G||!o(U,e)||o(B,e)){var n=P(t,e);return!n||!o(U,e)||o(t,N)&&t[N][e]||(n.enumerable=!0),n}},Q=function(t){for(var e,n=A(w(t)),r=[],i=0;n.length>i;)o(U,e=n[i++])||e==N||e==c||r.push(e);return r},V=function(t){for(var e,n=t===G,r=A(n?B:w(t)),i=[],a=0;r.length>a;)!o(U,e=r[a++])||n&&!o(G,e)||i.push(U[e]);return i};z||(u((R=function(){if(this instanceof R)throw TypeError("Symbol is not a constructor!");var t=p(arguments.length>0?arguments[0]:void 0),e=function(n){this===G&&e.call(B,n),o(this,N)&&o(this[N],t)&&(this[N][t]=!1),Z(this,t,_(1,n))};return i&&J&&Z(G,t,{configurable:!0,set:e}),q(t)}).prototype,"toString",function(){return this._k}),j.f=H,L.f=W,n(36).f=S.f=Q,n(34).f=$,n(33).f=V,i&&!n(28)&&u(G,"propertyIsEnumerable",$,!0),y.f=function(t){return q(h(t))}),a(a.G+a.W+a.F*!z,{Symbol:R});for(var X="hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables".split(","),tt=0;X.length>tt;)h(X[tt++]);for(var et=k(h.store),nt=0;et.length>nt;)v(et[nt++]);a(a.S+a.F*!z,"Symbol",{for:function(t){return o(M,t+="")?M[t]:M[t]=R(t)},keyFor:function(t){if(!K(t))throw TypeError(t+" is not a symbol!");for(var e in M)if(M[e]===t)return e},useSetter:function(){J=!0},useSimple:function(){J=!1}}),a(a.S+a.F*!z,"Object",{create:function(t,e){return void 0===e?x(t):Y(x(t),e)},defineProperty:W,defineProperties:Y,getOwnPropertyDescriptor:H,getOwnPropertyNames:Q,getOwnPropertySymbols:V}),F&&a(a.S+a.F*(!z||s(function(){var t=R();return"[null]"!=T([t])||"{}"!=T({a:t})||"{}"!=T(Object(t))})),"JSON",{stringify:function(t){for(var e,n,r=[t],o=1;arguments.length>o;)r.push(arguments[o++]);if(n=e=r[1],(b(e)||void 0!==t)&&!K(t))return m(e)||(e=function(t,e){if("function"==typeof n&&(e=n.call(this,t,e)),!K(e))return e}),r[1]=e,T.apply(F,r)}}),R.prototype[C]||n(16)(R.prototype,C,R.prototype.valueOf),l(R,"Symbol"),l(Math,"Math",!0),l(r.JSON,"JSON",!0)},function(t,e,n){var r=n(14)("meta"),o=n(4),i=n(5),a=n(6).f,u=0,c=Object.isExtensible||function(){return!0},s=!n(7)(function(){return c(Object.preventExtensions({}))}),f=function(t){a(t,r,{value:{i:"O"+ ++u,w:{}}})},l=t.exports={KEY:r,NEED:!1,fastKey:function(t,e){if(!o(t))return"symbol"==typeof t?t:("string"==typeof t?"S":"P")+t;if(!i(t,r)){if(!c(t))return"F";if(!e)return"E";f(t)}return t[r].i},getWeak:function(t,e){if(!i(t,r)){if(!c(t))return!0;if(!e)return!1;f(t)}return t[r].w},onFreeze:function(t){return s&&l.NEED&&c(t)&&!i(t,r)&&f(t),t}}},function(t,e,n){var r=n(3),o=n(10),i=n(28),a=n(43),u=n(6).f;t.exports=function(t){var e=o.Symbol||(o.Symbol=i?{}:r.Symbol||{});"_"==t.charAt(0)||t in e||u(e,t,{value:a.f(t)})}},function(t,e,n){var r=n(29),o=n(33),i=n(34);t.exports=function(t){var e=r(t),n=o.f;if(n)for(var a,u=n(t),c=i.f,s=0;u.length>s;)c.call(t,a=u[s++])&&e.push(a);return e}},function(t,e,n){var r=n(30);t.exports=Object("z").propertyIsEnumerable(0)?Object:function(t){return"String"==r(t)?t.split(""):Object(t)}},function(t,e,n){var r=n(15),o=n(55),i=n(56);t.exports=function(t){return function(e,n,a){var u,c=r(e),s=o(c.length),f=i(a,s);if(t&&n!=n){for(;s>f;)if((u=c[f++])!=u)return!0}else for(;s>f;f++)if((t||f in c)&&c[f]===n)return t||f||0;return!t&&-1}}},function(t,e,n){var r=n(46),o=Math.min;t.exports=function(t){return t>0?o(r(t),9007199254740991):0}},function(t,e,n){var r=n(46),o=Math.max,i=Math.min;t.exports=function(t,e){return(t=r(t))<0?o(t+e,0):i(t,e)}},function(t,e,n){var r=n(30);t.exports=Array.isArray||function(t){return"Array"==r(t)}},function(t,e,n){var r=n(6),o=n(0),i=n(29);t.exports=n(9)?Object.defineProperties:function(t,e){o(t);for(var n,a=i(e),u=a.length,c=0;u>c;)r.f(t,n=a[c++],e[n]);return t}},function(t,e,n){var r=n(3).document;t.exports=r&&r.documentElement},function(t,e,n){var r=n(15),o=n(36).f,i={}.toString,a="object"==typeof window&&window&&Object.getOwnPropertyNames?Object.getOwnPropertyNames(window):[];t.exports.f=function(t){return a&&"[object Window]"==i.call(t)?function(t){try{return o(t)}catch(t){return a.slice()}}(t):o(r(t))}},function(t,e,n){"use strict";var r=n(62),o={};o[n(11)("toStringTag")]="z",o+""!="[object z]"&&n(26)(Object.prototype,"toString",function(){return"[object "+r(this)+"]"},!0)},function(t,e,n){var r=n(30),o=n(11)("toStringTag"),i="Arguments"==r(function(){return arguments}());t.exports=function(t){var e,n,a;return void 0===t?"Undefined":null===t?"Null":"string"==typeof(n=function(t,e){try{return t[e]}catch(t){}}(e=Object(t),o))?n:i?r(e):"Object"==(a=r(e))&&"function"==typeof e.callee?"Arguments":a}},function(t,e,n){n(64),n(65),n(68),n(69),n(70),n(72),n(74),n(75),n(76),n(77),n(78),n(80),n(81),n(82),t.exports=n(10).Reflect},function(t,e,n){var r=n(2),o=n(18),i=n(0),a=(n(3).Reflect||{}).apply,u=Function.apply;r(r.S+r.F*!n(7)(function(){a(function(){})}),"Reflect",{apply:function(t,e,n){var r=o(t),c=i(n);return a?a(r,e,c):u.call(r,e,c)}})},function(t,e,n){var r=n(2),o=n(35),i=n(18),a=n(0),u=n(4),c=n(7),s=n(66),f=(n(3).Reflect||{}).construct,l=c(function(){function t(){}return!(f(function(){},[],t)instanceof t)}),p=!c(function(){f(function(){})});r(r.S+r.F*(l||p),"Reflect",{construct:function(t,e){i(t),a(e);var n=arguments.length<3?t:i(arguments[2]);if(p&&!l)return f(t,e,n);if(t==n){switch(e.length){case 0:return new t;case 1:return new t(e[0]);case 2:return new t(e[0],e[1]);case 3:return new t(e[0],e[1],e[2]);case 4:return new t(e[0],e[1],e[2],e[3])}var r=[null];return r.push.apply(r,e),new(s.apply(t,r))}var c=n.prototype,h=o(u(c)?c:Object.prototype),y=Function.apply.call(t,h,e);return u(y)?y:h}})},function(t,e,n){"use strict";var r=n(18),o=n(4),i=n(67),a=[].slice,u={};t.exports=Function.bind||function(t){var e=r(this),n=a.call(arguments,1),c=function(){var r=n.concat(a.call(arguments));return this instanceof c?function(t,e,n){if(!(e in u)){for(var r=[],o=0;o<e;o++)r[o]="a["+o+"]";u[e]=Function("F,a","return new F("+r.join(",")+")")}return u[e](t,n)}(e,r.length,r):i(e,r,t)};return o(e.prototype)&&(c.prototype=e.prototype),c}},function(t,e){t.exports=function(t,e,n){var r=void 0===n;switch(e.length){case 0:return r?t():t.call(n);case 1:return r?t(e[0]):t.call(n,e[0]);case 2:return r?t(e[0],e[1]):t.call(n,e[0],e[1]);case 3:return r?t(e[0],e[1],e[2]):t.call(n,e[0],e[1],e[2]);case 4:return r?t(e[0],e[1],e[2],e[3]):t.call(n,e[0],e[1],e[2],e[3])}return t.apply(n,e)}},function(t,e,n){var r=n(6),o=n(2),i=n(0),a=n(17);o(o.S+o.F*n(7)(function(){Reflect.defineProperty(r.f({},1,{value:1}),1,{value:2})}),"Reflect",{defineProperty:function(t,e,n){i(t),e=a(e,!0),i(n);try{return r.f(t,e,n),!0}catch(t){return!1}}})},function(t,e,n){var r=n(2),o=n(12).f,i=n(0);r(r.S,"Reflect",{deleteProperty:function(t,e){var n=o(i(t),e);return!(n&&!n.configurable)&&delete t[e]}})},function(t,e,n){"use strict";var r=n(2),o=n(0),i=function(t){this._t=o(t),this._i=0;var e,n=this._k=[];for(e in t)n.push(e)};n(71)(i,"Object",function(){var t,e=this._k;do{if(this._i>=e.length)return{value:void 0,done:!0}}while(!((t=e[this._i++])in this._t));return{value:t,done:!1}}),r(r.S,"Reflect",{enumerate:function(t){return new i(t)}})},function(t,e,n){"use strict";var r=n(35),o=n(13),i=n(42),a={};n(16)(a,n(11)("iterator"),function(){return this}),t.exports=function(t,e,n){t.prototype=r(a,{next:o(1,n)}),i(t,e+" Iterator")}},function(t,e,n){var r=n(12),o=n(37),i=n(5),a=n(2),u=n(4),c=n(0);a(a.S,"Reflect",{get:function t(e,n){var a,s,f=arguments.length<3?e:arguments[2];return c(e)===f?e[n]:(a=r.f(e,n))?i(a,"value")?a.value:void 0!==a.get?a.get.call(f):void 0:u(s=o(e))?t(s,n,f):void 0}})},function(t,e,n){var r=n(45);t.exports=function(t){return Object(r(t))}},function(t,e,n){var r=n(12),o=n(2),i=n(0);o(o.S,"Reflect",{getOwnPropertyDescriptor:function(t,e){return r.f(i(t),e)}})},function(t,e,n){var r=n(2),o=n(37),i=n(0);r(r.S,"Reflect",{getPrototypeOf:function(t){return o(i(t))}})},function(t,e,n){var r=n(2);r(r.S,"Reflect",{has:function(t,e){return e in t}})},function(t,e,n){var r=n(2),o=n(0),i=Object.isExtensible;r(r.S,"Reflect",{isExtensible:function(t){return o(t),!i||i(t)}})},function(t,e,n){var r=n(2);r(r.S,"Reflect",{ownKeys:n(79)})},function(t,e,n){var r=n(36),o=n(33),i=n(0),a=n(3).Reflect;t.exports=a&&a.ownKeys||function(t){var e=r.f(i(t)),n=o.f;return n?e.concat(n(t)):e}},function(t,e,n){var r=n(2),o=n(0),i=Object.preventExtensions;r(r.S,"Reflect",{preventExtensions:function(t){o(t);try{return i&&i(t),!0}catch(t){return!1}}})},function(t,e,n){var r=n(6),o=n(12),i=n(37),a=n(5),u=n(2),c=n(13),s=n(0),f=n(4);u(u.S,"Reflect",{set:function t(e,n,u){var l,p,h=arguments.length<4?e:arguments[3],y=o.f(s(e),n);if(!y){if(f(p=i(e)))return t(p,n,u,h);y=c(0)}if(a(y,"value")){if(!1===y.writable||!f(h))return!1;if(l=o.f(h,n)){if(l.get||l.set||!1===l.writable)return!1;l.value=u,r.f(h,n,l)}else r.f(h,n,c(0,u));return!0}return void 0!==y.set&&(y.set.call(h,u),!0)}})},function(t,e,n){var r=n(2),o=n(83);o&&r(r.S,"Reflect",{setPrototypeOf:function(t,e){o.check(t,e);try{return o.set(t,e),!0}catch(t){return!1}}})},function(t,e,n){var r=n(4),o=n(0),i=function(t,e){if(o(t),!r(e)&&null!==e)throw TypeError(e+": can't set as prototype!")};t.exports={set:Object.setPrototypeOf||("__proto__"in{}?function(t,e,r){try{(r=n(41)(Function.call,n(12).f(Object.prototype,"__proto__").set,2))(t,[]),e=!(t instanceof Array)}catch(t){e=!0}return function(t,n){return i(t,n),e?t.__proto__=n:r(t,n),t}}({},!1):void 0),check:i}}])});
 	//# sourceMappingURL=leaflet-ant-path.js.map
 
 /***/ }),
-/* 254 */
+/* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -67774,14 +68234,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 255 */
+/* 237 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
 	var L = __webpack_require__(5);
 
 	/*** IMPORTS FROM imports-loader ***/
-	var simpleheat = __webpack_require__(254);
+	var simpleheat = __webpack_require__(236);
 
 	'use strict';
 
@@ -67994,7 +68454,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 256 */
+/* 238 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -68003,7 +68463,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	(function (factory, window) {
 	    // define an AMD module that relies on 'leaflet'
 	    if (true) {
-	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5), __webpack_require__(245)], __WEBPACK_AMD_DEFINE_RESULT__ = function (L, Spinner) {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5), __webpack_require__(227)], __WEBPACK_AMD_DEFINE_RESULT__ = function (L, Spinner) {
 	            factory(L, Spinner);
 	        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -68073,7 +68533,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 257 */
+/* 239 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -68298,7 +68758,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 258 */
+/* 240 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var require;var require;var __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {/*** IMPORTS FROM imports-loader ***/
@@ -75599,7 +76059,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 259 */
+/* 241 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -75735,7 +76195,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 260 */
+/* 242 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -76008,7 +76468,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 261 */
+/* 243 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -76626,7 +77086,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 262 */
+/* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -76927,7 +77387,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 263 */
+/* 245 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77064,7 +77524,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 264 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77261,7 +77721,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 265 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77770,7 +78230,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 266 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -78091,7 +78551,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 267 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -78270,7 +78730,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 268 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/

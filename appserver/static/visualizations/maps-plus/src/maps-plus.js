@@ -809,8 +809,6 @@ define([
                 }                
             })
             .each(function(lg) {
-                console.log(lg)
-
                 if(_.has(lg.circle, "layerPriority")){
                     map.createPane(paneZIndex.toString())
                     map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex

@@ -588,18 +588,47 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			// coordinates. Allow user to copy and paste center coordinates into 
 			// Center Lat and Center Lon format menu options.
 	        showCoordinates: function (e) {
+	            this.map.on('dialog:closed', function(e) { 
+	                dialog.destroy()
+	            })
+
 	            var coordinates = e.latlng.toString().match(/([-\d\.]+)/g);
 	            var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g);
 	            var curZoom = this.map.getZoom();
+	            
 	            var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
 	                  "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
 	                  "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
 	                  "<br></br>Copy and paste the following values into Format menu to change <b>Center Lat</b> and <b>Center Lon</b> (visualization API does not currently support programmatically setting format menu options):<br>" +
 	                  "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
-	                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">";
+	                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
+
 	            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
 	              .setContent(content)
 	              .addTo(this.map);
+	        },
+
+	        showLastMeasurement: function (e) {
+	            this.map.on('measurefinish', function(e) {
+	                var newline = String.fromCharCode(13, 10);
+	                var coordinates = ""
+	                _.each(e.points, function(v, i) {
+	                    var idx = (i + 1)
+	                    coordinates += "Point " + idx + " lat,lon: " + v.lat + "," + v.lng + newline
+	                })
+	                
+	                $('#last-measure').val(coordinates)
+	            })
+
+	            this.map.on('dialog:closed', function(e) { 
+	                dialog.destroy()
+	            })
+
+	            
+	            var content = "<b>Last Measurement</b><hr><textarea rows=\"15\" cols=\"10\" id=\"last-measure\" name=\"measure_coords\"></textarea>";
+	            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+	              .setContent(content)
+	              .addTo(this.map)
 	        },
 
 	        centerMap: function (e) {
@@ -1191,6 +1220,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                           context: this,
 	                                           callback: this.showCoordinates
 	                                       }, {
+	                                            text: 'Measure details',
+	                                            context: this,
+	                                            callback: this.showLastMeasurement
+	                                       }, {
 	                                           text: 'Center map here',
 	                                           context: this,
 	                                           callback: this.centerMap
@@ -1244,6 +1277,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                // Create map 
 	                var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom);
+	                // this.map.on('measurefinish', function(e) {
+	                //     console.log(e.points)
+	                // })
 
 					// Load Google Places Search Control
 	                if(this.isArgTrue(googlePlacesSearch)) {

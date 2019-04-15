@@ -69,7 +69,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 # leaflet
 
-Version 1.3.1
+Version 1.4.0
 
 Copyright (c) 2010-2018, Vladimir Agafonkin
 Copyright (c) 2010-2011, CloudMade
@@ -397,7 +397,7 @@ SOFTWARE.
 
 # leaflet.markercluster
 
-Version 1.3.0
+Version 1.4.1
 
 Copyright 2012 David Leaver
 

@@ -11,6 +11,7 @@ define([
             'load-google-maps-api',
             'moment',
             '../contrib/js/Modal',
+            '../contrib/js/theme-utils',
             'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
@@ -46,7 +47,8 @@ define([
             mvc,
             loadGoogleMapsAPI,
             moment,
-            Modal
+            Modal,
+            themeUtils
         ) {
 
 
@@ -56,6 +58,7 @@ define([
         tileLayer: null,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
+        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
         defaultConfig:  {
             'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
@@ -553,7 +556,8 @@ define([
 
             var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
               .setContent(content)
-              .addTo(this.map);
+              .addTo(this.map)
+              .open();
         },
 
         showLastMeasurement: function (e) {
@@ -577,6 +581,7 @@ define([
             var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
               .setContent(content)
               .addTo(this.map)
+              .open()
         },
 
         centerMap: function (e) {
@@ -1170,7 +1175,7 @@ define([
                                        }, {
                                             text: 'Measure details',
                                             context: this,
-                                            callback: this.showLastMeasurement
+                                            callback: this.showLastMeasurement                                            
                                        }, {
                                            text: 'Center map here',
                                            context: this,
@@ -1225,9 +1230,52 @@ define([
 
                 // Create map 
                 var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom);
-                // this.map.on('measurefinish', function(e) {
-                //     console.log(e.points)
-                // })
+
+                // .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+                //     background: black;
+                //     color: #e60909;
+                //     box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+                // }
+                // Dark Mode Support
+                if(this.isDarkTheme) {
+                    // Set dialog to black
+                    this.map.on('dialog:opened', function(e) {                        
+                        console.log("Changing dialog CSS")
+                        $('.leaflet-control-dialog').css('background-color', '#000000')                        
+                    })
+
+                    this.map.on('popupopen', function(e) {    
+                        console.log("Changing popup CSS")                    
+                        $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
+                                                                                     'color': "#FFFFFF"})
+                    })
+
+                    this.map.on('tooltipopen', function(e) {  
+                        console.log("Changing tooltip CSS")                      
+                        $('.leaflet-tooltip').css({'background-color': '#000000',
+                                                   'color': "#FFFFFF"})
+                    })
+                    
+                    // context menu dark mode styles
+                    var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
+                                  '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
+                                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
+                                  '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
+                                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
+                                  '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
+                                  '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
+
+                    var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.cssRules.length
+                    // delete styles from newest to oldest                                  
+                    for(i=length-1; i >= 0; i--) {
+                        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.deleteRule(i)
+                    }
+
+                    // insert dark styles
+                    for(i=0; i < styles.length; i++) {
+                        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.insertRule(styles[i], i)
+                    }
+                }
 
 				// Load Google Places Search Control
                 if(this.isArgTrue(googlePlacesSearch)) {
@@ -1426,6 +1474,7 @@ define([
             if (this.map.getZoom() != mapCenterZoom) {
                 this.map.setZoom(mapCenterZoom);
             }
+
            
 			/********* BEGIN PROCESSING DATA **********/
  

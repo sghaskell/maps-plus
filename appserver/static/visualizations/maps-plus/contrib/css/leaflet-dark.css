@@ -1,0 +1,20 @@
+.leaflet-tooltip-left.dark:before {
+    right: 0;
+    margin-right: -12px;
+    border-left-color: #000;
+    }
+.leaflet-tooltip-right.dark:before {
+    left: 0;
+    margin-left: -12px;
+    border-right-color: #000;
+    }
+.leaflet-tooltip-bottom.dark:before {
+    left: 0;
+    margin-left: -12px;
+    border-right-color: #000;
+    }
+.leaflet-tooltip-top.dark:before {
+    left: 0;
+    margin-left: -12px;
+    border-right-color: #000;
+    }

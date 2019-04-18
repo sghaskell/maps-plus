@@ -1231,30 +1231,38 @@ define([
                 // Create map 
                 var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom);
 
-                // .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-                //     background: black;
-                //     color: #e60909;
-                //     box-shadow: 0 3px 14px rgba(0,0,0,0.4);
-                // }
                 // Dark Mode Support
                 if(this.isDarkTheme) {
                     // Set dialog to black
                     this.map.on('dialog:opened', function(e) {                        
-                        console.log("Changing dialog CSS")
                         $('.leaflet-control-dialog').css('background-color', '#000000')                        
                     })
 
+                    // Change popup colors
                     this.map.on('popupopen', function(e) {    
-                        console.log("Changing popup CSS")                    
                         $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
                                                                                      'color': "#FFFFFF"})
                     })
-
+                    
+                    // Change tooltip colors
                     this.map.on('tooltipopen', function(e) {  
-                        console.log("Changing tooltip CSS")                      
-                        $('.leaflet-tooltip').css({'background-color': '#000000',
-                                                   'color': "#FFFFFF"})
+                        $('.leaflet-tooltip').css({'background': '#000000',
+                                                   'color': '#FFFFFF',
+                                                   'border': '1px solid #000000'})
+                        
+                        console.log("updating tooltips")
+                        $('.leaflet-tooltip-right').toggleClass('dark', true)
+                        $('.leaflet-tooltip-left').toggleClass('dark', true)
+                        $('.leaflet-tooltip-bottom').toggleClass('dark', true)
+                        $('.leaflet-tooltip-top').toggleClass('dark', true)
                     })
+
+                    
+                    // Update Zoom Controls
+                    $('.leaflet-control-zoom-in').css({'background-color': '#000000',
+                                                       'color': '#FFFFFF'})
+                    $('.leaflet-control-zoom-out').css({'background-color': '#000000',
+                                                        'color': '#FFFFFF'})
                     
                     // context menu dark mode styles
                     var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
@@ -1406,6 +1414,9 @@ define([
 
                     var measureControl = new L.Control.Measure(measureOptions);
                     measureControl.addTo(this.map);
+                    if(this.isDarkTheme) {
+                        $('.leaflet-control-measure').css('background-color', '#000000')
+                    }                    
                 }
 
                 // Iterate through KML files and load overlays into layers on map 
@@ -1712,6 +1723,10 @@ define([
             if (this.isArgTrue(layerControl)) {           
                 this.control.addTo(this.map);
                 this.control.options.collapsed = this.isArgTrue(layerControlCollapsed);
+                if(this.isDarkTheme) {
+                    $('.leaflet-control-layers-expanded').css('background-color', '#000')
+                    $('.leaflet-control-layers').css('background-color', '#000')                   
+                }
             } else {
                 this.control.remove();
             }

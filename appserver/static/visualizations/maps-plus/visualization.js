@@ -1298,11 +1298,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    
 	                    // Change tooltip colors
 	                    this.map.on('tooltipopen', function(e) {  
-	                        $('.leaflet-tooltip, .leaflet-popup-tip').css({'background-color': '#000000',
+	                        $('.leaflet-tooltip').css({'background': '#000000',
 	                                                   'color': '#FFFFFF',
 	                                                   'border': '1px solid #000000'})
+	                        
+	                        console.log("updating tooltips")
+	                        $('.leaflet-tooltip-right').toggleClass('dark', true)
+	                        $('.leaflet-tooltip-left').toggleClass('dark', true)
+	                        $('.leaflet-tooltip-bottom').toggleClass('dark', true)
+	                        $('.leaflet-tooltip-top').toggleClass('dark', true)
 	                    })
 
+	                    
 	                    // Update Zoom Controls
 	                    $('.leaflet-control-zoom-in').css({'background-color': '#000000',
 	                                                       'color': '#FFFFFF'})

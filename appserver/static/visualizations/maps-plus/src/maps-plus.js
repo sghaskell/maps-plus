@@ -860,8 +860,6 @@ define([
         },
 
         _addUnclustered: function(map, options) {
-            //var paneZIndex = 400
-
             _.chain(options.layerFilter)
             .sortBy(function(d) {
                 if(_.has(d.circle, "layerPriority")){
@@ -903,24 +901,11 @@ define([
         },
         
         _renderLayersToMap: function(map, options) {
-            // Render hetmap layer on map
-            //var paneZIndex = 400
-
-            console.log(options)
-
             _.chain(options.layers)
             .sortBy(function(d) {
-                //console.log(d)                
                 return +d.options.layerPriority
             })
-            .each(function(fg) {
-                //console.log(fg)
-                //map.createPane(options.paneZIndex.toString())
-                //map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
-
-                //fg.setStyle({pane: options.paneZIndex.toString()})
-                //fg.setZIndex(options.paneZIndex)
-                
+            .each(function(fg) {                
                 // Add layergroup to map
                 fg.addTo(map)
         
@@ -930,21 +915,7 @@ define([
                                         control: options.control};
                     options.context.addLayerToControl(layerOptions);   
                 }
-
-                options.paneZIndex += 1
             });
-
-            
-            
-            // _.each(options.layers, function(featureGroup) {
-            //     featureGroup.addTo(map);
-            //     if(options.layerControl) {
-            //         var layerOptions = {layerType: options.layerType,
-            //                             featureGroup: featureGroup,
-            //                             control: options.control};
-            //         options.context.addLayerToControl(layerOptions);   
-            //     }   
-            // })
         },
 
         formatData: function(data) {
@@ -1249,8 +1220,6 @@ define([
                         $('.leaflet-tooltip').css({'background': '#000000',
                                                    'color': '#FFFFFF',
                                                    'border': '1px solid #000000'})
-                        
-                        console.log("updating tooltips")
                         $('.leaflet-tooltip-right').toggleClass('dark', true)
                         $('.leaflet-tooltip-left').toggleClass('dark', true)
                         $('.leaflet-tooltip-bottom').toggleClass('dark', true)

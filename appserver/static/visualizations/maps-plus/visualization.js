@@ -108,6 +108,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        maxResults: 0,
 	        paneZIndex: 400,
 	        tileLayer: null,
+	        lastMeasure: "",
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
@@ -592,8 +593,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			// Center Lat and Center Lon format menu options.
 	        showCoordinates: function (e) {
 	            this.map.on('dialog:closed', function(e) { 
-	                dialog.destroy()
-	            })
+	                this.coordDialog.destroy()
+	            }, this)
 
 	            var coordinates = e.latlng.toString().match(/([-\d\.]+)/g);
 	            var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g);
@@ -606,31 +607,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                  "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
 	                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
 
-	            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+	            var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
 	              .setContent(content)
 	              .addTo(this.map)
 	              .open();
 	        },
 
 	        showLastMeasurement: function (e) {
-	            this.map.on('measurefinish', function(e) {
-	                var newline = String.fromCharCode(13, 10);
-	                var coordinates = ""
-	                _.each(e.points, function(v, i) {
-	                    var idx = (i + 1)
-	                    coordinates += "Point " + idx + " lat,lon: " + v.lat + "," + v.lng + newline
-	                })
-	                
-	                $('#last-measure').val(coordinates)
-	            })
+	            this.map.on('dialog:opened', function() {
+	                $('#last-measure').val(this.lastMeasure)
+	            }, this)
 
 	            this.map.on('dialog:closed', function(e) { 
-	                dialog.destroy()
-	            })
+	                this.measureDialog.destroy()
+	            }, this)
 
-	            
 	            var content = "<b>Last Measurement</b><hr><textarea rows=\"15\" cols=\"10\" id=\"last-measure\" name=\"measure_coords\"></textarea>";
-	            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+	            var measureDialog = this.measureDialog = L.control.dialog({size: [300,435], anchor: [100, 150]})
 	              .setContent(content)
 	              .addTo(this.map)
 	              .open()
@@ -1479,6 +1472,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true);
 	                }
+
+	                // Listen to measurement finish for Measure details
+	                this.map.on('measurefinish', function(e) {
+	                    this.lastMeasure = ""
+	                    var newline = String.fromCharCode(13, 10);
+	                    var coordinates = ""
+	                    _.each(e.points, function(v, i) {
+	                        var idx = (i + 1)
+	                        coordinates += "Point " + idx + " lat,lon: " + parseFloat(v.lat).toPrecision(7) + "," + parseFloat(v.lng).toPrecision(7) + newline
+	                    })
+	                    
+	                    this.lastMeasure = coordinates
+	                    $('#last-measure').val(this.lastMeasure)
+	                }, this)
 	            } 
 
 	            // Map Scroll

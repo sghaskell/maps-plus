@@ -18,3 +18,13 @@
     margin-left: -12px;
     border-right-color: #000;
     }
+textarea
+{
+    width:100%;
+}
+.textwrapper
+{
+    border:1px solid #999999;
+    margin:5px 0;
+    padding:3px;
+}

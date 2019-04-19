@@ -564,10 +564,12 @@ define([
         showLastMeasurement: function (e) {
             this.map.on('dialog:opened', function() {
                 $('#last-measure').val(this.lastMeasure)
+                this.measureLayer.addTo(this.map)
             }, this)
 
             this.map.on('dialog:closed', function(e) { 
-                this.measureDialog.destroy()
+                this.measureLayer.removeFrom(this.map)
+                this.measureDialog.destroy()                
             }, this)
 
             var content = "<b>Last Measurement</b><hr><textarea rows=\"15\" cols=\"10\" id=\"last-measure\" name=\"measure_coords\"></textarea>";
@@ -1421,15 +1423,23 @@ define([
                     this.map.spin(true);
                 }
 
+                var measureLayer = this.measureLayer = L.featureGroup()
+
                 // Listen to measurement finish for Measure details
                 this.map.on('measurefinish', function(e) {
                     this.lastMeasure = ""
+                    this.measureLayer = L.featureGroup()
                     var newline = String.fromCharCode(13, 10);
                     var coordinates = ""
                     _.each(e.points, function(v, i) {
                         var idx = (i + 1)
-                        coordinates += "Point " + idx + " lat,lon: " + parseFloat(v.lat).toPrecision(7) + "," + parseFloat(v.lng).toPrecision(7) + newline
-                    })
+                        var lat = v.lat,
+                            long = v.lng
+                            point = "Point " + (i + 1)
+                        coordinates += point + idx + " lat,lon: " + parseFloat(lat).toPrecision(7) + "," + parseFloat(long).toPrecision(7) + newline
+                        var m = L.circleMarker(v, {color: '#ff0000'})
+                        m.addTo(this.measureLayer).bindTooltip(point + ": " + lat + "," + long)
+                    }, this)
                     
                     this.lastMeasure = coordinates
                     $('#last-measure').val(this.lastMeasure)

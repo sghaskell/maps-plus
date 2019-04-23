@@ -57,6 +57,8 @@ define([
         paneZIndex: 400,
         tileLayer: null,
         lastMeasure: "",
+        zoneDef: "",
+        measureDialogOpen: false,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
         isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
@@ -562,17 +564,20 @@ define([
         },
 
         showLastMeasurement: function (e) {
-            this.map.on('dialog:opened', function() {
+            this.map.on('dialog:opened', function() {               
                 $('#last-measure').val(this.lastMeasure)
                 this.measureLayer.addTo(this.map)
             }, this)
 
             this.map.on('dialog:closed', function(e) { 
                 this.measureLayer.removeFrom(this.map)
-                this.measureDialog.destroy()                
+                this.measureDialog.destroy()          
+                this.measureDialogOpen = false      
             }, this)
 
-            var content = "<b>Last Measurement</b><hr><textarea rows=\"15\" cols=\"10\" id=\"last-measure\" name=\"measure_coords\"></textarea>";
+            this.measureDialogOpen = true
+            var content = "<b>Last Measurement</b><hr><textarea rows=\"10\" cols=\"12\" id=\"last-measure\" name=\"measure_coords\"></textarea>" + 
+                          "<hr><br><b>Zone Definition</b><input type=\"text\" id=\"zone-def\">";
             var measureDialog = this.measureDialog = L.control.dialog({size: [300,435], anchor: [100, 150]})
               .setContent(content)
               .addTo(this.map)
@@ -1380,6 +1385,14 @@ define([
                     measureControl.addTo(this.map);
                     if(this.isDarkTheme) {
                         $('.leaflet-control-measure').css('background-color', '#000000')
+
+                        // Set initial background color of control to black
+                        $('.leaflet-bar a').css('background-color', '#000000')
+
+                        // Re-set background color on collapse
+                        this.map.on('measurecollapsed', function() {
+                            $('.leaflet-bar a').css('background-color', '#000000')
+                        })
                     }                    
                 }
 
@@ -1428,7 +1441,7 @@ define([
                 // Listen to measurement finish for Measure details
                 this.map.on('measurefinish', function(e) {
                     this.lastMeasure = ""
-                    this.measureLayer = L.featureGroup()
+                    this.zoneDef = ""
                     var newline = String.fromCharCode(13, 10);
                     var coordinates = ""
                     _.each(e.points, function(v, i) {
@@ -1443,6 +1456,14 @@ define([
                     
                     this.lastMeasure = coordinates
                     $('#last-measure').val(this.lastMeasure)
+                    if(this.measureDialogOpen) {
+                        this.measureLayer.addTo(this.map)
+                    }
+                }, this)
+
+                this.map.on('measuredeleted', function() {
+                    console.log("deleting measurement")
+                    this.measureLayer.removeFrom(this.map)
                 }, this)
             } 
 

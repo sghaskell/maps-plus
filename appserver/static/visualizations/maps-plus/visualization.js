@@ -1258,7 +1258,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(this.isDarkTheme) {
 	                    // Set dialog to black
 	                    this.map.on('dialog:opened', function(e) {                        
-	                        $('.leaflet-control-dialog').css('background-color', '#000000')                        
+	                        $('.leaflet-control-dialog').css({'background-color': '#000000'})
+	                        $('.leaflet-control-layers').css({'color': '#fff'})
 	                    })
 
 	                    // Change popup colors
@@ -1783,8 +1784,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this.control.addTo(this.map);
 	                this.control.options.collapsed = this.isArgTrue(layerControlCollapsed);
 	                if(this.isDarkTheme) {
-	                    $('.leaflet-control-layers-expanded').css('background-color', '#000')
-	                    $('.leaflet-control-layers').css('background-color', '#000')                   
+	                    $('.leaflet-control-layers').css({'background-color': '#000',
+	                                                      'color': '#fff'})
 	                }
 	            } else {
 	                this.control.remove();

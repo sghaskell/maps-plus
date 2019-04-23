@@ -56,8 +56,8 @@ define([
         maxResults: 0,
         paneZIndex: 400,
         tileLayer: null,
-        lastMeasure: "",
-        zoneDef: "",
+        // lastMeasure: "",
+        // zoneDef: "",
         measureDialogOpen: false,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
@@ -563,26 +563,26 @@ define([
               .open();
         },
 
-        showLastMeasurement: function (e) {
-            this.map.on('dialog:opened', function() {               
-                $('#last-measure').val(this.lastMeasure)
-                this.measureLayer.addTo(this.map)
-            }, this)
+        // showLastMeasurement: function (e) {
+        //     this.map.on('dialog:opened', function() {               
+        //         $('#last-measure').val(this.lastMeasure)
+        //         this.measureLayer.addTo(this.map)
+        //     }, this)
 
-            this.map.on('dialog:closed', function(e) { 
-                this.measureLayer.removeFrom(this.map)
-                this.measureDialog.destroy()          
-                this.measureDialogOpen = false      
-            }, this)
+        //     this.map.on('dialog:closed', function(e) { 
+        //         this.measureLayer.removeFrom(this.map)
+        //         this.measureDialog.destroy()          
+        //         this.measureDialogOpen = false      
+        //     }, this)
 
-            this.measureDialogOpen = true
-            var content = "<b>Last Measurement</b><hr><textarea rows=\"10\" cols=\"12\" id=\"last-measure\" name=\"measure_coords\"></textarea>" + 
-                          "<hr><br><b>Zone Definition</b><input type=\"text\" id=\"zone-def\">";
-            var measureDialog = this.measureDialog = L.control.dialog({size: [300,435], anchor: [100, 150]})
-              .setContent(content)
-              .addTo(this.map)
-              .open()
-        },
+        //     this.measureDialogOpen = true
+        //     var content = "<b>Last Measurement</b><hr><textarea rows=\"10\" cols=\"12\" id=\"last-measure\" name=\"measure_coords\"></textarea>" + 
+        //                   "<hr><br><b>Zone Definition</b><input type=\"text\" id=\"zone-def\">";
+        //     var measureDialog = this.measureDialog = L.control.dialog({size: [300,435], anchor: [100, 150]})
+        //       .setContent(content)
+        //       .addTo(this.map)
+        //       .open()
+        // },
 
         centerMap: function (e) {
             this.map.panTo(e.latlng);
@@ -1143,10 +1143,10 @@ define([
                                            text: 'Show details',
                                            context: this,
                                            callback: this.showCoordinates
-                                       }, {
-                                            text: 'Measure details',
-                                            context: this,
-                                            callback: this.showLastMeasurement                                            
+                                    //    }, {
+                                    //         text: 'Measure details',
+                                    //         context: this,
+                                    //         callback: this.showLastMeasurement                                            
                                        }, {
                                            text: 'Center map here',
                                            context: this,
@@ -1436,35 +1436,35 @@ define([
                     this.map.spin(true);
                 }
 
-                var measureLayer = this.measureLayer = L.featureGroup()
+                //var measureLayer = this.measureLayer = L.featureGroup()
 
-                // Listen to measurement finish for Measure details
-                this.map.on('measurefinish', function(e) {
-                    this.lastMeasure = ""
-                    this.zoneDef = ""
-                    var newline = String.fromCharCode(13, 10);
-                    var coordinates = ""
-                    _.each(e.points, function(v, i) {
-                        var idx = (i + 1)
-                        var lat = v.lat,
-                            long = v.lng
-                            point = "Point " + (i + 1)
-                        coordinates += point + idx + " lat,lon: " + parseFloat(lat).toPrecision(7) + "," + parseFloat(long).toPrecision(7) + newline
-                        var m = L.circleMarker(v, {color: '#ff0000'})
-                        m.addTo(this.measureLayer).bindTooltip(point + ": " + lat + "," + long)
-                    }, this)
+                // // Listen to measurement finish for Measure details
+                // this.map.on('measurefinish', function(e) {
+                //     this.lastMeasure = ""
+                //     this.zoneDef = ""
+                //     var newline = String.fromCharCode(13, 10);
+                //     var coordinates = ""
+                //     _.each(e.points, function(v, i) {
+                //         var idx = (i + 1)
+                //         var lat = v.lat,
+                //             long = v.lng
+                //             point = "Point " + (i + 1)
+                //         coordinates += point + idx + " lat,lon: " + parseFloat(lat).toPrecision(7) + "," + parseFloat(long).toPrecision(7) + newline
+                //         var m = L.circleMarker(v, {color: '#ff0000'})
+                //         m.addTo(this.measureLayer).bindTooltip(point + ": " + lat + "," + long)
+                //     }, this)
                     
-                    this.lastMeasure = coordinates
-                    $('#last-measure').val(this.lastMeasure)
-                    if(this.measureDialogOpen) {
-                        this.measureLayer.addTo(this.map)
-                    }
-                }, this)
+                //     this.lastMeasure = coordinates
+                //     $('#last-measure').val(this.lastMeasure)
+                //     if(this.measureDialogOpen) {
+                //         this.measureLayer.addTo(this.map)
+                //     }
+                // }, this)
 
-                this.map.on('measuredeleted', function() {
-                    console.log("deleting measurement")
-                    this.measureLayer.removeFrom(this.map)
-                }, this)
+                // this.map.on('measuredeleted', function() {
+                //     console.log("deleting measurement")
+                //     this.measureLayer.removeFrom(this.map)
+                // }, this)
             } 
 
             // Map Scroll

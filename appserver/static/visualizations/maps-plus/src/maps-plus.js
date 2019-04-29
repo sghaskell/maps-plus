@@ -462,7 +462,7 @@ define([
                                                                             "pulseColor": p[0]['antPathPulseColor'],
                                                                             "paused": p[0]['antPathPaused'],
                                                                             "reverse": p[0]['antPathReverse']
-                                                }).bindPopup(p[0]['description']);       
+                                                }).bindPopup(p[0]['description'])       
                 } else {
                     // create polyline and bind popup
                     var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
@@ -728,7 +728,7 @@ define([
                     if (childMarkers.length >= this._circleSpiralSwitchover) {
                         positions = this._generatePointsSpiral(childMarkers.length, center)
                     } else {
-                        center.y += 10; // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
+                        center.y += 10 // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
                         positions = this._generatePointsCircle(childMarkers.length, center)
                     }
         
@@ -808,7 +808,7 @@ define([
                                         }, {
                                             separator: true,
                                             index: 1
-                                        }]});                
+                                        }]})                
             }
 
             if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
@@ -914,7 +914,7 @@ define([
                     var layerOptions = {layerType: options.layerType,
                                         featureGroup: fg,
                                         control: options.control}
-                    options.context.addLayerToControl(layerOptions);   
+                    options.context.addLayerToControl(layerOptions)   
                 }
             })
         },
@@ -1315,7 +1315,7 @@ define([
                         maxZoom: maxZoom
                     })
                     // Add tile layer to map
-                    this.map.addLayer(this.tileLayer);    
+                    this.map.addLayer(this.tileLayer)    
                 }
 
                 this.markers = new L.MarkerClusterGroup({ 
@@ -1429,7 +1429,7 @@ define([
                     this.chunk = 10000
                 }
                 this.offset = 0
-				this.isInitializedDom = true;         
+				this.isInitializedDom = true         
                 this.allDataProcessed = false
 
                 // Load localization file and init locale
@@ -1646,7 +1646,7 @@ define([
                 var description = _.has(userData, "description") ? userData["description"]:""
 
 				// SVG and PNG based markers both support hex iconColor do conversion outside
-				iconColor = this.convertHex(iconColor);	
+				iconColor = this.convertHex(iconColor)	
 
                 markerType = _.isNull(customIcon) ? markerType:"custom"
 
@@ -1666,7 +1666,7 @@ define([
 
                 if (markerType == "svg") {
 					// Update marker to shade of Awesome Marker blue
-					if(markerColor == "blue") { markerColor = "#38AADD"; }
+					if(markerColor == "blue") { markerColor = "#38AADD" }
                     markerColor = this.convertHex(markerColor)
                     popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
 

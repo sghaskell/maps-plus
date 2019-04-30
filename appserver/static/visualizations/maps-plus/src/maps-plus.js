@@ -480,35 +480,20 @@ define([
                 // Add polyline to feature group
                 pathFg.addLayer(pl)
             })
-
-            // 
-            // _.chain(options.pathLineLayers)
-            // .sortBy(function(d) {
-            //     //console.log(d)                
-            //     return +d.options.layerPriority
-            // })
-            // .each(function(lg) {
-            //     console.log(lg)
-            //     options.context.map.createPane(paneZIndex.toString())
-            //     options.context.map.getPane(paneZIndex.toString()).style.zIndex = paneZIndex
-
-            //     if(_.has(lg.circle, "layerPriority")){
-            //         lg.group.setStyle({pane: paneZIndex.toString()})
-            //         lg.group.setZIndex(paneZIndex)
-            //     }
-
-            //     // Add layergroup to map
-            //     //lg.addTo(options.context.map)
-                
-            //     paneZIndex += 1
-            // })
         },
 
         // Create a control icon and description in the layer control legend
         addLayerToControl: function(options) {
+            var name = ""
+
             // Add Heatmap layer to controls and use layer name for control label
             if(options.layerType == "heat" || options.layerType == "path") {
-                options.control.addOverlay(options.featureGroup, options.featureGroup.options.name)
+                if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
+                    name = options.featureGroup.options.layerDescription
+                } else {
+                    name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
+                }
+                options.control.addOverlay(options.featureGroup, name)
                 return
             }
 
@@ -1440,36 +1425,6 @@ define([
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true)
                 }
-
-                //var measureLayer = this.measureLayer = L.featureGroup()
-
-                // // Listen to measurement finish for Measure details
-                // this.map.on('measurefinish', function(e) {
-                //     this.lastMeasure = ""
-                //     this.zoneDef = ""
-                //     var newline = String.fromCharCode(13, 10)
-                //     var coordinates = ""
-                //     _.each(e.points, function(v, i) {
-                //         var idx = (i + 1)
-                //         var lat = v.lat,
-                //             long = v.lng
-                //             point = "Point " + (i + 1)
-                //         coordinates += point + idx + " lat,lon: " + parseFloat(lat).toPrecision(7) + "," + parseFloat(long).toPrecision(7) + newline
-                //         var m = L.circleMarker(v, {color: '#ff0000'})
-                //         m.addTo(this.measureLayer).bindTooltip(point + ": " + lat + "," + long)
-                //     }, this)
-                    
-                //     this.lastMeasure = coordinates
-                //     $('#last-measure').val(this.lastMeasure)
-                //     if(this.measureDialogOpen) {
-                //         this.measureLayer.addTo(this.map)
-                //     }
-                // }, this)
-
-                // this.map.on('measuredeleted', function() {
-                //     console.log("deleting measurement")
-                //     this.measureLayer.removeFrom(this.map)
-                // }, this)
             } 
 
             // Map Scroll
@@ -1522,6 +1477,9 @@ define([
                     return
                 }
 
+                // Get layer description and set
+                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
                     var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default"
@@ -1542,6 +1500,7 @@ define([
                         // Add to feature group                                
                         heatFg.addLayer(heatFgLayer)
                         heatFg.options.name = this.heatLayer
+                        heatFg.options.layerDescription = layerDescription
                         this.heatLayers[this.heatLayer] = heatFg
                     }
 
@@ -1558,7 +1517,8 @@ define([
                 var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
                 var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
                 var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
-				var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+                var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+
 
                 // Create Cluster Group
                 if(_.isUndefined(this.clusterGroups[clusterGroup])) {
@@ -1602,8 +1562,6 @@ define([
                                                                     'markerList': []})
                 }
 
-                // Get layer description and set
-                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
                 
                 if (!_.isUndefined(this.layerFilter[layerGroup])) {
                     this.layerFilter[layerGroup].layerDescription = layerDescription

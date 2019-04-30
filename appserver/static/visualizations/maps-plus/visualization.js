@@ -539,7 +539,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            var name = ""
 
 	            // Add Heatmap layer to controls and use layer name for control label
-	            if(options.layerType == "heat" || options.layerType == "path") {
+	            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "polygon") {
 	                if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
 	                    name = options.featureGroup.options.layerDescription
 	                } else {
@@ -601,27 +601,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	              .open()
 	        },
 
-	        // showLastMeasurement: function (e) {
-	        //     this.map.on('dialog:opened', function() {               
-	        //         $('#last-measure').val(this.lastMeasure)
-	        //         this.measureLayer.addTo(this.map)
-	        //     }, this)
-
-	        //     this.map.on('dialog:closed', function(e) { 
-	        //         this.measureLayer.removeFrom(this.map)
-	        //         this.measureDialog.destroy()          
-	        //         this.measureDialogOpen = false      
-	        //     }, this)
-
-	        //     this.measureDialogOpen = true
-	        //     var content = "<b>Last Measurement</b><hr><textarea rows=\"10\" cols=\"12\" id=\"last-measure\" name=\"measure_coords\"></textarea>" + 
-	        //                   "<hr><br><b>Zone Definition</b><input type=\"text\" id=\"zone-def\">"
-	        //     var measureDialog = this.measureDialog = L.control.dialog({size: [300,435], anchor: [100, 150]})
-	        //       .setContent(content)
-	        //       .addTo(this.map)
-	        //       .open()
-	        // },
-
 	        centerMap: function (e) {
 	            this.map.panTo(e.latlng)
 	        },
@@ -639,8 +618,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter
 	            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers
 	            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers
+	            var polygonLayers = _.isUndefined(options.polygonLayers) ? this.polygonLayers:options.polygonLayers
 	            var tmpGroup = new L.featureGroup()
-	            var layers = [layerFilter, pathLineLayers, heatLayers]
+	            var layers = [layerFilter, pathLineLayers, heatLayers, polygonLayers]
 
 	            // loop through layers and build one big feature group to fit bounds against
 	            _.each(layers, function(l, i) {
@@ -1082,12 +1062,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       paneZIndex: this.paneZIndex,
 	                                                       context: this})
 	                }
+	                
+	                this._renderLayersToMap(this.map, {layers: this.polygonLayers,
+	                    control: this.control,
+	                    layerControl: this.isArgTrue(layerControl),
+	                    layerType: "polygon",
+	                    paneZIndex: this.paneZIndex,
+	                    context: this})
 
 	                if(this.isArgTrue(autoFitAndZoom)) {
 	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
 	                                                                          layerFilter: this.layerFilter,
 	                                                                          heatLayers: this.heatLayers,
-	                                                                          pathLineLayers: this.pathLineLayers, 
+	                                                                          pathLineLayers: this.pathLineLayers,
+	                                                                          polygonLayers: this.polygonLayers,
 	                                                                          context: this})
 	                }
 
@@ -1142,10 +1130,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Validate we have at least latitude and longitude fields
+	            //if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0]) || !("polygon" in dataRows[0])) {
 	            if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-	                 throw new SplunkVisualizationBase.VisualizationError(
-	                    'Incorrect Fields Detected - latitude & longitude fields required'
-	                )
+	                if( !("polygon" in dataRows[0])){
+	                    throw new SplunkVisualizationBase.VisualizationError(
+	                        'Incorrect Fields Detected - latitude & longitude fields required'
+	                    )
+	                }
 	            }
 
 	            pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
@@ -1532,9 +1523,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                // Get layer description and set
 	                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
 
+	                // Get description
+	                var description = _.has(userData, "description") ? userData["description"]:""
+
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default"
+	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap"
 	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity
 	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius
 	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur
@@ -1563,6 +1557,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    if(this.isArgTrue(heatmapOnly)) {
 	                        return
 	                    }
+	                }
+
+	                // Polygon Layer
+	                if(_.has(userData, "polygon")) {
+	                    var polygonLayer = this.polygonLayer = _.has(userData, "polygonLayer") ? userData["polygonLayer"]:"polygon"
+
+	                    if(!_.has(this.polygonLayers, this.polygonLayer)) {
+	                        let polygonFg = L.featureGroup()
+	                        polygonFg.options.name = this.polygonLayer
+	                        polygonFg.options.layerDescription = layerDescription
+	                        this.polygonLayers[this.polygonLayer] = polygonFg
+	                    }
+
+	                    let latlngs = _.map(userData["polygon"].split(';'), function(coordinates) {
+	                        let latlngarr = coordinates.split(',')
+	                        return L.latLng({lat: parseFloat(latlngarr[0]),
+	                                         lng: parseFloat(latlngarr[1])})
+	                    })
+
+	                    let pg = L.polygon(latlngs)
+	                    if(description != "") {
+	                        pg.bindPopup(description)
+	                    }
+	                    this.polygonLayers[this.polygonLayer].addLayer(pg)
+
+	                    // No latitude or longitude fields
+	                    if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
+	                        return
+	                    }                    
 	                }
 
 	                // Set icon options
@@ -1652,8 +1675,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35]
 	                }
 
-	                // Get description
-	                var description = _.has(userData, "description") ? userData["description"]:""
+
 
 					// SVG and PNG based markers both support hex iconColor do conversion outside
 					iconColor = this.convertHex(iconColor)	
@@ -1920,11 +1942,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                           context: this})
 	                    }
 
+	                    this._renderLayersToMap(this.map, {layers: this.polygonLayers,
+	                        control: this.control,
+	                        layerControl: this.isArgTrue(layerControl),
+	                        layerType: "polygon",
+	                        paneZIndex: this.paneZIndex,
+	                        context: this})
+
+
 	                    if(this.isArgTrue(autoFitAndZoom)) {
 	                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
 	                                                                              layerFilter: this.layerFilter, 
 	                                                                              pathLineLayers: this.pathLineLayers,
 	                                                                              heatLayers: this.heatLayers,
+	                                                                              polygonLayers: this.polygonLayers,
 	                                                                              context: this})
 	                    }
 

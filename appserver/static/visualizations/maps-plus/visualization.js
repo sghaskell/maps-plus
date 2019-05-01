@@ -1607,6 +1607,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        let featureFg = L.featureGroup()
 	                        featureFg.options.name = this.featureLayer
 	                        featureFg.options.layerDescription = layerDescription
+	                        featureFg.options.layerPriority = layerPriority
 	                        this.featureLayers[this.featureLayer] = featureFg
 	                    }
 
@@ -1641,8 +1642,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                    if(!_.isNull(featureTooltip)) {
 	                        feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
-	                                                        direction: 'auto',
-	                                                        sticky: this.isArgTrue(stickyTooltip)})
+	                                                             direction: 'auto',
+	                                                             sticky: this.isArgTrue(stickyTooltip)})
 	                    }
 	                    this.featureLayers[this.featureLayer].addLayer(feature)
 

@@ -1555,6 +1555,7 @@ define([
                         let featureFg = L.featureGroup()
                         featureFg.options.name = this.featureLayer
                         featureFg.options.layerDescription = layerDescription
+                        featureFg.options.layerPriority = layerPriority
                         this.featureLayers[this.featureLayer] = featureFg
                     }
 
@@ -1589,8 +1590,8 @@ define([
 
                     if(!_.isNull(featureTooltip)) {
                         feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
-                                                        direction: 'auto',
-                                                        sticky: this.isArgTrue(stickyTooltip)})
+                                                             direction: 'auto',
+                                                             sticky: this.isArgTrue(stickyTooltip)})
                     }
                     this.featureLayers[this.featureLayer].addLayer(feature)
 

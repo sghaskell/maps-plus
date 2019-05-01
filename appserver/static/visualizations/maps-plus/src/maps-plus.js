@@ -1528,6 +1528,9 @@ define([
                     if(description != "") {
                         pg.bindPopup(description)
                     }
+                    if(tooltip != "") {
+                        pg.bindTooltip(tooltip)
+                    }
                     this.featureLayers[this.featureLayer].addLayer(pg)
 
                     // No latitude or longitude fields

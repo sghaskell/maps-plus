@@ -246,7 +246,7 @@ define([
                                'antPathPaused',
                                'antPathReverse',
                                'antPathDashArray',
-                               'polygon',
+                               'feature',
                                '_time']
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
@@ -487,7 +487,7 @@ define([
             var name = ""
 
             // Add Heatmap layer to controls and use layer name for control label
-            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "polygon") {
+            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
                 if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
                     name = options.featureGroup.options.layerDescription
                 } else {
@@ -566,9 +566,9 @@ define([
             var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter
             var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers
             var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers
-            var polygonLayers = _.isUndefined(options.polygonLayers) ? this.polygonLayers:options.polygonLayers
+            var featureLayers = _.isUndefined(options.featureLayers) ? this.featureLayers:options.featureLayers
             var tmpGroup = new L.featureGroup()
-            var layers = [layerFilter, pathLineLayers, heatLayers, polygonLayers]
+            var layers = [layerFilter, pathLineLayers, heatLayers, featureLayers]
 
             // loop through layers and build one big feature group to fit bounds against
             _.each(layers, function(l, i) {
@@ -1011,10 +1011,10 @@ define([
                                                        context: this})
                 }
                 
-                this._renderLayersToMap(this.map, {layers: this.polygonLayers,
+                this._renderLayersToMap(this.map, {layers: this.featureLayers,
                     control: this.control,
                     layerControl: this.isArgTrue(layerControl),
-                    layerType: "polygon",
+                    layerType: "feature",
                     paneZIndex: this.paneZIndex,
                     context: this})
 
@@ -1023,7 +1023,7 @@ define([
                                                                           layerFilter: this.layerFilter,
                                                                           heatLayers: this.heatLayers,
                                                                           pathLineLayers: this.pathLineLayers,
-                                                                          polygonLayers: this.polygonLayers,
+                                                                          featureLayers: this.featureLayers,
                                                                           context: this})
                 }
 
@@ -1078,9 +1078,9 @@ define([
             }
 
             // Validate we have at least latitude and longitude fields
-            //if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0]) || !("polygon" in dataRows[0])) {
+            //if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0]) || !("feature" in dataRows[0])) {
             if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-                if( !("polygon" in dataRows[0])){
+                if( !("feature" in dataRows[0])){
                     throw new SplunkVisualizationBase.VisualizationError(
                         'Incorrect Fields Detected - latitude & longitude fields required'
                     )
@@ -1396,7 +1396,7 @@ define([
                 var heatLayers = this.heatLayers = {}
 
                 // Polygon layers
-                var polygonLayers = this.polygonLayers = {}
+                var featureLayers = this.featureLayers = {}
                
                 // Init defaults
                 if(this.isSplunkSeven) {
@@ -1507,18 +1507,18 @@ define([
                     }
                 }
 
-                // Polygon Layer
-                if(_.has(userData, "polygon")) {
-                    var polygonLayer = this.polygonLayer = _.has(userData, "polygonLayer") ? userData["polygonLayer"]:"polygon"
+                // Feature Layer implemented as polygon, but could be point, line or polygon
+                if(_.has(userData, "feature")) {
+                    var featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
 
-                    if(!_.has(this.polygonLayers, this.polygonLayer)) {
-                        let polygonFg = L.featureGroup()
-                        polygonFg.options.name = this.polygonLayer
-                        polygonFg.options.layerDescription = layerDescription
-                        this.polygonLayers[this.polygonLayer] = polygonFg
+                    if(!_.has(this.featureLayers, this.featureLayer)) {
+                        let featureFg = L.featureGroup()
+                        featureFg.options.name = this.featureLayer
+                        featureFg.options.layerDescription = layerDescription
+                        this.featureLayers[this.featureLayer] = featureFg
                     }
 
-                    let latlngs = _.map(userData["polygon"].split(';'), function(coordinates) {
+                    let latlngs = _.map(userData["feature"].split(';'), function(coordinates) {
                         let latlngarr = coordinates.split(',')
                         return L.latLng({lat: parseFloat(latlngarr[0]),
                                          lng: parseFloat(latlngarr[1])})
@@ -1528,7 +1528,7 @@ define([
                     if(description != "") {
                         pg.bindPopup(description)
                     }
-                    this.polygonLayers[this.polygonLayer].addLayer(pg)
+                    this.featureLayers[this.featureLayer].addLayer(pg)
 
                     // No latitude or longitude fields
                     if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
@@ -1890,10 +1890,10 @@ define([
                                                            context: this})
                     }
 
-                    this._renderLayersToMap(this.map, {layers: this.polygonLayers,
+                    this._renderLayersToMap(this.map, {layers: this.featureLayers,
                         control: this.control,
                         layerControl: this.isArgTrue(layerControl),
-                        layerType: "polygon",
+                        layerType: "feature",
                         paneZIndex: this.paneZIndex,
                         context: this})
 
@@ -1903,7 +1903,7 @@ define([
                                                                               layerFilter: this.layerFilter, 
                                                                               pathLineLayers: this.pathLineLayers,
                                                                               heatLayers: this.heatLayers,
-                                                                              polygonLayers: this.polygonLayers,
+                                                                              featureLayers: this.featureLayers,
                                                                               context: this})
                     }
 

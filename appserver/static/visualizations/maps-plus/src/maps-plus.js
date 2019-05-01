@@ -247,6 +247,16 @@ define([
                                'antPathReverse',
                                'antPathDashArray',
                                'feature',
+                               'featureDescription',
+                               'featureTooltip',
+                               'featureColor',
+                               'featureWeight',
+                               'featureOpacity',
+                               'featureStroke',
+                               'featureFill',
+                               'featureFillColor',
+                               'featureFillOpacity',
+                               'featureRadius',
                                '_time']
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
@@ -1468,11 +1478,40 @@ define([
                     return
                 }
 
-                // Get layer description and set
-                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
-
-                // Get description
-                var description = _.has(userData, "description") ? userData["description"]:""
+                                // Get marker and icon properties	
+				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
+                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
+                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
+                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
+                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
+                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
+                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
+                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
+                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
+                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):0,
+                    title = _.has(userData, "title") ? userData["title"]:null,
+                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
+                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
+                    extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
+                    circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
+                    circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,
+                    circleColor = _.has(userData, "circleColor") ? this.convertHex(userData["circleColor"]):this.convertHex("#3388ff"),
+                    circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
+                    circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
+                    circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
+                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
+                    layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+                    description = _.has(userData, "description") ? userData["description"]:null,
+                    featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
+                    featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
+                    featureColor = _.has(userData, "featureColor") ? this.convertHex(userData["featureColor"]):this.convertHex("#3388ff"),
+                    featureWeight = _.has(userData, "featureWeight") ? userData["featureWeight"]:3,
+                    featureOpacity = _.has(userData, "featureOpacity") ? userData["featureOpacity"]:1.0,
+                    featureStroke = _.has(userData, "featureStroke") ? this.isArgTrue(userData["featureStroke"]):true,
+                    featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
+                    featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
+                    featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
+                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10
 
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
@@ -1509,7 +1548,8 @@ define([
 
                 // Feature Layer implemented as polygon, but could be point, line or polygon
                 if(_.has(userData, "feature")) {
-                    var featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
+                    const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
+                    let feature
 
                     if(!_.has(this.featureLayers, this.featureLayer)) {
                         let featureFg = L.featureGroup()
@@ -1524,14 +1564,35 @@ define([
                                          lng: parseFloat(latlngarr[1])})
                     })
 
-                    let pg = L.polygon(latlngs)
-                    if(description != "") {
-                        pg.bindPopup(description)
+                    if(latlngs.length === 1) {
+                        feature = L.circleMarker(latlngs[0], {color: featureColor,
+                            weight: featureWeight,
+                            radius: featureRadius,
+                            opacity: featureOpacity,
+                            stroke: featureStroke,
+                            fill: featureFill,
+                            fillOpacity: featureFillOpacity,
+                            fillColor: featureFillColor})
+                    } else {
+                        feature = L.polygon(latlngs, {color: featureColor,
+                            weight: featureWeight,
+                            opacity: featureOpacity,
+                            stroke: featureStroke,
+                            fill: featureFill,
+                            fillOpacity: featureFillOpacity,
+                            fillColor: featureFillColor})
                     }
-                    if(tooltip != "") {
-                        pg.bindTooltip(tooltip)
+
+                    if(!_.isNull(featureDescription)) {
+                        feature.bindPopup(featureDescription)
                     }
-                    this.featureLayers[this.featureLayer].addLayer(pg)
+
+                    if(!_.isNull(featureTooltip)) {
+                        feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
+                                                        direction: 'auto',
+                                                        sticky: this.isArgTrue(stickyTooltip)})
+                    }
+                    this.featureLayers[this.featureLayer].addLayer(feature)
 
                     // No latitude or longitude fields
                     if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
@@ -1594,28 +1655,7 @@ define([
                     this.layerFilter[layerGroup].layerIcon = layerIcon
                 }
             
-                // Get marker and icon properties	
-				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
-                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
-                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
-                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
-                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
-                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
-                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
-                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
-                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
-                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):0,
-                    title = _.has(userData, "title") ? userData["title"]:null,
-                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
-                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
-                    extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
-                    circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
-                    circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,
-                    circleColor = _.has(userData, "circleColor") ? this.convertHex(userData["circleColor"]):this.convertHex("#3388ff"),
-                    circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
-                    circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
-                    circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
-                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2
+
 
                 // Set icon class
                 if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {

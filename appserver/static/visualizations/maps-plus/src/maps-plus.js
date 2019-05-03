@@ -56,8 +56,6 @@ define([
         maxResults: 0,
         paneZIndex: 400,
         tileLayer: null,
-        // lastMeasure: "",
-        // zoneDef: "",
         measureDialogOpen: false,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
@@ -151,8 +149,8 @@ define([
             this.isInitializedDom = false
             this.isSplunkSeven = false
             this.curPage = 0
-            this.allDataProcessed = false;    
-            this.splunkVersion = parseFloat(0.0)        
+            this.allDataProcessed = false
+            this.splunkVersion = parseFloat(0.0)     
 
             try {
                 // Get version from global tokens
@@ -1085,6 +1083,19 @@ define([
             // check for data
             if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
                 return this
+            }
+
+            if(!this.isSplunkSeven) {
+                // Render warning modal
+                this.renderModal('splunk-version-warning',
+                        "Unsupported Splunk Version",
+                        "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
+                        'Close')
+
+                // throw viz error
+                throw new SplunkVisualizationBase.VisualizationError(
+                    'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
+                )
             }
 
             // Validate we have at least latitude and longitude fields

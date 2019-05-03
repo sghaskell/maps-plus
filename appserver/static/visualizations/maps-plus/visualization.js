@@ -251,52 +251,84 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            console.log('CONFIG CHANGED!')
 	            console.log(configChanges)
 	            console.log(previousConfig)
-	            let bgRgb
-	            let bgRgba
-	            let html
-
-	            // const regexFg3 = RegExp('rangeThreeFgColor')
-
-	            let mapTile = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile') ? configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']:previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']
+	            const configBase = 'display.visualizations.custom.leaflet_maps_app.maps-plus.'
+	            let bgRgb,
+	                bgRgba,
+	                html,
+	                mapTile = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile') ? configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']:previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile'],
+	                mapCenterZoom = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom') ? parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom']):parseInt(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom']),
+	                mapCenterLat = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat') ? parseFloat(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat']):parseFloat(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat']),
+	                mapCenterLon = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon') ? parseFloat(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon']):parseFloat(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon']),
+	                mapTileOverride = _.has(configChanges, configBase + 'mapTileOverride') ? configChanges[configBase + 'mapTileOverride']:previousConfig[configBase + 'mapTileOverride']
+	                scrollWheelZoom = _.has(configChanges, configBase + 'scrollWheelZoom') ? this.isArgTrue(parseInt(configChanges[configBase + 'scrollWheelZoom'])):this.isArgTrue(parseInt(previousConfig[configBase + 'scrollWheelZoom'])),
+	                mapCenterZoom = _.has(configChanges, configBase + 'mapCenterZoom') ? parseInt(configChanges[configBase + 'mapCenterZoom']):parseInt(previousConfig[configBase + 'mapCenterZoom']),
+	                mapAttributionOverride = _.has(configChanges, configBase + 'mapAttributionOverride') ? configChanges[configBase + 'mapAttributionOverride']:previousConfig[configBase + 'mapAttributionOverride'],
+	                fullScreen = _.has(configChanges, configBase + 'fullScreen') ? this.isArgTrue(parseInt(configChanges[configBase + 'fullScreen'])):this.isArgTrue(parseInt(previousConfig[configBase + 'fullScreen'])),
+	                defaultHeight = _.has(configChanges, configBase + 'defaultHeight') ? parseInt(configChanges[configBase + 'defaultHeight']):parseInt(previousConfig[configBase + 'defaultHeight']),
+	                contextMenu = _.has(configChanges, configBase + 'contextMenu') ? this.isArgTrue(parseInt(configChanges[configBase + 'contextMenu'])):this.isArgTrue(parseInt(previousConfig[configBase + 'contextMenu'])),
+	                rangeOneBgColor = _.has(configChanges, configBase + 'rangeOneBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeOneBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeOneBgColor']),
+	                rangeOneFgColor = _.has(configChanges, configBase + 'rangeOneFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeOneFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeOneFgColor']),
+	                rangeTwoBgColor = _.has(configChanges, configBase + 'rangeTwoBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeTwoBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeTwoBgColor']),
+	                rangeTwoFgColor = _.has(configChanges, configBase + 'rangeTwoFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeTwoFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeTwoFgColor']),
+	                rangeThreeBgColor = _.has(configChanges, configBase + 'rangeThreeBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeThreeBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeThreeBgColor']),
+	                rangeThreeFgColor = _.has(configChanges, configBase + 'rangeThreeFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeThreeFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeThreeFgColor']),
+	                disableClusteringAtZoom = _.has(configChanges, configBase + 'disableClusteringAtZoom') ? this.isArgTrue(parseInt(configChanges[configBase + 'disableClusteringAtZoom'])):this.isArgTrue(parseInt(previousConfig[configBase + 'disableClusteringAtZoom'])),
+	                disableClusteringAtZoomLevel = _.has(configBase, configBase + 'disableClusteringAtZoomLevel') ? parseInt(configChanges[configBase + 'disableClusteringAtZoomLevel']):parseInt(previousConfig[configBase + 'disableClusteringAtZoomLevel'])
 
 	            // Update tile layer
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile')) {
-	                this.tileLayer.setUrl(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile'])
+	            if(_.has(configChanges, configBase + 'mapTile') && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
+	                this.tileLayer.setUrl(mapTile)
 	            }
 
 	            // Handle map tile override
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride')) {
-	                if(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride'] == "") {
+	            if(_.has(configChanges, configBase + 'mapTileOverride')) {
+	                if(mapTileOverride == "") {
 	                    this.tileLayer.setUrl(mapTile)
 	                } else {
-	                    this.tileLayer.setUrl(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride'])
+	                    this.tileLayer.setUrl(mapTileOverride)
 	                }
 	            }
 
 	            // Handle scroll wheel zoom
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom')) {
-	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom']))) {
+	            if(_.has(configChanges, configBase + 'scrollWheelZoom')) {
+	                if(scrollWheelZoom) {
 	                    this.map.scrollWheelZoom.enable()
 	                } else {
 	                    this.map.scrollWheelZoom.disable()
 	                }
 	            }
-	            
-	            // update map tile attribution
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride')) {
-	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
-	                this.map.attributionControl.removeAttribution(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'])
-	                this.map.attributionControl.addAttribution(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'])
+
+	            // Handle center zoom change
+	            if(_.has(configChanges, configBase + 'mapCenterZoom')) {
+	                this.map.setZoom(mapCenterZoom)
 	            }
 
-	            // Add back map tile attribution of override is blank
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride') && configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'] == "") {
-	                this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])
+	            // Handle latitude change
+	            if(_.has(configChanges, configBase + 'mapCenterLat') || _.has(configChanges, configBase + 'mapCenterLon')) {
+	                this.map.setZoom(mapCenterZoom)
+	                this.map.panTo([mapCenterLat, 
+	                                mapCenterLon])
+	            }
+	            
+	            // update map tile attribution
+	            if(_.has(configChanges, configBase + 'mapAttributionOverride')) {
+	                // Remove current and previous map tile attributions
+	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
+	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[previousConfig[configBase + 'mapTile']])
+	                this.map.attributionControl.removeAttribution(previousConfig[configBase + 'mapAttributionOverride'])
+
+	                // Add current attribution
+	                this.map.attributionControl.addAttribution(mapAttributionOverride)
+
+	                // Reset to current map tile if unset
+	                if(mapAttributionOverride == "") {
+	                    this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])    
+	                }
 	            }
 
 	            // Handle full sceen mode enable/disable
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen')) {
-	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen']))) {
+	            if(_.has(configChanges, configBase + 'fullScreen')) {
+	                if(fullScreen) {
 	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
 	                } else {
 	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
@@ -305,14 +337,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Handle height re-size
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight')) {
+	            if(_.has(configChanges, configBase + 'defaultHeight')) {
 	                this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-	                    defaultHeight: configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight']})   
+	                    defaultHeight: defaultHeight})   
 	            }
 
 	            // Handle context menu enable/disable
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu')) {
-	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu']))) {
+	            if(_.has(configChanges, configBase + 'contextMenu')) {
+	                if(contextMenu) {
 	                    this.map.contextmenu.enable()
 	                } else {
 	                    this.map.contextmenu.disable()
@@ -320,8 +352,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Background Range 1
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor')) {
-	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor'])
+	            if(_.has(configChanges, configBase + 'rangeOneBgColor')) {
+	                bgRgb = rangeOneBgColor
 	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
@@ -332,8 +364,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Foreground Range 1
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor')) {
-	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor'])
+	            if(_.has(configChanges, configBase + 'rangeOneFgColor')) {
+	                fgRgb = rangeOneFgColor
 	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
@@ -344,8 +376,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Background Range 2
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor')) {
-	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor'])
+	            if(_.has(configChanges, configBase + 'rangeTwoBgColor')) {
+	                bgRgb = rangeTwoBgColor
 	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
@@ -356,8 +388,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Foreground Range 2
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor')) {
-	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor'])
+	            if(_.has(configChanges, configBase + 'rangeTwoFgColor')) {
+	                fgRgb = rangeTwoFgColor
 	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
@@ -368,8 +400,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Background Range 3
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor')) {
-	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor'])
+	            if(_.has(configChanges, configBase + 'rangeThreeBgColor')) {
+	                bgRgb = rangeThreeBgColor
 	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
@@ -380,8 +412,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Cluster Foreground Range 3
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor')) {
-	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor'])
+	            if(_.has(configChanges, configBase + 'rangeThreeFgColor')) {
+	                fgRgb = rangeThreeFgColor
 	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
 	                html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
@@ -392,11 +424,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Handle cluster group zoom disable/enable
-	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom')) {
+	            if(_.has(configChanges, configBase + 'disableClusteringAtZoom')) {
 	                _.each(this.layerFilter, function(lf) {
-	                    if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom']))) {
-	                        console.log(previousConfig)
-	                        lf.clusterGroup[0].cg.options.disableClusteringAtZoom = parseInt(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel'])
+	                    if(disableClusteringAtZoom) {
+	                        lf.clusterGroup[0].cg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
 	                    } else {
 	                        delete lf.clusterGroup[0].cg.options.disableClusteringAtZoom
 	                    }

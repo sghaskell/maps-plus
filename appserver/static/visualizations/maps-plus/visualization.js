@@ -109,6 +109,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        paneZIndex: 400,
 	        tileLayer: null,
 	        measureDialogOpen: false,
+	        parentEl: null,
+	        parentView: null,
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
@@ -243,6 +245,166 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                outputMode: SplunkVisualizationBase.RAW_OUTPUT_MODE,
 	                count: this.maxResults
 	            })
+	        },
+
+	        onConfigChange: function(configChanges, previousConfig) {
+	            console.log('CONFIG CHANGED!')
+	            console.log(configChanges)
+	            console.log(previousConfig)
+	            let bgRgb
+	            let bgRgba
+	            let html
+
+	            // const regexFg3 = RegExp('rangeThreeFgColor')
+
+	            let mapTile = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile') ? configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']:previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']
+
+	            // Update tile layer
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile')) {
+	                this.tileLayer.setUrl(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile'])
+	            }
+
+	            // Handle map tile override
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride')) {
+	                if(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride'] == "") {
+	                    this.tileLayer.setUrl(mapTile)
+	                } else {
+	                    this.tileLayer.setUrl(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride'])
+	                }
+	            }
+
+	            // Handle scroll wheel zoom
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom')) {
+	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom']))) {
+	                    this.map.scrollWheelZoom.enable()
+	                } else {
+	                    this.map.scrollWheelZoom.disable()
+	                }
+	            }
+	            
+	            // update map tile attribution
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride')) {
+	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
+	                this.map.attributionControl.removeAttribution(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'])
+	                this.map.attributionControl.addAttribution(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'])
+	            }
+
+	            // Add back map tile attribution of override is blank
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride') && configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride'] == "") {
+	                this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])
+	            }
+
+	            // Handle full sceen mode enable/disable
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen')) {
+	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen']))) {
+	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
+	                } else {
+	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                        defaultHeight: this.defaultHeight})                    
+	                }
+	            }
+
+	            // Handle height re-size
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight')) {
+	                this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                    defaultHeight: configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight']})   
+	            }
+
+	            // Handle context menu enable/disable
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu')) {
+	                if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu']))) {
+	                    this.map.contextmenu.enable()
+	                } else {
+	                    this.map.contextmenu.disable()
+	                }
+	            }
+
+	            // Cluster Background Range 1
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor')) {
+	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor'])
+	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Cluster Foreground Range 1
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor')) {
+	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor'])
+	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Cluster Background Range 2
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor')) {
+	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor'])
+	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Cluster Foreground Range 2
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor')) {
+	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor'])
+	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Cluster Background Range 3
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor')) {
+	                bgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor'])
+	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Cluster Foreground Range 3
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor')) {
+	                fgRgb = this.hexToRgb(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor'])
+	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+	                html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
+	                $("<style>")
+	                 .prop("type", "text/css")
+	                 .html(html)
+	                 .appendTo("head")
+	            }
+
+	            // Handle cluster group zoom disable/enable
+	            if(_.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom')) {
+	                _.each(this.layerFilter, function(lf) {
+	                    if(this.isArgTrue(parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom']))) {
+	                        console.log(previousConfig)
+	                        lf.clusterGroup[0].cg.options.disableClusteringAtZoom = parseInt(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel'])
+	                    } else {
+	                        delete lf.clusterGroup[0].cg.options.disableClusteringAtZoom
+	                    }
+	                    let layers = lf.clusterGroup[0].cg.getLayers()
+	                    lf.clusterGroup[0].cg.clearLayers()
+	                    lf.clusterGroup[0].cg.addLayers(layers)
+	                }, this)
+	            }
 	        },
 
 	        // Build object of key/value pairs for invalid fields
@@ -711,6 +873,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 						}).addTo(map)
 	                })
 	            }
+	        },
+
+	        _setFullScreenMode: function(map, options) {
+	            var vh = $(window).height() - 120
+	            $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+
+	            $(window).resize(function() {
+	                var vh = $(window).height() - 120
+	                $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+	            })
+	            map.invalidateSize()
+	        },
+
+	        _setDefaultHeight: function(map, options) {
+	            $("div[data-cid=" + options.parentEl + "]").css("height", options.defaultHeight)
+	            map.invalidateSize()
 	        },
 
 	        _createClusterGroup: function(disableClusteringAtZoom,
@@ -1397,28 +1575,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                // Get parent element of div to resize 
 	                // Nesting of Div's is different, try 7.x first
-	                var parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
-	                var parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
+	               //var parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
+	                this.parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
+	                // var parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
+	                this.parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
 
 	                // Default to 6.x view
-	                if(parentView != 'views/shared/ReportVisualizer') {
-	                    var parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
-	                    var parentView = $(this.el).parent().parent().closest("div").attr("data-view")
+	                // if(parentView != 'views/shared/ReportVisualizer') {
+	                if(this.parentView != 'views/shared/ReportVisualizer') {
+	                    // var parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
+	                    // var parentView = $(this.el).parent().parent().closest("div").attr("data-view")
+	                    this.parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
+	                    this.parentView = $(this.el).parent().parent().closest("div").attr("data-view")
 	                }
 	 
+	                
 	                // Map Full Screen Mode
 	                if (this.isArgTrue(fullScreen)) {
-	                    var vh = $(window).height() - 120
-	                    $("div[data-cid=" + parentEl + "]").css("height", vh)
+	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
+	                    // var vh = $(window).height() - 120
+	                    // $("div[data-cid=" + parentEl + "]").css("height", vh)
 
-	                    $(window).resize(function() {
-	                        var vh = $(window).height() - 120
-	                        $("div[data-cid=" + parentEl + "]").css("height", vh)
-	                    })
-	                    this.map.invalidateSize()
+	                    // $(window).resize(function() {
+	                    //     var vh = $(window).height() - 120
+	                    //     $("div[data-cid=" + parentEl + "]").css("height", vh)
+	                    // })
+	                    // this.map.invalidateSize()
 	                } else {
-	                    $("div[data-cid=" + parentEl + "]").css("height", defaultHeight)
-	                    this.map.invalidateSize()
+	                    //$("div[data-cid=" + parentEl + "]").css("height", defaultHeight)
+	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                                                      defaultHeight: defaultHeight})
+	                    // $("div[data-cid=" + this.parentEl + "]").css("height", defaultHeight)
+	                    // this.map.invalidateSize()
 	                }
 
 	                // Enable measure tool plugin and add to map

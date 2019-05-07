@@ -199,37 +199,41 @@ define([
             console.log('CONFIG CHANGED!')
             console.log(configChanges)
             console.log(previousConfig)
-            const configBase = 'display.visualizations.custom.leaflet_maps_app.maps-plus.'
+            const configBase = this.getPropertyNamespaceInfo().propertyNamespace
             let bgRgb,
                 bgRgba,
                 html,
-                mapTile = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile') ? configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile']:previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile'],
-                mapCenterZoom = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom') ? parseInt(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom']):parseInt(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom']),
-                mapCenterLat = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat') ? parseFloat(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat']):parseFloat(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat']),
-                mapCenterLon = _.has(configChanges, 'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon') ? parseFloat(configChanges['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon']):parseFloat(previousConfig['display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon']),
-                mapTileOverride = _.has(configChanges, configBase + 'mapTileOverride') ? configChanges[configBase + 'mapTileOverride']:previousConfig[configBase + 'mapTileOverride']
-                scrollWheelZoom = _.has(configChanges, configBase + 'scrollWheelZoom') ? this.isArgTrue(parseInt(configChanges[configBase + 'scrollWheelZoom'])):this.isArgTrue(parseInt(previousConfig[configBase + 'scrollWheelZoom'])),
-                mapCenterZoom = _.has(configChanges, configBase + 'mapCenterZoom') ? parseInt(configChanges[configBase + 'mapCenterZoom']):parseInt(previousConfig[configBase + 'mapCenterZoom']),
-                mapAttributionOverride = _.has(configChanges, configBase + 'mapAttributionOverride') ? configChanges[configBase + 'mapAttributionOverride']:previousConfig[configBase + 'mapAttributionOverride'],
-                fullScreen = _.has(configChanges, configBase + 'fullScreen') ? this.isArgTrue(parseInt(configChanges[configBase + 'fullScreen'])):this.isArgTrue(parseInt(previousConfig[configBase + 'fullScreen'])),
-                defaultHeight = _.has(configChanges, configBase + 'defaultHeight') ? parseInt(configChanges[configBase + 'defaultHeight']):parseInt(previousConfig[configBase + 'defaultHeight']),
-                contextMenu = _.has(configChanges, configBase + 'contextMenu') ? this.isArgTrue(parseInt(configChanges[configBase + 'contextMenu'])):this.isArgTrue(parseInt(previousConfig[configBase + 'contextMenu'])),
-                rangeOneBgColor = _.has(configChanges, configBase + 'rangeOneBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeOneBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeOneBgColor']),
-                rangeOneFgColor = _.has(configChanges, configBase + 'rangeOneFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeOneFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeOneFgColor']),
-                rangeTwoBgColor = _.has(configChanges, configBase + 'rangeTwoBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeTwoBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeTwoBgColor']),
-                rangeTwoFgColor = _.has(configChanges, configBase + 'rangeTwoFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeTwoFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeTwoFgColor']),
-                rangeThreeBgColor = _.has(configChanges, configBase + 'rangeThreeBgColor') ? this.hexToRgb(configChanges[configBase + 'rangeThreeBgColor']):this.hexToRgb(previousConfig[configBase + 'rangeThreeBgColor']),
-                rangeThreeFgColor = _.has(configChanges, configBase + 'rangeThreeFgColor') ? this.hexToRgb(configChanges[configBase + 'rangeThreeFgColor']):this.hexToRgb(previousConfig[configBase + 'rangeThreeFgColor']),
-                disableClusteringAtZoom = _.has(configChanges, configBase + 'disableClusteringAtZoom') ? this.isArgTrue(parseInt(configChanges[configBase + 'disableClusteringAtZoom'])):this.isArgTrue(parseInt(previousConfig[configBase + 'disableClusteringAtZoom'])),
-                disableClusteringAtZoomLevel = _.has(configBase, configBase + 'disableClusteringAtZoomLevel') ? parseInt(configChanges[configBase + 'disableClusteringAtZoomLevel']):parseInt(previousConfig[configBase + 'disableClusteringAtZoomLevel'])
+                mapTile = this._propertyExists('mapTile', configChanges) ? this._getSafeUrlProperty('mapTile', configChanges):this._getSafeUrlProperty('mapTile', previousConfig),
+                mapCenterZoom = this._propertyExists('mapCenterZoom', configChanges) ? parseInt(this._getEscapedProperty('mapCenterZoom', configChanges)):parseInt(this._getEscapedProperty('mapCenterZoom', previousConfig)),
+                mapCenterLat = this._propertyExists('mapCenterLat', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLat', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLat', previousConfig)),
+                mapCenterLon = this._propertyExists('mapCenterLon', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLon', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLon', previousConfig)),
+                mapTileOverride = this._propertyExists('mapTileOverride', configChanges) ? this._getEscapedProperty('mapTileOverride', configChanges):this._getEscapedProperty('mapTileOverride', previousConfig),
+                scrollWheelZoom = this._propertyExists('scrollWheelZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', previousConfig))),
+                mapAttributionOverride = this._propertyExists('mapAttributionOverride', configChanges) ? this._getEscapedProperty('mapAttributionOverride', configChanges):this._getEscapedProperty('mapAttributionOverride', previousConfig),
+                fullScreen = this._propertyExists('fullScreen', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', previousConfig))),
+                defaultHeight = this._propertyExists('defaultHeight', configChanges) ? parseInt(this._getEscapedProperty('defaultHeight', configChanges)):parseInt(this._getEscapedProperty('defaultHeight', previousConfig)),
+                contextMenu = this._propertyExists('contextMenu', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', previousConfig))),
+                rangeOneBgColor = this._propertyExists('rangeOneBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', previousConfig)),
+                rangeOneFgColor = this._propertyExists('rangeOneFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', previousConfig)),
+                rangeTwoBgColor = this._propertyExists('rangeTwoBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', previousConfig)),
+                rangeTwoFgColor = this._propertyExists('rangeTwoFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', previousConfig)),
+                rangeThreeBgColor = this._propertyExists('rangeThreeBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', previousConfig)),
+                rangeThreeFgColor = this._propertyExists('rangeThreeFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', previousConfig)),
+                disableClusteringAtZoom = this._propertyExists('disableClusteringAtZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', previousConfig))),
+                disableClusteringAtZoomLevel = this._propertyExists('disableClusteringAtZoomLevel', configChanges) ? parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', configChanges)):parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', previousConfig)),
+                minZoom = this._propertyExists('minZoom', configChanges) ? parseInt(this._getEscapedProperty('minZoom', configChanges)):parseInt(this._getEscapedProperty('minZoom', previousConfig)),
+                maxZoom = this._propertyExists('maxZoom', configChanges) ? parseInt(this._getEscapedProperty('maxZoom', configChanges)):parseInt(this._getEscapedProperty('maxZoom', previousConfig)),
+                layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
+                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
+                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig))
 
             // Update tile layer
-            if(_.has(configChanges, configBase + 'mapTile') && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
+            if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
                 this.tileLayer.setUrl(mapTile)
             }
 
             // Handle map tile override
-            if(_.has(configChanges, configBase + 'mapTileOverride')) {
+            if(this._propertyExists('mapTileOverride', configChanges)) {
                 if(mapTileOverride == "") {
                     this.tileLayer.setUrl(mapTile)
                 } else {
@@ -238,7 +242,7 @@ define([
             }
 
             // Handle scroll wheel zoom
-            if(_.has(configChanges, configBase + 'scrollWheelZoom')) {
+            if(this._propertyExists('scrollWheelZoom', configChanges)) {
                 if(scrollWheelZoom) {
                     this.map.scrollWheelZoom.enable()
                 } else {
@@ -247,19 +251,19 @@ define([
             }
 
             // Handle center zoom change
-            if(_.has(configChanges, configBase + 'mapCenterZoom')) {
+            if(this._propertyExists('mapCenterZoom', configChanges)) {
                 this.map.setZoom(mapCenterZoom)
             }
 
             // Handle latitude change
-            if(_.has(configChanges, configBase + 'mapCenterLat') || _.has(configChanges, configBase + 'mapCenterLon')) {
+            if(this._propertyExists('mapCenterLat', configChanges) || this._propertyExists('mapCenterLon', configChanges)) {                
                 this.map.setZoom(mapCenterZoom)
                 this.map.panTo([mapCenterLat, 
                                 mapCenterLon])
             }
             
             // update map tile attribution
-            if(_.has(configChanges, configBase + 'mapAttributionOverride')) {
+            if(this._propertyExists('mapAttributionOverride', configChanges)) {
                 // Remove current and previous map tile attributions
                 this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
                 this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[previousConfig[configBase + 'mapTile']])
@@ -275,23 +279,25 @@ define([
             }
 
             // Handle full sceen mode enable/disable
-            if(_.has(configChanges, configBase + 'fullScreen')) {
+            // if(_.has(configChanges, configBase + 'fullScreen')) {
+            if(this._propertyExists('fullScreen', configChanges)) {
                 if(fullScreen) {
                     this._setFullScreenMode(this.map, {parentEl: this.parentEl})
                 } else {
                     this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-                        defaultHeight: this.defaultHeight})                    
+                                                      defaultHeight: this.defaultHeight})                    
                 }
             }
 
             // Handle height re-size
-            if(_.has(configChanges, configBase + 'defaultHeight')) {
+            // if(_.has(configChanges, configBase + 'defaultHeight')) {
+            if(this._propertyExists('defaultHeight', configChanges)) {
                 this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-                    defaultHeight: defaultHeight})   
+                                                  defaultHeight: defaultHeight})   
             }
 
             // Handle context menu enable/disable
-            if(_.has(configChanges, configBase + 'contextMenu')) {
+            if(this._propertyExists('contextMenu', configChanges)) {
                 if(contextMenu) {
                     this.map.contextmenu.enable()
                 } else {
@@ -300,7 +306,7 @@ define([
             }
 
             // Cluster Background Range 1
-            if(_.has(configChanges, configBase + 'rangeOneBgColor')) {
+            if(this._propertyExists('rangeOneBgColor', configChanges)) {
                 bgRgb = rangeOneBgColor
                 bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
@@ -312,7 +318,7 @@ define([
             }
 
             // Cluster Foreground Range 1
-            if(_.has(configChanges, configBase + 'rangeOneFgColor')) {
+            if(this._propertyExists('rangeOneFgColor', configChanges)) {
                 fgRgb = rangeOneFgColor
                 fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
@@ -324,7 +330,7 @@ define([
             }
 
             // Cluster Background Range 2
-            if(_.has(configChanges, configBase + 'rangeTwoBgColor')) {
+            if(this._propertyExists('rangeTwoBgColor', configChanges)) {
                 bgRgb = rangeTwoBgColor
                 bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
@@ -336,7 +342,7 @@ define([
             }
 
             // Cluster Foreground Range 2
-            if(_.has(configChanges, configBase + 'rangeTwoFgColor')) {
+            if(this._propertyExists('rangeTwoFgColor', configChanges)) {
                 fgRgb = rangeTwoFgColor
                 fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
@@ -348,7 +354,7 @@ define([
             }
 
             // Cluster Background Range 3
-            if(_.has(configChanges, configBase + 'rangeThreeBgColor')) {
+            if(this._propertyExists('rangeThreeBgColor', configChanges)) {
                 bgRgb = rangeThreeBgColor
                 bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
@@ -360,7 +366,7 @@ define([
             }
 
             // Cluster Foreground Range 3
-            if(_.has(configChanges, configBase + 'rangeThreeFgColor')) {
+            if(this._propertyExists('rangeThreeFgColor', configChanges)) {
                 fgRgb = rangeThreeFgColor
                 fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
@@ -372,7 +378,7 @@ define([
             }
 
             // Handle cluster group zoom disable/enable
-            if(_.has(configChanges, configBase + 'disableClusteringAtZoom')) {
+            if(this._propertyExists('disableClusteringAtZoom', configChanges)) {
                 _.each(this.layerFilter, function(lf) {
                     if(disableClusteringAtZoom) {
                         lf.clusterGroup[0].cg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
@@ -383,6 +389,55 @@ define([
                     lf.clusterGroup[0].cg.clearLayers()
                     lf.clusterGroup[0].cg.addLayers(layers)
                 }, this)
+            }
+
+            if(this._propertyExists('minZoom', configChanges)) {
+                this.map.setMinZoom(minZoom)
+            }
+
+            if(this._propertyExists('maxZoom', configChanges)) {
+                this.map.setMaxZoom(maxZoom)
+            }
+
+            if(this._propertyExists('layerControl', configChanges)) {
+                if(!layerControl) {
+                    this.control.remove()
+                } else {
+                    this.control.addTo(this.map)
+                    if(this.isDarkTheme) {
+                        $('.leaflet-control-layers').css({'background-color': '#000',
+                                                          'color': '#fff'})
+                    }
+                } 
+            }
+
+            if(this._propertyExists('measureTool', configChanges)) {
+                if(!measureTool) {
+                    this.measureControl.remove()
+                } else {
+                    this.measureControl.addTo(this.map)
+                    
+                }
+
+                if(this.isDarkTheme) {
+                    $('.leaflet-control-measure').css('background-color', '#000000')
+
+                    // Set initial background color of control to black
+                    $('.leaflet-bar a').css('background-color', '#000000')
+
+                    // Re-set background color on collapse
+                    this.map.on('measurecollapsed', function() {
+                        $('.leaflet-bar a').css('background-color', '#000000')
+                    })
+                }
+            }
+
+            if(this._propertyExists('layerControlCollapsed', configChanges)) {
+                if(!layerControlCollapsed) {
+                    this.control.expand()
+                } else {
+                    this.control.collapse()
+                } 
             }
         },
 
@@ -481,6 +536,10 @@ define([
             var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
             return SplunkVisualizationUtils.makeSafeUrl(propertyValue)
 
+        },
+
+        _propertyExists: function(name, config) {
+            return _.has(config, this.getPropertyNamespaceInfo().propertyNamespace + name)
         },
 
 		// Custom drilldown behavior for markers
@@ -1548,6 +1607,8 @@ define([
 
                 // Create layer control
                 var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)})
+
+                let measureControl = this.measureControl
 				
 				// Get map size          
 				var mapSize = this.mapSize = this.map.getSize()
@@ -1599,8 +1660,9 @@ define([
                                            secondaryAreaUnit: measureSecondaryAreaUnit,
                                            localization: measureLocalization}
 
-                    var measureControl = new L.Control.Measure(measureOptions)
-                    measureControl.addTo(this.map)
+                    // var measureControl = new L.Control.Measure(measureOptions)
+                    this.measureControl = new L.Control.Measure(measureOptions)
+                    this.measureControl.addTo(this.map)
                     if(this.isDarkTheme) {
                         $('.leaflet-control-measure').css('background-color', '#000000')
 

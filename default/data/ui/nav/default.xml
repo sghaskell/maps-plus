@@ -16,6 +16,7 @@
         <view name="path_lines" />
         <view name="heatmap" />
         <view name="drilldown" />
+        <view name="png_markers_dark">
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

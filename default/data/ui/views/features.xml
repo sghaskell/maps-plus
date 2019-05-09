@@ -2,6 +2,14 @@
   <label>Features</label>
   <row>
     <panel>
+      <html>
+        <p>Use the measure tool in the upper right corner to draw features (point, line or polygon) on the map. Upon completion, a <b>Feature Definition</b> can be copied and used with the <code>feature</code> field. Adjust the look and behavior of the feature with the following fields <code>featureColor</code>, <code>featureDescription</code>, <code>featureTooltip</code>, <code>featureLayer</code>, <code>featureWeight</code>, <code>featureStroke</code>, <code>featureFill</code>, <code>featureFillColor</code>, <code>featureFillOpacity</code>, <code>featureRadius</code></p>
+        <p>Define the features with the <code>feature</code> field in SPL. Optionally, store the features in a lookup file and use <code>| append [|inputlookup feature-lookup.csv]</code> to load the features on map</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
       <title>feature, featureColor, featureDescription, featureTooltip, featureLayer, featureWeight, featureStroke, featureFill, featureFillColor, featureFillOpacity, featureRadius, layerPriority</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>

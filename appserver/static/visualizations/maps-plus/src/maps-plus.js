@@ -195,10 +195,81 @@ define([
             })
         },
 
+        _darkModeInit: function () {
+            // Set dialog to black
+            this.map.on('dialog:opened', function(e) {                        
+                $('.leaflet-control-dialog').css({'background-color': '#000000'})
+                $('.leaflet-control-layers').css({'color': '#fff'})
+            })
+
+            // Change popup colors
+            this.map.on('popupopen', function(e) {    
+                $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
+                                                                                'color': "#FFFFFF"})
+            })
+            
+            // Change tooltip colors
+            this.map.on('tooltipopen', function(e) {  
+                $('.leaflet-tooltip').css({'background': '#000000',
+                                            'color': '#FFFFFF',
+                                            'border': '1px solid #000000'})
+                $('.leaflet-tooltip-right').toggleClass('dark', true)
+                $('.leaflet-tooltip-left').toggleClass('dark', true)
+                $('.leaflet-tooltip-bottom').toggleClass('dark', true)
+                $('.leaflet-tooltip-top').toggleClass('dark', true)
+            })
+
+            
+            // Update Zoom Controls
+            $('.leaflet-control-zoom-in').css({'background-color': '#000000',
+                                                'color': '#FFFFFF'})
+            $('.leaflet-control-zoom-out').css({'background-color': '#000000',
+                                                'color': '#FFFFFF'})
+            
+            // context menu dark mode styles
+            var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
+                            '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
+                            '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
+                            '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
+                            '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
+                            '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
+                            '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
+
+            var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.cssRules.length
+            // delete styles from newest to oldest                                  
+            for(i=length-1; i >= 0; i--) {
+                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.deleteRule(i)
+            }
+
+            // insert dark styles
+            for(i=0; i < styles.length; i++) {
+                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.insertRule(styles[i], i)
+            }
+        },
+
+        _darkModeUpdate: function() {
+            $('.leaflet-control-measure').css('background-color', '#000000')
+
+            $('.leaflet-control-layers').css({'background-color': '#000',
+            'color': '#fff'})
+
+            // Set initial background color of control to black
+            $('.leaflet-bar a').css('background-color', '#000000')
+
+            // Re-set background color on collapse
+            this.map.on('measurecollapsed', function() {
+                $('.leaflet-bar a').css('background-color', '#000000')
+                
+            })
+
+            $('.leaflet-control-layers').css({'background-color': '#000',
+                                                          'color': '#fff'})
+        },
+
         onConfigChange: function(configChanges, previousConfig) {
-            console.log('CONFIG CHANGED!')
-            console.log(configChanges)
-            console.log(previousConfig)
+            // console.log('CONFIG CHANGED!')
+            // console.log(configChanges)
+            // console.log(previousConfig)
             const configBase = this.getPropertyNamespaceInfo().propertyNamespace
             let bgRgb,
                 bgRgba,
@@ -407,10 +478,7 @@ define([
                     this.control.remove()
                 } else {
                     this.control.addTo(this.map)
-                    if(this.isDarkTheme) {
-                        $('.leaflet-control-layers').css({'background-color': '#000',
-                                                          'color': '#fff'})
-                    }
+                    if(this.isDarkTheme) { this._darkModeUpdate() }
                 } 
             }
 
@@ -422,17 +490,7 @@ define([
                     
                 }
 
-                if(this.isDarkTheme) {
-                    $('.leaflet-control-measure').css('background-color', '#000000')
-
-                    // Set initial background color of control to black
-                    $('.leaflet-bar a').css('background-color', '#000000')
-
-                    // Re-set background color on collapse
-                    this.map.on('measurecollapsed', function() {
-                        $('.leaflet-bar a').css('background-color', '#000000')
-                    })
-                }
+                if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
             if(this._propertyExists('layerControlCollapsed', configChanges)) {
@@ -450,32 +508,13 @@ define([
                 this.measureControl.addTo(this.map)
                 this.control.addTo(this.map)
 
-                if(this.isDarkTheme) {
-                    $('.leaflet-control-measure').css('background-color', '#000000')
-
-                    // Set initial background color of control to black
-                    $('.leaflet-bar a').css('background-color', '#000000')
-
-                    // Re-set background color on collapse
-                    this.map.on('measurecollapsed', function() {
-                        $('.leaflet-bar a').css('background-color', '#000000')
-                    })
-                }
+                if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
             if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
-                //console.log(this.measureFeatures)
                 this.measureControl.remove()
                 this.control.remove()
-                //this.measureFeatures.addTo(this.map)
-                // console.log(this.measureFeatures.getLayers())
-                // _.each(this.measureFeatures.getLayers(), function(layer){
-                //             console.log("LAYER!")
-                //             console.log(layer)
-                //             layer.remove()
-                //             this.measureFeatures.addLayer(
-                // }, this)
-                // this.measureFeatures.addTo(this.map)
+
                 let measureOptions = { position: measureIconPosition,
                     activeColor: measureActiveColor,
                     completedColor: measureCompletedColor,
@@ -487,22 +526,11 @@ define([
                     features: this.measureFeatures,
                     map: this.map}
 
-                //console.log(this.measureFeatures)
                 this.measureControl = new L.Control.Measure(measureOptions)
                 this.measureControl.addTo(this.map)
-                //this.measureFeatures.addTo(this.map)
-                if(this.isDarkTheme) {
-                    $('.leaflet-control-measure').css('background-color', '#000000')
-
-                    // Set initial background color of control to black
-                    $('.leaflet-bar a').css('background-color', '#000000')
-
-                    // Re-set background color on collapse
-                    this.map.on('measurecollapsed', function() {
-                        $('.leaflet-bar a').css('background-color', '#000000')
-                    })
-                }
                 this.control.addTo(this.map)
+                if(this.isDarkTheme) { this._darkModeUpdate() }
+                
             }
         },
 
@@ -1534,57 +1562,7 @@ define([
                 var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
 
                 // Dark Mode Support
-                if(this.isDarkTheme) {
-                    // Set dialog to black
-                    this.map.on('dialog:opened', function(e) {                        
-                        $('.leaflet-control-dialog').css({'background-color': '#000000'})
-                        $('.leaflet-control-layers').css({'color': '#fff'})
-                    })
-
-                    // Change popup colors
-                    this.map.on('popupopen', function(e) {    
-                        $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
-                                                                                     'color': "#FFFFFF"})
-                    })
-                    
-                    // Change tooltip colors
-                    this.map.on('tooltipopen', function(e) {  
-                        $('.leaflet-tooltip').css({'background': '#000000',
-                                                   'color': '#FFFFFF',
-                                                   'border': '1px solid #000000'})
-                        $('.leaflet-tooltip-right').toggleClass('dark', true)
-                        $('.leaflet-tooltip-left').toggleClass('dark', true)
-                        $('.leaflet-tooltip-bottom').toggleClass('dark', true)
-                        $('.leaflet-tooltip-top').toggleClass('dark', true)
-                    })
-
-                    
-                    // Update Zoom Controls
-                    $('.leaflet-control-zoom-in').css({'background-color': '#000000',
-                                                       'color': '#FFFFFF'})
-                    $('.leaflet-control-zoom-out').css({'background-color': '#000000',
-                                                        'color': '#FFFFFF'})
-                    
-                    // context menu dark mode styles
-                    var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
-                                  '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
-                                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
-                                  '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
-                                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
-                                  '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
-                                  '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
-
-                    var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.cssRules.length
-                    // delete styles from newest to oldest                                  
-                    for(i=length-1; i >= 0; i--) {
-                        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.deleteRule(i)
-                    }
-
-                    // insert dark styles
-                    for(i=0; i < styles.length; i++) {
-                        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.insertRule(styles[i], i)
-                    }
-                }
+                if(this.isDarkTheme) { this._darkModeInit() }
 
 				// Load Google Places Search Control
                 if(this.isArgTrue(googlePlacesSearch)) {
@@ -1733,17 +1711,7 @@ define([
                     this.measureControl = new L.Control.Measure(measureOptions)
                     this.measureControl.addTo(this.map)
 
-                    if(this.isDarkTheme) {
-                        $('.leaflet-control-measure').css('background-color', '#000000')
-
-                        // Set initial background color of control to black
-                        $('.leaflet-bar a').css('background-color', '#000000')
-
-                        // Re-set background color on collapse
-                        this.map.on('measurecollapsed', function() {
-                            $('.leaflet-bar a').css('background-color', '#000000')
-                        })
-                    }                    
+                    if(this.isDarkTheme) { this._darkModeUpdate() }                    
                 }
 
                 // Iterate through KML files and load overlays into layers on map 
@@ -2121,10 +2089,7 @@ define([
             if (this.isArgTrue(layerControl)) {           
                 this.control.addTo(this.map)
                 this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
-                if(this.isDarkTheme) {
-                    $('.leaflet-control-layers').css({'background-color': '#000',
-                                                      'color': '#fff'})
-                }
+                if(this.isDarkTheme) { this._darkModeUpdate() }
             } else {
                 this.control.remove()
             }

@@ -465,14 +465,17 @@ define([
                 }, this)
             }
 
+            // Handle min zoom change
             if(this._propertyExists('minZoom', configChanges)) {
                 this.map.setMinZoom(minZoom)
             }
 
+            // Handle max zoom change
             if(this._propertyExists('maxZoom', configChanges)) {
                 this.map.setMaxZoom(maxZoom)
             }
 
+            // Handle layer control add/remove
             if(this._propertyExists('layerControl', configChanges)) {
                 if(!layerControl) {
                     this.control.remove()
@@ -482,17 +485,18 @@ define([
                 } 
             }
 
+            // Handle measure tool add/remove
             if(this._propertyExists('measureTool', configChanges)) {
                 if(!measureTool) {
                     this.measureControl.remove()
                 } else {
                     this.measureControl.addTo(this.map)
-                    
                 }
 
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
+            // Handle layer control expand/collapse
             if(this._propertyExists('layerControlCollapsed', configChanges)) {
                 if(!layerControlCollapsed) {
                     this.control.expand()
@@ -501,6 +505,7 @@ define([
                 } 
             }
 
+            // Handle measure tool icon position change
             if(this._propertyExists('measureIconPosition', configChanges)) {
                 this.measureControl.remove()
                 this.control.remove()
@@ -511,6 +516,7 @@ define([
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
+            // Handle measure tool active/completed color changes
             if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
                 this.measureControl.remove()
                 this.control.remove()

@@ -27,4 +27,4 @@ Maps+ for Splunk Changelog
     - Cluster colors
     - Measure tool active and completed colors
     - Measure tool position
-* Removed support for Splunk 6.x - Use 2.x branch
+* Removed support for Splunk 6.x

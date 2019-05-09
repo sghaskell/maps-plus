@@ -8,6 +8,7 @@
         <view name="svg_markers" />
         <view name="circle_markers" />
         <view name="custom_icons" />
+        <view name="custom_icon_images" />
         <view name="multicluster_groups" />
         <view name="multilayer_groups" />
         <!--    <view name="dashboard5" /> -->

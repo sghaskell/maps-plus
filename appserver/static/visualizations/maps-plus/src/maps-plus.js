@@ -225,7 +225,10 @@ define([
                 maxZoom = this._propertyExists('maxZoom', configChanges) ? parseInt(this._getEscapedProperty('maxZoom', configChanges)):parseInt(this._getEscapedProperty('maxZoom', previousConfig)),
                 layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
                 layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
-                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig))
+                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
+                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
+                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
 
             // Update tile layer
             if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
@@ -438,6 +441,68 @@ define([
                 } else {
                     this.control.collapse()
                 } 
+            }
+
+            if(this._propertyExists('measureIconPosition', configChanges)) {
+                this.measureControl.remove()
+                this.control.remove()
+                this.measureControl.options.position = measureIconPosition
+                this.measureControl.addTo(this.map)
+                this.control.addTo(this.map)
+
+                if(this.isDarkTheme) {
+                    $('.leaflet-control-measure').css('background-color', '#000000')
+
+                    // Set initial background color of control to black
+                    $('.leaflet-bar a').css('background-color', '#000000')
+
+                    // Re-set background color on collapse
+                    this.map.on('measurecollapsed', function() {
+                        $('.leaflet-bar a').css('background-color', '#000000')
+                    })
+                }
+            }
+
+            if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
+                //console.log(this.measureFeatures)
+                this.measureControl.remove()
+                this.control.remove()
+                //this.measureFeatures.addTo(this.map)
+                // console.log(this.measureFeatures.getLayers())
+                // _.each(this.measureFeatures.getLayers(), function(layer){
+                //             console.log("LAYER!")
+                //             console.log(layer)
+                //             layer.remove()
+                //             this.measureFeatures.addLayer(
+                // }, this)
+                // this.measureFeatures.addTo(this.map)
+                let measureOptions = { position: measureIconPosition,
+                    activeColor: measureActiveColor,
+                    completedColor: measureCompletedColor,
+                    primaryLengthUnit: this._getEscapedProperty('measurePrimaryLengthUnit', configChanges),
+                    secondaryLengthUnit: this._getEscapedProperty('secondaryLengthUnit', configChanges),
+                    primaryAreaUnit: this._getEscapedProperty('primaryAreaUnit', configChanges),
+                    secondaryAreaUnit: this._getEscapedProperty('secondaryAreaUnit', configChanges),
+                    localization: this._getEscapedProperty('localization', configChanges),
+                    features: this.measureFeatures,
+                    map: this.map}
+
+                //console.log(this.measureFeatures)
+                this.measureControl = new L.Control.Measure(measureOptions)
+                this.measureControl.addTo(this.map)
+                //this.measureFeatures.addTo(this.map)
+                if(this.isDarkTheme) {
+                    $('.leaflet-control-measure').css('background-color', '#000000')
+
+                    // Set initial background color of control to black
+                    $('.leaflet-bar a').css('background-color', '#000000')
+
+                    // Re-set background color on collapse
+                    this.map.on('measurecollapsed', function() {
+                        $('.leaflet-bar a').css('background-color', '#000000')
+                    })
+                }
+                this.control.addTo(this.map)
             }
         },
 
@@ -1609,6 +1674,8 @@ define([
                 var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)})
 
                 let measureControl = this.measureControl
+
+                var measureFeatures = this.measureFeatures = L.layerGroup()
 				
 				// Get map size          
 				var mapSize = this.mapSize = this.map.getSize()
@@ -1658,11 +1725,14 @@ define([
                                            secondaryLengthUnit: measureSecondaryLengthUnit,
                                            primaryAreaUnit: measurePrimaryAreaUnit,
                                            secondaryAreaUnit: measureSecondaryAreaUnit,
-                                           localization: measureLocalization}
+                                           localization: measureLocalization,
+                                           features: this.measureFeatures,
+                                           map: this.map}
 
                     // var measureControl = new L.Control.Measure(measureOptions)
                     this.measureControl = new L.Control.Measure(measureOptions)
                     this.measureControl.addTo(this.map)
+
                     if(this.isDarkTheme) {
                         $('.leaflet-control-measure').css('background-color', '#000000')
 

@@ -229,7 +229,7 @@
   </row>
   <row>
     <panel>
-      <title>No Splits, Hidden Markers, Auto Fit &amp; Zoom, pathWeight, pathColor, pathOpacity, tooltip,</title>
+      <title>No Splits, Hidden Markers, Auto Fit &amp; Zoom, pathWeight, pathColor, pathOpacity, tooltip, antPath, layerDescription</title>
       <input type="multiselect" token="track_id_viz_3" searchWhenChanged="true">
         <label>Vehicle ID</label>
         <choice value="*">All</choice>
@@ -262,7 +262,7 @@
       </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description, pathColor=case(like(id, "16"), "#e50de5"), pathWeight=case(like(id, "16"), "20"), pathOpacity=case(like(id, "16"), "1.0")</query>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="&lt;table align=\"center\" border=\"1\"&gt;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;th&gt;time&lt;/th&gt;&lt;th&gt;vehicle type&lt;/th&gt;&lt;th&gt;speed&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=\"center\"&gt;".id."&lt;/td&gt;&lt;td align=\"center\"&gt;"._time."&lt;/td&gt;&lt;td align=\"center\"&gt;".vehicle_type."&lt;/td&gt;&lt;td&gt;".speed."&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;", tooltip=description, pathColor=case(like(id, "16"), "#e50de5"), pathWeight=case(like(id, "16"), "20"), pathOpacity=case(like(id, "16"), "1.0"), antPath="true", layerDescription=case(like(id, "16"), "Car 16", like(id, "17"), "Car 17", like(id, "20"), "Car 20", like(id, "22"), "Car 22", like(id, "23"), "Car 23")</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -281,6 +281,7 @@
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -293,6 +294,7 @@
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">-10.698394</option>

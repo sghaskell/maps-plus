@@ -1,5 +1,5 @@
 <form>
-  <label>Custom Icons</label>
+  <label>Marker Icon Customization</label>
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>

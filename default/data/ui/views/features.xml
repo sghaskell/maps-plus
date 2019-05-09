@@ -2,6 +2,7 @@
   <label>Features</label>
   <row>
     <panel>
+      <title>feature, featureColor, featureDescription, featureTooltip, featureLayer, featureWeight, featureStroke, featureFill, featureFillColor, featureFillOpacity, featureRadius, layerPriority</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup features.csv</query>
@@ -37,7 +38,7 @@
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
         <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>

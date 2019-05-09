@@ -3,8 +3,11 @@
   <row>
     <panel>
       <html>
-      <p>Use custom images as icons. Include the images in <code>$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images</code></p>
-      <p>Set the <code>customIcon</code> field to the name of the image. Adjust the size of the marker using the <a target="_blank" href="https://github.com/sghaskell/maps-plus#markersize"><code>markerSize</code></a> field.</p>
+      <p>Use custom images as icons. Include the images in <code>$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images</code>
+        </p>
+      <p>Set the <code>customIcon</code> field to the name of the image. Adjust the size of the marker using the <a target="_blank" href="https://github.com/sghaskell/maps-plus#markersize">
+            <code>markerSize</code>
+          </a> field.</p>
     </html>
     </panel>
   </row>
@@ -45,7 +48,7 @@
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
         <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.880889</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.72819</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">16</option>

@@ -22,7 +22,7 @@
     "togeojson": "^0.14.2",
     "jszip": "^3.1.2",
     "jszip-utils": "0.0.2",
-    "leaflet-measure": "^3.1.0",
+    "leaflet-measure": "sghaskell/leaflet-measure#feature/events-zonedef",
     "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",
     "leaflet-contextmenu": "^1.2.1",

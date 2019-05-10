@@ -51,12 +51,12 @@ Big thanks to the following people:
 * [dxwils3](https://github.com/dxwils3) for **pathColor** enhancement.
 
 ### Compatibility
-Maps+ is compatible with **Splunk 7.0+**
+Maps+ for Splunk is compatible with **Splunk 7.x**
 
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | customIcon | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
 ```
 
 ### Required Fields
@@ -157,7 +157,7 @@ Whether to draw stroke along the path. Set it to false to disable borders.
 Stroke width in pixels
 
 ### Custom Icons
-Use any image as a map marker. Copy the image into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images` and set the `customIcon` field to the name of the image. Use `markerSize` to change the increase or decrease the size of the icon.
+Use any image as a map marker. Copy the image into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images` and set the `customIcon` field to the name of the image. Use `markerSize` to increase or decrease the size of the icon.
 
 ### Heatmaps
 Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise values specified in the format menu will be used.
@@ -181,6 +181,40 @@ Amount of blur - **Default** ``15``
 ##### heatmapColorGradient 
 Color gradient config - **Default** ``{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})``
 
+### Features
+Use the measure tool in the upper right corner to draw a point, line or polygon on the map. Upon completion, a **Feature Defintion** can be copied and used with the `feature` field. Adjust the look and behavior of the feature with the following fields.
+
+![Alt text](appserver/static/visualizations/maps-plus/contrib/images/feature-definition.png?raw=true)
+
+##### featureColor 
+
+##### featureDescription 
+
+##### featureTooltip 
+
+##### featureLayer 
+
+##### featureWeight 
+
+##### featureStroke 
+
+##### featureFill 
+
+##### featureFillColor 
+
+##### featureFillOpacity 
+
+##### featureRadius 
+
+Define the features with the `feature` field. Optionally, store the features in a lookup file and use `| append [|inputlookup feature-lookup.csv]` to load the features on map
+
+Example Search
+
+```| makeresults | eval feature="42.259016415705766,-87.99087524414064", featureWeight="3", featureColor="#5CBF5C", featureDescription="point description", featureTooltip="point tip", featureFillOpacity="0.350", featureFillColor="#f4f141", featureFill="false",featureStroke="true", featureRadius="10", featureLayer="point layer", featureFillOpacity="1.0"
+| append [| makeresults | eval feature="42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151", layerDescription="polygon layer", featureTooltip="polygon tooltip", featureDescription="polygon description", featureLayer="polygon layer", featureColor="#41dff4", featureFillColor="#55f441", featureFillOpacity="0.1"]
+| append [| makeresults | eval feature="42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131", layerDescription="line layer", featureDescription="line description", featureTooltip="line tooltip", featureLayer="line layer", featureColor="#f441d3"]
+| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity
+```
 
 ### Path Tracing
 If you have a dataset that contains multiple coordinates for each object (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path on the map. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the [format menu options](#path-lines). Note that ``_time`` must be present for split intervals to work.

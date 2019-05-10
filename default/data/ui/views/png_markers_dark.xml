@@ -8,7 +8,7 @@
           <font color="red">red</font>, <font color="darkred">darkred</font>, <font color="lightred">lightred</font>, <font color="orange">orange</font>, <font color="beige">beige</font>, <font color="green">green</font>, <font color="darkgreen">darkgreen</font>, <font color="lightgreen">lightgreen</font>, <font color="blue">blue</font>,<font color="darkblue">darkblue</font>, <font color="lightblue">lightblue</font>, <font color="purple">purple</font>, <font color="darkpurple">darkpurple</font>, <font color="pink">pink</font>, <font color="cadetblue">cadetblue</font>, <font color="white">white</font>, <font color="gray">gray</font>, <font color="lightgray">lightgray</font>, black
       </p>
       <p>
-        Customize markers with icons from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="https://ionicons.com/">Ionicons</a>
+        Customize markers with icons from <a href="https://fontawesome.com/v4.7.0/icons/">Font Awesome</a> or <a href="https://ionicons.com/">Ionicons</a>
       </p>
       <p>
         Disabling clustering at a particular zoom level can result in sluggish performance. This example illustrates that in high density areas when panning in the map.

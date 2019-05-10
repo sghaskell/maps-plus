@@ -3,10 +3,10 @@
   <row>
     <html>
       <p>
-        Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.
+        Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. Use the following fields to change the look and behavior of circle markers.
       </p>
       <p>
-        <b>circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight</b>
+        <code>circleColor</code> <code>circleFillColor</code> <code>circleOpacity</code> <code>circleFillOpacity</code> <code>circleRadius</code> <code>circleStroke</code> <code>circleWeight</code>
       </p>
       
     </html>

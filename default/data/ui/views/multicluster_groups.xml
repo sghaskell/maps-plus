@@ -4,7 +4,7 @@
     <panel>
       <html>
       <p>
-        The default behavior is to cluster all markers into the same cluster group. Use the <b>clusterGroup</b> field for granular control over cluster grouping. The following example creates seven cluster groups.
+        The default behavior is to cluster all markers into the same cluster group. Use the <code>clusterGroup</code> field for granular control over cluster grouping. The following example creates seven cluster groups.
       </p>
     </html>
     </panel>

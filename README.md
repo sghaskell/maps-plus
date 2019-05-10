@@ -31,7 +31,7 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [moment](https://github.com/moment/moment)
 ##### [brfs](https://www.npmjs.com/package/brfs)
 ##### [fontawesome](https://fontawesome.com/)
-##### [Glyphicons](http://glyphicons.com/)
+##### [Glyphicons](https://getbootstrap.com/docs/3.3/components/#glyphicons-how-to-use)
 ##### [Ionicons](https://ionicons.com/)
 ##### [leaflet-ant-path](https://github.com/rubenspgcavalcante/leaflet-ant-path)
 ##### [Mapkey Icons](http://mapkeyicons.com/)

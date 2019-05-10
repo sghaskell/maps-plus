@@ -51,7 +51,7 @@ Big thanks to the following people:
 * [dxwils3](https://github.com/dxwils3) for **pathColor** enhancement.
 
 ### Compatibility
-Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
+Maps+ is compatible with **Splunk 7.0+**
 
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.

@@ -4,7 +4,7 @@
     <panel>
       <html>
       <p>
-        The default behavior is to group like icons into the same layer group. Use the <b>layerGroup</b> field for granular control over layer grouping. To group all markers into a single layer, simply <b>| eval layerGroup="default" | table layerGroup</b>
+        The default behavior is to group like icons into the same layer group. Use the <code>layerGroup</code> field for granular control over layer grouping. To group all markers into a single layer, simply <code>| eval layerGroup="default" | table layerGroup</code>
       </p>
       <p>
         Toggle the visibility of each layer using the layer controls panel in the upper right corner of the map.

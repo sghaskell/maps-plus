@@ -184,9 +184,11 @@ Color gradient config - **Default** ``{"0.4":"blue","0.6":"cyan","0.7":"lime","0
 ### Features
 Load features drawn with the [measure tool](#measure-tool) on the map through SPL or lookup files. 
 
-Use the measure tool in the upper right corner to draw a point, line or polygon on the map. Upon completion, a **Feature Defintion** can be copied and used with the `feature` field. Adjust the look and behavior of the feature with the following fields.
+Use the measure tool in the upper right corner to draw a point, line or polygon on the map. Upon completion, a **Feature Defintion** can be copied and used with the `feature` field. 
 
 ![Alt text](appserver/static/visualizations/maps-plus/contrib/images/feature-definition.png?raw=true)
+
+Adjust the look and behavior of the feature with the following fields.
 
 ##### featureColor 
 

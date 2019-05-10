@@ -182,6 +182,8 @@ Amount of blur - **Default** ``15``
 Color gradient config - **Default** ``{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})``
 
 ### Features
+Load features drawn with the [measure tool](#measure-tool) on the map through SPL or lookup files. 
+
 Use the measure tool in the upper right corner to draw a point, line or polygon on the map. Upon completion, a **Feature Defintion** can be copied and used with the `feature` field. Adjust the look and behavior of the feature with the following fields.
 
 ![Alt text](appserver/static/visualizations/maps-plus/contrib/images/feature-definition.png?raw=true)
@@ -320,8 +322,8 @@ The files will be asynchronously loaded when the map is rendered.
 ### i18n Localization
 The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
 
-### Measurement Plugin
-Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
+### Measure Tool
+Interactively measure paths and area on the map. The feature is enabled by default. Hover over the icon in the upper right corner of the map and then select `Create new measurement`. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
 
 ### API Key Storage
 API keys for use with Google Places search, Bing Maps and the Google Streetview comapnion viz must be stored in Splunk's [storage/passwords](http://docs.splunk.com/Documentation/Splunk/7.2.0/RESTREF/RESTaccess#storage.2Fpasswords) REST endpoint. Every user who needs access to a key must have the `list_storage_passwords` capability enabled for their role. Set ACL's on credentials to narrow the scope of who can access them. Download and install my [REST storage/passwords Manager for Splunk](https://splunkbase.splunk.com/app/4013/) to make this process painless.

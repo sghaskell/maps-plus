@@ -34,7 +34,6 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [Glyphicons](https://getbootstrap.com/docs/3.3/components/#glyphicons-how-to-use)
 ##### [Ionicons](https://ionicons.com/)
 ##### [leaflet-ant-path](https://github.com/rubenspgcavalcante/leaflet-ant-path)
-##### [Mapkey Icons](http://mapkeyicons.com/)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
 ##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
 ##### [UCI Machine Learning Repository - GPS Trajectories Data Set](https://archive.ics.uci.edu/ml/datasets/GPS+Trajectories)
@@ -73,10 +72,10 @@ Desciption that is displayed in a pop-up when then marker is clicked on the map.
 Description that is added next to the icon in the layer control legend. **this field supports HTML**
 
 ##### layerIcon
-Icon displayed in layer filter menu - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/), [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) or [Mapkey Icons](http://mapkeyicons.com/) - **Default** first icon detected for defined ``layerGroup``
+Icon displayed in layer filter menu - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
 
 ### Style Markers And Icons Dynamically Through SPL
-Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/), [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) or [Mapkey Icons](http://mapkeyicons.com/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
+Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
@@ -92,7 +91,7 @@ Color of map marker - ``red``, ``darkred``, ``lightred``, ``orange``, ``beige``,
 ##### iconColor
 Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`.
 ##### prefix
-``fa`` (Font Awesome), ``ion`` (ionicons), ``glyphicon`` (Glyphicons), ``mki`` (Mapkey Icons). - **Default** ``fa``
+``fa`` ([Font Awesome](https://fontawesome.com/icons?d=gallery&s=solid&m=free)), ``fab`` ([Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free)), ``ion`` ([ionicons](http://ionicons.com/)) or ``glyphicon`` ([Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/)) - **Default** ``fa``
 
 ##### extraClasses
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome or Ionicons to change the styling. **Default** ``fa-lg``

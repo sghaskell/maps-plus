@@ -4,8 +4,8 @@ Maps+ for Splunk Changelog
 # 3.0.0 (2019-05-09)
 * Removed support for Splunk 6.x
 * Added support for custom icons
-* Added support for Features (Polygon, Line or Point)
-    - Feature Definition on measure
+* Added support for Features (Polygon, Line or Point) using measure tool
+    - Feature Definition displayed on measure completion
     - Draw features using feature Definition
 * Added layerPriority field to stack layers (works for all layer types including heatmaps, path lines, circles and features)
 * Added layerDescription field to name layers in layer dialog (works for all layer types including heatmaps, path lines, circles and features)

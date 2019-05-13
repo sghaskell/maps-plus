@@ -1827,7 +1827,7 @@ define([
                     layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):0,
                     title = _.has(userData, "title") ? userData["title"]:null,
                     tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
-                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
+                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fas",
                     extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
                     circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
                     circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,

@@ -280,22 +280,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            
 	            // context menu dark mode styles
 	            var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
-	                            '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
-	                            '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
-	                            '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
-	                            '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
-	                            '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
-	                            '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
+	                          '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
+	                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
+	                          '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
+	                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
+	                          '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
+	                          '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-	            var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.cssRules.length
+	            var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.cssRules.length
 	            // delete styles from newest to oldest                                  
 	            for(i=length-1; i >= 0; i--) {
-	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.deleteRule(i)
+	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.deleteRule(i)
 	            }
 
 	            // insert dark styles
 	            for(i=0; i < styles.length; i++) {
-	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[9].styleSheet.insertRule(styles[i], i)
+	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.insertRule(styles[i], i)
 	            }
 	        },
 

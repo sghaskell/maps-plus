@@ -79,6 +79,9 @@ Maps+ allows you to dynamically style map markers and add icons via SPL. Create 
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
+If you own a [Font Awesome Pro license](https://fontawesome.com/pro), you can upload the remaining web fonts into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/fonts` and then [reference them using the appropriate](https://fontawesome.com/how-to-use/on-the-web/referencing-icons/basic-use) `prefix` values `far` or `fal`.
+
+
 ### Available Fields and Values
 ##### title
 Icon mouse hover over description. **Deprecated (with backwards compatibility) - see tooltip**

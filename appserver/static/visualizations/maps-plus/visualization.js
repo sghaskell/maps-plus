@@ -2135,6 +2135,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    })
 	                }
 
+	                const validMarkerTypes = ["custom", "png", "icon", "svg"]
+	                if(!validMarkerTypes.includes(markerType)) {
+	                    // throw viz error
+	                    throw new SplunkVisualizationBase.VisualizationError(
+	                        'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg'
+	                    )
+	                }
+
 	                var markerOptions = {markerType: markerType,
 	                    radius: circleRadius,
 	                    stroke: circleStroke,

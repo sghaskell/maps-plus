@@ -2054,7 +2054,8 @@ define([
                         className: className,
                         extraClasses: extraClasses,
                         popupAnchor: popupAnchor,
-                        description: description
+                        description: description,
+                        iconAnchor: markerAnchor
                     })
                 }
 

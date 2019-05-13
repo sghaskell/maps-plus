@@ -874,7 +874,11 @@ define([
                 if(_.has(options.layerGroup.circle, "fillColor")) {
                     var iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
                 } else {
-                    var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                    if(options.layerGroup.icon.options.prefix == "fab") {
+                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                    } else {
+                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                    }
                 }
 
                 options.control.addOverlay(options.layerGroup.group, iconHtml)

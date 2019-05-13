@@ -57,12 +57,15 @@
 
         _createInner: function() {
             var iconClass, iconSpinClass = "", iconColorClass = "", iconColorStyle = "", options = this.options;
+            //var prefix = options.prefix == "fab" ? "fa":options.prefix 
 
             if(options.icon.slice(0,options.prefix.length+1) === options.prefix + "-") {
                 iconClass = options.icon;
             } else {
                 iconClass = options.prefix + "-" + options.icon;
             }
+
+            iconClass = options.prefix == "fab" ? "fa-" + options.icon:iconClass
 
             if(options.spin && typeof options.spinClass === "string") {
                 iconSpinClass = options.spinClass;

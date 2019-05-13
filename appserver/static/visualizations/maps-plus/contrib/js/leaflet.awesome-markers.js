@@ -31,7 +31,8 @@
             extraClasses: '',
             icon: 'home',
             markerColor: 'blue',
-            iconColor: 'white'
+            iconColor: 'white',
+            displayMarker: true
         },
 
         initialize: function (options) {
@@ -43,7 +44,7 @@
                 options = this.options;
 
             if (options.icon) {
-                div.innerHTML = this._createInner();
+                div.innerHTML += this._createInner();
             }
 
             if (options.bgPos) {
@@ -51,7 +52,10 @@
                     (-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
             }
 
-            this._setIconStyles(div, 'icon-' + options.markerColor);
+            if(options.displayMarker) { 
+                this._setIconStyles(div, 'icon-' + options.markerColor)                 
+            }
+            
             return div;
         },
 
@@ -84,11 +88,13 @@
         },
 
         _setIconStyles: function (img, name) {
+            console.log("setting icon styles")
             var options = this.options,
                 size = L.point(options[name === 'shadow' ? 'shadowSize' : 'iconSize']),
                 anchor;
 
             if (name === 'shadow') {
+                console.log("GOT SHADOW!")
                 anchor = L.point(options.shadowAnchor || options.iconAnchor);
             } else {
                 anchor = L.point(options.iconAnchor);
@@ -111,12 +117,24 @@
             }
         },
 
+        // _createShadow: function () {
+        //     //alert("caller is " + _createShadow.caller)
+        //     console.log("creating shadow")
+        //     var div = document.createElement('div');
+
+        //     this._setIconStyles(div, 'shadow');
+
+        //     console.log(div)
+        //     return div;
+        // }
+
         createShadow: function () {
             var div = document.createElement('div');
 
-            this._setIconStyles(div, 'shadow');
+            if(this.options.displayMarker) { this._setIconStyles(div, 'shadow') }
+
             return div;
-      }
+        }
     });
         
     L.AwesomeMarkers.icon = function (options) {
@@ -124,6 +142,3 @@
     };
 
 }(this, document));
-
-
-

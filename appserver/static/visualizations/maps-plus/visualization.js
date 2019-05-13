@@ -2123,7 +2123,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(markerType == "icon") {
 	                    var markerIcon = L.AwesomeMarkers.icon({
 	                        icon: icon,
-	                        markerColor: markerColor,
+	                        markerColor: iconColor,
 	                        iconColor: iconColor,
 	                        prefix: prefix,
 	                        className: className,

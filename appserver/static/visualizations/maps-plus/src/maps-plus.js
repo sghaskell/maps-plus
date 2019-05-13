@@ -569,6 +569,7 @@ define([
                                'layerGroup',
                                'layerPriority',
                                'layerIcon',
+                               'layerIconPrefix',
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
@@ -843,6 +844,7 @@ define([
 
         // Create a control icon and description in the layer control legend
         addLayerToControl: function(options) {
+            console.log(options)
             var name = ""
 
             // Add Heatmap layer to controls and use layer name for control label
@@ -874,13 +876,15 @@ define([
                 if(_.has(options.layerGroup.circle, "fillColor")) {
                     var iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
                 } else {
-                    if(options.layerGroup.icon.options.prefix == "fab") {
-                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                    if(options.layerGroup.layerIconPrefix == "fab") {
+                        console.log("FAB!")
+                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
                     } else {
-                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
                     }
                 }
 
+                console.log(iconHtml)
                 options.control.addOverlay(options.layerGroup.group, iconHtml)
                 options.layerGroup.layerExists = true
             }
@@ -1944,6 +1948,7 @@ define([
                 // Set icon options
                 var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
                 var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
+                var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
                 var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
                 var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
 
@@ -1994,6 +1999,7 @@ define([
                 if (!_.isUndefined(this.layerFilter[layerGroup])) {
                     this.layerFilter[layerGroup].layerDescription = layerDescription
                     this.layerFilter[layerGroup].layerIcon = layerIcon
+                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
                 }
             
 

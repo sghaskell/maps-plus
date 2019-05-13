@@ -148,7 +148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  spinClass: 'fa-spin',
 	  extraIconClasses: '',
 	  extraDivClasses: '',
-	  icon: 'circle',
+	  icon: 'home',
 	  markerColor: 'blue',
 	  iconColor: 'white',
 	  viewBox: '0 0 32 52'
@@ -187,22 +187,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this._setIconStyles(div, 'icon-' + options.markerColor);
 	      return div;
 	    }
-	  },{
+	  }, {
 	    key: 'createShadow',
 	    value: function createShadow() {
 	      var div = document.createElement('div');
 	      this._setIconStyles(div, 'shadow');
 	      return div;
 	    }
-	  },{
+	  }, {
 	    key: '_createInner',
 	    value: function _createInner() {
 	      var i = document.createElement('i');
 	      var options = this.options;
 
 	      i.classList.add(options.prefix);
-	      if (options.extraIconClasses) {
-	        i.classList.add(options.extraIconClasses);
+	      if (options.extraClasses) {
+	        i.classList.add(options.extraClasses);
 	      }
 	      if (options.icon.slice(0, options.prefix.length + 1) === options.prefix + '-') {
 	        i.classList.add(options.icon);
@@ -213,12 +213,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        i.classList.add(options.spinClass);
 	      }
 	      if (options.iconColor) {
-	        //if (options.iconColor === 'white' || options.iconColor === 'black') {
-	        //  i.classList.add('icon-' + options.iconColor);
-	        //} else {
-	        //  i.style.color = options.iconColor;
-	        //}
+	        // if (options.iconColor === 'white' || options.iconColor === 'black') {
+	        //   i.classList.add('icon-' + options.iconColor);
+	        // } else {
 	        i.style.color = options.iconColor;
+	        // }
 	      }
 	      if (options.iconSize) {
 	        i.style.width = options.iconSize[0] + 'px';

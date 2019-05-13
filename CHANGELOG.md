@@ -2,6 +2,7 @@ Maps+ for Splunk Changelog
 ==========================
 
 # 3.0.0 (2019-05-09)
+* Removed support for Splunk 6.x
 * Added support for custom icons
 * Added support for Features (Polygon, Line or Point)
     - Feature Definition on measure
@@ -29,4 +30,3 @@ Maps+ for Splunk Changelog
     - Cluster colors
     - Measure tool active and completed colors
     - Measure tool position
-* Removed support for Splunk 6.x

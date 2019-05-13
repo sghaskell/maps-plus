@@ -79,10 +79,15 @@ Maps+ allows you to dynamically style map markers and add icons via SPL. Create 
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
+Control the size of the icons using the `extraClasses` field. See [Font Awesome documentation](https://fontawesome.com/how-to-use/on-the-web/styling/sizing-icons) for details on which classes to use.
+
 If you own a [Font Awesome Pro license](https://fontawesome.com/pro), you can upload the remaining web fonts into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/fonts` and then [reference them using the appropriate](https://fontawesome.com/how-to-use/on-the-web/referencing-icons/basic-use) `prefix` values `far` or `fal`.
 
+### PNG Markers
+#### Available Fields and Values
+##### markerType
+`png`
 
-### Available Fields and Values
 ##### title
 Icon mouse hover over description. **Deprecated (with backwards compatibility) - see tooltip**
 ##### tooltip
@@ -98,6 +103,7 @@ Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssr
 
 ##### extraClasses
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome or Ionicons to change the styling. **Default** ``fa-lg``
+
 
 ### SVG Markers
 Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.
@@ -160,6 +166,9 @@ Stroke width in pixels
 
 ### Custom Icons
 Use any image as a map marker. Copy the image into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images` and set the `customIcon` field to the name of the image. Use `markerSize` to increase or decrease the size of the icon.
+
+### Display icon without marker
+Set the `markerType` field to `icon` to only display the icon without a marker. Control the size of the icons using the `extraClasses` field. See [Font Awesome documentation](https://fontawesome.com/how-to-use/on-the-web/styling/sizing-icons) for details on which classes to use. Control the color of the icon with [`iconColor`](#iconcolor).
 
 ### Heatmaps
 Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise values specified in the format menu will be used.

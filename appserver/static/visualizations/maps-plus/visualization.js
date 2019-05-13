@@ -896,7 +896,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        // Create a control icon and description in the layer control legend
 	        addLayerToControl: function(options) {
-	            console.log(options)
+	            //console.log(options)
 	            var name = ""
 
 	            // Add Heatmap layer to controls and use layer name for control label
@@ -935,7 +935,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                }
 
-	                console.log(iconHtml)
+	                //console.log(iconHtml)
 	                options.control.addOverlay(options.layerGroup.group, iconHtml)
 	                options.layerGroup.layerExists = true
 	            }
@@ -2003,6 +2003,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
 	                var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
 
+	                // When using ionicons use material design by default unless explicitly set
+	                if(prefix == "ion") { 
+	                    if(!/^(md|ios|logo)-/.test(icon)) {
+	                        icon = 'md-' + icon
+	                    }
+	                }
 
 	                // Create Cluster Group
 	                if(_.isUndefined(this.clusterGroups[clusterGroup])) {

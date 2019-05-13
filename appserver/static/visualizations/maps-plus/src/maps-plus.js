@@ -2068,6 +2068,21 @@ define([
                     })
                 }
 
+                if(markerType == "icon") {
+                    var markerIcon = L.AwesomeMarkers.icon({
+                        icon: icon,
+                        markerColor: markerColor,
+                        iconColor: iconColor,
+                        prefix: prefix,
+                        className: className,
+                        extraClasses: extraClasses,
+                        popupAnchor: popupAnchor,
+                        description: description,
+                        iconAnchor: markerAnchor,
+                        displayMarker: false
+                    })
+                }
+
                 var markerOptions = {markerType: markerType,
                     radius: circleRadius,
                     stroke: circleStroke,

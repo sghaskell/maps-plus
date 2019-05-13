@@ -926,7 +926,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(_.has(options.layerGroup.circle, "fillColor")) {
 	                    var iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
 	                } else {
-	                    var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+	                    if(options.layerGroup.icon.options.prefix == "fab") {
+	                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+	                    } else {
+	                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+	                    }
 	                }
 
 	                options.control.addOverlay(options.layerGroup.group, iconHtml)
@@ -69333,12 +69337,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        _createInner: function() {
 	            var iconClass, iconSpinClass = "", iconColorClass = "", iconColorStyle = "", options = this.options;
+	            //var prefix = options.prefix == "fab" ? "fa":options.prefix 
 
 	            if(options.icon.slice(0,options.prefix.length+1) === options.prefix + "-") {
 	                iconClass = options.icon;
 	            } else {
 	                iconClass = options.prefix + "-" + options.icon;
 	            }
+
+	            iconClass = options.prefix == "fab" ? "fa-" + options.icon:iconClass
 
 	            if(options.spin && typeof options.spinClass === "string") {
 	                iconSpinClass = options.spinClass;

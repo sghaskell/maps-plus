@@ -10,6 +10,7 @@ Maps+ for Splunk Changelog
 * Added layerDescription field to name layers in layer dialog (works for all layer types including heatmaps, path lines, circles and features)
 * Added Ant Path to visualize direction of path
 * Support for Dark Mode
+* Upgrade Font Awesome to v5.8.2 
 * Added Mapkey Icons set
 * Format menu changes now dynamically update map for 
     - Map Tile

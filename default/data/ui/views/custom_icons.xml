@@ -12,10 +12,17 @@
         <prefix>"</prefix>
         <suffix>"</suffix>
       </input>
+      <input type="radio" token="iconOnly" searchWhenChanged="true">
+        <label>Icon Only</label>
+        <choice value="icon">Yes</choice>
+        <choice value="png">No</choice>
+        <default>png</default>
+        <initialValue>png</initialValue>
+      </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv
-| eval prefix=$prefix$
+| eval prefix=$prefix$, markerType="$iconOnly$"
 | eval icon1=case(like(prefix, "fa"), "exclamation-triangle", like(prefix, "ion"), "close-circled", like(prefix, "glyphicon"), "exclamation-sign"),
 icon2=case(like(prefix, "fa"), "battery-2", like(prefix, "ion"), "battery-low", like(prefix, "glyphicon"), "ban-circle"),
 icon3=case(like(prefix, "fa"), "gavel", like(prefix, "ion"), "gear-b", like(prefix, "glyphicon"), "euro"),
@@ -25,9 +32,11 @@ icon6=case(like(prefix, "fa"), "flask", like(prefix, "ion"), "flask", like(prefi
 icon7=case(like(prefix, "fa"), "car", like(prefix, "ion"), "model-s", like(prefix, "glyphicon"), "tree-conifer"),
 icon8=case(like(prefix, "fa"), "hand-lizard-o", like(prefix, "ion"), "nuclear", like(prefix, "glyphicon"), "wrench")
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8)
+icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
+iconColor=case(like(description, "%SIMPLE%"), "#f4b541", like(description, "%DOMESTIC BATTERY%"), "#f44149", like(description, "%500 AND UNDER%"), "#f441dc", like(description, "%TO PROPERTY%"), "#a341f4", like(description, "%RETAIL THEFT%"), "#41f458", like(description, "%TO VEHICLE%"), "#41f4eb",1=1, "#4286f4"),
+extraClasses=if(markerType="icon", "fa-2x", "fa-lg")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -46,6 +55,7 @@ icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BAT
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -57,12 +67,13 @@ icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BAT
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>

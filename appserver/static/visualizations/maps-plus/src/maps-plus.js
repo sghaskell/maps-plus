@@ -267,9 +267,6 @@ define([
         },
 
         onConfigChange: function(configChanges, previousConfig) {
-            // console.log('CONFIG CHANGED!')
-            // console.log(configChanges)
-            // console.log(previousConfig)
             const configBase = this.getPropertyNamespaceInfo().propertyNamespace
             let bgRgb,
                 bgRgba,
@@ -569,6 +566,8 @@ define([
                                'layerGroup',
                                'layerPriority',
                                'layerIcon',
+                               'layerIconSize',
+                               'layerIconColor',
                                'layerIconPrefix',
                                'clusterGroup',
                                'pathColor',
@@ -844,8 +843,10 @@ define([
 
         // Create a control icon and description in the layer control legend
         addLayerToControl: function(options) {
-            //console.log(options)
-            var name = ""
+            let name,
+                iconHtml,
+                styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined
+                layerIconSize = _.has(options.layerGroup, 'layerIconSize') ? this.stringToPoint(options.layerGroup.layerIconSize):undefined
 
             // Add Heatmap layer to controls and use layer name for control label
             if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
@@ -859,31 +860,26 @@ define([
             }
 
             if(!options.layerGroup.layerExists) {
-                // update blue to awesome-marker blue color
-                if(!_.isUndefined(options.layerGroup.icon)) {
-                    if(_.has(options.layerGroup.icon.options, "markerColor") && options.layerGroup.icon.options.markerColor === "blue") {
-                        var styleColor = "#38AADD"
-                    }
-                    else {
-                        var styleColor = options.layerGroup.icon.options.markerColor
-                    }
-                } 
-
-                if(!_.isUndefined(options.layerGroup.circle)) {
-                    var styleColor = options.layerGroup.circle.fillColor
-                }
-
+                // Circle Marker
                 if(_.has(options.layerGroup.circle, "fillColor")) {
-                    var iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
+                    styleColor = options.layerGroup.circle.fillColor
+                    iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
                 } else {
-                    if(options.layerGroup.layerIconPrefix == "fab") {
-                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
-                    } else {
-                        var iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                    // Custom Icon
+                    if(_.has(options.layerGroup.icon.options, 'iconUrl')) {
+                        iconHtml = '<img src="' + options.layerGroup.icon.options.iconUrl + '" style="height: ' + layerIconSize[0] + 'px; width: ' + layerIconSize[1] + 'px">' + options.layerGroup.layerDescription
+                    }
+                    
+                    // Awesome Marker, Vector Marker or Icon only
+                    if(options.layerGroup.icon.options.className == "awesome-marker" || options.layerGroup.icon.options.className == "vector-marker" || options.layerGroup.icon.options.className == "icon-only") {
+                        if(options.layerGroup.layerIconPrefix == "fab") {
+                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                        } else {
+                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                        }
                     }
                 }
 
-                //console.log(iconHtml)
                 options.control.addOverlay(options.layerGroup.group, iconHtml)
                 options.layerGroup.layerExists = true
             }
@@ -1948,67 +1944,19 @@ define([
                 var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
                 var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
                 var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
+                var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
+                var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
                 var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
                 var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
 
                 // When using ionicons use material design by default unless explicitly set
                 if(prefix == "ion") { 
                     if(!/^(md|ios|logo)-/.test(icon)) {
-                        icon = 'md-' + icon
+                        prefix += "-md"
+                        layerIconPrefix += "-md"
                     }
                 }
-
-                // Create Cluster Group
-                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-                    var cg = this._createClusterGroup(disableClusteringAtZoom,
-                                                      disableClusteringAtZoomLevel,
-                                                      maxClusterRadius,
-                                                      maxSpiderfySize,
-                                                      spiderfyDistanceMultiplier,
-                                                      singleMarkerMode,
-                                                      animate,
-                                                      criticalThreshold,
-                                                      warningThreshold,
-                                                      this)
-
-                    this.clusterGroups[clusterGroup] = cg
-                    cg.addTo(this.map)
-                }
-
-                // Create Clustered featuregroup subgroup layer
-                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
-                                                    'iconStyle' : icon,
-                                                    'layerExists' : false,
-                                                    'clusterGroup': []
-                                                    }
-                // Create normal layergroup
-                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
-                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
-                                                    'markerList' : [],
-                                                    'iconStyle' : icon,
-                                                    'layerExists' : false
-                                                    }
-                }
-
-                // Add clusterGroup to layerGroup
-                if(this.isArgTrue(cluster)
-                   && clusterGroup != ""
-                   && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
-                    this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
-                                                                    'cg': this.clusterGroups[clusterGroup],
-                                                                    'markerList': []})
-                }
-
-                
-                if (!_.isUndefined(this.layerFilter[layerGroup])) {
-                    this.layerFilter[layerGroup].layerDescription = layerDescription
-                    this.layerFilter[layerGroup].layerIcon = layerIcon
-                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
-                }
             
-
-
                 // Set icon class
                 if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
                     var className = ""
@@ -2017,8 +1965,6 @@ define([
                     var className = "awesome-marker"
                     var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35]
                 }
-
-
 
 				// SVG and PNG based markers both support hex iconColor do conversion outside
 				iconColor = this.convertHex(iconColor)	
@@ -2043,6 +1989,7 @@ define([
 					// Update marker to shade of Awesome Marker blue
 					if(markerColor == "blue") { markerColor = "#38AADD" }
                     markerColor = this.convertHex(markerColor)
+                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
                     popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
 
                     var markerIcon = L.VectorMarkers.icon({
@@ -2061,6 +2008,8 @@ define([
                 
                 if(markerType == "png") {
                     // Create markerIcon
+                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
+                    if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
                     var markerIcon = L.AwesomeMarkers.icon({
                         icon: icon,
                         markerColor: markerColor,
@@ -2092,7 +2041,7 @@ define([
                     })
                 }
 
-                const validMarkerTypes = ["custom", "png", "icon", "svg"]
+                const validMarkerTypes = ["custom", "png", "icon", "svg", "circle"]
                 if(!validMarkerTypes.includes(markerType)) {
                     // throw viz error
                     throw new SplunkVisualizationBase.VisualizationError(
@@ -2123,6 +2072,56 @@ define([
                     title: title,
                     drilldown: drilldown,
                     drilldownAction: drilldownAction}
+
+                // Create Cluster Group
+                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
+                    var cg = this._createClusterGroup(disableClusteringAtZoom,
+                                                        disableClusteringAtZoomLevel,
+                                                        maxClusterRadius,
+                                                        maxSpiderfySize,
+                                                        spiderfyDistanceMultiplier,
+                                                        singleMarkerMode,
+                                                        animate,
+                                                        criticalThreshold,
+                                                        warningThreshold,
+                                                        this)
+
+                    this.clusterGroups[clusterGroup] = cg
+                    cg.addTo(this.map)
+                }
+
+                // Create Clustered featuregroup subgroup layer
+                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
+                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+                                                    'iconStyle' : icon,
+                                                    'layerExists' : false,
+                                                    'clusterGroup': []
+                                                    }
+                // Create normal layergroup
+                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
+                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+                                                    'markerList' : [],
+                                                    'iconStyle' : icon,
+                                                    'layerExists' : false
+                                                    }
+                }
+
+                // Add clusterGroup to layerGroup
+                if(this.isArgTrue(cluster)
+                    && clusterGroup != ""
+                    && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
+                    this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
+                                                                    'cg': this.clusterGroups[clusterGroup],
+                                                                    'markerList': []})
+                }
+
+                if (!_.isUndefined(this.layerFilter[layerGroup])) {
+                    this.layerFilter[layerGroup].layerDescription = layerDescription
+                    this.layerFilter[layerGroup].layerIcon = layerIcon
+                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
+                    this.layerFilter[layerGroup].layerIconColor = layerIconColor
+                    this.layerFilter[layerGroup].layerIconSize = layerIconSize
+                }
 
                 if (userData["markerVisibility"]) {
                     if (userData["markerVisibility"] == "marker") {

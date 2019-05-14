@@ -15,7 +15,7 @@
     <panel>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
-          <query>| inputlookup chicago-crime.csv | eval customIcon="kovar.png", markerSize="40,40", layerDescription="The Kovar"</query>
+          <query>| inputlookup chicago-crime.csv | eval customIcon="kovar.png", markerSize="40,40", layerDescription="The Kovar", layerIconSize="30,30"</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -87,6 +87,7 @@
         <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
         <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
         <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
         <option name="trellis.enabled">0</option>
         <option name="trellis.scales.shared">1</option>
         <option name="trellis.size">medium</option>

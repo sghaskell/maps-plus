@@ -19,6 +19,16 @@
         <default>png</default>
         <initialValue>png</initialValue>
       </input>
+      <input type="dropdown" token="iconSize" searchWhenChanged="true">
+        <label>Icon Size (Icon Only)</label>
+        <choice value="fa-lg">fa-lg</choice>
+        <choice value="fa-2x">fa-2x</choice>
+        <choice value="fa-3x">fa-3x</choice>
+        <choice value="fa-4x">fa-4x</choice>
+        <choice value="fa-5x">fa-5x</choice>
+        <default>fa-2x</default>
+        <initialValue>fa-2x</initialValue>
+      </input>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv
@@ -34,7 +44,7 @@ icon8=case(like(prefix, "fa"), "hand-lizard-o", like(prefix, "ion"), "nuclear", 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
 icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
 iconColor=case(like(description, "%SIMPLE%"), "#f4b541", like(description, "%DOMESTIC BATTERY%"), "#f44149", like(description, "%500 AND UNDER%"), "#f441dc", like(description, "%TO PROPERTY%"), "#a341f4", like(description, "%RETAIL THEFT%"), "#41f458", like(description, "%TO VEHICLE%"), "#41f4eb",1=1, "#4286f4"),
-extraClasses=if(markerType="icon", "fa-2x", "fa-lg")
+extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
 | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses</query>
           <earliest>-24h@h</earliest>

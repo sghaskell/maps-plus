@@ -69348,8 +69348,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            extraClasses: '',
 	            icon: 'home',
 	            markerColor: 'blue',
-	            iconColor: 'white',
-	            displayMarker: true
+	            iconColor: 'white'
 	        },
 
 	        initialize: function (options) {
@@ -69361,7 +69360,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                options = this.options;
 
 	            if (options.icon) {
-	                div.innerHTML += this._createInner();
+	                div.innerHTML = this._createInner();
 	            }
 
 	            if (options.bgPos) {
@@ -69369,16 +69368,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    (-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
 	            }
 
-	            if(options.displayMarker) { 
-	                this._setIconStyles(div, 'icon-' + options.markerColor)                 
-	            }
-	            
+	            this._setIconStyles(div, 'icon-' + options.markerColor);
 	            return div;
 	        },
 
 	        _createInner: function() {
 	            var iconClass, iconSpinClass = "", iconColorClass = "", iconColorStyle = "", options = this.options;
-	            //var prefix = options.prefix == "fab" ? "fa":options.prefix 
 
 	            if(options.icon.slice(0,options.prefix.length+1) === options.prefix + "-") {
 	                iconClass = options.icon;
@@ -69386,18 +69381,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                iconClass = options.prefix + "-" + options.icon;
 	            }
 
-	            iconClass = options.prefix == "fab" ? "fa-" + options.icon:iconClass
-
 	            if(options.spin && typeof options.spinClass === "string") {
 	                iconSpinClass = options.spinClass;
 	            }
 
 	            if(options.iconColor) {
-	                //if(options.iconColor === 'white' || options.iconColor === 'black') {
-	                //    iconColorClass = "icon-" + options.iconColor;
-	                //} else {
-	                //    iconColorStyle = "style='color: " + options.iconColor + "' ";
-	                //}
 	                iconColorStyle = "style='color: " + options.iconColor + "' ";
 	            }
 
@@ -69405,13 +69393,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 
 	        _setIconStyles: function (img, name) {
-	            console.log("setting icon styles")
 	            var options = this.options,
 	                size = L.point(options[name === 'shadow' ? 'shadowSize' : 'iconSize']),
 	                anchor;
 
 	            if (name === 'shadow') {
-	                console.log("GOT SHADOW!")
 	                anchor = L.point(options.shadowAnchor || options.iconAnchor);
 	            } else {
 	                anchor = L.point(options.iconAnchor);
@@ -69434,24 +69420,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 	        },
 
-	        // _createShadow: function () {
-	        //     //alert("caller is " + _createShadow.caller)
-	        //     console.log("creating shadow")
-	        //     var div = document.createElement('div');
-
-	        //     this._setIconStyles(div, 'shadow');
-
-	        //     console.log(div)
-	        //     return div;
-	        // }
-
 	        createShadow: function () {
 	            var div = document.createElement('div');
 
-	            if(this.options.displayMarker) { this._setIconStyles(div, 'shadow') }
-
+	            this._setIconStyles(div, 'shadow');
 	            return div;
-	        }
+	      }
 	    });
 	        
 	    L.AwesomeMarkers.icon = function (options) {
@@ -69459,6 +69433,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    };
 
 	}(this, document));
+
+
+
 
 
 /***/ }),

@@ -2127,17 +2127,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 
 	                if(markerType == "icon") {
-	                    var markerIcon = L.AwesomeMarkers.icon({
+	                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
+	                    className = "icon-only"
+	                    var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
+	                    var markerIcon = L.divIcon({
+	                        html: divIconHtml,
+	                        className: className,
 	                        icon: icon,
 	                        markerColor: iconColor,
 	                        iconColor: iconColor,
 	                        prefix: prefix,
-	                        className: className,
 	                        extraClasses: extraClasses,
 	                        popupAnchor: popupAnchor,
 	                        description: description,
-	                        iconAnchor: markerAnchor,
-	                        displayMarker: false
+	                        iconAnchor: markerAnchor
 	                    })
 	                }
 

@@ -113,6 +113,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        parentView: null,
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
+	        validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
 	        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
 	        defaultConfig:  {
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
@@ -1465,35 +1466,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 	            } 
 	            
-	            // if (this.allDataProcessed && !this.isSplunkSeven) {
-	            //     // Remove marker cluster layers
-	            //     try {
-	            //         this.markers.clearLayers()
-	            //         //this.markers = null
-	            //     } catch(e) {
-	            //         //console.error(e)
-	            //     }
-	                
-	            //     // Remove layer Filter layers
-	            //     _.each(this.layerFilter, function(lg, i) {
-	            //         lg.group.removeLayer()
-	            //     }, this)
-	            //     this.layerFilter = {}
-
-	            //     // Remove path line layer
-	            //     try {
-	            //         this.pathLineLayer.clearLayers()
-	            //     } catch(e) {
-	            //         //console.error(e)
-	            //     }
-	            //     this.curPage = 0
-	            //     this.offset = 0
-	            //     this.control._layers = []
-	            //     this.allDataProcessed = false
-	            //     this.updateDataParams({offset: 0, count: this.chunk})
-	            //     return this
-	            // }
-
 	            // Check for data and retrun if we don't have any
 	            if(!_.has(data, "results")) {
 	                return this
@@ -1521,7 +1493,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            // Validate we have at least latitude and longitude fields
-	            //if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0]) || !("feature" in dataRows[0])) {
 	            if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
 	                if( !("feature" in dataRows[0])){
 	                    throw new SplunkVisualizationBase.VisualizationError(
@@ -1716,43 +1687,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                var measureFeatures = this.measureFeatures = L.layerGroup()
 					
-					// Get map size          
+					// Get map size
 					var mapSize = this.mapSize = this.map.getSize()
 
 	                // Get parent element of div to resize 
 	                // Nesting of Div's is different, try 7.x first
-	               //var parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
 	                this.parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
-	                // var parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
 	                this.parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
 
 	                // Default to 6.x view
-	                // if(parentView != 'views/shared/ReportVisualizer') {
 	                if(this.parentView != 'views/shared/ReportVisualizer') {
-	                    // var parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
-	                    // var parentView = $(this.el).parent().parent().closest("div").attr("data-view")
 	                    this.parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
 	                    this.parentView = $(this.el).parent().parent().closest("div").attr("data-view")
 	                }
 	 
-	                
 	                // Map Full Screen Mode
 	                if (this.isArgTrue(fullScreen)) {
 	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
-	                    // var vh = $(window).height() - 120
-	                    // $("div[data-cid=" + parentEl + "]").css("height", vh)
-
-	                    // $(window).resize(function() {
-	                    //     var vh = $(window).height() - 120
-	                    //     $("div[data-cid=" + parentEl + "]").css("height", vh)
-	                    // })
-	                    // this.map.invalidateSize()
 	                } else {
-	                    //$("div[data-cid=" + parentEl + "]").css("height", defaultHeight)
 	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
 	                                                      defaultHeight: defaultHeight})
-	                    // $("div[data-cid=" + this.parentEl + "]").css("height", defaultHeight)
-	                    // this.map.invalidateSize()
 	                }
 
 	                // Enable measure tool plugin and add to map
@@ -1800,11 +1754,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                var featureLayers = this.featureLayers = {}
 	               
 	                // Init defaults
-	                // if(this.isSplunkSeven) {
 	                this.chunk = 50000
-	                // } else {
-	                //     this.chunk = 10000
-	                // }
 	                this.offset = 0
 					this.isInitializedDom = true         
 	                this.allDataProcessed = false
@@ -1850,20 +1800,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 
 	            // Iterate through each row creating layer groups per icon type
 	            // and create markers appending to a markerList in each layerfilter object
-
-	            // Init current position in dataRows
-	            var curPos = this.curPos = 0
-
 	            _.each(dataRows, function(userData, i) {
-	                // Only return if we have > this.chunkSize and not on the first page of results
-	                // Part of pagination logic to determine when we've fetched all results.
-	                // if(!this.isSplunkSeven) {
-	                //     if(this.curPage >= 1 && this.curPos == 0) {
-	                //         this.curPos += 1
-	                //         return
-	                //     }
-	                // }
-
 	                if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
 	                    // Skip the marker to improve performance of rendering
 	                    return
@@ -2093,11 +2030,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    })
 	                }
 
-	                const validMarkerTypes = ["custom", "png", "icon", "svg", "circle"]
-	                if(!validMarkerTypes.includes(markerType)) {
+	                if(!this.validMarkerTypes.includes(markerType)) {
 	                    // throw viz error
 	                    throw new SplunkVisualizationBase.VisualizationError(
-	                        'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg'
+	                        'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle'
 	                    )
 	                }
 
@@ -2321,72 +2257,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            setTimeout(function(that) {
 	                that.updateDataParams({count: that.chunk, offset: that.offset})
 	            }, 100, this)
-	            // } else {
-	            //     // It's Splunk 6.x
-	            //     if(dataRows.length == this.chunk) {
-	            //         // This results in a dupe. The last element in the current result set
-	            //         // and the first element in the next result set. This dupe is handled in the 
-	            //         // loop processing the results.
-	            //         this.offset += this.chunk-1
-	            //         this.curPage += 1
-	            //         setTimeout(function(that) {
-	            //             that.updateDataParams({count: that.chunk, offset: that.offset})
-	            //         }, 100, this)
-	            //     } else {
-	            //         this.allDataProcessed = true
-
-	            //         if(this.isArgTrue(showProgress)) {
-	            //             if(!_.isUndefined(this.map)) {
-	            //                 this.map.spin(false)
-	            //             }
-	            //         }
-	            //                         // Render hetmap layer on map
-	            //         if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
-	            //             this._renderLayersToMap(this.map, {layers: this.heatLayers,
-	            //                                                control: this.control,
-	            //                                                layerControl: this.isArgTrue(layerControl),
-	            //                                                layerType: "heat",
-	            //                                                paneZIndex: this.paneZIndex,
-	            //                                                context: this})
-	            //         }
-
-	            //         // Render paths to map
-	            //         if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
-	            //             this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-	            //                                                control: this.control,
-	            //                                                layerControl: this.isArgTrue(layerControl),
-	            //                                                layerType: "path",
-	            //                                                paneZIndex: this.paneZIndex,
-	            //                                                context: this})
-	            //         }
-
-	            //         this._renderLayersToMap(this.map, {layers: this.featureLayers,
-	            //             control: this.control,
-	            //             layerControl: this.isArgTrue(layerControl),
-	            //             layerType: "feature",
-	            //             paneZIndex: this.paneZIndex,
-	            //             context: this})
-
-
-	            //         if(this.isArgTrue(autoFitAndZoom)) {
-	            //             setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
-	            //                                                                   layerFilter: this.layerFilter, 
-	            //                                                                   pathLineLayers: this.pathLineLayers,
-	            //                                                                   heatLayers: this.heatLayers,
-	            //                                                                   featureLayers: this.featureLayers,
-	            //                                                                   context: this})
-	            //         }
-
-	            //         // Dashboard refresh
-	            //         if(refreshInterval > 0) {
-	            //             setTimeout(function() {
-	            //                 location.reload()
-	            //             }, refreshInterval)
-	            //         }
-
-
-	            //     }
-	            // }
 
 	            return this
 	        }

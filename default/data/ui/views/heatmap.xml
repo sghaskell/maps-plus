@@ -183,7 +183,7 @@
   </row>
   <row>
     <panel>
-      <title>Markers, Multi-Heatmap Layers (heatmapLayer), heatmapMinOpacity, heatmapBlur, heatmapColorGradient, heatmapPointIntensity, heatmapRadius</title>
+      <title>Markers, Multi-Heatmap Layers (heatmapLayer), heatmapMinOpacity, heatmapBlur, heatmapColorGradient, heatmapPointIntensity, heatmapRadius, layerPriority</title>
       <input type="multiselect" token="desc_viz_3">
         <label>Infraction</label>
         <choice value="*">All</choice>

@@ -13,7 +13,12 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
 
     initialize: function (latlngs, options) {
         this._latlngs = latlngs;
+        this._map = options.map;
         L.setOptions(this, options);
+        this._pane = this.options.pane ? this.options.pane:"overlayPane";
+        if (!this._canvas) {
+            this._initCanvas();
+        }
     },
 
     // @method getLatLng: LatLng
@@ -42,19 +47,8 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
 
     setStyle: function (options) {
         L.setOptions(this, options);
-        const map = this._map,
-              prevPane = this._pane,
-              pane = this.options.pane ? this.options.pane:this._pane
-
-        this._pane = pane
-
-        if(prevPane != pane) {
-            // Remove canvas from previous pane
-            map.getPanes()[prevPane].removeChild(this._canvas)
-
-            // Add canvas to new pane
-            map.getPanes()[pane].appendChild(this._canvas)
-        }
+        
+        this._pane = this.options.pane ? this.options.pane:this._pane
     },
 
     redraw: function () {
@@ -71,7 +65,7 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
             this._initCanvas();
         }
 
-        this._pane = this.options.pane ? this.options.pane:"overlayPane"
+        //this._pane = this.options.pane ? this.options.pane:"overlayPane"
         
         // Pane does not exist default to overlay pane
         if(!map._panes[this._pane]) { 

@@ -209,7 +209,8 @@ heatmapMinOpacity=case(like(description, "%TO VEHICLE%"), "0.8", like(descriptio
 heatmapBlur=case(like(description, "%TO VEHICLE%"), "15", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "15"),
 heatmapColorGradient=case(like(description, "%TO VEHICLE%"), "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}", like(description, "%AGGRAVATED: HANDGUN%"), "{\"0.4\": \"#f23e45\", \"0.50\": \"lime\", \"0.70\": \"yellow\", \"0.95\": \"#FF8300\", \"1.0\":  \"red\"}", 1=1, "{\"0.1\": \"#f442d9\", \"0.03\": \"#42f4f4\", \"0.50\": \"#4242f4\", \"0.7\": \"#bcf442\", \"1.0\":  \"red\"}"),
 heatmapPointIntensity=case(like(description, "%TO VEHICLE%"), "50", like(description, "%AGGRAVATED: HANDGUN%"), "5", 1=1, "0.5"),
-heatmapRadius=case(like(description, "%TO VEHICLE%"), "20", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "10")</query>
+heatmapRadius=case(like(description, "%TO VEHICLE%"), "20", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "10"),
+layerPriority=case(like(description, "%TO VEHICLE%"), "20", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "30")</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

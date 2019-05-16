@@ -1,6 +1,7 @@
 'use strict';
 
 L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
+//L.HeatLayer = L.Path.extend({
 
     // options: {
     //     minOpacity: 0.05,
@@ -39,6 +40,24 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
         return this.redraw();
     },
 
+    setStyle: function (options) {
+        L.setOptions(this, options);
+        const map = this._map,
+              prevPane = this._pane,
+              pane = this.options.pane ? this.options.pane:this._pane
+
+        this._pane = pane
+
+        if(prevPane != pane) {
+            console.log("updating panes")
+            // Remove canvas from previous pane
+            map.getPanes()[prevPane].removeChild(this._canvas)
+
+            // Add canvas to new pane
+            map.getPanes()[pane].appendChild(this._canvas)
+        }
+    },
+
     redraw: function () {
         if (this._heat && !this._frame && !this._map._animating) {
             this._frame = L.Util.requestAnimFrame(this._redraw, this);
@@ -53,7 +72,11 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
             this._initCanvas();
         }
 
-        map._panes.overlayPane.appendChild(this._canvas);
+        this._pane = this.options.pane ? this.options.pane:"overlayPane"
+        // Pane does not exist default to overlay pane
+        if(!map._panes[this._pane]) { this._pane = "overlayPane" }
+
+        map._panes[this._pane].appendChild(this._canvas);
 
         map.on('moveend', this._reset, this);
 
@@ -65,7 +88,8 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
     },
 
     onRemove: function (map) {
-        map.getPanes().overlayPane.removeChild(this._canvas);
+        //map.getPanes().overlayPane.removeChild(this._canvas);
+        map.getPanes()[this._pane].removeChild(this._canvas);
 
         map.off('moveend', this._reset, this);
 

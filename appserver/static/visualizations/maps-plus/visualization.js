@@ -1310,7 +1310,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            })
 	            .each(function(lg) {
 	                // Create pane and set zIndex
-	                if(_.has(lg.options, "layerPriority")){
+	                if(!_.isUndefined(lg.options.layerPriority)){
 	                    let styleOptions = {pane: options.paneZIndex.toString()}
 
 	                    map.createPane(options.paneZIndex.toString())
@@ -1322,7 +1322,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                lg.addTo(map)
 
 	                // Increment zIndex
-	                if(_.has(lg.options, "layerPriority")){ options.paneZIndex += 1 }
+	                if(!_.isUndefined(lg.options.layerPriority)){ options.paneZIndex += 1 }
 
 	                // Add layer to control
 	                if(options.layerControl) {
@@ -1844,7 +1844,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
 	                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
 	                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
-	                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):0,
+	                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):undefined,
 	                    title = _.has(userData, "title") ? userData["title"]:null,
 	                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
 	                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
@@ -2203,7 +2203,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
-	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:null
+	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier]

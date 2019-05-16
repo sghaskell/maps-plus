@@ -794,6 +794,7 @@ define([
                 var id = p[0]['id']
                 var layerDescription = p[0]['layerDescription']
                 var layerPriority = p[0]['layerPriority']
+                var layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path"
 
                 // Check if feature group exists for current layerDescripton or id
                 // Use existing FG or create new accordingly.
@@ -810,6 +811,7 @@ define([
                     }
                     options.pathLineLayers[pathFg.options.name] = pathFg
                     pathFg.options.layerPriority = layerPriority
+                    pathFg.options.layerType = layerType
                 }
 
                 // Ant Path
@@ -822,7 +824,7 @@ define([
                                                                             "pulseColor": p[0]['antPathPulseColor'],
                                                                             "paused": p[0]['antPathPaused'],
                                                                             "reverse": p[0]['antPathReverse']
-                                                }).bindPopup(p[0]['description'])       
+                                                }).bindPopup(p[0]['description'])
                 } else {
                     // create polyline and bind popup
                     var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
@@ -1216,7 +1218,7 @@ define([
             .each(function(lg) {
                 if(_.has(lg.circle, "layerPriority")){
                     map.createPane(options.paneZIndex.toString())
-                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
                 }
 
                 // Loop through markers and add to map
@@ -1230,13 +1232,13 @@ define([
 
                 if(_.has(lg.circle, "layerPriority")){
                     lg.group.setStyle({pane: options.paneZIndex.toString()})
-                    //lg.group.setZIndex(options.paneZIndex)
+                    options.paneZIndex += 1
                 }
 
                 // Add layergroup to map
                 lg.group.addTo(map)
                 
-                options.paneZIndex += 1
+                //options.paneZIndex += 1
 
                 // Add layer controls
                 if(options.layerControl) {
@@ -1248,15 +1250,32 @@ define([
         _renderLayersToMap: function(map, options) {
             _.chain(options.layers)
             .sortBy(function(d) {
-                return +d.options.layerPriority
+                if(_.has(d.options, "layerPriority")){
+                    return +d.options.layerPriority
+                } else {
+                    return d
+                }
             })
-            .each(function(fg) {                
-                // Add layergroup to map
-                fg.addTo(map)
-        
+            .each(function(lg) {
+                // Create pane and set zIndex
+                if(_.has(lg.options, "layerPriority")){
+                    let styleOptions = {pane: options.paneZIndex.toString()}
+
+                    map.createPane(options.paneZIndex.toString())
+                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+                    lg.setStyle(styleOptions)
+                }
+
+                // Add layer controls
+                lg.addTo(map)
+
+                // Increment zIndex
+                if(_.has(lg.options, "layerPriority")){ options.paneZIndex += 1 }
+
+                // Add layer to control
                 if(options.layerControl) {
                     var layerOptions = {layerType: options.layerType,
-                                        featureGroup: fg,
+                                        featureGroup: lg,
                                         control: options.control}
                     options.context.addLayerToControl(layerOptions)   
                 }
@@ -1363,6 +1382,13 @@ define([
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
+                // this._updateMap(this.map, {
+                //   showProgress: showProgress,
+                //   heatmapEnable: heatmapEnable,
+                //   heatLayers: this.heatLayers,
+                //   control: this.control,
+                //   layerControl: layerControl,
+                // })
 
                 if(this.isArgTrue(showProgress)) {
                     if(!_.isUndefined(this.map)) {
@@ -1390,12 +1416,14 @@ define([
                                                        context: this})
                 }
                 
-                this._renderLayersToMap(this.map, {layers: this.featureLayers,
-                    control: this.control,
-                    layerControl: this.isArgTrue(layerControl),
-                    layerType: "feature",
-                    paneZIndex: this.paneZIndex,
-                    context: this})
+                if(!_.isEmpty(this.featureLayers)) {
+                    this._renderLayersToMap(this.map, {layers: this.featureLayers,
+                        control: this.control,
+                        layerControl: this.isArgTrue(layerControl),
+                        layerType: "feature",
+                        paneZIndex: this.paneZIndex,
+                        context: this})    
+                }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
                     setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
@@ -1629,7 +1657,7 @@ define([
                 })
 
                 // Create layer control
-                var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)})
+                var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
 
                 let measureControl = this.measureControl
 
@@ -1805,11 +1833,14 @@ define([
                         var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
                                                         radius: heatmapRadius,
                                                         gradient: heatmapColorGradient,
-                                                        blur: heatmapBlur})
+                                                        blur: heatmapBlur,
+                                                        map: this.map})
                         // Add to feature group                                
                         heatFg.addLayer(heatFgLayer)
                         heatFg.options.name = this.heatLayer
                         heatFg.options.layerDescription = layerDescription
+                        heatFg.options.layerType = "heat"
+                        heatFg.options.layerPriority = layerPriority
                         this.heatLayers[this.heatLayer] = heatFg
                     }
 
@@ -2149,7 +2180,8 @@ define([
                             'antPathReverse': antPathReverse,
                             'antPathDashArray': antPathDashArray,
                             'layerDescription': layerDescription,
-                            'layerPriority': layerPriority
+                            'layerPriority': layerPriority,
+                            'layerType': "path"
                         }
                     })
                     .each(function(d) {

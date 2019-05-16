@@ -49,7 +49,6 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
         this._pane = pane
 
         if(prevPane != pane) {
-            console.log("updating panes")
             // Remove canvas from previous pane
             map.getPanes()[prevPane].removeChild(this._canvas)
 
@@ -73,8 +72,12 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
         }
 
         this._pane = this.options.pane ? this.options.pane:"overlayPane"
+        
         // Pane does not exist default to overlay pane
-        if(!map._panes[this._pane]) { this._pane = "overlayPane" }
+        if(!map._panes[this._pane]) { 
+            console.warn("Attempting to add to nonexistant pane " + this.options.pane + " - defaulting to overlayPane")
+            this._pane = "overlayPane"
+        }
 
         map._panes[this._pane].appendChild(this._canvas);
 

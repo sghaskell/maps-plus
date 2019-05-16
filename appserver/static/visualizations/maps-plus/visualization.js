@@ -846,6 +846,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                var id = p[0]['id']
 	                var layerDescription = p[0]['layerDescription']
 	                var layerPriority = p[0]['layerPriority']
+	                var layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path"
 
 	                // Check if feature group exists for current layerDescripton or id
 	                // Use existing FG or create new accordingly.
@@ -862,6 +863,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                    options.pathLineLayers[pathFg.options.name] = pathFg
 	                    pathFg.options.layerPriority = layerPriority
+	                    pathFg.options.layerType = layerType
 	                }
 
 	                // Ant Path
@@ -874,7 +876,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                                            "pulseColor": p[0]['antPathPulseColor'],
 	                                                                            "paused": p[0]['antPathPaused'],
 	                                                                            "reverse": p[0]['antPathReverse']
-	                                                }).bindPopup(p[0]['description'])       
+	                                                }).bindPopup(p[0]['description'])
 	                } else {
 	                    // create polyline and bind popup
 	                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
@@ -1268,7 +1270,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            .each(function(lg) {
 	                if(_.has(lg.circle, "layerPriority")){
 	                    map.createPane(options.paneZIndex.toString())
-	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
 	                }
 
 	                // Loop through markers and add to map
@@ -1282,13 +1284,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                if(_.has(lg.circle, "layerPriority")){
 	                    lg.group.setStyle({pane: options.paneZIndex.toString()})
-	                    //lg.group.setZIndex(options.paneZIndex)
+	                    options.paneZIndex += 1
 	                }
 
 	                // Add layergroup to map
 	                lg.group.addTo(map)
 	                
-	                options.paneZIndex += 1
+	                //options.paneZIndex += 1
 
 	                // Add layer controls
 	                if(options.layerControl) {
@@ -1300,15 +1302,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        _renderLayersToMap: function(map, options) {
 	            _.chain(options.layers)
 	            .sortBy(function(d) {
-	                return +d.options.layerPriority
+	                if(_.has(d.options, "layerPriority")){
+	                    return +d.options.layerPriority
+	                } else {
+	                    return d
+	                }
 	            })
-	            .each(function(fg) {                
-	                // Add layergroup to map
-	                fg.addTo(map)
-	        
+	            .each(function(lg) {
+	                // Create pane and set zIndex
+	                if(_.has(lg.options, "layerPriority")){
+	                    let styleOptions = {pane: options.paneZIndex.toString()}
+
+	                    map.createPane(options.paneZIndex.toString())
+	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+	                    lg.setStyle(styleOptions)
+	                }
+
+	                // Add layer controls
+	                lg.addTo(map)
+
+	                // Increment zIndex
+	                if(_.has(lg.options, "layerPriority")){ options.paneZIndex += 1 }
+
+	                // Add layer to control
 	                if(options.layerControl) {
 	                    var layerOptions = {layerType: options.layerType,
-	                                        featureGroup: fg,
+	                                        featureGroup: lg,
 	                                        control: options.control}
 	                    options.context.addLayerToControl(layerOptions)   
 	                }
@@ -1415,6 +1434,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	            // Auto Fit & Zoom once we've processed all data
 	            if(this.allDataProcessed) {
+	                // this._updateMap(this.map, {
+	                //   showProgress: showProgress,
+	                //   heatmapEnable: heatmapEnable,
+	                //   heatLayers: this.heatLayers,
+	                //   control: this.control,
+	                //   layerControl: layerControl,
+	                // })
 
 	                if(this.isArgTrue(showProgress)) {
 	                    if(!_.isUndefined(this.map)) {
@@ -1442,12 +1468,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       context: this})
 	                }
 	                
-	                this._renderLayersToMap(this.map, {layers: this.featureLayers,
-	                    control: this.control,
-	                    layerControl: this.isArgTrue(layerControl),
-	                    layerType: "feature",
-	                    paneZIndex: this.paneZIndex,
-	                    context: this})
+	                if(!_.isEmpty(this.featureLayers)) {
+	                    this._renderLayersToMap(this.map, {layers: this.featureLayers,
+	                        control: this.control,
+	                        layerControl: this.isArgTrue(layerControl),
+	                        layerType: "feature",
+	                        paneZIndex: this.paneZIndex,
+	                        context: this})    
+	                }
 
 	                if(this.isArgTrue(autoFitAndZoom)) {
 	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
@@ -1681,7 +1709,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                })
 
 	                // Create layer control
-	                var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)})
+	                var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
 
 	                let measureControl = this.measureControl
 
@@ -1857,11 +1885,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
 	                                                        radius: heatmapRadius,
 	                                                        gradient: heatmapColorGradient,
-	                                                        blur: heatmapBlur})
+	                                                        blur: heatmapBlur,
+	                                                        map: this.map})
 	                        // Add to feature group                                
 	                        heatFg.addLayer(heatFgLayer)
 	                        heatFg.options.name = this.heatLayer
 	                        heatFg.options.layerDescription = layerDescription
+	                        heatFg.options.layerType = "heat"
+	                        heatFg.options.layerPriority = layerPriority
 	                        this.heatLayers[this.heatLayer] = heatFg
 	                    }
 
@@ -2201,7 +2232,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'antPathReverse': antPathReverse,
 	                            'antPathDashArray': antPathDashArray,
 	                            'layerDescription': layerDescription,
-	                            'layerPriority': layerPriority
+	                            'layerPriority': layerPriority,
+	                            'layerType': "path"
 	                        }
 	                    })
 	                    .each(function(d) {
@@ -2269,7 +2301,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * jQuery JavaScript Library v3.4.0
+	 * jQuery JavaScript Library v3.4.1
 	 * https://jquery.com/
 	 *
 	 * Includes Sizzle.js
@@ -2279,7 +2311,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * Released under the MIT license
 	 * https://jquery.org/license
 	 *
-	 * Date: 2019-04-10T19:48Z
+	 * Date: 2019-05-01T21:04Z
 	 */
 	( function( global, factory ) {
 
@@ -2412,7 +2444,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 	var
-		version = "3.4.0",
+		version = "3.4.1",
 
 		// Define a local copy of jQuery
 		jQuery = function( selector, context ) {
@@ -6768,8 +6800,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			},
 			composed = { composed: true };
 
+		// Support: IE 9 - 11+, Edge 12 - 18+, iOS 10.0 - 10.2 only
 		// Check attachment across shadow DOM boundaries when possible (gh-3504)
-		if ( documentElement.attachShadow ) {
+		// Support: iOS 10.0-10.2 only
+		// Early iOS 10 versions support `attachShadow` but not `getRootNode`,
+		// leading to errors. We need to check for `getRootNode`.
+		if ( documentElement.getRootNode ) {
 			isAttached = function( elem ) {
 				return jQuery.contains( elem.ownerDocument, elem ) ||
 					elem.getRootNode( composed ) === elem.ownerDocument;
@@ -7629,8 +7665,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 					// Claim the first handler
 					if ( rcheckableType.test( el.type ) &&
-						el.click && nodeName( el, "input" ) &&
-						dataPriv.get( el, "click" ) === undefined ) {
+						el.click && nodeName( el, "input" ) ) {
 
 						// dataPriv.set( el, "click", ... )
 						leverageNative( el, "click", returnTrue );
@@ -7647,8 +7682,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 					// Force setup before triggering a click
 					if ( rcheckableType.test( el.type ) &&
-						el.click && nodeName( el, "input" ) &&
-						dataPriv.get( el, "click" ) === undefined ) {
+						el.click && nodeName( el, "input" ) ) {
 
 						leverageNative( el, "click" );
 					}
@@ -7689,7 +7723,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 		// Missing expectSync indicates a trigger call, which must force setup through jQuery.event.add
 		if ( !expectSync ) {
-			jQuery.event.add( el, type, returnTrue );
+			if ( dataPriv.get( el, type ) === undefined ) {
+				jQuery.event.add( el, type, returnTrue );
+			}
 			return;
 		}
 
@@ -7704,9 +7740,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				if ( ( event.isTrigger & 1 ) && this[ type ] ) {
 
 					// Interrupt processing of the outer synthetic .trigger()ed event
-					if ( !saved ) {
+					// Saved data should be false in such cases, but might be a leftover capture object
+					// from an async native handler (gh-4350)
+					if ( !saved.length ) {
 
 						// Store arguments for use when handling the inner native event
+						// There will always be at least one argument (an event object), so this array
+						// will not be confused with a leftover capture object.
 						saved = slice.call( arguments );
 						dataPriv.set( this, type, saved );
 
@@ -7719,14 +7759,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 						if ( saved !== result || notAsync ) {
 							dataPriv.set( this, type, false );
 						} else {
-							result = undefined;
+							result = {};
 						}
 						if ( saved !== result ) {
 
 							// Cancel the outer synthetic event
 							event.stopImmediatePropagation();
 							event.preventDefault();
-							return result;
+							return result.value;
 						}
 
 					// If this is an inner synthetic event for an event with a bubbling surrogate
@@ -7741,17 +7781,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 				// If this is a native event triggered above, everything is now in order
 				// Fire an inner synthetic event with the original arguments
-				} else if ( saved ) {
+				} else if ( saved.length ) {
 
 					// ...and capture the result
-					dataPriv.set( this, type, jQuery.event.trigger(
+					dataPriv.set( this, type, {
+						value: jQuery.event.trigger(
 
-						// Support: IE <=9 - 11+
-						// Extend with the prototype to reset the above stopImmediatePropagation()
-						jQuery.extend( saved.shift(), jQuery.Event.prototype ),
-						saved,
-						this
-					) );
+							// Support: IE <=9 - 11+
+							// Extend with the prototype to reset the above stopImmediatePropagation()
+							jQuery.extend( saved[ 0 ], jQuery.Event.prototype ),
+							saved.slice( 1 ),
+							this
+						)
+					} );
 
 					// Abort handling of the native event
 					event.stopImmediatePropagation();
@@ -14578,7 +14620,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* @preserve
-	 * Leaflet 1.4.0, a JS library for interactive maps. http://leafletjs.com
+	 * Leaflet 1.5.1+build.2e3e0ff, a JS library for interactive maps. http://leafletjs.com
 	 * (c) 2010-2018 Vladimir Agafonkin, (c) 2010-2011 CloudMade
 	 */
 
@@ -14588,7 +14630,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		(factory((global.L = {})));
 	}(this, (function (exports) { 'use strict';
 
-	var version = "1.4.0";
+	var version = "1.5.1+build.2e3e0ffb";
 
 	/*
 	 * @namespace Util
@@ -14706,8 +14748,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// @function formatNum(num: Number, digits?: Number): Number
 	// Returns the number `num` rounded to `digits` decimals, or to 6 decimals by default.
 	function formatNum(num, digits) {
-		var pow = Math.pow(10, (digits === undefined ? 6 : digits));
-		return Math.round(num * pow) / pow;
+		digits = (digits === undefined ? 6 : digits);
+		return +(Math.round(num + ('e+' + digits)) + ('e-' + digits));
 	}
 
 	// @function trim(str: String): String
@@ -15047,7 +15089,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		 *
 		 * @alternative
 		 * @method off: this
-		 * Removes all listeners to all events on the object.
+		 * Removes all listeners to all events on the object. This includes implicitly attached events.
 		 */
 		off: function (types, fn, context) {
 
@@ -16227,9 +16269,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * a sphere. Used by the `EPSG:3857` CRS.
 	 */
 
+	var earthRadius = 6378137;
+
 	var SphericalMercator = {
 
-		R: 6378137,
+		R: earthRadius,
 		MAX_LATITUDE: 85.0511287798,
 
 		project: function (latlng) {
@@ -16252,7 +16296,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		bounds: (function () {
-			var d = 6378137 * Math.PI;
+			var d = earthRadius * Math.PI;
 			return new Bounds([-d, -d], [d, d]);
 		})()
 	};
@@ -16750,6 +16794,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 					touch$$1 = newTouch;
 				}
 				touch$$1.type = 'dblclick';
+				touch$$1.button = 0;
 				handler(touch$$1);
 				last = null;
 			}
@@ -18887,9 +18932,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			// this event. Also fired on mobile when the user holds a single touch
 			// for a second (also called long press).
 			// @event keypress: KeyboardEvent
-			// Fired when the user presses a key from the keyboard while the map is focused.
+			// Fired when the user presses a key from the keyboard that produces a character value while the map is focused.
+			// @event keydown: KeyboardEvent
+			// Fired when the user presses a key from the keyboard while the map is focused. Unlike the `keypress` event,
+			// the `keydown` event is fired for keys that produce a character value and for keys
+			// that do not produce a character value.
+			// @event keyup: KeyboardEvent
+			// Fired when the user releases a key from the keyboard while the map is focused.
 			onOff(this._container, 'click dblclick mousedown mouseup ' +
-				'mouseover mouseout mousemove contextmenu keypress', this._handleDOMEvent, this);
+				'mouseover mouseout mousemove contextmenu keypress keydown keyup', this._handleDOMEvent, this);
 
 			if (this.options.trackResize) {
 				onOff(window, 'resize', this._onResize, this);
@@ -18953,7 +19004,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			var type = e.type;
 
-			if (type === 'mousedown' || type === 'keypress') {
+			if (type === 'mousedown' || type === 'keypress' || type === 'keyup' || type === 'keydown') {
 				// prevents outline when clicking on keyboard-focusable element
 				preventOutline(e.target || e.srcElement);
 			}
@@ -18992,7 +19043,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				originalEvent: e
 			};
 
-			if (e.type !== 'keypress') {
+			if (e.type !== 'keypress' && e.type !== 'keydown' && e.type !== 'keyup') {
 				var isMarker = target.getLatLng && (!target._radius || target._radius <= 10);
 				data.containerPoint = isMarker ?
 					this.latLngToContainerPoint(target.getLatLng()) : this.mouseEventToContainerPoint(e);
@@ -19245,7 +19296,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 
 			// @event zoomanim: ZoomAnimEvent
-			// Fired at least once per zoom animation. For continous zoom, like pinch zooming, fired once per frame during zoom.
+			// Fired at least once per zoom animation. For continuous zoom, like pinch zooming, fired once per frame during zoom.
 			this.fire('zoomanim', {
 				center: center,
 				zoom: zoom,
@@ -19363,6 +19414,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				corner.appendChild(container);
 			}
 
+			this._map.on('unload', this.remove, this);
+
 			return this;
 		},
 
@@ -19379,6 +19432,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				this.onRemove(this._map);
 			}
 
+			this._map.off('unload', this.remove, this);
 			this._map = null;
 
 			return this;
@@ -19776,7 +19830,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				input.className = 'leaflet-control-layers-selector';
 				input.defaultChecked = checked;
 			} else {
-				input = this._createRadioElement('leaflet-base-layers', checked);
+				input = this._createRadioElement('leaflet-base-layers_' + stamp(this), checked);
 			}
 
 			this._layerControlInputs.push(input);
@@ -20161,7 +20215,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			// @option prefix: String = 'Leaflet'
 			// The HTML text shown before the attributions. Pass `false` to disable.
-			prefix: '<a href="http://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>'
+			prefix: '<a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>'
 		},
 
 		initialize: function (options) {
@@ -20906,7 +20960,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * @namespace Projection
 	 * @projection L.Projection.Mercator
 	 *
-	 * Elliptical Mercator projection — more complex than Spherical Mercator. Takes into account that Earth is a geoid, not a perfect sphere. Used by the EPSG:3395 CRS.
+	 * Elliptical Mercator projection — more complex than Spherical Mercator. Assumes that Earth is an ellipsoid. Used by the EPSG:3395 CRS.
 	 */
 
 	var Mercator = {
@@ -21066,7 +21120,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	 * @example
 	 *
 	 * ```js
-	 * var layer = L.Marker(latlng).addTo(map);
+	 * var layer = L.marker(latlng).addTo(map);
 	 * layer.addTo(map);
 	 * layer.remove();
 	 * ```
@@ -21997,6 +22051,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			// `Map pane` where the markers icon will be added.
 			pane: 'markerPane',
 
+			// @option pane: String = 'shadowPane'
+			// `Map pane` where the markers shadow will be added.
+			shadowPane: 'shadowPane',
+
 			// @option bubblingMouseEvents: Boolean = false
 			// When `true`, a mouse event on this marker will trigger the same event on the map
 			// (unless [`L.DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
@@ -22087,6 +22145,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		setZIndexOffset: function (offset) {
 			this.options.zIndexOffset = offset;
 			return this.update();
+		},
+
+		// @method getIcon: Icon
+		// Returns the current icon used by the marker
+		getIcon: function () {
+			return this.options.icon;
 		},
 
 		// @method setIcon(icon: Icon): this
@@ -22184,7 +22248,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			}
 			this._initInteraction();
 			if (newShadow && addShadow) {
-				this.getPane('shadowPane').appendChild(this._shadow);
+				this.getPane(options.shadowPane).appendChild(this._shadow);
 			}
 		},
 
@@ -22268,7 +22332,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		_updateOpacity: function () {
 			var opacity = this.options.opacity;
 
-			setOpacity(this._icon, opacity);
+			if (this._icon) {
+				setOpacity(this._icon, opacity);
+			}
 
 			if (this._shadow) {
 				setOpacity(this._shadow, opacity);
@@ -22405,6 +22471,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			setOptions(this, style);
 			if (this._renderer) {
 				this._renderer._updateStyle(this);
+				if (this.options.stroke && style.hasOwnProperty('weight')) {
+					this._updateBounds();
+				}
 			}
 			return this;
 		},
@@ -22846,14 +22915,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			this._rings = [];
 			this._projectLatlngs(this._latlngs, this._rings, pxBounds);
 
+			if (this._bounds.isValid() && pxBounds.isValid()) {
+				this._rawPxBounds = pxBounds;
+				this._updateBounds();
+			}
+		},
+
+		_updateBounds: function () {
 			var w = this._clickTolerance(),
 			    p = new Point(w, w);
-
-			if (this._bounds.isValid() && pxBounds.isValid()) {
-				pxBounds.min._subtract(p);
-				pxBounds.max._add(p);
-				this._pxBounds = pxBounds;
-			}
+			this._pxBounds = new Bounds([
+				this._rawPxBounds.min.subtract(p),
+				this._rawPxBounds.max.add(p)
+			]);
 		},
 
 		// recursively turns latlngs into a set of rings with projected coordinates
@@ -23283,10 +23357,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		},
 
 		_setLayerStyle: function (layer, style) {
-			if (typeof style === 'function') {
-				style = style(layer.feature);
-			}
 			if (layer.setStyle) {
+				if (typeof style === 'function') {
+					style = style(layer.feature);
+				}
 				layer.setStyle(style);
 			}
 		}
@@ -23436,19 +23510,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	};
 
 	// @namespace Marker
-	// @method toGeoJSON(): Object
+	// @method toGeoJSON(precision?: Number): Object
+	// `precision` is the number of decimal places for coordinates.
+	// The default value is 6 places.
 	// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the marker (as a GeoJSON `Point` Feature).
 	Marker.include(PointToGeoJSON);
 
 	// @namespace CircleMarker
-	// @method toGeoJSON(): Object
+	// @method toGeoJSON(precision?: Number): Object
+	// `precision` is the number of decimal places for coordinates.
+	// The default value is 6 places.
 	// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the circle marker (as a GeoJSON `Point` Feature).
 	Circle.include(PointToGeoJSON);
 	CircleMarker.include(PointToGeoJSON);
 
 
 	// @namespace Polyline
-	// @method toGeoJSON(): Object
+	// @method toGeoJSON(precision?: Number): Object
+	// `precision` is the number of decimal places for coordinates.
+	// The default value is 6 places.
 	// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the polyline (as a GeoJSON `LineString` or `MultiLineString` Feature).
 	Polyline.include({
 		toGeoJSON: function (precision) {
@@ -23464,7 +23544,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	});
 
 	// @namespace Polygon
-	// @method toGeoJSON(): Object
+	// @method toGeoJSON(precision?: Number): Object
+	// `precision` is the number of decimal places for coordinates.
+	// The default value is 6 places.
 	// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the polygon (as a GeoJSON `Polygon` or `MultiPolygon` Feature).
 	Polygon.include({
 		toGeoJSON: function (precision) {
@@ -23500,7 +23582,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			});
 		},
 
-		// @method toGeoJSON(): Object
+		// @method toGeoJSON(precision?: Number): Object
+		// `precision` is the number of decimal places for coordinates.
+		// The default value is 6 places.
 		// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the layer group (as a GeoJSON `FeatureCollection`, `GeometryCollection`, or `MultiPoint`).
 		toGeoJSON: function (precision) {
 
@@ -23845,7 +23929,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			// @option loop: Boolean = true
 			// Whether the video will loop back to the beginning when played.
-			loop: true
+			loop: true,
+
+			// @option keepAspectRatio: Boolean = true
+			// Whether the video will save aspect ratio after the projection.
+			// Relevant for supported browsers. Browser compatibility- https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit
+			keepAspectRatio: true
 		},
 
 		_initImage: function () {
@@ -23875,6 +23964,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 			if (!isArray(this._url)) { this._url = [this._url]; }
 
+			if (!this.options.keepAspectRatio && vid.style.hasOwnProperty('objectFit')) { vid.style['objectFit'] = 'fill'; }
 			vid.autoplay = !!this.options.autoplay;
 			vid.loop = !!this.options.loop;
 			for (var i = 0; i < this._url.length; i++) {
@@ -23896,6 +23986,49 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	function videoOverlay(video, bounds, options) {
 		return new VideoOverlay(video, bounds, options);
+	}
+
+	/*
+	 * @class SVGOverlay
+	 * @aka L.SVGOverlay
+	 * @inherits ImageOverlay
+	 *
+	 * Used to load, display and provide DOM access to an SVG file over specific bounds of the map. Extends `ImageOverlay`.
+	 *
+	 * An SVG overlay uses the [`<svg>`](https://developer.mozilla.org/docs/Web/SVG/Element/svg) element.
+	 *
+	 * @example
+	 *
+	 * ```js
+	 * var element = '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image xlink:href="https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png" height="200" width="200"/></svg>',
+	 * 		 elementBounds = [ [ 32, -130 ], [ 13, -100 ] ];
+	 * L.svgOverlay(element, elementBounds).addTo(map);
+	 * ```
+	 */
+
+	var SVGOverlay = ImageOverlay.extend({
+		_initImage: function () {
+			var el = this._image = this._url;
+
+			addClass(el, 'leaflet-image-layer');
+			if (this._zoomAnimated) { addClass(el, 'leaflet-zoom-animated'); }
+
+			el.onselectstart = falseFn;
+			el.onmousemove = falseFn;
+		}
+
+		// @method getElement(): SVGElement
+		// Returns the instance of [`SVGElement`](https://developer.mozilla.org/docs/Web/API/SVGElement)
+		// used by this overlay.
+	});
+
+
+	// @factory L.svgOverlay(svg: String|SVGElement, bounds: LatLngBounds, options?: SVGOverlay options)
+	// Instantiates an image overlay object given an SVG element and the geographical bounds it is tied to.
+	// A viewBox attribute is required on the SVG element to zoom in and out properly.
+
+	function svgOverlay(el, bounds, options) {
+		return new SVGOverlay(el, bounds, options);
 	}
 
 	/*
@@ -24050,6 +24183,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 				toBack(this._container);
 			}
 			return this;
+		},
+
+		_prepareOpen: function (parent, layer, latlng) {
+			if (!(layer instanceof Layer)) {
+				latlng = layer;
+				layer = parent;
+			}
+
+			if (layer instanceof FeatureGroup) {
+				for (var id in parent._layers) {
+					layer = parent._layers[id];
+					break;
+				}
+			}
+
+			if (!latlng) {
+				if (layer.getCenter) {
+					latlng = layer.getCenter();
+				} else if (layer.getLatLng) {
+					latlng = layer.getLatLng();
+				} else {
+					throw new Error('Unable to get source layer LatLng.');
+				}
+			}
+
+			// set overlay source to this layer
+			this._source = layer;
+
+			// update the overlay (content, layout, ect...)
+			this.update();
+
+			return latlng;
 		},
 
 		_updateContent: function () {
@@ -24506,28 +24671,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		// @method openPopup(latlng?: LatLng): this
 		// Opens the bound popup at the specified `latlng` or at the default popup anchor if no `latlng` is passed.
 		openPopup: function (layer, latlng) {
-			if (!(layer instanceof Layer)) {
-				latlng = layer;
-				layer = this;
-			}
-
-			if (layer instanceof FeatureGroup) {
-				for (var id in this._layers) {
-					layer = this._layers[id];
-					break;
-				}
-			}
-
-			if (!latlng) {
-				latlng = layer.getCenter ? layer.getCenter() : layer.getLatLng();
-			}
-
 			if (this._popup && this._map) {
-				// set popup source to this layer
-				this._popup._source = layer;
-
-				// update the popup (content, layout, ect...)
-				this._popup.update();
+				latlng = this._popup._prepareOpen(this, layer, latlng);
 
 				// open the popup on the map
 				this._map.openPopup(this._popup, latlng);
@@ -24924,29 +25069,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 		// @method openTooltip(latlng?: LatLng): this
 		// Opens the bound tooltip at the specified `latlng` or at the default tooltip anchor if no `latlng` is passed.
 		openTooltip: function (layer, latlng) {
-			if (!(layer instanceof Layer)) {
-				latlng = layer;
-				layer = this;
-			}
-
-			if (layer instanceof FeatureGroup) {
-				for (var id in this._layers) {
-					layer = this._layers[id];
-					break;
-				}
-			}
-
-			if (!latlng) {
-				latlng = layer.getCenter ? layer.getCenter() : layer.getLatLng();
-			}
-
 			if (this._tooltip && this._map) {
-
-				// set tooltip source to this layer
-				this._tooltip._source = layer;
-
-				// update the tooltip (content, layout, ect...)
-				this._tooltip.update();
+				latlng = this._tooltip._prepareOpen(this, layer, latlng);
 
 				// open the tooltip on the map
 				this._map.openTooltip(this._tooltip, latlng);
@@ -25057,8 +25181,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			// iconAnchor: (Point),
 			// popupAnchor: (Point),
 
-			// @option html: String = ''
-			// Custom HTML code to put inside the div element, empty by default.
+			// @option html: String|HTMLElement = ''
+			// Custom HTML code to put inside the div element, empty by default. Alternatively,
+			// an instance of `HTMLElement`.
 			html: false,
 
 			// @option bgPos: Point = [0, 0]
@@ -25072,7 +25197,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 			var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
 			    options = this.options;
 
-			div.innerHTML = options.html !== false ? options.html : '';
+			if (options.html instanceof Element) {
+				empty(div);
+				div.appendChild(options.html);
+			} else {
+				div.innerHTML = options.html !== false ? options.html : '';
+			}
 
 			if (options.bgPos) {
 				var bgPos = toPoint(options.bgPos);
@@ -28462,6 +28592,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	exports.imageOverlay = imageOverlay;
 	exports.VideoOverlay = VideoOverlay;
 	exports.videoOverlay = videoOverlay;
+	exports.SVGOverlay = SVGOverlay;
+	exports.svgOverlay = svgOverlay;
 	exports.DivOverlay = DivOverlay;
 	exports.Popup = Popup;
 	exports.popup = popup;
@@ -68492,7 +68624,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /* 236 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	!function(t,e){ true?module.exports=e(__webpack_require__(5)):"function"==typeof define&&define.amd?define(["leaflet"],e):"object"==typeof exports?exports["leaflet-ant-path"]=e(require("leaflet")):t["leaflet-ant-path"]=e(t.L)}(window,function(t){return function(t){var e={};function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var o in t)n.d(r,o,function(e){return t[e]}.bind(null,o));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=47)}([function(t,e,n){var r=n(4);t.exports=function(t){if(!r(t))throw TypeError(t+" is not an object!");return t}},function(e,n){e.exports=t},function(t,e,n){var r=n(3),o=n(10),i=n(16),a=n(26),u=n(41),c=function(t,e,n){var s,f,l,p,h=t&c.F,y=t&c.G,v=t&c.S,d=t&c.P,m=t&c.B,g=y?r:v?r[e]||(r[e]={}):(r[e]||{}).prototype,b=y?o:o[e]||(o[e]={}),w=b.prototype||(b.prototype={});for(s in y&&(n=e),n)l=((f=!h&&g&&void 0!==g[s])?g:n)[s],p=m&&f?u(l,r):d&&"function"==typeof l?u(Function.call,l):l,g&&a(g,s,l,t&c.U),b[s]!=l&&i(b,s,p),d&&w[s]!=l&&(w[s]=l)};r.core=o,c.F=1,c.G=2,c.S=4,c.P=8,c.B=16,c.W=32,c.U=64,c.R=128,t.exports=c},function(t,e){var n=t.exports="undefined"!=typeof window&&window.Math==Math?window:"undefined"!=typeof self&&self.Math==Math?self:Function("return this")();"number"==typeof __g&&(__g=n)},function(t,e){t.exports=function(t){return"object"==typeof t?null!==t:"function"==typeof t}},function(t,e){var n={}.hasOwnProperty;t.exports=function(t,e){return n.call(t,e)}},function(t,e,n){var r=n(0),o=n(39),i=n(17),a=Object.defineProperty;e.f=n(9)?Object.defineProperty:function(t,e,n){if(r(t),e=i(e,!0),r(n),o)try{return a(t,e,n)}catch(t){}if("get"in n||"set"in n)throw TypeError("Accessors not supported!");return"value"in n&&(t[e]=n.value),t}},function(t,e){t.exports=function(t){try{return!!t()}catch(t){return!0}}},function(t,e,n){t.exports=n(19)},function(t,e,n){t.exports=!n(7)(function(){return 7!=Object.defineProperty({},"a",{get:function(){return 7}}).a})},function(t,e){var n=t.exports={version:"2.6.1"};"number"==typeof __e&&(__e=n)},function(t,e,n){var r=n(27)("wks"),o=n(14),i=n(3).Symbol,a="function"==typeof i;(t.exports=function(t){return r[t]||(r[t]=a&&i[t]||(a?i:o)("Symbol."+t))}).store=r},function(t,e,n){var r=n(34),o=n(13),i=n(15),a=n(17),u=n(5),c=n(39),s=Object.getOwnPropertyDescriptor;e.f=n(9)?s:function(t,e){if(t=i(t),e=a(e,!0),c)try{return s(t,e)}catch(t){}if(u(t,e))return o(!r.f.call(t,e),t[e])}},function(t,e){t.exports=function(t,e){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:e}}},function(t,e){var n=0,r=Math.random();t.exports=function(t){return"Symbol(".concat(void 0===t?"":t,")_",(++n+r).toString(36))}},function(t,e,n){var r=n(53),o=n(45);t.exports=function(t){return r(o(t))}},function(t,e,n){var r=n(6),o=n(13);t.exports=n(9)?function(t,e,n){return r.f(t,e,o(1,n))}:function(t,e,n){return t[e]=n,t}},function(t,e,n){var r=n(4);t.exports=function(t,e){if(!r(t))return t;var n,o;if(e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;if("function"==typeof(n=t.valueOf)&&!r(o=n.call(t)))return o;if(!e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;throw TypeError("Can't convert object to primitive value")}},function(t,e){t.exports=function(t){if("function"!=typeof t)throw TypeError(t+" is not a function!");return t}},function(t,e,n){var r=function(){return this||"object"==typeof self&&self}()||Function("return this")(),o=r.regeneratorRuntime&&Object.getOwnPropertyNames(r).indexOf("regeneratorRuntime")>=0,i=o&&r.regeneratorRuntime;if(r.regeneratorRuntime=void 0,t.exports=n(20),o)r.regeneratorRuntime=i;else try{delete r.regeneratorRuntime}catch(t){r.regeneratorRuntime=void 0}},function(t,e){!function(e){"use strict";var n,r=Object.prototype,o=r.hasOwnProperty,i="function"==typeof Symbol?Symbol:{},a=i.iterator||"@@iterator",u=i.asyncIterator||"@@asyncIterator",c=i.toStringTag||"@@toStringTag",s="object"==typeof t,f=e.regeneratorRuntime;if(f)s&&(t.exports=f);else{(f=e.regeneratorRuntime=s?t.exports:{}).wrap=w;var l="suspendedStart",p="suspendedYield",h="executing",y="completed",v={},d={};d[a]=function(){return this};var m=Object.getPrototypeOf,g=m&&m(m(R([])));g&&g!==r&&o.call(g,a)&&(d=g);var b=S.prototype=_.prototype=Object.create(d);x.prototype=b.constructor=S,S.constructor=x,S[c]=x.displayName="GeneratorFunction",f.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===x||"GeneratorFunction"===(e.displayName||e.name))},f.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,S):(t.__proto__=S,c in t||(t[c]="GeneratorFunction")),t.prototype=Object.create(b),t},f.awrap=function(t){return{__await:t}},j(L.prototype),L.prototype[u]=function(){return this},f.AsyncIterator=L,f.async=function(t,e,n,r){var o=new L(w(t,e,n,r));return f.isGeneratorFunction(e)?o:o.next().then(function(t){return t.done?t.value:o.next()})},j(b),b[c]="Generator",b[a]=function(){return this},b.toString=function(){return"[object Generator]"},f.keys=function(t){var e=[];for(var n in t)e.push(n);return e.reverse(),function n(){for(;e.length;){var r=e.pop();if(r in t)return n.value=r,n.done=!1,n}return n.done=!0,n}},f.values=R,A.prototype={constructor:A,reset:function(t){if(this.prev=0,this.next=0,this.sent=this._sent=n,this.done=!1,this.delegate=null,this.method="next",this.arg=n,this.tryEntries.forEach(E),!t)for(var e in this)"t"===e.charAt(0)&&o.call(this,e)&&!isNaN(+e.slice(1))&&(this[e]=n)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(t){if(this.done)throw t;var e=this;function r(r,o){return u.type="throw",u.arg=t,e.next=r,o&&(e.method="next",e.arg=n),!!o}for(var i=this.tryEntries.length-1;i>=0;--i){var a=this.tryEntries[i],u=a.completion;if("root"===a.tryLoc)return r("end");if(a.tryLoc<=this.prev){var c=o.call(a,"catchLoc"),s=o.call(a,"finallyLoc");if(c&&s){if(this.prev<a.catchLoc)return r(a.catchLoc,!0);if(this.prev<a.finallyLoc)return r(a.finallyLoc)}else if(c){if(this.prev<a.catchLoc)return r(a.catchLoc,!0)}else{if(!s)throw new Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return r(a.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var r=this.tryEntries[n];if(r.tryLoc<=this.prev&&o.call(r,"finallyLoc")&&this.prev<r.finallyLoc){var i=r;break}}i&&("break"===t||"continue"===t)&&i.tryLoc<=e&&e<=i.finallyLoc&&(i=null);var a=i?i.completion:{};return a.type=t,a.arg=e,i?(this.method="next",this.next=i.finallyLoc,v):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),v},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),E(n),v}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var o=r.arg;E(n)}return o}}throw new Error("illegal catch attempt")},delegateYield:function(t,e,r){return this.delegate={iterator:R(t),resultName:e,nextLoc:r},"next"===this.method&&(this.arg=n),v}}}function w(t,e,n,r){var o=e&&e.prototype instanceof _?e:_,i=Object.create(o.prototype),a=new A(r||[]);return i._invoke=function(t,e,n){var r=l;return function(o,i){if(r===h)throw new Error("Generator is already running");if(r===y){if("throw"===o)throw i;return F()}for(n.method=o,n.arg=i;;){var a=n.delegate;if(a){var u=k(a,n);if(u){if(u===v)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(r===l)throw r=y,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);r=h;var c=O(t,e,n);if("normal"===c.type){if(r=n.done?y:p,c.arg===v)continue;return{value:c.arg,done:n.done}}"throw"===c.type&&(r=y,n.method="throw",n.arg=c.arg)}}}(t,n,a),i}function O(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}function _(){}function x(){}function S(){}function j(t){["next","throw","return"].forEach(function(e){t[e]=function(t){return this._invoke(e,t)}})}function L(t){var e;this._invoke=function(n,r){function i(){return new Promise(function(e,i){!function e(n,r,i,a){var u=O(t[n],t,r);if("throw"!==u.type){var c=u.arg,s=c.value;return s&&"object"==typeof s&&o.call(s,"__await")?Promise.resolve(s.__await).then(function(t){e("next",t,i,a)},function(t){e("throw",t,i,a)}):Promise.resolve(s).then(function(t){c.value=t,i(c)},function(t){return e("throw",t,i,a)})}a(u.arg)}(n,r,e,i)})}return e=e?e.then(i,i):i()}}function k(t,e){var r=t.iterator[e.method];if(r===n){if(e.delegate=null,"throw"===e.method){if(t.iterator.return&&(e.method="return",e.arg=n,k(t,e),"throw"===e.method))return v;e.method="throw",e.arg=new TypeError("The iterator does not provide a 'throw' method")}return v}var o=O(r,t.iterator,e.arg);if("throw"===o.type)return e.method="throw",e.arg=o.arg,e.delegate=null,v;var i=o.arg;return i?i.done?(e[t.resultName]=i.value,e.next=t.nextLoc,"return"!==e.method&&(e.method="next",e.arg=n),e.delegate=null,v):i:(e.method="throw",e.arg=new TypeError("iterator result is not an object"),e.delegate=null,v)}function P(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function E(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function A(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(P,this),this.reset(!0)}function R(t){if(t){var e=t[a];if(e)return e.call(t);if("function"==typeof t.next)return t;if(!isNaN(t.length)){var r=-1,i=function e(){for(;++r<t.length;)if(o.call(t,r))return e.value=t[r],e.done=!1,e;return e.value=n,e.done=!0,e};return i.next=i}}return{next:F}}function F(){return{value:n,done:!0}}}(function(){return this||"object"==typeof self&&self}()||Function("return this")())},function(t,e,n){var r=n(22);"string"==typeof r&&(r=[[t.i,r,""]]);var o={hmr:!0,transform:void 0,insertInto:void 0};n(24)(r,o);r.locals&&(t.exports=r.locals)},function(t,e,n){(t.exports=n(23)(!1)).push([t.i,"@-webkit-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-moz-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-ms-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-o-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\npath.leaflet-ant-path {\n  fill: none;\n  -webkit-animation: linear infinite leaflet-ant-path-animation;\n  -moz-animation: linear infinite leaflet-ant-path-animation;\n  -ms-animation: linear infinite leaflet-ant-path-animation;\n  -o-animation: linear infinite leaflet-ant-path-animation;\n  animation: linear infinite leaflet-ant-path-animation; }\n  path.leaflet-ant-path__hardware-acceleration {\n    -webkit-transform: translateZ(0);\n    -moz-transform: translateZ(0);\n    -ms-transform: translateZ(0);\n    -o-transform: translateZ(0);\n    transform: translateZ(0); }\n  path.leaflet-ant-path__reverse {\n    -webkit-animation-direction: reverse;\n    -moz-animation-direction: reverse;\n    -ms-animation-direction: reverse;\n    -o-animation-direction: reverse;\n    animation-direction: reverse; }\n",""])},function(t,e,n){"use strict";t.exports=function(t){var e=[];return e.toString=function(){return this.map(function(e){var n=function(t,e){var n=t[1]||"",r=t[3];if(!r)return n;if(e&&"function"==typeof btoa){var o=(a=r,"/*# sourceMappingURL=data:application/json;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+" */"),i=r.sources.map(function(t){return"/*# sourceURL="+r.sourceRoot+t+" */"});return[n].concat(i).concat([o]).join("\n")}var a;return[n].join("\n")}(e,t);return e[2]?"@media "+e[2]+"{"+n+"}":n}).join("")},e.i=function(t,n){"string"==typeof t&&(t=[[null,t,""]]);for(var r={},o=0;o<this.length;o++){var i=this[o][0];null!=i&&(r[i]=!0)}for(o=0;o<t.length;o++){var a=t[o];null!=a[0]&&r[a[0]]||(n&&!a[2]?a[2]=n:n&&(a[2]="("+a[2]+") and ("+n+")"),e.push(a))}},e}},function(t,e,n){var r,o,i={},a=(r=function(){return window&&document&&document.all&&!window.atob},function(){return void 0===o&&(o=r.apply(this,arguments)),o}),u=function(t){var e={};return function(t,n){if("function"==typeof t)return t();if(void 0===e[t]){var r=function(t,e){return e?e.querySelector(t):document.querySelector(t)}.call(this,t,n);if(window.HTMLIFrameElement&&r instanceof window.HTMLIFrameElement)try{r=r.contentDocument.head}catch(t){r=null}e[t]=r}return e[t]}}(),c=null,s=0,f=[],l=n(25);function p(t,e){for(var n=0;n<t.length;n++){var r=t[n],o=i[r.id];if(o){o.refs++;for(var a=0;a<o.parts.length;a++)o.parts[a](r.parts[a]);for(;a<r.parts.length;a++)o.parts.push(g(r.parts[a],e))}else{var u=[];for(a=0;a<r.parts.length;a++)u.push(g(r.parts[a],e));i[r.id]={id:r.id,refs:1,parts:u}}}}function h(t,e){for(var n=[],r={},o=0;o<t.length;o++){var i=t[o],a=e.base?i[0]+e.base:i[0],u={css:i[1],media:i[2],sourceMap:i[3]};r[a]?r[a].parts.push(u):n.push(r[a]={id:a,parts:[u]})}return n}function y(t,e){var n=u(t.insertInto);if(!n)throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var r=f[f.length-1];if("top"===t.insertAt)r?r.nextSibling?n.insertBefore(e,r.nextSibling):n.appendChild(e):n.insertBefore(e,n.firstChild),f.push(e);else if("bottom"===t.insertAt)n.appendChild(e);else{if("object"!=typeof t.insertAt||!t.insertAt.before)throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var o=u(t.insertAt.before,n);n.insertBefore(e,o)}}function v(t){if(null===t.parentNode)return!1;t.parentNode.removeChild(t);var e=f.indexOf(t);e>=0&&f.splice(e,1)}function d(t){var e=document.createElement("style");if(void 0===t.attrs.type&&(t.attrs.type="text/css"),void 0===t.attrs.nonce){var r=function(){0;return n.nc}();r&&(t.attrs.nonce=r)}return m(e,t.attrs),y(t,e),e}function m(t,e){Object.keys(e).forEach(function(n){t.setAttribute(n,e[n])})}function g(t,e){var n,r,o,i;if(e.transform&&t.css){if(!(i="function"==typeof e.transform?e.transform(t.css):e.transform.default(t.css)))return function(){};t.css=i}if(e.singleton){var a=s++;n=c||(c=d(e)),r=O.bind(null,n,a,!1),o=O.bind(null,n,a,!0)}else t.sourceMap&&"function"==typeof URL&&"function"==typeof URL.createObjectURL&&"function"==typeof URL.revokeObjectURL&&"function"==typeof Blob&&"function"==typeof btoa?(n=function(t){var e=document.createElement("link");return void 0===t.attrs.type&&(t.attrs.type="text/css"),t.attrs.rel="stylesheet",m(e,t.attrs),y(t,e),e}(e),r=function(t,e,n){var r=n.css,o=n.sourceMap,i=void 0===e.convertToAbsoluteUrls&&o;(e.convertToAbsoluteUrls||i)&&(r=l(r));o&&(r+="\n/*# sourceMappingURL=data:application/json;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(o))))+" */");var a=new Blob([r],{type:"text/css"}),u=t.href;t.href=URL.createObjectURL(a),u&&URL.revokeObjectURL(u)}.bind(null,n,e),o=function(){v(n),n.href&&URL.revokeObjectURL(n.href)}):(n=d(e),r=function(t,e){var n=e.css,r=e.media;r&&t.setAttribute("media",r);if(t.styleSheet)t.styleSheet.cssText=n;else{for(;t.firstChild;)t.removeChild(t.firstChild);t.appendChild(document.createTextNode(n))}}.bind(null,n),o=function(){v(n)});return r(t),function(e){if(e){if(e.css===t.css&&e.media===t.media&&e.sourceMap===t.sourceMap)return;r(t=e)}else o()}}t.exports=function(t,e){if(false)throw new Error("The style-loader cannot be used in a non-browser environment");(e=e||{}).attrs="object"==typeof e.attrs?e.attrs:{},e.singleton||"boolean"==typeof e.singleton||(e.singleton=a()),e.insertInto||(e.insertInto="head"),e.insertAt||(e.insertAt="bottom");var n=h(t,e);return p(n,e),function(t){for(var r=[],o=0;o<n.length;o++){var a=n[o];(u=i[a.id]).refs--,r.push(u)}t&&p(h(t,e),e);for(o=0;o<r.length;o++){var u;if(0===(u=r[o]).refs){for(var c=0;c<u.parts.length;c++)u.parts[c]();delete i[u.id]}}}};var b,w=(b=[],function(t,e){return b[t]=e,b.filter(Boolean).join("\n")});function O(t,e,n,r){var o=n?"":r.css;if(t.styleSheet)t.styleSheet.cssText=w(e,o);else{var i=document.createTextNode(o),a=t.childNodes;a[e]&&t.removeChild(a[e]),a.length?t.insertBefore(i,a[e]):t.appendChild(i)}}},function(t,e){t.exports=function(t){var e="undefined"!=typeof window&&window.location;if(!e)throw new Error("fixUrls requires window.location");if(!t||"string"!=typeof t)return t;var n=e.protocol+"//"+e.host,r=n+e.pathname.replace(/\/[^\/]*$/,"/");return t.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi,function(t,e){var o,i=e.trim().replace(/^"(.*)"$/,function(t,e){return e}).replace(/^'(.*)'$/,function(t,e){return e});return/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(i)?t:(o=0===i.indexOf("//")?i:0===i.indexOf("/")?n+i:r+i.replace(/^\.\//,""),"url("+JSON.stringify(o)+")")})}},function(t,e,n){var r=n(3),o=n(16),i=n(5),a=n(14)("src"),u=Function.toString,c=(""+u).split("toString");n(10).inspectSource=function(t){return u.call(t)},(t.exports=function(t,e,n,u){var s="function"==typeof n;s&&(i(n,"name")||o(n,"name",e)),t[e]!==n&&(s&&(i(n,a)||o(n,a,t[e]?""+t[e]:c.join(String(e)))),t===r?t[e]=n:u?t[e]?t[e]=n:o(t,e,n):(delete t[e],o(t,e,n)))})(Function.prototype,"toString",function(){return"function"==typeof this&&this[a]||u.call(this)})},function(t,e,n){var r=n(10),o=n(3),i=o["__core-js_shared__"]||(o["__core-js_shared__"]={});(t.exports=function(t,e){return i[t]||(i[t]=void 0!==e?e:{})})("versions",[]).push({version:r.version,mode:n(28)?"pure":"global",copyright:"© 2018 Denis Pushkarev (zloirock.ru)"})},function(t,e){t.exports=!1},function(t,e,n){var r=n(44),o=n(32);t.exports=Object.keys||function(t){return r(t,o)}},function(t,e){var n={}.toString;t.exports=function(t){return n.call(t).slice(8,-1)}},function(t,e,n){var r=n(27)("keys"),o=n(14);t.exports=function(t){return r[t]||(r[t]=o(t))}},function(t,e){t.exports="constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf".split(",")},function(t,e){e.f=Object.getOwnPropertySymbols},function(t,e){e.f={}.propertyIsEnumerable},function(t,e,n){var r=n(0),o=n(58),i=n(32),a=n(31)("IE_PROTO"),u=function(){},c=function(){var t,e=n(40)("iframe"),r=i.length;for(e.style.display="none",n(59).appendChild(e),e.src="javascript:",(t=e.contentWindow.document).open(),t.write("<script>document.F=Object<\/script>"),t.close(),c=t.F;r--;)delete c.prototype[i[r]];return c()};t.exports=Object.create||function(t,e){var n;return null!==t?(u.prototype=r(t),n=new u,u.prototype=null,n[a]=t):n=c(),void 0===e?n:o(n,e)}},function(t,e,n){var r=n(44),o=n(32).concat("length","prototype");e.f=Object.getOwnPropertyNames||function(t){return r(t,o)}},function(t,e,n){var r=n(5),o=n(73),i=n(31)("IE_PROTO"),a=Object.prototype;t.exports=Object.getPrototypeOf||function(t){return t=o(t),r(t,i)?t[i]:"function"==typeof t.constructor&&t instanceof t.constructor?t.constructor.prototype:t instanceof Object?a:null}},function(t,e,n){"use strict";n.r(e);var r=n(1),o=n(8),i=n.n(o);function a(t){return(a="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}function u(t){return function(t){if(Array.isArray(t)){for(var e=0,n=new Array(t.length);e<t.length;e++)n[e]=t[e];return n}}(t)||function(t){if(Symbol.iterator in Object(t)||"[object Arguments]"===Object.prototype.toString.call(t))return Array.from(t)}(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance")}()}function c(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{},r=Object.keys(n);"function"==typeof Object.getOwnPropertySymbols&&(r=r.concat(Object.getOwnPropertySymbols(n).filter(function(t){return Object.getOwnPropertyDescriptor(n,t).enumerable}))),r.forEach(function(e){h(t,e,n[e])})}return t}function s(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}function f(t){return(f=Object.setPrototypeOf?Object.getPrototypeOf:function(t){return t.__proto__||Object.getPrototypeOf(t)})(t)}function l(t,e){return(l=Object.setPrototypeOf||function(t,e){return t.__proto__=e,t})(t,e)}function p(t){if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function h(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}var y={main:Symbol("main"),pulse:Symbol("pulse")},v=y.main,d=y.pulse,m=Symbol.species,g=Symbol.toStringTag,b=Symbol.iterator,w=function(t){function e(t){var n,o,i,u=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),o=this,n=!(i=f(e).call(this))||"object"!==a(i)&&"function"!=typeof i?p(o):i,h(p(p(n)),v,null),h(p(p(n)),d,null),h(p(p(n)),"_map",null),h(p(p(n)),"_path",null),h(p(p(n)),"_animatedPathId",null),h(p(p(n)),"_animatedPathClass","leaflet-ant-path"),h(p(p(n)),"_reversePathClass","".concat(n._animatedPathClass,"__reverse")),h(p(p(n)),"_hardwareAccClass","hardware-acceleration"),h(p(p(n)),"_defaultOptions",{use:r.polyline,paused:!1,reverse:!1,hardwareAcceleration:!1,renderer:Object(r.svg)(),delay:400,dashArray:[10,20],weight:5,opacity:.5,color:"#0000FF",pulseColor:"#FFFFFF"}),r.Util.setOptions(p(p(n)),c({},n._defaultOptions,u)),n._path=t,n._animatedPathId="ant-path-".concat((new Date).getTime()),n._mount(),n}var n,o,w;return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function");t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,writable:!0,configurable:!0}}),e&&l(t,e)}(e,r["FeatureGroup"]),n=e,w=[{key:m,get:function(){return this}}],(o=[{key:"map",value:function(t){return new(0,this.constructor[Symbol.species])(this._path.map(t),c({},this.options))}},{key:b,value:i.a.mark(function t(){return i.a.wrap(function(t){for(;;)switch(t.prev=t.next){case 0:return t.delegateYield(this._path,"t0",1);case 1:case"end":return t.stop()}},t,this)})},{key:"_processOptions",value:function(){var t=this.options,e=this._animatedPathClass,n=this._reversePathClass,r=this._hardwareAccClass,o=this._animatedPathId,i=t.reverse,a=t.hardwareAcceleration,u=c({},t),s=c({},t);return s.color=s.pulseColor||t.pulseColor,s.className=[e,o,i?n:"",a?"".concat(e,"__").concat(r):""].join(" "),delete u.dashArray,Array.isArray(s.dashArray)&&(s.dashArray=String(s.dashArray)),{pathOpts:u,pulseOpts:s}}},{key:"_mount",value:function(){var t=this._processOptions(),e=t.pathOpts,n=t.pulseOpts,r=this.options.use;this.addLayer(this[y.main]=r(this._path,e)),this.addLayer(this[y.pulse]=r(this._path,n))}},{key:"_calculateAnimationSpeed",value:function(){var t=this.options,e=this._map,n=this._animatedPathId;if(!t.paused&&e){var r=e.getZoom(),o=document.getElementsByClassName(n),i=1+t.delay/3/r+"s",a=["-webkit-","-moz-","-ms-","-o-",""].map(function(t){return"".concat(t,"animation-duration: ").concat(i)}).join(";");Array.from(o,function(t){t.style.cssText=a,t.setAttribute("data-animated","true")})}}},{key:"_pureReverse",value:function(){var t=this[y.pulse].getElement();t&&(this.options.reverse?t.classList.remove(this._reversePathClass):t.classList.add(this._reversePathClass))}},{key:"onAdd",value:function(t){return this._map=t,this._map.on("zoomend",this._calculateAnimationSpeed,this),this._mount(),this._calculateAnimationSpeed(),this}},{key:"onRemove",value:function(t){return this._map&&(this._map.off("zoomend",this._calculateAnimationSpeed,this),this._map=null),t&&t.removeLayer(this[y.main]).removeLayer(this[y.pulse]),this}},{key:"pause",value:function(){if(!this.options.paused){var t=this[y.pulse].getElement();return this.options.paused=!0,t&&(t.removeAttribute("style"),t.setAttribute("data-animated","true")),!0}return!1}},{key:"resume",value:function(){var t=this.options;return!!t.paused&&(t.paused=!1,this._calculateAnimationSpeed(),!0)}},{key:"bringToFront",value:function(){return this[y.main].bringToFront(),this[y.pulse].bringToFront(),this}},{key:"bringToBack",value:function(){return this[y.pulse].bringToBack(),this[y.main].bringToBack(),this}},{key:"removeFrom",value:function(t){return t&&t.hasLayer(this)&&t.removeLayer(this),this}},{key:"setStyle",value:function(t){var e=t.paused,n=t.delay,r=t.reverse;e?this.pause():this.resume(),n!==this.options.delay&&(this.options.delay=n||this._defaultOptions.delay,this._calculateAnimationSpeed()),void 0!==r&&r!==this.options.reverse&&this._pureReverse(),this.options=c({},this.options,t);var o=this._processOptions(),i=o.pathOpts,a=o.pulseOpts;return this[y.main].setStyle(i),this[y.pulse].setStyle(a),this}},{key:"reverse",value:function(){return this._pureReverse(),this.options.reverse=!this.options.reverse,this}},{key:"redraw",value:function(){return this[y.main].redraw(),this[y.pulse].redraw(),this}},{key:"addLatLng",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=[].concat(u(this._path),[r]),(t=this[y.main]).addLatLng.apply(t,r),(e=this[y.pulse]).addLatLng.apply(e,r),this}},{key:"setLatLngs",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=r,(t=this[y.main]).setLatLngs.apply(t,r),(e=this[y.pulse]).setLatLngs.apply(e,r),this}},{key:"getLatLngs",value:function(){return this[y.main].getLatLngs()}},{key:"spliceLatLngs",value:function(){var t,e,n=(t=this[y.main]).spliceLatLngs.apply(t,arguments);return(e=this[y.pulse]).spliceLatLngs.apply(e,arguments),n}},{key:"getBounds",value:function(){return this[y.main].getBounds()}},{key:"toGeoJSON",value:function(){return this[y.main].toGeoJSON()}},{key:g,get:function(){return"L.Polyline.AntPath"}}])&&s(n.prototype,o),w&&s(n,w),e}(),O=function(t,e){return Reflect.construct(w,[t,e])};n(21);n.d(e,"AntPath",function(){return _}),n.d(e,"antPath",function(){return x}),r.Polyline.AntPath=w,r.polyline.antPath=O;var _=w,x=O;e.default={AntPath:_,antPath:x}},function(t,e,n){t.exports=!n(9)&&!n(7)(function(){return 7!=Object.defineProperty(n(40)("div"),"a",{get:function(){return 7}}).a})},function(t,e,n){var r=n(4),o=n(3).document,i=r(o)&&r(o.createElement);t.exports=function(t){return i?o.createElement(t):{}}},function(t,e,n){var r=n(18);t.exports=function(t,e,n){if(r(t),void 0===e)return t;switch(n){case 1:return function(n){return t.call(e,n)};case 2:return function(n,r){return t.call(e,n,r)};case 3:return function(n,r,o){return t.call(e,n,r,o)}}return function(){return t.apply(e,arguments)}}},function(t,e,n){var r=n(6).f,o=n(5),i=n(11)("toStringTag");t.exports=function(t,e,n){t&&!o(t=n?t:t.prototype,i)&&r(t,i,{configurable:!0,value:e})}},function(t,e,n){e.f=n(11)},function(t,e,n){var r=n(5),o=n(15),i=n(54)(!1),a=n(31)("IE_PROTO");t.exports=function(t,e){var n,u=o(t),c=0,s=[];for(n in u)n!=a&&r(u,n)&&s.push(n);for(;e.length>c;)r(u,n=e[c++])&&(~i(s,n)||s.push(n));return s}},function(t,e){t.exports=function(t){if(null==t)throw TypeError("Can't call method on  "+t);return t}},function(t,e){var n=Math.ceil,r=Math.floor;t.exports=function(t){return isNaN(t=+t)?0:(t>0?r:n)(t)}},function(t,e,n){n(48),n(63),t.exports=n(38)},function(t,e,n){n(49),n(61),t.exports=n(10).Symbol},function(t,e,n){"use strict";var r=n(3),o=n(5),i=n(9),a=n(2),u=n(26),c=n(50).KEY,s=n(7),f=n(27),l=n(42),p=n(14),h=n(11),y=n(43),v=n(51),d=n(52),m=n(57),g=n(0),b=n(4),w=n(15),O=n(17),_=n(13),x=n(35),S=n(60),j=n(12),L=n(6),k=n(29),P=j.f,E=L.f,A=S.f,R=r.Symbol,F=r.JSON,T=F&&F.stringify,N=h("_hidden"),C=h("toPrimitive"),I={}.propertyIsEnumerable,M=f("symbol-registry"),U=f("symbols"),B=f("op-symbols"),G=Object.prototype,z="function"==typeof R,D=r.QObject,J=!D||!D.prototype||!D.prototype.findChild,Z=i&&s(function(){return 7!=x(E({},"a",{get:function(){return E(this,"a",{value:7}).a}})).a})?function(t,e,n){var r=P(G,e);r&&delete G[e],E(t,e,n),r&&t!==G&&E(G,e,r)}:E,q=function(t){var e=U[t]=x(R.prototype);return e._k=t,e},K=z&&"symbol"==typeof R.iterator?function(t){return"symbol"==typeof t}:function(t){return t instanceof R},W=function(t,e,n){return t===G&&W(B,e,n),g(t),e=O(e,!0),g(n),o(U,e)?(n.enumerable?(o(t,N)&&t[N][e]&&(t[N][e]=!1),n=x(n,{enumerable:_(0,!1)})):(o(t,N)||E(t,N,_(1,{})),t[N][e]=!0),Z(t,e,n)):E(t,e,n)},Y=function(t,e){g(t);for(var n,r=d(e=w(e)),o=0,i=r.length;i>o;)W(t,n=r[o++],e[n]);return t},$=function(t){var e=I.call(this,t=O(t,!0));return!(this===G&&o(U,t)&&!o(B,t))&&(!(e||!o(this,t)||!o(U,t)||o(this,N)&&this[N][t])||e)},H=function(t,e){if(t=w(t),e=O(e,!0),t!==G||!o(U,e)||o(B,e)){var n=P(t,e);return!n||!o(U,e)||o(t,N)&&t[N][e]||(n.enumerable=!0),n}},Q=function(t){for(var e,n=A(w(t)),r=[],i=0;n.length>i;)o(U,e=n[i++])||e==N||e==c||r.push(e);return r},V=function(t){for(var e,n=t===G,r=A(n?B:w(t)),i=[],a=0;r.length>a;)!o(U,e=r[a++])||n&&!o(G,e)||i.push(U[e]);return i};z||(u((R=function(){if(this instanceof R)throw TypeError("Symbol is not a constructor!");var t=p(arguments.length>0?arguments[0]:void 0),e=function(n){this===G&&e.call(B,n),o(this,N)&&o(this[N],t)&&(this[N][t]=!1),Z(this,t,_(1,n))};return i&&J&&Z(G,t,{configurable:!0,set:e}),q(t)}).prototype,"toString",function(){return this._k}),j.f=H,L.f=W,n(36).f=S.f=Q,n(34).f=$,n(33).f=V,i&&!n(28)&&u(G,"propertyIsEnumerable",$,!0),y.f=function(t){return q(h(t))}),a(a.G+a.W+a.F*!z,{Symbol:R});for(var X="hasInstance,isConcatSpreadable,iterator,match,replace,search,species,split,toPrimitive,toStringTag,unscopables".split(","),tt=0;X.length>tt;)h(X[tt++]);for(var et=k(h.store),nt=0;et.length>nt;)v(et[nt++]);a(a.S+a.F*!z,"Symbol",{for:function(t){return o(M,t+="")?M[t]:M[t]=R(t)},keyFor:function(t){if(!K(t))throw TypeError(t+" is not a symbol!");for(var e in M)if(M[e]===t)return e},useSetter:function(){J=!0},useSimple:function(){J=!1}}),a(a.S+a.F*!z,"Object",{create:function(t,e){return void 0===e?x(t):Y(x(t),e)},defineProperty:W,defineProperties:Y,getOwnPropertyDescriptor:H,getOwnPropertyNames:Q,getOwnPropertySymbols:V}),F&&a(a.S+a.F*(!z||s(function(){var t=R();return"[null]"!=T([t])||"{}"!=T({a:t})||"{}"!=T(Object(t))})),"JSON",{stringify:function(t){for(var e,n,r=[t],o=1;arguments.length>o;)r.push(arguments[o++]);if(n=e=r[1],(b(e)||void 0!==t)&&!K(t))return m(e)||(e=function(t,e){if("function"==typeof n&&(e=n.call(this,t,e)),!K(e))return e}),r[1]=e,T.apply(F,r)}}),R.prototype[C]||n(16)(R.prototype,C,R.prototype.valueOf),l(R,"Symbol"),l(Math,"Math",!0),l(r.JSON,"JSON",!0)},function(t,e,n){var r=n(14)("meta"),o=n(4),i=n(5),a=n(6).f,u=0,c=Object.isExtensible||function(){return!0},s=!n(7)(function(){return c(Object.preventExtensions({}))}),f=function(t){a(t,r,{value:{i:"O"+ ++u,w:{}}})},l=t.exports={KEY:r,NEED:!1,fastKey:function(t,e){if(!o(t))return"symbol"==typeof t?t:("string"==typeof t?"S":"P")+t;if(!i(t,r)){if(!c(t))return"F";if(!e)return"E";f(t)}return t[r].i},getWeak:function(t,e){if(!i(t,r)){if(!c(t))return!0;if(!e)return!1;f(t)}return t[r].w},onFreeze:function(t){return s&&l.NEED&&c(t)&&!i(t,r)&&f(t),t}}},function(t,e,n){var r=n(3),o=n(10),i=n(28),a=n(43),u=n(6).f;t.exports=function(t){var e=o.Symbol||(o.Symbol=i?{}:r.Symbol||{});"_"==t.charAt(0)||t in e||u(e,t,{value:a.f(t)})}},function(t,e,n){var r=n(29),o=n(33),i=n(34);t.exports=function(t){var e=r(t),n=o.f;if(n)for(var a,u=n(t),c=i.f,s=0;u.length>s;)c.call(t,a=u[s++])&&e.push(a);return e}},function(t,e,n){var r=n(30);t.exports=Object("z").propertyIsEnumerable(0)?Object:function(t){return"String"==r(t)?t.split(""):Object(t)}},function(t,e,n){var r=n(15),o=n(55),i=n(56);t.exports=function(t){return function(e,n,a){var u,c=r(e),s=o(c.length),f=i(a,s);if(t&&n!=n){for(;s>f;)if((u=c[f++])!=u)return!0}else for(;s>f;f++)if((t||f in c)&&c[f]===n)return t||f||0;return!t&&-1}}},function(t,e,n){var r=n(46),o=Math.min;t.exports=function(t){return t>0?o(r(t),9007199254740991):0}},function(t,e,n){var r=n(46),o=Math.max,i=Math.min;t.exports=function(t,e){return(t=r(t))<0?o(t+e,0):i(t,e)}},function(t,e,n){var r=n(30);t.exports=Array.isArray||function(t){return"Array"==r(t)}},function(t,e,n){var r=n(6),o=n(0),i=n(29);t.exports=n(9)?Object.defineProperties:function(t,e){o(t);for(var n,a=i(e),u=a.length,c=0;u>c;)r.f(t,n=a[c++],e[n]);return t}},function(t,e,n){var r=n(3).document;t.exports=r&&r.documentElement},function(t,e,n){var r=n(15),o=n(36).f,i={}.toString,a="object"==typeof window&&window&&Object.getOwnPropertyNames?Object.getOwnPropertyNames(window):[];t.exports.f=function(t){return a&&"[object Window]"==i.call(t)?function(t){try{return o(t)}catch(t){return a.slice()}}(t):o(r(t))}},function(t,e,n){"use strict";var r=n(62),o={};o[n(11)("toStringTag")]="z",o+""!="[object z]"&&n(26)(Object.prototype,"toString",function(){return"[object "+r(this)+"]"},!0)},function(t,e,n){var r=n(30),o=n(11)("toStringTag"),i="Arguments"==r(function(){return arguments}());t.exports=function(t){var e,n,a;return void 0===t?"Undefined":null===t?"Null":"string"==typeof(n=function(t,e){try{return t[e]}catch(t){}}(e=Object(t),o))?n:i?r(e):"Object"==(a=r(e))&&"function"==typeof e.callee?"Arguments":a}},function(t,e,n){n(64),n(65),n(68),n(69),n(70),n(72),n(74),n(75),n(76),n(77),n(78),n(80),n(81),n(82),t.exports=n(10).Reflect},function(t,e,n){var r=n(2),o=n(18),i=n(0),a=(n(3).Reflect||{}).apply,u=Function.apply;r(r.S+r.F*!n(7)(function(){a(function(){})}),"Reflect",{apply:function(t,e,n){var r=o(t),c=i(n);return a?a(r,e,c):u.call(r,e,c)}})},function(t,e,n){var r=n(2),o=n(35),i=n(18),a=n(0),u=n(4),c=n(7),s=n(66),f=(n(3).Reflect||{}).construct,l=c(function(){function t(){}return!(f(function(){},[],t)instanceof t)}),p=!c(function(){f(function(){})});r(r.S+r.F*(l||p),"Reflect",{construct:function(t,e){i(t),a(e);var n=arguments.length<3?t:i(arguments[2]);if(p&&!l)return f(t,e,n);if(t==n){switch(e.length){case 0:return new t;case 1:return new t(e[0]);case 2:return new t(e[0],e[1]);case 3:return new t(e[0],e[1],e[2]);case 4:return new t(e[0],e[1],e[2],e[3])}var r=[null];return r.push.apply(r,e),new(s.apply(t,r))}var c=n.prototype,h=o(u(c)?c:Object.prototype),y=Function.apply.call(t,h,e);return u(y)?y:h}})},function(t,e,n){"use strict";var r=n(18),o=n(4),i=n(67),a=[].slice,u={};t.exports=Function.bind||function(t){var e=r(this),n=a.call(arguments,1),c=function(){var r=n.concat(a.call(arguments));return this instanceof c?function(t,e,n){if(!(e in u)){for(var r=[],o=0;o<e;o++)r[o]="a["+o+"]";u[e]=Function("F,a","return new F("+r.join(",")+")")}return u[e](t,n)}(e,r.length,r):i(e,r,t)};return o(e.prototype)&&(c.prototype=e.prototype),c}},function(t,e){t.exports=function(t,e,n){var r=void 0===n;switch(e.length){case 0:return r?t():t.call(n);case 1:return r?t(e[0]):t.call(n,e[0]);case 2:return r?t(e[0],e[1]):t.call(n,e[0],e[1]);case 3:return r?t(e[0],e[1],e[2]):t.call(n,e[0],e[1],e[2]);case 4:return r?t(e[0],e[1],e[2],e[3]):t.call(n,e[0],e[1],e[2],e[3])}return t.apply(n,e)}},function(t,e,n){var r=n(6),o=n(2),i=n(0),a=n(17);o(o.S+o.F*n(7)(function(){Reflect.defineProperty(r.f({},1,{value:1}),1,{value:2})}),"Reflect",{defineProperty:function(t,e,n){i(t),e=a(e,!0),i(n);try{return r.f(t,e,n),!0}catch(t){return!1}}})},function(t,e,n){var r=n(2),o=n(12).f,i=n(0);r(r.S,"Reflect",{deleteProperty:function(t,e){var n=o(i(t),e);return!(n&&!n.configurable)&&delete t[e]}})},function(t,e,n){"use strict";var r=n(2),o=n(0),i=function(t){this._t=o(t),this._i=0;var e,n=this._k=[];for(e in t)n.push(e)};n(71)(i,"Object",function(){var t,e=this._k;do{if(this._i>=e.length)return{value:void 0,done:!0}}while(!((t=e[this._i++])in this._t));return{value:t,done:!1}}),r(r.S,"Reflect",{enumerate:function(t){return new i(t)}})},function(t,e,n){"use strict";var r=n(35),o=n(13),i=n(42),a={};n(16)(a,n(11)("iterator"),function(){return this}),t.exports=function(t,e,n){t.prototype=r(a,{next:o(1,n)}),i(t,e+" Iterator")}},function(t,e,n){var r=n(12),o=n(37),i=n(5),a=n(2),u=n(4),c=n(0);a(a.S,"Reflect",{get:function t(e,n){var a,s,f=arguments.length<3?e:arguments[2];return c(e)===f?e[n]:(a=r.f(e,n))?i(a,"value")?a.value:void 0!==a.get?a.get.call(f):void 0:u(s=o(e))?t(s,n,f):void 0}})},function(t,e,n){var r=n(45);t.exports=function(t){return Object(r(t))}},function(t,e,n){var r=n(12),o=n(2),i=n(0);o(o.S,"Reflect",{getOwnPropertyDescriptor:function(t,e){return r.f(i(t),e)}})},function(t,e,n){var r=n(2),o=n(37),i=n(0);r(r.S,"Reflect",{getPrototypeOf:function(t){return o(i(t))}})},function(t,e,n){var r=n(2);r(r.S,"Reflect",{has:function(t,e){return e in t}})},function(t,e,n){var r=n(2),o=n(0),i=Object.isExtensible;r(r.S,"Reflect",{isExtensible:function(t){return o(t),!i||i(t)}})},function(t,e,n){var r=n(2);r(r.S,"Reflect",{ownKeys:n(79)})},function(t,e,n){var r=n(36),o=n(33),i=n(0),a=n(3).Reflect;t.exports=a&&a.ownKeys||function(t){var e=r.f(i(t)),n=o.f;return n?e.concat(n(t)):e}},function(t,e,n){var r=n(2),o=n(0),i=Object.preventExtensions;r(r.S,"Reflect",{preventExtensions:function(t){o(t);try{return i&&i(t),!0}catch(t){return!1}}})},function(t,e,n){var r=n(6),o=n(12),i=n(37),a=n(5),u=n(2),c=n(13),s=n(0),f=n(4);u(u.S,"Reflect",{set:function t(e,n,u){var l,p,h=arguments.length<4?e:arguments[3],y=o.f(s(e),n);if(!y){if(f(p=i(e)))return t(p,n,u,h);y=c(0)}if(a(y,"value")){if(!1===y.writable||!f(h))return!1;if(l=o.f(h,n)){if(l.get||l.set||!1===l.writable)return!1;l.value=u,r.f(h,n,l)}else r.f(h,n,c(0,u));return!0}return void 0!==y.set&&(y.set.call(h,u),!0)}})},function(t,e,n){var r=n(2),o=n(83);o&&r(r.S,"Reflect",{setPrototypeOf:function(t,e){o.check(t,e);try{return o.set(t,e),!0}catch(t){return!1}}})},function(t,e,n){var r=n(4),o=n(0),i=function(t,e){if(o(t),!r(e)&&null!==e)throw TypeError(e+": can't set as prototype!")};t.exports={set:Object.setPrototypeOf||("__proto__"in{}?function(t,e,r){try{(r=n(41)(Function.call,n(12).f(Object.prototype,"__proto__").set,2))(t,[]),e=!(t instanceof Array)}catch(t){e=!0}return function(t,n){return i(t,n),e?t.__proto__=n:r(t,n),t}}({},!1):void 0),check:i}}])});
+	!function(t,e){ true?module.exports=e(__webpack_require__(5)):"function"==typeof define&&define.amd?define(["leaflet"],e):"object"==typeof exports?exports["leaflet-ant-path"]=e(require("leaflet")):t["leaflet-ant-path"]=e(t.L)}(window,function(t){return function(t){var e={};function n(r){if(e[r])return e[r].exports;var o=e[r]={i:r,l:!1,exports:{}};return t[r].call(o.exports,o,o.exports,n),o.l=!0,o.exports}return n.m=t,n.c=e,n.d=function(t,e,r){n.o(t,e)||Object.defineProperty(t,e,{enumerable:!0,get:r})},n.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},n.t=function(t,e){if(1&e&&(t=n(t)),8&e)return t;if(4&e&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&e&&"string"!=typeof t)for(var o in t)n.d(r,o,function(e){return t[e]}.bind(null,o));return r},n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,"a",e),e},n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},n.p="",n(n.s=58)}([function(t,e){t.exports="object"==typeof window&&window&&window.Math==Math?window:"object"==typeof self&&self&&self.Math==Math?self:Function("return this")()},function(e,n){e.exports=t},function(t,e,n){var r=n(4);t.exports=function(t){if(!r(t))throw TypeError(String(t)+" is not an object");return t}},function(t,e,n){var r=n(0),o=n(11).f,i=n(16),a=n(32),u=n(29),c=n(51),s=n(68);t.exports=function(t,e){var n,f,l,p,h,y=t.target,v=t.global,d=t.stat;if(n=v?r:d?r[y]||u(y,{}):(r[y]||{}).prototype)for(f in e){if(p=e[f],l=t.noTargetGet?(h=o(n,f))&&h.value:n[f],!s(v?f:y+(d?".":"#")+f,t.forced)&&void 0!==l){if(typeof p==typeof l)continue;c(p,l)}(t.sham||l&&l.sham)&&i(p,"sham",!0),a(n,f,p,t)}}},function(t,e){t.exports=function(t){return"object"==typeof t?null!==t:"function"==typeof t}},function(t,e){t.exports=function(t){try{return!!t()}catch(t){return!0}}},function(t,e,n){var r=n(20),o=n(7),i=n(54),a=n(8).f;t.exports=function(t){var e=r.Symbol||(r.Symbol={});o(e,t)||a(e,t,{value:i.f(t)})}},function(t,e){var n={}.hasOwnProperty;t.exports=function(t,e){return n.call(t,e)}},function(t,e,n){var r=n(9),o=n(45),i=n(2),a=n(13),u=Object.defineProperty;e.f=r?u:function(t,e,n){if(i(t),e=a(e,!0),i(n),o)try{return u(t,e,n)}catch(t){}if("get"in n||"set"in n)throw TypeError("Accessors not supported");return"value"in n&&(t[e]=n.value),t}},function(t,e,n){t.exports=!n(5)(function(){return 7!=Object.defineProperty({},"a",{get:function(){return 7}}).a})},function(t,e,n){var r=n(15)("wks"),o=n(30),i=n(0).Symbol,a=n(48);t.exports=function(t){return r[t]||(r[t]=a&&i[t]||(a?i:o)("Symbol."+t))}},function(t,e,n){var r=n(9),o=n(31),i=n(14),a=n(17),u=n(13),c=n(7),s=n(45),f=Object.getOwnPropertyDescriptor;e.f=r?f:function(t,e){if(t=a(t),e=u(e,!0),s)try{return f(t,e)}catch(t){}if(c(t,e))return i(!o.f.call(t,e),t[e])}},function(t,e,n){t.exports=n(21)},function(t,e,n){var r=n(4);t.exports=function(t,e){if(!r(t))return t;var n,o;if(e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;if("function"==typeof(n=t.valueOf)&&!r(o=n.call(t)))return o;if(!e&&"function"==typeof(n=t.toString)&&!r(o=n.call(t)))return o;throw TypeError("Can't convert object to primitive value")}},function(t,e){t.exports=function(t,e){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:e}}},function(t,e,n){var r=n(0),o=n(29),i=r["__core-js_shared__"]||o("__core-js_shared__",{});(t.exports=function(t,e){return i[t]||(i[t]=void 0!==e?e:{})})("versions",[]).push({version:"3.0.1",mode:n(47)?"pure":"global",copyright:"© 2019 Denis Pushkarev (zloirock.ru)"})},function(t,e,n){var r=n(8),o=n(14);t.exports=n(9)?function(t,e,n){return r.f(t,e,o(1,n))}:function(t,e,n){return t[e]=n,t}},function(t,e,n){var r=n(64),o=n(42);t.exports=function(t){return r(o(t))}},function(t,e,n){var r=n(15)("keys"),o=n(30);t.exports=function(t){return r[t]||(r[t]=o(t))}},function(t,e){t.exports={}},function(t,e,n){t.exports=n(0)},function(t,e,n){var r=function(t){"use strict";var e,n=Object.prototype,r=n.hasOwnProperty,o="function"==typeof Symbol?Symbol:{},i=o.iterator||"@@iterator",a=o.asyncIterator||"@@asyncIterator",u=o.toStringTag||"@@toStringTag";function c(t,e,n,r){var o=e&&e.prototype instanceof v?e:v,i=Object.create(o.prototype),a=new P(r||[]);return i._invoke=function(t,e,n){var r=f;return function(o,i){if(r===p)throw new Error("Generator is already running");if(r===h){if("throw"===o)throw i;return E()}for(n.method=o,n.arg=i;;){var a=n.delegate;if(a){var u=_(a,n);if(u){if(u===y)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(r===f)throw r=h,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);r=p;var c=s(t,e,n);if("normal"===c.type){if(r=n.done?h:l,c.arg===y)continue;return{value:c.arg,done:n.done}}"throw"===c.type&&(r=h,n.method="throw",n.arg=c.arg)}}}(t,n,a),i}function s(t,e,n){try{return{type:"normal",arg:t.call(e,n)}}catch(t){return{type:"throw",arg:t}}}t.wrap=c;var f="suspendedStart",l="suspendedYield",p="executing",h="completed",y={};function v(){}function d(){}function m(){}var g={};g[i]=function(){return this};var b=Object.getPrototypeOf,w=b&&b(b(k([])));w&&w!==n&&r.call(w,i)&&(g=w);var O=m.prototype=v.prototype=Object.create(g);function x(t){["next","throw","return"].forEach(function(e){t[e]=function(t){return this._invoke(e,t)}})}function S(t){var e;this._invoke=function(n,o){function i(){return new Promise(function(e,i){!function e(n,o,i,a){var u=s(t[n],t,o);if("throw"!==u.type){var c=u.arg,f=c.value;return f&&"object"==typeof f&&r.call(f,"__await")?Promise.resolve(f.__await).then(function(t){e("next",t,i,a)},function(t){e("throw",t,i,a)}):Promise.resolve(f).then(function(t){c.value=t,i(c)},function(t){return e("throw",t,i,a)})}a(u.arg)}(n,o,e,i)})}return e=e?e.then(i,i):i()}}function _(t,n){var r=t.iterator[n.method];if(r===e){if(n.delegate=null,"throw"===n.method){if(t.iterator.return&&(n.method="return",n.arg=e,_(t,n),"throw"===n.method))return y;n.method="throw",n.arg=new TypeError("The iterator does not provide a 'throw' method")}return y}var o=s(r,t.iterator,n.arg);if("throw"===o.type)return n.method="throw",n.arg=o.arg,n.delegate=null,y;var i=o.arg;return i?i.done?(n[t.resultName]=i.value,n.next=t.nextLoc,"return"!==n.method&&(n.method="next",n.arg=e),n.delegate=null,y):i:(n.method="throw",n.arg=new TypeError("iterator result is not an object"),n.delegate=null,y)}function j(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function L(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function P(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(j,this),this.reset(!0)}function k(t){if(t){var n=t[i];if(n)return n.call(t);if("function"==typeof t.next)return t;if(!isNaN(t.length)){var o=-1,a=function n(){for(;++o<t.length;)if(r.call(t,o))return n.value=t[o],n.done=!1,n;return n.value=e,n.done=!0,n};return a.next=a}}return{next:E}}function E(){return{value:e,done:!0}}return d.prototype=O.constructor=m,m.constructor=d,m[u]=d.displayName="GeneratorFunction",t.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===d||"GeneratorFunction"===(e.displayName||e.name))},t.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,m):(t.__proto__=m,u in t||(t[u]="GeneratorFunction")),t.prototype=Object.create(O),t},t.awrap=function(t){return{__await:t}},x(S.prototype),S.prototype[a]=function(){return this},t.AsyncIterator=S,t.async=function(e,n,r,o){var i=new S(c(e,n,r,o));return t.isGeneratorFunction(n)?i:i.next().then(function(t){return t.done?t.value:i.next()})},x(O),O[u]="Generator",O[i]=function(){return this},O.toString=function(){return"[object Generator]"},t.keys=function(t){var e=[];for(var n in t)e.push(n);return e.reverse(),function n(){for(;e.length;){var r=e.pop();if(r in t)return n.value=r,n.done=!1,n}return n.done=!0,n}},t.values=k,P.prototype={constructor:P,reset:function(t){if(this.prev=0,this.next=0,this.sent=this._sent=e,this.done=!1,this.delegate=null,this.method="next",this.arg=e,this.tryEntries.forEach(L),!t)for(var n in this)"t"===n.charAt(0)&&r.call(this,n)&&!isNaN(+n.slice(1))&&(this[n]=e)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(t){if(this.done)throw t;var n=this;function o(r,o){return u.type="throw",u.arg=t,n.next=r,o&&(n.method="next",n.arg=e),!!o}for(var i=this.tryEntries.length-1;i>=0;--i){var a=this.tryEntries[i],u=a.completion;if("root"===a.tryLoc)return o("end");if(a.tryLoc<=this.prev){var c=r.call(a,"catchLoc"),s=r.call(a,"finallyLoc");if(c&&s){if(this.prev<a.catchLoc)return o(a.catchLoc,!0);if(this.prev<a.finallyLoc)return o(a.finallyLoc)}else if(c){if(this.prev<a.catchLoc)return o(a.catchLoc,!0)}else{if(!s)throw new Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return o(a.finallyLoc)}}}},abrupt:function(t,e){for(var n=this.tryEntries.length-1;n>=0;--n){var o=this.tryEntries[n];if(o.tryLoc<=this.prev&&r.call(o,"finallyLoc")&&this.prev<o.finallyLoc){var i=o;break}}i&&("break"===t||"continue"===t)&&i.tryLoc<=e&&e<=i.finallyLoc&&(i=null);var a=i?i.completion:{};return a.type=t,a.arg=e,i?(this.method="next",this.next=i.finallyLoc,y):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),y},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.finallyLoc===t)return this.complete(n.completion,n.afterLoc),L(n),y}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var n=this.tryEntries[e];if(n.tryLoc===t){var r=n.completion;if("throw"===r.type){var o=r.arg;L(n)}return o}}throw new Error("illegal catch attempt")},delegateYield:function(t,n,r){return this.delegate={iterator:k(t),resultName:n,nextLoc:r},"next"===this.method&&(this.arg=e),y}},t}(t.exports);try{regeneratorRuntime=r}catch(t){Function("r","regeneratorRuntime = r")(r)}},function(t,e,n){var r=n(23);"string"==typeof r&&(r=[[t.i,r,""]]);var o={hmr:!0,transform:void 0,insertInto:void 0};n(25)(r,o);r.locals&&(t.exports=r.locals)},function(t,e,n){(t.exports=n(24)(!1)).push([t.i,"@-webkit-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-moz-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-ms-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@-o-keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\n@keyframes leaflet-ant-path-animation {\n  from {\n    stroke-dashoffset: 100%; }\n  to {\n    stroke-dashoffset: 0%; } }\n\npath.leaflet-ant-path {\n  fill: none;\n  -webkit-animation: linear infinite leaflet-ant-path-animation;\n  -moz-animation: linear infinite leaflet-ant-path-animation;\n  -ms-animation: linear infinite leaflet-ant-path-animation;\n  -o-animation: linear infinite leaflet-ant-path-animation;\n  animation: linear infinite leaflet-ant-path-animation; }\n  path.leaflet-ant-path__hardware-acceleration {\n    -webkit-transform: translateZ(0);\n    -moz-transform: translateZ(0);\n    -ms-transform: translateZ(0);\n    -o-transform: translateZ(0);\n    transform: translateZ(0); }\n  path.leaflet-ant-path__reverse {\n    -webkit-animation-direction: reverse;\n    -moz-animation-direction: reverse;\n    -ms-animation-direction: reverse;\n    -o-animation-direction: reverse;\n    animation-direction: reverse; }\n",""])},function(t,e,n){"use strict";t.exports=function(t){var e=[];return e.toString=function(){return this.map(function(e){var n=function(t,e){var n=t[1]||"",r=t[3];if(!r)return n;if(e&&"function"==typeof btoa){var o=(a=r,"/*# sourceMappingURL=data:application/json;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+" */"),i=r.sources.map(function(t){return"/*# sourceURL="+r.sourceRoot+t+" */"});return[n].concat(i).concat([o]).join("\n")}var a;return[n].join("\n")}(e,t);return e[2]?"@media "+e[2]+"{"+n+"}":n}).join("")},e.i=function(t,n){"string"==typeof t&&(t=[[null,t,""]]);for(var r={},o=0;o<this.length;o++){var i=this[o][0];null!=i&&(r[i]=!0)}for(o=0;o<t.length;o++){var a=t[o];null!=a[0]&&r[a[0]]||(n&&!a[2]?a[2]=n:n&&(a[2]="("+a[2]+") and ("+n+")"),e.push(a))}},e}},function(t,e,n){var r,o,i={},a=(r=function(){return window&&document&&document.all&&!window.atob},function(){return void 0===o&&(o=r.apply(this,arguments)),o}),u=function(t){var e={};return function(t,n){if("function"==typeof t)return t();if(void 0===e[t]){var r=function(t,e){return e?e.querySelector(t):document.querySelector(t)}.call(this,t,n);if(window.HTMLIFrameElement&&r instanceof window.HTMLIFrameElement)try{r=r.contentDocument.head}catch(t){r=null}e[t]=r}return e[t]}}(),c=null,s=0,f=[],l=n(26);function p(t,e){for(var n=0;n<t.length;n++){var r=t[n],o=i[r.id];if(o){o.refs++;for(var a=0;a<o.parts.length;a++)o.parts[a](r.parts[a]);for(;a<r.parts.length;a++)o.parts.push(g(r.parts[a],e))}else{var u=[];for(a=0;a<r.parts.length;a++)u.push(g(r.parts[a],e));i[r.id]={id:r.id,refs:1,parts:u}}}}function h(t,e){for(var n=[],r={},o=0;o<t.length;o++){var i=t[o],a=e.base?i[0]+e.base:i[0],u={css:i[1],media:i[2],sourceMap:i[3]};r[a]?r[a].parts.push(u):n.push(r[a]={id:a,parts:[u]})}return n}function y(t,e){var n=u(t.insertInto);if(!n)throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var r=f[f.length-1];if("top"===t.insertAt)r?r.nextSibling?n.insertBefore(e,r.nextSibling):n.appendChild(e):n.insertBefore(e,n.firstChild),f.push(e);else if("bottom"===t.insertAt)n.appendChild(e);else{if("object"!=typeof t.insertAt||!t.insertAt.before)throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var o=u(t.insertAt.before,n);n.insertBefore(e,o)}}function v(t){if(null===t.parentNode)return!1;t.parentNode.removeChild(t);var e=f.indexOf(t);e>=0&&f.splice(e,1)}function d(t){var e=document.createElement("style");if(void 0===t.attrs.type&&(t.attrs.type="text/css"),void 0===t.attrs.nonce){var r=function(){0;return n.nc}();r&&(t.attrs.nonce=r)}return m(e,t.attrs),y(t,e),e}function m(t,e){Object.keys(e).forEach(function(n){t.setAttribute(n,e[n])})}function g(t,e){var n,r,o,i;if(e.transform&&t.css){if(!(i="function"==typeof e.transform?e.transform(t.css):e.transform.default(t.css)))return function(){};t.css=i}if(e.singleton){var a=s++;n=c||(c=d(e)),r=O.bind(null,n,a,!1),o=O.bind(null,n,a,!0)}else t.sourceMap&&"function"==typeof URL&&"function"==typeof URL.createObjectURL&&"function"==typeof URL.revokeObjectURL&&"function"==typeof Blob&&"function"==typeof btoa?(n=function(t){var e=document.createElement("link");return void 0===t.attrs.type&&(t.attrs.type="text/css"),t.attrs.rel="stylesheet",m(e,t.attrs),y(t,e),e}(e),r=function(t,e,n){var r=n.css,o=n.sourceMap,i=void 0===e.convertToAbsoluteUrls&&o;(e.convertToAbsoluteUrls||i)&&(r=l(r));o&&(r+="\n/*# sourceMappingURL=data:application/json;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(o))))+" */");var a=new Blob([r],{type:"text/css"}),u=t.href;t.href=URL.createObjectURL(a),u&&URL.revokeObjectURL(u)}.bind(null,n,e),o=function(){v(n),n.href&&URL.revokeObjectURL(n.href)}):(n=d(e),r=function(t,e){var n=e.css,r=e.media;r&&t.setAttribute("media",r);if(t.styleSheet)t.styleSheet.cssText=n;else{for(;t.firstChild;)t.removeChild(t.firstChild);t.appendChild(document.createTextNode(n))}}.bind(null,n),o=function(){v(n)});return r(t),function(e){if(e){if(e.css===t.css&&e.media===t.media&&e.sourceMap===t.sourceMap)return;r(t=e)}else o()}}t.exports=function(t,e){if(false)throw new Error("The style-loader cannot be used in a non-browser environment");(e=e||{}).attrs="object"==typeof e.attrs?e.attrs:{},e.singleton||"boolean"==typeof e.singleton||(e.singleton=a()),e.insertInto||(e.insertInto="head"),e.insertAt||(e.insertAt="bottom");var n=h(t,e);return p(n,e),function(t){for(var r=[],o=0;o<n.length;o++){var a=n[o];(u=i[a.id]).refs--,r.push(u)}t&&p(h(t,e),e);for(o=0;o<r.length;o++){var u;if(0===(u=r[o]).refs){for(var c=0;c<u.parts.length;c++)u.parts[c]();delete i[u.id]}}}};var b,w=(b=[],function(t,e){return b[t]=e,b.filter(Boolean).join("\n")});function O(t,e,n,r){var o=n?"":r.css;if(t.styleSheet)t.styleSheet.cssText=w(e,o);else{var i=document.createTextNode(o),a=t.childNodes;a[e]&&t.removeChild(a[e]),a.length?t.insertBefore(i,a[e]):t.appendChild(i)}}},function(t,e){t.exports=function(t){var e="undefined"!=typeof window&&window.location;if(!e)throw new Error("fixUrls requires window.location");if(!t||"string"!=typeof t)return t;var n=e.protocol+"//"+e.host,r=n+e.pathname.replace(/\/[^\/]*$/,"/");return t.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi,function(t,e){var o,i=e.trim().replace(/^"(.*)"$/,function(t,e){return e}).replace(/^'(.*)'$/,function(t,e){return e});return/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(i)?t:(o=0===i.indexOf("//")?i:0===i.indexOf("/")?n+i:r+i.replace(/^\.\//,""),"url("+JSON.stringify(o)+")")})}},function(t,e,n){var r=n(28);t.exports=Array.isArray||function(t){return"Array"==r(t)}},function(t,e){var n={}.toString;t.exports=function(t){return n.call(t).slice(8,-1)}},function(t,e,n){var r=n(0),o=n(16);t.exports=function(t,e){try{o(r,t,e)}catch(n){r[t]=e}return e}},function(t,e){var n=0,r=Math.random();t.exports=function(t){return"Symbol(".concat(void 0===t?"":t,")_",(++n+r).toString(36))}},function(t,e,n){"use strict";var r={}.propertyIsEnumerable,o=Object.getOwnPropertyDescriptor,i=o&&!r.call({1:2},1);e.f=i?function(t){var e=o(this,t);return!!e&&e.enumerable}:r},function(t,e,n){var r=n(0),o=n(16),i=n(7),a=n(29),u=n(49),c=n(50),s=c.get,f=c.enforce,l=String(u).split("toString");n(15)("inspectSource",function(t){return u.call(t)}),(t.exports=function(t,e,n,u){var c=!!u&&!!u.unsafe,s=!!u&&!!u.enumerable,p=!!u&&!!u.noTargetGet;"function"==typeof n&&("string"!=typeof e||i(n,"name")||o(n,"name",e),f(n).source=l.join("string"==typeof e?e:"")),t!==r?(c?!p&&t[e]&&(s=!0):delete t[e],s?t[e]=n:o(t,e,n)):s?t[e]=n:a(e,n)})(Function.prototype,"toString",function(){return"function"==typeof this&&s(this).source||u.call(this)})},function(t,e,n){var r=n(53),o=n(34).concat("length","prototype");e.f=Object.getOwnPropertyNames||function(t){return r(t,o)}},function(t,e){t.exports=["constructor","hasOwnProperty","isPrototypeOf","propertyIsEnumerable","toLocaleString","toString","valueOf"]},function(t,e){e.f=Object.getOwnPropertySymbols},function(t,e,n){var r=n(8).f,o=n(7),i=n(10)("toStringTag");t.exports=function(t,e,n){t&&!o(t=n?t:t.prototype,i)&&r(t,i,{configurable:!0,value:e})}},function(t,e,n){var r=n(53),o=n(34);t.exports=Object.keys||function(t){return r(t,o)}},function(t,e){t.exports=function(t){if("function"!=typeof t)throw TypeError(String(t)+" is not a function");return t}},function(t,e,n){var r=n(7),o=n(41),i=n(18)("IE_PROTO"),a=n(56),u=Object.prototype;t.exports=a?Object.getPrototypeOf:function(t){return t=o(t),r(t,i)?t[i]:"function"==typeof t.constructor&&t instanceof t.constructor?t.constructor.prototype:t instanceof Object?u:null}},function(t,e,n){"use strict";n.r(e);var r=n(1),o=n(12),i=n.n(o);function a(t){return(a="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}function u(t){return function(t){if(Array.isArray(t)){for(var e=0,n=new Array(t.length);e<t.length;e++)n[e]=t[e];return n}}(t)||function(t){if(Symbol.iterator in Object(t)||"[object Arguments]"===Object.prototype.toString.call(t))return Array.from(t)}(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance")}()}function c(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{},r=Object.keys(n);"function"==typeof Object.getOwnPropertySymbols&&(r=r.concat(Object.getOwnPropertySymbols(n).filter(function(t){return Object.getOwnPropertyDescriptor(n,t).enumerable}))),r.forEach(function(e){h(t,e,n[e])})}return t}function s(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}function f(t){return(f=Object.setPrototypeOf?Object.getPrototypeOf:function(t){return t.__proto__||Object.getPrototypeOf(t)})(t)}function l(t){if(void 0===t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function p(t,e){return(p=Object.setPrototypeOf||function(t,e){return t.__proto__=e,t})(t,e)}function h(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}var y={main:Symbol("main"),pulse:Symbol("pulse")},v=y.main,d=y.pulse,m=Symbol.species,g=Symbol.toStringTag,b=Symbol.iterator,w=function(t){function e(t){var n,o,i,u=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e),o=this,n=!(i=f(e).call(this))||"object"!==a(i)&&"function"!=typeof i?l(o):i,h(l(n),v,null),h(l(n),d,null),h(l(n),"_map",null),h(l(n),"_path",null),h(l(n),"_animatedPathId",null),h(l(n),"_animatedPathClass","leaflet-ant-path"),h(l(n),"_reversePathClass","".concat(n._animatedPathClass,"__reverse")),h(l(n),"_hardwareAccClass","hardware-acceleration"),h(l(n),"_defaultOptions",{use:r.polyline,paused:!1,reverse:!1,hardwareAcceleration:!1,renderer:Object(r.svg)(),delay:400,dashArray:[10,20],weight:5,opacity:.5,color:"#0000FF",pulseColor:"#FFFFFF"}),r.Util.setOptions(l(n),c({},n._defaultOptions,u)),n._path=t,n._animatedPathId="ant-path-".concat((new Date).getTime()),n._mount(),n}var n,o,w;return function(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function");t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,writable:!0,configurable:!0}}),e&&p(t,e)}(e,r["FeatureGroup"]),n=e,w=[{key:m,get:function(){return this}}],(o=[{key:"map",value:function(t){return new(0,this.constructor[Symbol.species])(this._path.map(t),c({},this.options))}},{key:b,value:i.a.mark(function t(){return i.a.wrap(function(t){for(;;)switch(t.prev=t.next){case 0:return t.delegateYield(this._path,"t0",1);case 1:case"end":return t.stop()}},t,this)})},{key:"_processOptions",value:function(){var t=this.options,e=this._animatedPathClass,n=this._reversePathClass,r=this._hardwareAccClass,o=this._animatedPathId,i=t.reverse,a=t.hardwareAcceleration,u=c({},t),s=c({},t);return s.color=s.pulseColor||t.pulseColor,s.className=[e,o,i?n:"",a?"".concat(e,"__").concat(r):""].join(" "),delete u.dashArray,Array.isArray(s.dashArray)&&(s.dashArray=String(s.dashArray)),{pathOpts:u,pulseOpts:s}}},{key:"_mount",value:function(){var t=this._processOptions(),e=t.pathOpts,n=t.pulseOpts,r=this.options.use;this.addLayer(this[y.main]=r(this._path,e)),this.addLayer(this[y.pulse]=r(this._path,n))}},{key:"_calculateAnimationSpeed",value:function(){var t=this.options,e=this._map,n=this._animatedPathId;if(!t.paused&&e){var r=e.getZoom(),o=document.getElementsByClassName(n),i=1+t.delay/3/r+"s",a=["-webkit-","-moz-","-ms-","-o-",""].map(function(t){return"".concat(t,"animation-duration: ").concat(i)}).join(";");Array.from(o,function(t){t.style.cssText=a,t.setAttribute("data-animated","true")})}}},{key:"_pureReverse",value:function(){var t=this[y.pulse].getElement();t&&(this.options.reverse?t.classList.remove(this._reversePathClass):t.classList.add(this._reversePathClass))}},{key:"onAdd",value:function(t){return this._map=t,this._map.on("zoomend",this._calculateAnimationSpeed,this),this._mount(),this._calculateAnimationSpeed(),this}},{key:"onRemove",value:function(t){return this._map&&(this._map.off("zoomend",this._calculateAnimationSpeed,this),this._map=null),t&&t.removeLayer(this[y.main]).removeLayer(this[y.pulse]),this}},{key:"pause",value:function(){if(!this.options.paused){var t=this[y.pulse].getElement();return this.options.paused=!0,t&&(t.removeAttribute("style"),t.setAttribute("data-animated","true")),!0}return!1}},{key:"resume",value:function(){var t=this.options;return!!t.paused&&(t.paused=!1,this._calculateAnimationSpeed(),!0)}},{key:"bringToFront",value:function(){return this[y.main].bringToFront(),this[y.pulse].bringToFront(),this}},{key:"bringToBack",value:function(){return this[y.pulse].bringToBack(),this[y.main].bringToBack(),this}},{key:"removeFrom",value:function(t){return t&&t.hasLayer(this)&&t.removeLayer(this),this}},{key:"setStyle",value:function(t){var e=t.paused,n=t.delay,r=t.reverse;e=void 0===e?this.options.paused:e,r=void 0===(n=void 0===n?this.options.delay:n)?this.options.reverse:r,e?this.pause():this.resume(),n!==this.options.delay&&(this.options.delay=n||this._defaultOptions.delay,this._calculateAnimationSpeed()),void 0!==r&&r!==this.options.reverse&&this._pureReverse(),this.options=c({},this.options,t);var o=this._processOptions(),i=o.pathOpts,a=o.pulseOpts;return this[y.main].setStyle(i),this[y.pulse].setStyle(a),this}},{key:"reverse",value:function(){return this._pureReverse(),this.options.reverse=!this.options.reverse,this}},{key:"redraw",value:function(){return this[y.main].redraw(),this[y.pulse].redraw(),this}},{key:"addLatLng",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=[].concat(u(this._path),[r]),(t=this[y.main]).addLatLng.apply(t,r),(e=this[y.pulse]).addLatLng.apply(e,r),this}},{key:"setLatLngs",value:function(){for(var t,e,n=arguments.length,r=new Array(n),o=0;o<n;o++)r[o]=arguments[o];return this._path=r,(t=this[y.main]).setLatLngs.apply(t,r),(e=this[y.pulse]).setLatLngs.apply(e,r),this}},{key:"getLatLngs",value:function(){return this[y.main].getLatLngs()}},{key:"spliceLatLngs",value:function(){var t,e,n=(t=this[y.main]).spliceLatLngs.apply(t,arguments);return(e=this[y.pulse]).spliceLatLngs.apply(e,arguments),n}},{key:"getBounds",value:function(){return this[y.main].getBounds()}},{key:"toGeoJSON",value:function(){return this[y.main].toGeoJSON()}},{key:g,get:function(){return"L.Polyline.AntPath"}}])&&s(n.prototype,o),w&&s(n,w),e}(),O=function(t,e){return Reflect.construct(w,[t,e])};n(22);n.d(e,"AntPath",function(){return x}),n.d(e,"antPath",function(){return S}),r.Polyline.AntPath=w,r.polyline.antPath=O;var x=w,S=O;e.default={AntPath:x,antPath:S}},function(t,e,n){var r=n(42);t.exports=function(t){return Object(r(t))}},function(t,e){t.exports=function(t){if(null==t)throw TypeError("Can't call method on "+t);return t}},function(t,e,n){var r=n(44),o=Math.min;t.exports=function(t){return t>0?o(r(t),9007199254740991):0}},function(t,e){var n=Math.ceil,r=Math.floor;t.exports=function(t){return isNaN(t=+t)?0:(t>0?r:n)(t)}},function(t,e,n){t.exports=!n(9)&&!n(5)(function(){return 7!=Object.defineProperty(n(46)("div"),"a",{get:function(){return 7}}).a})},function(t,e,n){var r=n(4),o=n(0).document,i=r(o)&&r(o.createElement);t.exports=function(t){return i?o.createElement(t):{}}},function(t,e){t.exports=!1},function(t,e,n){t.exports=!n(5)(function(){return!String(Symbol())})},function(t,e,n){t.exports=n(15)("native-function-to-string",Function.toString)},function(t,e,n){var r,o,i,a=n(65),u=n(4),c=n(16),s=n(7),f=n(18),l=n(19),p=n(0).WeakMap;if(a){var h=new p,y=h.get,v=h.has,d=h.set;r=function(t,e){return d.call(h,t,e),e},o=function(t){return y.call(h,t)||{}},i=function(t){return v.call(h,t)}}else{var m=f("state");l[m]=!0,r=function(t,e){return c(t,m,e),e},o=function(t){return s(t,m)?t[m]:{}},i=function(t){return s(t,m)}}t.exports={set:r,get:o,has:i,enforce:function(t){return i(t)?o(t):r(t,{})},getterFor:function(t){return function(e){var n;if(!u(e)||(n=o(e)).type!==t)throw TypeError("Incompatible receiver, "+t+" required");return n}}}},function(t,e,n){var r=n(7),o=n(52),i=n(11),a=n(8);t.exports=function(t,e){for(var n=o(e),u=a.f,c=i.f,s=0;s<n.length;s++){var f=n[s];r(t,f)||u(t,f,c(e,f))}}},function(t,e,n){var r=n(33),o=n(35),i=n(2),a=n(0).Reflect;t.exports=a&&a.ownKeys||function(t){var e=r.f(i(t)),n=o.f;return n?e.concat(n(t)):e}},function(t,e,n){var r=n(7),o=n(17),i=n(66)(!1),a=n(19);t.exports=function(t,e){var n,u=o(t),c=0,s=[];for(n in u)!r(a,n)&&r(u,n)&&s.push(n);for(;e.length>c;)r(u,n=e[c++])&&(~i(s,n)||s.push(n));return s}},function(t,e,n){e.f=n(10)},function(t,e,n){var r=n(2),o=n(74),i=n(34),a=n(75),u=n(46),c=n(18)("IE_PROTO"),s=function(){},f=function(){var t,e=u("iframe"),n=i.length;for(e.style.display="none",a.appendChild(e),e.src=String("javascript:"),(t=e.contentWindow.document).open(),t.write("<script>document.F=Object<\/script>"),t.close(),f=t.F;n--;)delete f.prototype[i[n]];return f()};t.exports=Object.create||function(t,e){var n;return null!==t?(s.prototype=r(t),n=new s,s.prototype=null,n[c]=t):n=f(),void 0===e?n:o(n,e)},n(19)[c]=!0},function(t,e,n){t.exports=!n(5)(function(){function t(){}return t.prototype.constructor=null,Object.getPrototypeOf(new t)!==t.prototype})},function(t,e,n){var r=n(4),o=n(2);t.exports=function(t,e){if(o(t),!r(e)&&null!==e)throw TypeError("Can't set "+String(e)+" as a prototype")}},function(t,e,n){n(59),n(92),t.exports=n(40)},function(t,e,n){n(60),n(69),n(72),n(77),n(78),n(79),n(80),n(81),n(82),n(83),n(84),n(85),n(86),n(87),n(88),n(89),n(90),n(91),t.exports=n(20).Symbol},function(t,e,n){"use strict";var r=n(27),o=n(4),i=n(41),a=n(43),u=n(61),c=n(62),s=n(10)("isConcatSpreadable"),f=!n(5)(function(){var t=[];return t[s]=!1,t.concat()[0]!==t}),l=n(63)("concat"),p=function(t){if(!o(t))return!1;var e=t[s];return void 0!==e?!!e:r(t)},h=!f||!l;n(3)({target:"Array",proto:!0,forced:h},{concat:function(t){var e,n,r,o,s,f=i(this),l=c(f,0),h=0;for(e=-1,r=arguments.length;e<r;e++)if(s=-1===e?f:arguments[e],p(s)){if(h+(o=a(s.length))>9007199254740991)throw TypeError("Maximum allowed index exceeded");for(n=0;n<o;n++,h++)n in s&&u(l,h,s[n])}else{if(h>=9007199254740991)throw TypeError("Maximum allowed index exceeded");u(l,h++,s)}return l.length=h,l}})},function(t,e,n){"use strict";var r=n(13),o=n(8),i=n(14);t.exports=function(t,e,n){var a=r(e);a in t?o.f(t,a,i(0,n)):t[a]=n}},function(t,e,n){var r=n(4),o=n(27),i=n(10)("species");t.exports=function(t,e){var n;return o(t)&&("function"!=typeof(n=t.constructor)||n!==Array&&!o(n.prototype)?r(n)&&null===(n=n[i])&&(n=void 0):n=void 0),new(void 0===n?Array:n)(0===e?0:e)}},function(t,e,n){var r=n(5),o=n(10)("species");t.exports=function(t){return!r(function(){var e=[];return(e.constructor={})[o]=function(){return{foo:1}},1!==e[t](Boolean).foo})}},function(t,e,n){var r=n(5),o=n(28),i="".split;t.exports=r(function(){return!Object("z").propertyIsEnumerable(0)})?function(t){return"String"==o(t)?i.call(t,""):Object(t)}:Object},function(t,e,n){var r=n(49),o=n(0).WeakMap;t.exports="function"==typeof o&&/native code/.test(r.call(o))},function(t,e,n){var r=n(17),o=n(43),i=n(67);t.exports=function(t){return function(e,n,a){var u,c=r(e),s=o(c.length),f=i(a,s);if(t&&n!=n){for(;s>f;)if((u=c[f++])!=u)return!0}else for(;s>f;f++)if((t||f in c)&&c[f]===n)return t||f||0;return!t&&-1}}},function(t,e,n){var r=n(44),o=Math.max,i=Math.min;t.exports=function(t,e){var n=r(t);return n<0?o(n+e,0):i(n,e)}},function(t,e,n){var r=n(5),o=/#|\.prototype\./,i=function(t,e){var n=u[a(t)];return n==s||n!=c&&("function"==typeof e?r(e):!!e)},a=i.normalize=function(t){return String(t).replace(o,".").toLowerCase()},u=i.data={},c=i.NATIVE="N",s=i.POLYFILL="P";t.exports=i},function(t,e,n){var r=n(70),o=Object.prototype;r!==o.toString&&n(32)(o,"toString",r,{unsafe:!0})},function(t,e,n){"use strict";var r=n(71),o={};o[n(10)("toStringTag")]="z",t.exports="[object z]"!==String(o)?function(){return"[object "+r(this)+"]"}:o.toString},function(t,e,n){var r=n(28),o=n(10)("toStringTag"),i="Arguments"==r(function(){return arguments}());t.exports=function(t){var e,n,a;return void 0===t?"Undefined":null===t?"Null":"string"==typeof(n=function(t,e){try{return t[e]}catch(t){}}(e=Object(t),o))?n:i?r(e):"Object"==(a=r(e))&&"function"==typeof e.callee?"Arguments":a}},function(t,e,n){"use strict";var r=n(0),o=n(7),i=n(9),a=n(47),u=n(3),c=n(32),s=n(19),f=n(5),l=n(15),p=n(36),h=n(30),y=n(10),v=n(54),d=n(6),m=n(73),g=n(27),b=n(2),w=n(4),O=n(17),x=n(13),S=n(14),_=n(55),j=n(76),L=n(11),P=n(8),k=n(31),E=n(16),A=n(37),T=n(18)("hidden"),R=n(50),C=R.set,F=R.getterFor("Symbol"),N=L.f,M=P.f,I=j.f,U=r.Symbol,B=r.JSON,G=B&&B.stringify,z=y("toPrimitive"),D=k.f,J=l("symbol-registry"),q=l("symbols"),Z=l("op-symbols"),$=l("wks"),W=Object.prototype,Y=r.QObject,H=n(48),K=!Y||!Y.prototype||!Y.prototype.findChild,Q=i&&f(function(){return 7!=_(M({},"a",{get:function(){return M(this,"a",{value:7}).a}})).a})?function(t,e,n){var r=N(W,e);r&&delete W[e],M(t,e,n),r&&t!==W&&M(W,e,r)}:M,V=function(t,e){var n=q[t]=_(U.prototype);return C(n,{type:"Symbol",tag:t,description:e}),i||(n.description=e),n},X=H&&"symbol"==typeof U.iterator?function(t){return"symbol"==typeof t}:function(t){return Object(t)instanceof U},tt=function(t,e,n){return t===W&&tt(Z,e,n),b(t),e=x(e,!0),b(n),o(q,e)?(n.enumerable?(o(t,T)&&t[T][e]&&(t[T][e]=!1),n=_(n,{enumerable:S(0,!1)})):(o(t,T)||M(t,T,S(1,{})),t[T][e]=!0),Q(t,e,n)):M(t,e,n)},et=function(t,e){b(t);for(var n,r=m(e=O(e)),o=0,i=r.length;i>o;)tt(t,n=r[o++],e[n]);return t},nt=function(t){var e=D.call(this,t=x(t,!0));return!(this===W&&o(q,t)&&!o(Z,t))&&(!(e||!o(this,t)||!o(q,t)||o(this,T)&&this[T][t])||e)},rt=function(t,e){if(t=O(t),e=x(e,!0),t!==W||!o(q,e)||o(Z,e)){var n=N(t,e);return!n||!o(q,e)||o(t,T)&&t[T][e]||(n.enumerable=!0),n}},ot=function(t){for(var e,n=I(O(t)),r=[],i=0;n.length>i;)o(q,e=n[i++])||o(s,e)||r.push(e);return r},it=function(t){for(var e,n=t===W,r=I(n?Z:O(t)),i=[],a=0;r.length>a;)!o(q,e=r[a++])||n&&!o(W,e)||i.push(q[e]);return i};H||(c((U=function(){if(this instanceof U)throw TypeError("Symbol is not a constructor");var t=void 0===arguments[0]?void 0:String(arguments[0]),e=h(t),n=function(t){this===W&&n.call(Z,t),o(this,T)&&o(this[T],e)&&(this[T][e]=!1),Q(this,e,S(1,t))};return i&&K&&Q(W,e,{configurable:!0,set:n}),V(e,t)}).prototype,"toString",function(){return F(this).tag}),k.f=nt,P.f=tt,L.f=rt,n(33).f=j.f=ot,n(35).f=it,i&&(M(U.prototype,"description",{configurable:!0,get:function(){return F(this).description}}),a||c(W,"propertyIsEnumerable",nt,{unsafe:!0})),v.f=function(t){return V(y(t),t)}),u({global:!0,wrap:!0,forced:!H,sham:!H},{Symbol:U});for(var at=A($),ut=0;at.length>ut;)d(at[ut++]);u({target:"Symbol",stat:!0,forced:!H},{for:function(t){return o(J,t+="")?J[t]:J[t]=U(t)},keyFor:function(t){if(!X(t))throw TypeError(t+" is not a symbol");for(var e in J)if(J[e]===t)return e},useSetter:function(){K=!0},useSimple:function(){K=!1}}),u({target:"Object",stat:!0,forced:!H,sham:!i},{create:function(t,e){return void 0===e?_(t):et(_(t),e)},defineProperty:tt,defineProperties:et,getOwnPropertyDescriptor:rt}),u({target:"Object",stat:!0,forced:!H},{getOwnPropertyNames:ot,getOwnPropertySymbols:it}),B&&u({target:"JSON",stat:!0,forced:!H||f(function(){var t=U();return"[null]"!=G([t])||"{}"!=G({a:t})||"{}"!=G(Object(t))})},{stringify:function(t){for(var e,n,r=[t],o=1;arguments.length>o;)r.push(arguments[o++]);if(n=e=r[1],(w(e)||void 0!==t)&&!X(t))return g(e)||(e=function(t,e){if("function"==typeof n&&(e=n.call(this,t,e)),!X(e))return e}),r[1]=e,G.apply(B,r)}}),U.prototype[z]||E(U.prototype,z,U.prototype.valueOf),p(U,"Symbol"),s[T]=!0},function(t,e,n){var r=n(37),o=n(35),i=n(31);t.exports=function(t){var e=r(t),n=o.f;if(n)for(var a,u=n(t),c=i.f,s=0;u.length>s;)c.call(t,a=u[s++])&&e.push(a);return e}},function(t,e,n){var r=n(9),o=n(8),i=n(2),a=n(37);t.exports=r?Object.defineProperties:function(t,e){i(t);for(var n,r=a(e),u=r.length,c=0;u>c;)o.f(t,n=r[c++],e[n]);return t}},function(t,e,n){var r=n(0).document;t.exports=r&&r.documentElement},function(t,e,n){var r=n(17),o=n(33).f,i={}.toString,a="object"==typeof window&&window&&Object.getOwnPropertyNames?Object.getOwnPropertyNames(window):[];t.exports.f=function(t){return a&&"[object Window]"==i.call(t)?function(t){try{return o(t)}catch(t){return a.slice()}}(t):o(r(t))}},function(t,e,n){n(6)("asyncIterator")},function(t,e,n){"use strict";var r=n(9),o=n(7),i=n(4),a=n(8).f,u=n(51),c=n(0).Symbol;if(r&&"function"==typeof c&&(!("description"in c.prototype)||void 0!==c().description)){var s={},f=function(){var t=arguments.length<1||void 0===arguments[0]?void 0:String(arguments[0]),e=this instanceof f?new c(t):void 0===t?c():c(t);return""===t&&(s[e]=!0),e};u(f,c);var l=f.prototype=c.prototype;l.constructor=f;var p=l.toString,h="Symbol(test)"==String(c("test")),y=/^Symbol\((.*)\)[^)]+$/;a(l,"description",{configurable:!0,get:function(){var t=i(this)?this.valueOf():this,e=p.call(t);if(o(s,t))return"";var n=h?e.slice(7,-1):e.replace(y,"$1");return""===n?void 0:n}}),n(3)({global:!0,forced:!0},{Symbol:f})}},function(t,e,n){n(6)("hasInstance")},function(t,e,n){n(6)("isConcatSpreadable")},function(t,e,n){n(6)("iterator")},function(t,e,n){n(6)("match")},function(t,e,n){n(6)("replace")},function(t,e,n){n(6)("search")},function(t,e,n){n(6)("species")},function(t,e,n){n(6)("split")},function(t,e,n){n(6)("toPrimitive")},function(t,e,n){n(6)("toStringTag")},function(t,e,n){n(6)("unscopables")},function(t,e,n){n(36)(Math,"Math",!0)},function(t,e,n){n(36)(n(0).JSON,"JSON",!0)},function(t,e,n){n(93),n(94),n(96),n(97),n(98),n(99),n(100),n(101),n(102),n(103),n(104),n(107),n(108),t.exports=n(20).Reflect},function(t,e,n){var r=n(38),o=n(2),i=(n(0).Reflect||{}).apply,a=Function.apply,u=!n(5)(function(){i(function(){})});n(3)({target:"Reflect",stat:!0,forced:u},{apply:function(t,e,n){return r(t),o(n),i?i(t,e,n):a.call(t,e,n)}})},function(t,e,n){var r=n(55),o=n(38),i=n(2),a=n(4),u=n(5),c=n(95),s=(n(0).Reflect||{}).construct,f=u(function(){function t(){}return!(s(function(){},[],t)instanceof t)}),l=!u(function(){s(function(){})}),p=f||l;n(3)({target:"Reflect",stat:!0,forced:p,sham:p},{construct:function(t,e){o(t),i(e);var n=arguments.length<3?t:o(arguments[2]);if(l&&!f)return s(t,e,n);if(t==n){switch(e.length){case 0:return new t;case 1:return new t(e[0]);case 2:return new t(e[0],e[1]);case 3:return new t(e[0],e[1],e[2]);case 4:return new t(e[0],e[1],e[2],e[3])}var u=[null];return u.push.apply(u,e),new(c.apply(t,u))}var p=n.prototype,h=r(a(p)?p:Object.prototype),y=Function.apply.call(t,h,e);return a(y)?y:h}})},function(t,e,n){"use strict";var r=n(38),o=n(4),i=[].slice,a={};t.exports=Function.bind||function(t){var e=r(this),n=i.call(arguments,1),u=function(){var r=n.concat(i.call(arguments));return this instanceof u?function(t,e,n){if(!(e in a)){for(var r=[],o=0;o<e;o++)r[o]="a["+o+"]";a[e]=Function("C,a","return new C("+r.join(",")+")")}return a[e](t,n)}(e,r.length,r):e.apply(t,r)};return o(e.prototype)&&(u.prototype=e.prototype),u}},function(t,e,n){var r=n(8),o=n(2),i=n(13),a=n(9),u=n(5)(function(){Reflect.defineProperty(r.f({},1,{value:1}),1,{value:2})});n(3)({target:"Reflect",stat:!0,forced:u,sham:!a},{defineProperty:function(t,e,n){o(t),e=i(e,!0),o(n);try{return r.f(t,e,n),!0}catch(t){return!1}}})},function(t,e,n){var r=n(11).f,o=n(2);n(3)({target:"Reflect",stat:!0},{deleteProperty:function(t,e){var n=r(o(t),e);return!(n&&!n.configurable)&&delete t[e]}})},function(t,e,n){var r=n(11),o=n(39),i=n(7),a=n(4),u=n(2);n(3)({target:"Reflect",stat:!0},{get:function t(e,n){var c,s,f=arguments.length<3?e:arguments[2];return u(e)===f?e[n]:(c=r.f(e,n))?i(c,"value")?c.value:void 0===c.get?void 0:c.get.call(f):a(s=o(e))?t(s,n,f):void 0}})},function(t,e,n){var r=n(11),o=n(2),i=n(9);n(3)({target:"Reflect",stat:!0,sham:!i},{getOwnPropertyDescriptor:function(t,e){return r.f(o(t),e)}})},function(t,e,n){var r=n(39),o=n(2),i=n(56);n(3)({target:"Reflect",stat:!0,sham:!i},{getPrototypeOf:function(t){return r(o(t))}})},function(t,e,n){n(3)({target:"Reflect",stat:!0},{has:function(t,e){return e in t}})},function(t,e,n){var r=n(2),o=Object.isExtensible;n(3)({target:"Reflect",stat:!0},{isExtensible:function(t){return r(t),!o||o(t)}})},function(t,e,n){n(3)({target:"Reflect",stat:!0},{ownKeys:n(52)})},function(t,e,n){var r=n(105),o=n(2),i=n(106);n(3)({target:"Reflect",stat:!0,sham:!i},{preventExtensions:function(t){o(t);try{var e=r("Object","preventExtensions");return e&&e(t),!0}catch(t){return!1}}})},function(t,e,n){var r=n(20),o=n(0),i=function(t){return"function"==typeof t?t:void 0};t.exports=function(t,e){return arguments.length<2?i(r[t])||i(o[t]):r[t]&&r[t][e]||o[t]&&o[t][e]}},function(t,e,n){t.exports=!n(5)(function(){return Object.isExtensible(Object.preventExtensions({}))})},function(t,e,n){var r=n(8),o=n(11),i=n(39),a=n(7),u=n(14),c=n(2),s=n(4);n(3)({target:"Reflect",stat:!0},{set:function t(e,n,f){var l,p,h=arguments.length<4?e:arguments[3],y=o.f(c(e),n);if(!y){if(s(p=i(e)))return t(p,n,f,h);y=u(0)}if(a(y,"value")){if(!1===y.writable||!s(h))return!1;if(l=o.f(h,n)){if(l.get||l.set||!1===l.writable)return!1;l.value=f,r.f(h,n,l)}else r.f(h,n,u(0,f));return!0}return void 0!==y.set&&(y.set.call(h,f),!0)}})},function(t,e,n){var r=n(109),o=n(57);r&&n(3)({target:"Reflect",stat:!0},{setPrototypeOf:function(t,e){o(t,e);try{return r(t,e),!0}catch(t){return!1}}})},function(t,e,n){var r=n(57);t.exports=Object.setPrototypeOf||("__proto__"in{}?function(){var t,e=!1,n={};try{(t=Object.getOwnPropertyDescriptor(Object.prototype,"__proto__").set).call(n,[]),e=n instanceof Array}catch(t){}return function(n,o){return r(n,o),e?t.call(n,o):n.__proto__=o,n}}():void 0)}])});
 	//# sourceMappingURL=leaflet-ant-path.js.map
 
 /***/ }),
@@ -68656,6 +68788,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	'use strict';
 
 	L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
+	//L.HeatLayer = L.Path.extend({
 
 	    // options: {
 	    //     minOpacity: 0.05,
@@ -68667,7 +68800,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	    initialize: function (latlngs, options) {
 	        this._latlngs = latlngs;
+	        this._map = options.map;
 	        L.setOptions(this, options);
+	        this._pane = this.options.pane ? this.options.pane:"overlayPane";
+	        if (!this._canvas) {
+	            this._initCanvas();
+	        }
 	    },
 
 	    // @method getLatLng: LatLng
@@ -68694,6 +68832,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        return this.redraw();
 	    },
 
+	    setStyle: function (options) {
+	        L.setOptions(this, options);
+	        
+	        this._pane = this.options.pane ? this.options.pane:this._pane
+	    },
+
 	    redraw: function () {
 	        if (this._heat && !this._frame && !this._map._animating) {
 	            this._frame = L.Util.requestAnimFrame(this._redraw, this);
@@ -68708,7 +68852,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            this._initCanvas();
 	        }
 
-	        map._panes.overlayPane.appendChild(this._canvas);
+	        //this._pane = this.options.pane ? this.options.pane:"overlayPane"
+	        
+	        // Pane does not exist default to overlay pane
+	        if(!map._panes[this._pane]) { 
+	            console.warn("Attempting to add to nonexistant pane " + this.options.pane + " - defaulting to overlayPane")
+	            this._pane = "overlayPane"
+	        }
+
+	        map._panes[this._pane].appendChild(this._canvas);
 
 	        map.on('moveend', this._reset, this);
 
@@ -68720,7 +68872,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    },
 
 	    onRemove: function (map) {
-	        map.getPanes().overlayPane.removeChild(this._canvas);
+	        //map.getPanes().overlayPane.removeChild(this._canvas);
+	        map.getPanes()[this._pane].removeChild(this._canvas);
 
 	        map.off('moveend', this._reset, this);
 

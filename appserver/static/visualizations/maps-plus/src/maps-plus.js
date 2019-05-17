@@ -573,7 +573,7 @@ define([
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
-                               'heamaptLayer',
+                               'heatmapLayer',
                                'heatmapPointIntensity',
                                'heatmapMinOpacity',
                                'heatmapRadius',

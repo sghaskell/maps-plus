@@ -44,9 +44,10 @@ icon8=case(like(prefix, "fa"), "hand-lizard-o", like(prefix, "ion"), "nuclear", 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
 icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
 iconColor=case(like(description, "%SIMPLE%"), "#f4b541", like(description, "%DOMESTIC BATTERY%"), "#f44149", like(description, "%500 AND UNDER%"), "#f441dc", like(description, "%TO PROPERTY%"), "#a341f4", like(description, "%RETAIL THEFT%"), "#41f458", like(description, "%TO VEHICLE%"), "#41f4eb",1=1, "#4286f4"),
+layerDescription=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
 extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses, layerDescription</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -127,8 +128,9 @@ extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
   </row>
   <row>
     <panel>
+      <title>Font Awesome Brands</title>
       <viz type="leaflet_maps_app.maps-plus">
-        <title>Font Awesome Brands</title>
+        <title>latitude,longitude,icon,prefix,tooltip,layerDescription</title>
         <search>
           <query>| inputlookup fa-brands.csv</query>
           <earliest>-24h@h</earliest>

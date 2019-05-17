@@ -625,7 +625,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
-	                               'heamaptLayer',
+	                               'heatmapLayer',
 	                               'heatmapPointIntensity',
 	                               'heatmapMinOpacity',
 	                               'heatmapRadius',

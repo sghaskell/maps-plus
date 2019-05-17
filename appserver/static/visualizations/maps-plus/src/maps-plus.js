@@ -807,7 +807,6 @@ define([
                     pathFg = options.pathLineLayers[id]
                 } else if(_.has(options.pathLineLayers, pathLayer)) {
                     pathFg = options.pathLineLayers[pathLayer]
-
                 } else {
                     pathFg = L.featureGroup()
                     

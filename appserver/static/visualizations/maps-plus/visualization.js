@@ -859,7 +859,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    pathFg = options.pathLineLayers[id]
 	                } else if(_.has(options.pathLineLayers, pathLayer)) {
 	                    pathFg = options.pathLineLayers[pathLayer]
-
 	                } else {
 	                    pathFg = L.featureGroup()
 	                    

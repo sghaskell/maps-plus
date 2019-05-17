@@ -1261,14 +1261,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        _addUnclustered: function(map, options) {
 	            _.chain(options.layerFilter)
 	            .sortBy(function(d) {
-	                if(_.has(d.circle, "layerPriority")){
+	                if(!_.isUndefined(d.circle.layerPriority)){
 	                    return +d.circle.layerPriority
 	                } else {
 	                    return d
 	                }                
 	            })
 	            .each(function(lg) {
-	                if(_.has(lg.circle, "layerPriority")){
+	                if(!_.isUndefined(lg.circle.layerPriority)){
 	                    map.createPane(options.paneZIndex.toString())
 	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
 	                }
@@ -1282,7 +1282,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                })
 
-	                if(_.has(lg.circle, "layerPriority")){
+	                if(!_.isUndefined(lg.circle.layerPriority)){
 	                    lg.group.setStyle({pane: options.paneZIndex.toString()})
 	                    options.paneZIndex += 1
 	                }
@@ -1507,6 +1507,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                return this
 	            }
 
+	            // Make sure we're on Splunk 7.x+
 	            if(!this.isSplunkSeven) {
 	                // Render warning modal
 	                this.renderModal('splunk-version-warning',
@@ -2116,7 +2117,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                    'layerExists' : false,
 	                                                    'clusterGroup': []
 	                                                    }
-	                // Create normal layergroup
+	                // Create regular feature group
 	                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
 	                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
 	                                                    'markerList' : [],

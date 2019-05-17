@@ -1261,14 +1261,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        _addUnclustered: function(map, options) {
 	            _.chain(options.layerFilter)
 	            .sortBy(function(d) {
-	                if(!_.isUndefined(d.circle.layerPriority)){
+	                if(_.has(d.circle, "layerPriority") && !_.isUndefined(d.circle.layerPriority)){
 	                    return +d.circle.layerPriority
 	                } else {
 	                    return d
 	                }                
 	            })
 	            .each(function(lg) {
-	                if(!_.isUndefined(lg.circle.layerPriority)){
+	                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
 	                    map.createPane(options.paneZIndex.toString())
 	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
 	                }
@@ -1282,7 +1282,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                })
 
-	                if(!_.isUndefined(lg.circle.layerPriority)){
+	                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
 	                    lg.group.setStyle({pane: options.paneZIndex.toString()})
 	                    options.paneZIndex += 1
 	                }

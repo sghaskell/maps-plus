@@ -15,7 +15,7 @@
   </row>
   <row>
     <panel>
-      <title>circleColor, circleFillColor, circleFillOpacity, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight, layerGroup, layerPriority</title>
+      <title>circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight, layerGroup, layerPriority</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv

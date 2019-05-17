@@ -1250,7 +1250,7 @@ define([
         _renderLayersToMap: function(map, options) {
             _.chain(options.layers)
             .sortBy(function(d) {
-                if(_.has(d.options, "layerPriority")){
+                if(!_.isUndefined(d.options.layerPriority)){
                     return +d.options.layerPriority
                 } else {
                     return d

@@ -1,5 +1,5 @@
 <dashboard theme="dark">
-  <label>Dark Mode</label>
+  <label>PNG Markers</label>
   <row>
     <panel>
       <html>
@@ -18,14 +18,16 @@
   </row>
   <row>
     <panel>
-      <title>Custom Marker Colors, Font Awesome Icons, Disable Clustering At Zoom Level (16), Single Cluster Group</title>
+      <title>Custom Marker Colors, Font Awesome Icons, Disable Clustering At Zoom Level (16), Single Cluster Group,</title>
       <viz type="leaflet_maps_app.maps-plus">
+        <title>markerColor, icon, tooltip, description, clusterGroup, layerDescription</title>
         <search>
           <query>| inputlookup chicago-crime.csv 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -45,7 +47,6 @@ icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(descriptio
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">16</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -57,13 +58,12 @@ icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(descriptio
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
@@ -90,7 +90,6 @@ icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(descriptio
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

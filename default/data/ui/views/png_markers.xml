@@ -18,14 +18,16 @@
   </row>
   <row>
     <panel>
-      <title>Custom Marker Colors, Font Awesome Icons, Disable Clustering At Zoom Level (16), Single Cluster Group</title>
+      <title>Custom Marker Colors, Font Awesome Icons, Disable Clustering At Zoom Level (16), Single Cluster Group,</title>
       <viz type="leaflet_maps_app.maps-plus">
+        <title>markerColor, icon, tooltip, description, clusterGroup, layerDescription</title>
         <search>
           <query>| inputlookup chicago-crime.csv 
 | eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

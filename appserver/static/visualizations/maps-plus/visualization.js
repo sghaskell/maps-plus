@@ -613,7 +613,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 								   'shadowSize',
 								   'prefix',
 								   'extraClasses',
-							       'layerDescription',
+	                               'layerDescription',
+	                               'pathLayer',
 								   'pathWeight',
 								   'pathOpacity',
 	                               'layerGroup',
@@ -645,6 +646,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'antPathReverse',
 	                               'antPathDashArray',
 	                               'feature',
+	                               'featureLayer',
 	                               'featureDescription',
 	                               'featureTooltip',
 	                               'featureColor',
@@ -843,27 +845,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            //var paneZIndex = 400
 	           
 	            _.each(options.data, function(p) {        
-	                var id = p[0]['id']
-	                var layerDescription = p[0]['layerDescription']
-	                var layerPriority = p[0]['layerPriority']
-	                var layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path"
+	                let id = p[0]['id'],
+	                  layerDescription = p[0]['layerDescription'],
+	                  layerPriority = p[0]['layerPriority'],
+	                  layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
+	                  pathLayer = p[0]['pathLayer'],
+	                  pathFg,
+	                  pathName
 
-	                // Check if feature group exists for current layerDescripton or id
+	                // Check if feature group exists for current layerGroup or id
 	                // Use existing FG or create new accordingly.
-	                if(_.has(options.pathLineLayers, layerDescription)) {
-	                    var pathFg = options.pathLineLayers[layerDescription]
-	                } else if(_.has(options.pathLineLayers, id)) {
-	                    var pathFg = options.pathLineLayers[id]
+	                if(_.has(options.pathLineLayers, id)) {
+	                    pathFg = options.pathLineLayers[id]
+	                } else if(_.has(options.pathLineLayers, pathLayer)) {
+	                    pathFg = options.pathLineLayers[pathLayer]
+
 	                } else {
-	                    var pathFg = L.featureGroup()
-	                    if(layerDescription != "") {
-	                        pathFg.options.name = layerDescription
+	                    pathFg = L.featureGroup()
+	                    
+	                    // Prefer layerGroup and fallback to id
+	                    if(!_.isUndefined(pathLayer)) {
+	                        pathName = pathLayer
 	                    } else {
-	                        pathFg.options.name = id
+	                        pathName = id                        
 	                    }
-	                    options.pathLineLayers[pathFg.options.name] = pathFg
+	                    options.pathLineLayers[pathName] = pathFg
+	                    pathFg.options.name = pathName
 	                    pathFg.options.layerPriority = layerPriority
 	                    pathFg.options.layerType = layerType
+	                    pathFg.options.layerDescription = layerDescription
 	                }
 
 	                // Ant Path
@@ -2152,14 +2162,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 	            }, this)
 	            
-	            // Enable/disable layer controls and toggle collapse 
+	            // Enable layer controls and toggle collapse 
 	            if (this.isArgTrue(layerControl)) {           
-	                this.control.addTo(this.map)
 	                this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
+	                this.control.addTo(this.map)                
 	                if(this.isDarkTheme) { this._darkModeUpdate() }
-	            } else {
-	                this.control.remove()
-	            }
+	            } 
 
 	            // Clustered
 	            if (this.isArgTrue(cluster)) {
@@ -2167,7 +2175,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                              layerControl: this.isArgTrue(layerControl),
 	                                              control: this.control,
 	                                              context: this})
-	            // Single value
+	            // Single value or Circle Marker
 	            } else {
 	                this._addUnclustered(this.map, {layerFilter: this.layerFilter,
 	                                                layerControl: this.isArgTrue(layerControl),
@@ -2204,7 +2212,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
-	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined
+	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
+	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier]
@@ -2234,6 +2243,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'antPathDashArray': antPathDashArray,
 	                            'layerDescription': layerDescription,
 	                            'layerPriority': layerPriority,
+	                            'pathLayer': pathLayer,
 	                            'layerType': "path"
 	                        }
 	                    })

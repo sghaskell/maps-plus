@@ -7,15 +7,18 @@ define([
             'jszip-utils',
             'api/SplunkVisualizationBase',
             'api/SplunkVisualizationUtils',
+            'splunkjs/mvc',
             'load-google-maps-api',
             'moment',
             '../contrib/js/Modal',
+            '../contrib/js/theme-utils',
             'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
 			'leaflet-dialog',
             'leaflet-google-places-autocomplete',
             'leaflet.markercluster',
+            'leaflet-ant-path',
             'simpleheat',
             '../contrib/js/HeatLayer',
             '../contrib/js/leaflet.spin',
@@ -41,17 +44,25 @@ define([
             JSZipUtils,
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
+            mvc,
             loadGoogleMapsAPI,
             moment,
-            Modal
+            Modal,
+            themeUtils
         ) {
 
 
     return SplunkVisualizationBase.extend({
         maxResults: 0,
+        paneZIndex: 400,
         tileLayer: null,
+        measureDialogOpen: false,
+        parentEl: null,
+        parentView: null,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
+        validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
+        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
         defaultConfig:  {
             'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
@@ -136,36 +147,45 @@ define([
 
 
         initialize: function() {
-            SplunkVisualizationBase.prototype.initialize.apply(this, arguments);
-            this.$el = $(this.el);
-            this.isInitializedDom = false;
-            this.splunkVersion = "unknown";
-            this.isSplunkSeven = false;
-            this.curPage = 0;
-            this.allDataProcessed = false;
+            SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
+            this.$el = $(this.el)
+            this.isInitializedDom = false
+            this.isSplunkSeven = false
+            this.curPage = 0
+            this.allDataProcessed = false
+            this.splunkVersion = parseFloat(0.0)     
 
-            // Detect version from REST API
-            $.ajax({
-                type: "GET",
-                async: false,
-                context: this,
-                url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-                success: function(s) {                                        
-                    var xml = $(s);
-                    var that = this;
-                    $(xml).find('content').children().children().each(function(i, v) {
-                        if(/name="version"/.test(v.outerHTML)) {
-                            that.splunkVersion = parseFloat(v.textContent);
-                            if(that.splunkVersion >= 7.0) {
-                                that.isSplunkSeven = true;
-                            }
-                        } 
-                    });
-                },
-                error: function(e) {
-                    //console.info(e);
-                }
-            });
+            try {
+                // Get version from global tokens
+                this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
+            } catch (error) {
+                // Detect version from REST API
+                $.ajax({
+                    type: "GET",
+                    async: false,
+                    context: this,
+                    url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
+                    success: function(s) {                                        
+                        var xml = $(s)
+                        var that = this
+                        $(xml).find('content').children().children().each(function(i, v) {
+                            if(/name="version"/.test(v.outerHTML)) {
+                                that.splunkVersion = parseFloat(v.textContent)
+                                if(that.splunkVersion >= 7.0) {
+                                    that.isSplunkSeven = true
+                                }
+                            } 
+                        })
+                    },
+                    error: function(e) {
+                        //console.info(e)
+                    }
+                })
+            }
+
+            if(this.splunkVersion >= 7.0) {
+                this.isSplunkSeven = true
+            }
         },
   
         // Search data params
@@ -173,22 +193,366 @@ define([
             return ({
                 outputMode: SplunkVisualizationBase.RAW_OUTPUT_MODE,
                 count: this.maxResults
-            });
+            })
+        },
+
+        _darkModeInit: function () {
+            // Set dialog to black
+            this.map.on('dialog:opened', function(e) {                        
+                $('.leaflet-control-dialog').css({'background-color': '#000000'})
+                $('.leaflet-control-layers').css({'color': '#fff'})
+            })
+
+            // Change popup colors
+            this.map.on('popupopen', function(e) {    
+                $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
+                                                                                'color': "#FFFFFF"})
+            })
+            
+            // Change tooltip colors
+            this.map.on('tooltipopen', function(e) {  
+                $('.leaflet-tooltip').css({'background': '#000000',
+                                            'color': '#FFFFFF',
+                                            'border': '1px solid #000000'})
+                $('.leaflet-tooltip-right').toggleClass('dark', true)
+                $('.leaflet-tooltip-left').toggleClass('dark', true)
+                $('.leaflet-tooltip-bottom').toggleClass('dark', true)
+                $('.leaflet-tooltip-top').toggleClass('dark', true)
+            })
+
+            
+            // Update Zoom Controls
+            $('.leaflet-control-zoom-in').css({'background-color': '#000000',
+                                                'color': '#FFFFFF'})
+            $('.leaflet-control-zoom-out').css({'background-color': '#000000',
+                                                'color': '#FFFFFF'})
+            
+            // context menu dark mode styles
+            var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
+                          '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
+                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
+                          '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
+                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
+                          '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
+                          '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
+
+            var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.cssRules.length
+            // delete styles from newest to oldest                                  
+            for(i=length-1; i >= 0; i--) {
+                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.deleteRule(i)
+            }
+
+            // insert dark styles
+            for(i=0; i < styles.length; i++) {
+                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.insertRule(styles[i], i)
+            }
+        },
+
+        _darkModeUpdate: function() {
+            $('.leaflet-control-measure').css('background-color', '#000000')
+
+            $('.leaflet-control-layers').css({'background-color': '#000',
+            'color': '#fff'})
+
+            // Set initial background color of control to black
+            $('.leaflet-bar a').css('background-color', '#000000')
+
+            // Re-set background color on collapse
+            this.map.on('measurecollapsed', function() {
+                $('.leaflet-bar a').css('background-color', '#000000')
+                
+            })
+
+            $('.leaflet-control-layers').css({'background-color': '#000',
+                                                          'color': '#fff'})
+        },
+
+        onConfigChange: function(configChanges, previousConfig) {
+            const configBase = this.getPropertyNamespaceInfo().propertyNamespace
+            let bgRgb,
+                bgRgba,
+                html,
+                mapTile = this._propertyExists('mapTile', configChanges) ? this._getSafeUrlProperty('mapTile', configChanges):this._getSafeUrlProperty('mapTile', previousConfig),
+                mapCenterZoom = this._propertyExists('mapCenterZoom', configChanges) ? parseInt(this._getEscapedProperty('mapCenterZoom', configChanges)):parseInt(this._getEscapedProperty('mapCenterZoom', previousConfig)),
+                mapCenterLat = this._propertyExists('mapCenterLat', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLat', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLat', previousConfig)),
+                mapCenterLon = this._propertyExists('mapCenterLon', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLon', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLon', previousConfig)),
+                mapTileOverride = this._propertyExists('mapTileOverride', configChanges) ? this._getEscapedProperty('mapTileOverride', configChanges):this._getEscapedProperty('mapTileOverride', previousConfig),
+                scrollWheelZoom = this._propertyExists('scrollWheelZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', previousConfig))),
+                mapAttributionOverride = this._propertyExists('mapAttributionOverride', configChanges) ? this._getEscapedProperty('mapAttributionOverride', configChanges):this._getEscapedProperty('mapAttributionOverride', previousConfig),
+                fullScreen = this._propertyExists('fullScreen', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', previousConfig))),
+                defaultHeight = this._propertyExists('defaultHeight', configChanges) ? parseInt(this._getEscapedProperty('defaultHeight', configChanges)):parseInt(this._getEscapedProperty('defaultHeight', previousConfig)),
+                contextMenu = this._propertyExists('contextMenu', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', previousConfig))),
+                rangeOneBgColor = this._propertyExists('rangeOneBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', previousConfig)),
+                rangeOneFgColor = this._propertyExists('rangeOneFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', previousConfig)),
+                rangeTwoBgColor = this._propertyExists('rangeTwoBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', previousConfig)),
+                rangeTwoFgColor = this._propertyExists('rangeTwoFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', previousConfig)),
+                rangeThreeBgColor = this._propertyExists('rangeThreeBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', previousConfig)),
+                rangeThreeFgColor = this._propertyExists('rangeThreeFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', previousConfig)),
+                disableClusteringAtZoom = this._propertyExists('disableClusteringAtZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', previousConfig))),
+                disableClusteringAtZoomLevel = this._propertyExists('disableClusteringAtZoomLevel', configChanges) ? parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', configChanges)):parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', previousConfig)),
+                minZoom = this._propertyExists('minZoom', configChanges) ? parseInt(this._getEscapedProperty('minZoom', configChanges)):parseInt(this._getEscapedProperty('minZoom', previousConfig)),
+                maxZoom = this._propertyExists('maxZoom', configChanges) ? parseInt(this._getEscapedProperty('maxZoom', configChanges)):parseInt(this._getEscapedProperty('maxZoom', previousConfig)),
+                layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
+                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
+                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
+                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
+                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
+
+            // Update tile layer
+            if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
+                this.tileLayer.setUrl(mapTile)
+            }
+
+            // Handle map tile override
+            if(this._propertyExists('mapTileOverride', configChanges)) {
+                if(mapTileOverride == "") {
+                    this.tileLayer.setUrl(mapTile)
+                } else {
+                    this.tileLayer.setUrl(mapTileOverride)
+                }
+            }
+
+            // Handle scroll wheel zoom
+            if(this._propertyExists('scrollWheelZoom', configChanges)) {
+                if(scrollWheelZoom) {
+                    this.map.scrollWheelZoom.enable()
+                } else {
+                    this.map.scrollWheelZoom.disable()
+                }
+            }
+
+            // Handle center zoom change
+            if(this._propertyExists('mapCenterZoom', configChanges)) {
+                this.map.setZoom(mapCenterZoom)
+            }
+
+            // Handle latitude change
+            if(this._propertyExists('mapCenterLat', configChanges) || this._propertyExists('mapCenterLon', configChanges)) {                
+                this.map.setZoom(mapCenterZoom)
+                this.map.panTo([mapCenterLat, 
+                                mapCenterLon])
+            }
+            
+            // update map tile attribution
+            if(this._propertyExists('mapAttributionOverride', configChanges)) {
+                // Remove current and previous map tile attributions
+                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
+                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[previousConfig[configBase + 'mapTile']])
+                this.map.attributionControl.removeAttribution(previousConfig[configBase + 'mapAttributionOverride'])
+
+                // Add current attribution
+                this.map.attributionControl.addAttribution(mapAttributionOverride)
+
+                // Reset to current map tile if unset
+                if(mapAttributionOverride == "") {
+                    this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])    
+                }
+            }
+
+            // Handle full sceen mode enable/disable
+            // if(_.has(configChanges, configBase + 'fullScreen')) {
+            if(this._propertyExists('fullScreen', configChanges)) {
+                if(fullScreen) {
+                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
+                } else {
+                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+                                                      defaultHeight: this.defaultHeight})                    
+                }
+            }
+
+            // Handle height re-size
+            // if(_.has(configChanges, configBase + 'defaultHeight')) {
+            if(this._propertyExists('defaultHeight', configChanges)) {
+                this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+                                                  defaultHeight: defaultHeight})   
+            }
+
+            // Handle context menu enable/disable
+            if(this._propertyExists('contextMenu', configChanges)) {
+                if(contextMenu) {
+                    this.map.contextmenu.enable()
+                } else {
+                    this.map.contextmenu.disable()
+                }
+            }
+
+            // Cluster Background Range 1
+            if(this._propertyExists('rangeOneBgColor', configChanges)) {
+                bgRgb = rangeOneBgColor
+                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Cluster Foreground Range 1
+            if(this._propertyExists('rangeOneFgColor', configChanges)) {
+                fgRgb = rangeOneFgColor
+                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Cluster Background Range 2
+            if(this._propertyExists('rangeTwoBgColor', configChanges)) {
+                bgRgb = rangeTwoBgColor
+                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Cluster Foreground Range 2
+            if(this._propertyExists('rangeTwoFgColor', configChanges)) {
+                fgRgb = rangeTwoFgColor
+                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Cluster Background Range 3
+            if(this._propertyExists('rangeThreeBgColor', configChanges)) {
+                bgRgb = rangeThreeBgColor
+                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Cluster Foreground Range 3
+            if(this._propertyExists('rangeThreeFgColor', configChanges)) {
+                fgRgb = rangeThreeFgColor
+                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+                html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
+                $("<style>")
+                 .prop("type", "text/css")
+                 .html(html)
+                 .appendTo("head")
+            }
+
+            // Handle cluster group zoom disable/enable
+            if(this._propertyExists('disableClusteringAtZoom', configChanges)) {
+                _.each(this.layerFilter, function(lf) {
+                    if(disableClusteringAtZoom) {
+                        lf.clusterGroup[0].cg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
+                    } else {
+                        delete lf.clusterGroup[0].cg.options.disableClusteringAtZoom
+                    }
+                    let layers = lf.clusterGroup[0].cg.getLayers()
+                    lf.clusterGroup[0].cg.clearLayers()
+                    lf.clusterGroup[0].cg.addLayers(layers)
+                }, this)
+            }
+
+            // Handle min zoom change
+            if(this._propertyExists('minZoom', configChanges)) {
+                this.map.setMinZoom(minZoom)
+            }
+
+            // Handle max zoom change
+            if(this._propertyExists('maxZoom', configChanges)) {
+                this.map.setMaxZoom(maxZoom)
+            }
+
+            // Handle layer control add/remove
+            if(this._propertyExists('layerControl', configChanges)) {
+                if(!layerControl) {
+                    this.control.remove()
+                } else {
+                    this.control.addTo(this.map)
+                    if(this.isDarkTheme) { this._darkModeUpdate() }
+                } 
+            }
+
+            // Handle measure tool add/remove
+            if(this._propertyExists('measureTool', configChanges)) {
+                if(!measureTool) {
+                    this.measureControl.remove()
+                } else {
+                    this.measureControl.addTo(this.map)
+                }
+
+                if(this.isDarkTheme) { this._darkModeUpdate() }
+            }
+
+            // Handle layer control expand/collapse
+            if(this._propertyExists('layerControlCollapsed', configChanges)) {
+                if(!layerControlCollapsed) {
+                    this.control.expand()
+                } else {
+                    this.control.collapse()
+                } 
+            }
+
+            // Handle measure tool icon position change
+            if(this._propertyExists('measureIconPosition', configChanges)) {
+                this.measureControl.remove()
+                this.control.remove()
+                this.measureControl.options.position = measureIconPosition
+                this.measureControl.addTo(this.map)
+                this.control.addTo(this.map)
+
+                if(this.isDarkTheme) { this._darkModeUpdate() }
+            }
+
+            // Handle measure tool active/completed color changes
+            if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
+                this.measureControl.remove()
+                this.control.remove()
+
+                let measureOptions = { position: measureIconPosition,
+                    activeColor: measureActiveColor,
+                    completedColor: measureCompletedColor,
+                    primaryLengthUnit: this._getEscapedProperty('measurePrimaryLengthUnit', configChanges),
+                    secondaryLengthUnit: this._getEscapedProperty('secondaryLengthUnit', configChanges),
+                    primaryAreaUnit: this._getEscapedProperty('primaryAreaUnit', configChanges),
+                    secondaryAreaUnit: this._getEscapedProperty('secondaryAreaUnit', configChanges),
+                    localization: this._getEscapedProperty('localization', configChanges),
+                    features: this.measureFeatures,
+                    map: this.map}
+
+                this.measureControl = new L.Control.Measure(measureOptions)
+                this.measureControl.addTo(this.map)
+                this.control.addTo(this.map)
+                if(this.isDarkTheme) { this._darkModeUpdate() }
+                
+            }
         },
 
         // Build object of key/value pairs for invalid fields
         // to be used as data for _drilldown action
         validateFields: function(obj) {
-            var invalidFields = {};
+            var invalidFields = {}
             var validFields = ['latitude',
 							   'longitude',
                                'title',
                                'tooltip',
 							   'description',
-							   'icon',
+                               'icon',
+                               'customIcon',
+                               'customIconShadow',
 							   'markerType',
 							   'markerColor',
-							   'markerPriority',
+                               'markerPriority',
 							   'markerSize',
 						       'markerAnchor',
                                'markerVisibility',
@@ -197,14 +561,20 @@ define([
 							   'shadowSize',
 							   'prefix',
 							   'extraClasses',
-						       'layerDescription',
+                               'layerDescription',
+                               'pathLayer',
 							   'pathWeight',
 							   'pathOpacity',
-							   'layerGroup',
+                               'layerGroup',
+                               'layerPriority',
+                               'layerIcon',
+                               'layerIconSize',
+                               'layerIconColor',
+                               'layerIconPrefix',
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
-                               'heamaptLayer',
+                               'heatmapLayer',
                                'heatmapPointIntensity',
                                'heatmapMinOpacity',
                                'heatmapRadius',
@@ -217,39 +587,61 @@ define([
                                'circleOpacity',
                                'circleFillColor',
                                'circleFillOpacity',
-                               '_time'];
+                               'antPath',
+                               'antPathDelay',
+                               'antPathPulseColor',
+                               'antPathPaused',
+                               'antPathReverse',
+                               'antPathDashArray',
+                               'feature',
+                               'featureLayer',
+                               'featureDescription',
+                               'featureTooltip',
+                               'featureColor',
+                               'featureWeight',
+                               'featureOpacity',
+                               'featureStroke',
+                               'featureFill',
+                               'featureFillColor',
+                               'featureFillOpacity',
+                               'featureRadius',
+                               '_time']
             $.each(obj, function(key, value) {
                 if($.inArray(key, validFields) === -1) {
-                    invalidFields[key] = value;
+                    invalidFields[key] = value
                 }
-            });
+            })
 
-            return(invalidFields);
+            return(invalidFields)
         },
 
         _stringToJSON: function(value) {
             if(_.isUndefined(value)) {
-                return;
+                return
             }
             
-            var cleanJSON = value.replace(/'/g, '"');
-            return JSON.parse(cleanJSON);
+            var cleanJSON = value.replace(/'/g, '"')
+            return JSON.parse(cleanJSON)
         },
 
         _getProperty: function(name, config) {
-            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
-            return propertyValue;
+            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+            return propertyValue
         },
 
         _getEscapedProperty: function(name, config) {
-            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
-            return SplunkVisualizationUtils.escapeHtml(propertyValue);
+            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+            return SplunkVisualizationUtils.escapeHtml(propertyValue)
         },
 
         _getSafeUrlProperty: function(name, config) {
-            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name];
-            return SplunkVisualizationUtils.makeSafeUrl(propertyValue);
+            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+            return SplunkVisualizationUtils.makeSafeUrl(propertyValue)
 
+        },
+
+        _propertyExists: function(name, config) {
+            return _.has(config, this.getPropertyNamespaceInfo().propertyNamespace + name)
         },
 
 		// Custom drilldown behavior for markers
@@ -257,9 +649,9 @@ define([
             payload = {
                 action: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN,
                 data: drilldownFields
-            };
+            }
 
-            this.drilldown(payload);
+            this.drilldown(payload)
         },
 
 		/* 
@@ -268,40 +660,40 @@ define([
 		*/
 		convertHex: function(value) {
 			// Pass markerColor prefixed with # regardless of given prefix ("#" or "0x")
-			var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i;
+			var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i
 			if (hexRegex.test(value)) {
-				markerColor = "#" + hexRegex.exec(value)[1];
-				return(markerColor);
+				markerColor = "#" + hexRegex.exec(value)[1]
+				return(markerColor)
 			} else {
-				return(value);
+				return(value)
 			}
 		},
 
         // Convert hex values to RGB for marker icon colors
         hexToRgb: function(hex) {
-            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
             return result ? {
                 r: parseInt(result[1], 16),
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
-            } : null;
+            } : null
         },
 
         // Convert string '1/0' or 'true/false' to boolean true/false
         isArgTrue: function(arg) {
             if(arg === 1 || arg === 'true') {
-                return true;
+                return true
             } else {
-                return false;
+                return false
             }
         },
 
         renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
             function anonCallback(callback=function(){}, callbackArgs=null) {
                 if(callbackArgs) {
-                    callback.apply(this, callbackArgs);
+                    callback.apply(this, callbackArgs)
                 } else {
-                    callback();
+                    callback()
                 }
             }
 
@@ -312,10 +704,10 @@ define([
                         keyboard: false,
                         destroyOnHide: true,
                         type: 'wide'
-            });
+            })
 
             // Add content
-            myModal.body.append($(body));
+            myModal.body.append($(body))
 
             // Add cancel button for update/delete action
             if(id == "user-delete-confirm" || id == "update-user-form") {
@@ -323,7 +715,7 @@ define([
                     type: 'button',
                     'data-dismiss': 'modal'
                 })
-                .addClass('btn btn-secondary').text("Cancel")).on('click', function(){});
+                .addClass('btn btn-secondary').text("Cancel")).on('click', function(){})
             }
 
             // Add footer
@@ -332,16 +724,16 @@ define([
                 'data-dismiss': 'modal'
             })
             .addClass('btn btn-primary').text(buttonText).on('click', function () {
-                    anonCallback(callback, callbackArgs);
+                    anonCallback(callback, callbackArgs)
             }))
 
             // Launch it!  
-            myModal.show();
+            myModal.show()
         },
 
         // Get API key from storage/passwords REST endpoint
         getStoredApiKey: function(options) {
-            var deferred = $.Deferred();
+            var deferred = $.Deferred()
 
             // Detect version from REST API
             $.ajax({
@@ -350,13 +742,13 @@ define([
                 context: this,
                 url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.user +":",
                 success: function(s) {                                        
-                    var xml = $(s);
-                    var that = this;
+                    var xml = $(s)
+                    var that = this
                     $(xml).find('content').children().children().each(function(i, v) {
                         if(/name="clear_password"/.test(v.outerHTML)) {
                             deferred.resolve(v.textContent)
                         } 
-                    });
+                    })
                 },
                 error: function(e) {
                     if(_.isEmpty(options.realm)) {
@@ -368,91 +760,140 @@ define([
                                                 "API Key Failure",
                                                 "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Failed to get API key for user: <b>" + options.user + "</b>, realm: <b>" + realm + "</b> - Verify credentials and try again.</div>",
                                                 'Close')
-                    console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm);
+                    console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm)
                 }
-            });
+            })
 
-            return deferred.promise();
+            return deferred.promise()
         },
       
         // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
         createMarkerStyle: function(bgHex, fgHex, markerName) {
-            var bgRgb = this.hexToRgb(bgHex);
-            var fgRgb = this.hexToRgb(fgHex);
-            var bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)';
-            var fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)';
+            var bgRgb = this.hexToRgb(bgHex)
+            var fgRgb = this.hexToRgb(fgHex)
+            var bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+            var fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
-            var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgRgba + ';} .marker-cluster-' + markerName + ' div { background-color: ' + fgRgba + ';}';
+            var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgRgba + ';} .marker-cluster-' + markerName + ' div { background-color: ' + fgRgba + ';}'
             $("<style>")
                 .prop("type", "text/css")
                 .html(html)
-                .appendTo("head");
+                .appendTo("head")
         },
 
         stringToPoint: function(stringPoint) {
             var point = _.map(stringPoint.split(','), function(val) {
-                return parseInt(val);
+                return parseInt(val)
             })
-            return point;
+            return point
         },
 
         // Draw path line
         drawPath: function(options) {
-            _.each(options.data, function(p) {
-                id = p[0]['id'];
+            //var paneZIndex = 400
+           
+            _.each(options.data, function(p) {        
+                let id = p[0]['id'],
+                  layerDescription = p[0]['layerDescription'],
+                  layerPriority = p[0]['layerPriority'],
+                  layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
+                  pathLayer = p[0]['pathLayer'],
+                  pathFg,
+                  pathName
 
-                // Check if feature group exists for current id. Use existing FG or create new accordingly.
+                // Check if feature group exists for current layerGroup or id
+                // Use existing FG or create new accordingly.
                 if(_.has(options.pathLineLayers, id)) {
-                    var pathFg = options.pathLineLayers[id];
+                    pathFg = options.pathLineLayers[id]
+                } else if(_.has(options.pathLineLayers, pathLayer)) {
+                    pathFg = options.pathLineLayers[pathLayer]
                 } else {
-                    var pathFg = L.featureGroup();
-                    pathFg.options.name = id;
-                    options.pathLineLayers[pathFg.options.name] = pathFg;
+                    pathFg = L.featureGroup()
+                    
+                    // Prefer layerGroup and fallback to id
+                    if(!_.isUndefined(pathLayer)) {
+                        pathName = pathLayer
+                    } else {
+                        pathName = id                        
+                    }
+                    options.pathLineLayers[pathName] = pathFg
+                    pathFg.options.name = pathName
+                    pathFg.options.layerPriority = layerPriority
+                    pathFg.options.layerType = layerType
+                    pathFg.options.layerDescription = layerDescription
                 }
 
-                // create polyline and bind popup
-                var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-                                                                weight: p[0]['pathWeight'],
-                                                                opacity: p[0]['pathOpacity']}).bindPopup(id);
+                // Ant Path
+                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
+                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+                                                                            weight: p[0]['pathWeight'],
+                                                                            opacity: p[0]['pathOpacity'],
+                                                                            "delay": p[0]['antPathDelay'],
+                                                                            "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+                                                                            "pulseColor": p[0]['antPathPulseColor'],
+                                                                            "paused": p[0]['antPathPaused'],
+                                                                            "reverse": p[0]['antPathReverse']
+                                                }).bindPopup(p[0]['description'])
+                } else {
+                    // create polyline and bind popup
+                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
+                                                                    weight: p[0]['pathWeight'],
+                                                                    opacity: p[0]['pathOpacity']}).bindPopup(p[0]['description'])
+                }
+
                 // Apply tooltip to polyline
                 if(p[0]['tooltip'] != "") {
                     pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
                                                      direction: 'auto',
-                                                     sticky: p[0]['stickyTooltip']});
+                                                     sticky: p[0]['stickyTooltip']})
                 }
 
                 // Add polyline to feature group
-                pathFg.addLayer(pl);
-            });
+                pathFg.addLayer(pl)
+            })
         },
 
         // Create a control icon and description in the layer control legend
         addLayerToControl: function(options) {
+            let name,
+                iconHtml,
+                styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined
+                layerIconSize = _.has(options.layerGroup, 'layerIconSize') ? this.stringToPoint(options.layerGroup.layerIconSize):undefined
+
             // Add Heatmap layer to controls and use layer name for control label
-            if(options.layerType == "heat" || options.layerType == "path") {
-                options.control.addOverlay(options.featureGroup, options.featureGroup.options.name)
-                return;
+            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
+                if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
+                    name = options.featureGroup.options.layerDescription
+                } else {
+                    name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
+                }
+                options.control.addOverlay(options.featureGroup, name)
+                return
             }
 
             if(!options.layerGroup.layerExists) {
-                // update blue to awesome-marker blue color
-                if(!_.isUndefined(options.layerGroup.icon)) {
-                    if(_.has(options.layerGroup.icon.options, "markerColor") && options.layerGroup.icon.options.markerColor === "blue") {
-                        var styleColor = "#38AADD";
+                // Circle Marker
+                if(_.has(options.layerGroup.circle, "fillColor")) {
+                    styleColor = options.layerGroup.circle.fillColor
+                    iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
+                } else {
+                    // Custom Icon
+                    if(_.has(options.layerGroup.icon.options, 'iconUrl')) {
+                        iconHtml = '<img src="' + options.layerGroup.icon.options.iconUrl + '" style="height: ' + layerIconSize[0] + 'px; width: ' + layerIconSize[1] + 'px">' + options.layerGroup.layerDescription
                     }
-                    else {
-                        var styleColor = options.layerGroup.icon.options.markerColor;
+                    
+                    // Awesome Marker, Vector Marker or Icon only
+                    if(options.layerGroup.icon.options.className == "awesome-marker" || options.layerGroup.icon.options.className == "vector-marker" || options.layerGroup.icon.options.className == "icon-only") {
+                        if(options.layerGroup.layerIconPrefix == "fab") {
+                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                        } else {
+                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+                        }
                     }
-                } 
-
-                if(!_.isUndefined(options.layerGroup.circle)) {
-                    var styleColor = options.layerGroup.circle.fillColor;
                 }
 
-                var iconHtml= "<i class=\"legend-toggle-icon " + options.layerGroup.icon.options.prefix + " " + options.layerGroup.icon.options.prefix + "-" + options.layerGroup.icon.options.icon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription;
-
-                options.control.addOverlay(options.layerGroup.group, iconHtml);
-                options.layerGroup.layerExists = true;
+                options.control.addOverlay(options.layerGroup.group, iconHtml)
+                options.layerGroup.layerExists = true
             }
 
         },
@@ -461,39 +902,47 @@ define([
 		// coordinates. Allow user to copy and paste center coordinates into 
 		// Center Lat and Center Lon format menu options.
         showCoordinates: function (e) {
-            var coordinates = e.latlng.toString().match(/([-\d\.]+)/g);
-            var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g);
-            var curZoom = this.map.getZoom();
+            this.map.on('dialog:closed', function(e) { 
+                this.coordDialog.destroy()
+            }, this)
+
+            var coordinates = e.latlng.toString().match(/([-\d\.]+)/g)
+            var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g)
+            var curZoom = this.map.getZoom()
+            
             var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
                   "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
                   "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
                   "<br></br>Copy and paste the following values into Format menu to change <b>Center Lat</b> and <b>Center Lon</b> (visualization API does not currently support programmatically setting format menu options):<br>" +
                   "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
-                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">";
-            var dialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
+
+            var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
               .setContent(content)
-              .addTo(this.map);
+              .addTo(this.map)
+              .open()
         },
 
         centerMap: function (e) {
-            this.map.panTo(e.latlng);
+            this.map.panTo(e.latlng)
         },
 
         zoomIn: function (e) {
-            this.map.zoomIn();
+            this.map.zoomIn()
         },
 
         zoomOut: function (e) {
-            this.map.zoomOut();
+            this.map.zoomOut()
         },
 
         fitLayerBounds: function (options) {
-            var map = _.isUndefined(options.map) ? this.map:options.map;
-            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter;
-            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers;
-            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers;
-            var tmpGroup = new L.featureGroup();
-            var layers = [layerFilter, pathLineLayers, heatLayers];
+            var map = _.isUndefined(options.map) ? this.map:options.map
+            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter
+            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers
+            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers
+            var featureLayers = _.isUndefined(options.featureLayers) ? this.featureLayers:options.featureLayers
+            var tmpGroup = new L.featureGroup()
+            var layers = [layerFilter, pathLineLayers, heatLayers, featureLayers]
 
             // loop through layers and build one big feature group to fit bounds against
             _.each(layers, function(l, i) {
@@ -501,20 +950,20 @@ define([
                     _.each(l, function(lg, i) {
                         // It's a normal feature group or cluster feature group
                         if(!_.isUndefined(lg.group)) {
-                            tmpGroup.addLayer(lg.group);
-                            return;
+                            tmpGroup.addLayer(lg.group)
+                            return
                         }
 
                         // It's a path or heatmap
-                        var curLayers = lg.getLayers();
+                        var curLayers = lg.getLayers()
                         _.each(curLayers, function(cl, i) {
-                            tmpGroup.addLayer(cl);
-                        });
-                    });
+                            tmpGroup.addLayer(cl)
+                        })
+                    })
                 }
-            });
+            })
             
-            map.fitBounds(tmpGroup.getBounds());
+            map.fitBounds(tmpGroup.getBounds())
         },
 
         // Fetch KMZ or KML files and add to map
@@ -522,60 +971,76 @@ define([
             // Test if it's a kmz file
             if(/.*\.kmz/.test(file)) {
                 JSZipUtils.getBinaryContent(url, function (e, d) {
-                    var z = new JSZip();
+                    var z = new JSZip()
 
                     z.loadAsync(d)
                     .then(function(zip) {
-                        return zip.file(/.*\.kml/)[0].async("string");
+                        return zip.file(/.*\.kml/)[0].async("string")
                     })
                     .then(function (text) {
-                        var kmlText = $.parseXML(text);
-                        var geojson = toGeoJSON.kml(kmlText);
+                        var kmlText = $.parseXML(text)
+                        var geojson = toGeoJSON.kml(kmlText)
 
 						L.geoJson(geojson.features, {
 							style: function (feature) {
                                 return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
                                         color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
                                         opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                                        weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 };
+                                        weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
                              },
 							onEachFeature: function (feature, layer) {
 							 	// Create pane and set zIndex to render multiple KML files over each other based on
 							 	// specified precedence in overlay menu 
-                                map.createPane(feature.properties.name);
-                                map.getPane(feature.properties.name).style.zIndex = paneZIndex;
-                                layer.options.pane = feature.properties.name;
-                                layer.defaultOptions.pane = feature.properties.name;
-                                layer.bindPopup(feature.properties.name);
-                                layer.bindTooltip(feature.properties.name);
+                                map.createPane(feature.properties.name)
+                                map.getPane(feature.properties.name).style.zIndex = paneZIndex
+                                layer.options.pane = feature.properties.name
+                                layer.defaultOptions.pane = feature.properties.name
+                                layer.bindPopup(feature.properties.name)
+                                layer.bindTooltip(feature.properties.name)
 							}
-						}).addTo(map);
-                    });
-                });
+						}).addTo(map)
+                    })
+                })
             // it's a kml file
             } else {
                 $.ajax({url: url, dataType: 'xml', context: this}).done(function(kml) {
-                    var geojson = toGeoJSON.kml(kml);
+                    var geojson = toGeoJSON.kml(kml)
 					L.geoJson(geojson.features, {
 						style: function (feature) {
                             return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
                                     color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
                                     opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                                    weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 };
+                                    weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
                          },
 						 onEachFeature: function (feature, layer) {
 							 // Create pane and set zIndex to render multiple KML files over each other based on
 							 // specified precedence in overlay menu 
-                             map.createPane(feature.properties.name);
-                             map.getPane(feature.properties.name).style.zIndex = paneZIndex;
-                             layer.options.pane = feature.properties.name;
-                             layer.defaultOptions.pane = feature.properties.name;
-							 layer.bindPopup(feature.properties.name);
-							 layer.bindTooltip(feature.properties.name);
+                             map.createPane(feature.properties.name)
+                             map.getPane(feature.properties.name).style.zIndex = paneZIndex
+                             layer.options.pane = feature.properties.name
+                             layer.defaultOptions.pane = feature.properties.name
+							 layer.bindPopup(feature.properties.name)
+							 layer.bindTooltip(feature.properties.name)
 						}
-					}).addTo(map);
-                });
+					}).addTo(map)
+                })
             }
+        },
+
+        _setFullScreenMode: function(map, options) {
+            var vh = $(window).height() - 120
+            $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+
+            $(window).resize(function() {
+                var vh = $(window).height() - 120
+                $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+            })
+            map.invalidateSize()
+        },
+
+        _setDefaultHeight: function(map, options) {
+            $("div[data-cid=" + options.parentEl + "]").css("height", options.defaultHeight)
+            map.invalidateSize()
         },
 
         _createClusterGroup: function(disableClusteringAtZoom,
@@ -593,14 +1058,14 @@ define([
             L.MarkerCluster.include({
                 spiderfy: function () {
                     if (this._group._spiderfied === this || this._group._inZoomAnimation) {
-                        return;
+                        return
                     }
         
                     var childMarkers = this.getAllChildMarkers(),
                         group = this._group,
                         map = group._map,
                         center = map.latLngToLayerPoint(this._latlng),
-                        positions;
+                        positions
         
                     // Don't spiderfy cluster groups that exeed warning size
                     if (childMarkers.length > this._group.options.maxSpiderfySize) {
@@ -610,19 +1075,19 @@ define([
                                                    $.i18n('cluster-warning-close'))
                     }
                     
-                    this._group._unspiderfy();
-                    this._group._spiderfied = this;
+                    this._group._unspiderfy()
+                    this._group._spiderfied = this
         
                     //TODO Maybe: childMarkers order by distance to center
         
                     if (childMarkers.length >= this._circleSpiralSwitchover) {
-                        positions = this._generatePointsSpiral(childMarkers.length, center);
+                        positions = this._generatePointsSpiral(childMarkers.length, center)
                     } else {
-                        center.y += 10; // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
-                        positions = this._generatePointsCircle(childMarkers.length, center);
+                        center.y += 10 // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
+                        positions = this._generatePointsCircle(childMarkers.length, center)
                     }
         
-                    this._animationSpiderfy(childMarkers, positions);
+                    this._animationSpiderfy(childMarkers, positions)
                 }
             })
 
@@ -634,29 +1099,28 @@ define([
                 singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
                 animate: (this.isArgTrue(animate)),
                 iconCreateFunction: function(cluster) {
-                    var childCount = cluster.getChildCount();
-                    var c = ' marker-cluster-';
+                    var childCount = cluster.getChildCount()
+                    var c = ' marker-cluster-'
                     if (childCount >= criticalThreshold) {
-                        c += 'three';
+                        c += 'three'
                     } else if (childCount >= warningThreshold) {
-                        c += 'two';
+                        c += 'two'
                     } else {
-                        c += 'one';
+                        c += 'one'
                     }
-                    return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) });
+                    return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
                 }
-            });
+            })
            
             if(this.isArgTrue(disableClusteringAtZoom)) {
-                mcg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel;
-                mcg.options.spiderfyOnMaxZoom = false;
+                mcg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
+                mcg.options.spiderfyOnMaxZoom = false
             }
 
-            return mcg;
+            return mcg
         },
         
         _addMarker: function(options) {
-
             if(options.markerType == "circle") {
                 var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
                                              parseFloat(options.userData["longitude"])],
@@ -666,8 +1130,16 @@ define([
                                                stroke: options.stroke,
                                                opacity: options.opacity,
                                                fillColor: options.fillColor,
-                                               fillOpacity: options.fillOpacity})
-                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
+                                               fillOpacity: options.fillOpacity,                                    
+                                               contextmenu: true,
+                                               contextmenuItems: [{
+                                                    text: 'Circle item',
+                                                    index: 0
+                                                }, {
+                                                    separator: true,
+                                                    index: 1
+                                                }]
+                                            })
                 if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
                     options.layerFilter[options.layerGroup].circle = {radius: options.radius,
                         color: options.color,
@@ -675,51 +1147,54 @@ define([
                         stroke: options.stroke,
                         opacity: options.opacity,
                         fillColor: options.fillColor,
-                        fillOpacity: options.fillOpacity};
+                        fillOpacity: options.fillOpacity,
+                        layerPriority: options.layerPriority}
                 }                                               
             } else {
                 var marker = L.marker([parseFloat(options.userData['latitude']),
                                        parseFloat(options.userData['longitude'])],
                                        {icon: options.markerIcon,
                                         layerDescription: options.layerDescription,
-                                        zIndexOffset: options.markerPriority});                
-
-                // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
-                // if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
-                //     options.layerFilter[options.layerGroup].icon = options.markerIcon;
-                // }                                        
+                                        zIndexOffset: options.markerPriority,
+                                        contextmenu: true,
+                                        contextmenuItems: [{
+                                            text: 'Marker item',
+                                            index: 0
+                                        }, {
+                                            separator: true,
+                                            index: 1
+                                        }]})                
             }
 
-            // if (typeof this.layerFilter[layerGroup] !== 'undefined') {
             if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
-                options.layerFilter[options.layerGroup].icon = options.markerIcon;
+                options.layerFilter[options.layerGroup].icon = options.markerIcon
             }
 
             // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
             if(options.tooltip) {
                 marker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
                                                      direction: 'auto',
-                                                     sticky: options.stickyTooltip});
+                                                     sticky: options.stickyTooltip})
             } else if (options.title) {
                 marker.bindTooltip(options.title, {permanent: options.permanentTooltip,
                                                    direction: 'auto',
-                                                   sticky: options.stickyTooltip});
+                                                   sticky: options.stickyTooltip})
             }
 
             if(this.isArgTrue(options.drilldown)) {
-                var drilldownFields = this.validateFields(options.userData);
-                marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields));
+                var drilldownFields = this.validateFields(options.userData)
+                marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
             }
 
             // Bind description popup if description exists
             if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
-                marker.bindPopup(options.userData['description']);
+                marker.bindPopup(options.userData['description'])
             }
 
             if (options.cluster) {           
                 _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(marker)
             } else {
-                options.layerFilter[options.layerGroup].markerList.push(marker);
+                options.layerFilter[options.layerGroup].markerList.push(marker)
             }
         },
 
@@ -728,64 +1203,106 @@ define([
             _.each(options.layerFilter, function(lg, i) {
                 // Process cluster groups
                 _.each(lg.clusterGroup, function(cg, i) {
-                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList);
-                    lg.group.addLayer(this.tmpFG);
-                });
+                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
+                    lg.group.addLayer(this.tmpFG)
+                })
 
-                lg.group.addTo(map);
+                lg.group.addTo(map)
 
                 if(options.layerControl) {
-                    options.context.addLayerToControl({layerGroup: lg, control: options.control});
+                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
                 }
-            });
+            })
         },
 
         _addUnclustered: function(map, options) {
-            // Loop through layer filters
-            _.each(options.layerFilter, function(lg, i) { 
+            _.chain(options.layerFilter)
+            .sortBy(function(d) {
+                if(_.has(d.circle, "layerPriority") && !_.isUndefined(d.circle.layerPriority)){
+                    return +d.circle.layerPriority
+                } else {
+                    return d
+                }                
+            })
+            .each(function(lg) {
+                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+                    map.createPane(options.paneZIndex.toString())
+                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
+                }
+
                 // Loop through markers and add to map
-                _.each(lg.markerList, function(m, k) {
+                _.each(lg.markerList, function(m) {                    
                     if(options.allPopups) {
-                        m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup();
+                        m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
                     } else {
-                        m.addTo(lg.group);
+                        m.addTo(lg.group)
                     }
-                });
+                })
+
+                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+                    lg.group.setStyle({pane: options.paneZIndex.toString()})
+                    options.paneZIndex += 1
+                }
+
                 // Add layergroup to map
-                lg.group.addTo(map);
+                lg.group.addTo(map)
+                
+                //options.paneZIndex += 1
 
                 // Add layer controls
                 if(options.layerControl) {
-                    options.context.addLayerToControl({layerGroup: lg, control: options.control});
+                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
                 }
-            });
+            })
         },
         
         _renderLayersToMap: function(map, options) {
-            // Render hetmap layer on map
-            _.each(options.layers, function(featureGroup) {
-                featureGroup.addTo(map);
+            _.chain(options.layers)
+            .sortBy(function(d) {
+                if(!_.isUndefined(d.options.layerPriority)){
+                    return +d.options.layerPriority
+                } else {
+                    return d
+                }
+            })
+            .each(function(lg) {
+                // Create pane and set zIndex
+                if(!_.isUndefined(lg.options.layerPriority)){
+                    let styleOptions = {pane: options.paneZIndex.toString()}
+
+                    map.createPane(options.paneZIndex.toString())
+                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+                    lg.setStyle(styleOptions)
+                }
+
+                // Add layer controls
+                lg.addTo(map)
+
+                // Increment zIndex
+                if(!_.isUndefined(lg.options.layerPriority)){ options.paneZIndex += 1 }
+
+                // Add layer to control
                 if(options.layerControl) {
                     var layerOptions = {layerType: options.layerType,
-                                        featureGroup: featureGroup,
-                                        control: options.control};
-                    options.context.addLayerToControl(layerOptions);   
-                }   
+                                        featureGroup: lg,
+                                        control: options.control}
+                    options.context.addLayerToControl(layerOptions)   
+                }
             })
         },
 
         formatData: function(data) {
             if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
-                this.allDataProcessed = true;
-                return this;
+                this.allDataProcessed = true
+                return this
             }
             
             if(data.results.length == 0)  {
-                return this;
+                return this
             }
 
-            this.allDataProcessed = false;
-            return data;
+            this.allDataProcessed = false
+            return data
         },
 
         // Do the work of creating the viz
@@ -793,7 +1310,7 @@ define([
             // viz gets passed empty config until you click the 'format' dropdown
             // intialize with defaults
 			if(_.keys(config).length <= 1) {
-                config = this.defaultConfig;
+                config = this.defaultConfig
             }
 
             // Populate any missing config values with defaults
@@ -870,14 +1387,21 @@ define([
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
                 heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
-                showProgress = parseInt(this._getEscapedProperty('showProgress', config));
+                showProgress = parseInt(this._getEscapedProperty('showProgress', config))
 
             // Auto Fit & Zoom once we've processed all data
             if(this.allDataProcessed) {
+                // this._updateMap(this.map, {
+                //   showProgress: showProgress,
+                //   heatmapEnable: heatmapEnable,
+                //   heatLayers: this.heatLayers,
+                //   control: this.control,
+                //   layerControl: layerControl,
+                // })
 
                 if(this.isArgTrue(showProgress)) {
                     if(!_.isUndefined(this.map)) {
-                        this.map.spin(false);
+                        this.map.spin(false)
                     }
                 }
                 
@@ -887,6 +1411,7 @@ define([
                                                       control: this.control,
                                                       layerControl: this.isArgTrue(layerControl),
                                                       layerType: "heat",
+                                                      paneZIndex: this.paneZIndex,
                                                       context: this})
                 }
 
@@ -896,96 +1421,94 @@ define([
                                                        control: this.control,
                                                        layerControl: this.isArgTrue(layerControl),
                                                        layerType: "path",
+                                                       paneZIndex: this.paneZIndex,
                                                        context: this})
+                }
+                
+                if(!_.isEmpty(this.featureLayers)) {
+                    this._renderLayersToMap(this.map, {layers: this.featureLayers,
+                        control: this.control,
+                        layerControl: this.isArgTrue(layerControl),
+                        layerType: "feature",
+                        paneZIndex: this.paneZIndex,
+                        context: this})    
                 }
 
                 if(this.isArgTrue(autoFitAndZoom)) {
                     setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
                                                                           layerFilter: this.layerFilter,
                                                                           heatLayers: this.heatLayers,
-                                                                          pathLineLayers: this.pathLineLayers, 
-                                                                          context: this});
+                                                                          pathLineLayers: this.pathLineLayers,
+                                                                          featureLayers: this.featureLayers,
+                                                                          context: this})
                 }
 
                 // Dashboard refresh
                 if(refreshInterval > 0) {
                     setTimeout(function() {
-                        location.reload();
-                    }, refreshInterval);
+                        location.reload()
+                    }, refreshInterval)
                 }
             } 
             
-            if (this.allDataProcessed && !this.isSplunkSeven) {
-                // Remove marker cluster layers
-                try {
-                    this.markers.clearLayers();
-                    //this.markers = null;
-                } catch(e) {
-                    //console.error(e);
-                }
-                
-                // Remove layer Filter layers
-                _.each(this.layerFilter, function(lg, i) {
-                    lg.group.removeLayer();
-                }, this);
-                this.layerFilter = {};
-
-                // Remove path line layer
-                try {
-                    this.pathLineLayer.clearLayers();
-                } catch(e) {
-                    //console.error(e);
-                }
-                this.curPage = 0;
-                this.offset = 0;
-                this.control._layers = [];
-                this.allDataProcessed = false;
-                this.updateDataParams({offset: 0, count: this.chunk});
-                return this;
-            }
-
             // Check for data and retrun if we don't have any
             if(!_.has(data, "results")) {
-                return this;
+                return this
             }
 
             // get data
-            var dataRows = data.results;
+            var dataRows = data.results
 
             // check for data
             if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-                return this;
+                return this
+            }
+
+            // Make sure we're on Splunk 7.x+
+            if(!this.isSplunkSeven) {
+                // Render warning modal
+                this.renderModal('splunk-version-warning',
+                        "Unsupported Splunk Version",
+                        "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
+                        'Close')
+
+                // throw viz error
+                throw new SplunkVisualizationBase.VisualizationError(
+                    'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
+                )
             }
 
             // Validate we have at least latitude and longitude fields
             if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-                 throw new SplunkVisualizationBase.VisualizationError(
-                    'Incorrect Fields Detected - latitude & longitude fields required'
-                );
+                if( !("feature" in dataRows[0])){
+                    throw new SplunkVisualizationBase.VisualizationError(
+                        'Incorrect Fields Detected - latitude & longitude fields required'
+                    )
+                }
             }
 
             pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
             renderer = this._getEscapedProperty('renderer', config),
-            pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config));
+            pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
 
-            this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile;
-            this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile];
+            this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile
+            this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile]
 
             // Initialize the DOM
             if (!this.isInitializedDom) {
                 // Set defaul icon image path
-                L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/';
+                L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/'
 
                 // Create layer filter object
-                var layerFilter = this.layerFilter = {};
+                var layerFilter = this.layerFilter = {}
 
                 // Create clusterGroups
-                var clusterGroups = this.clusterGroups = {};
+                var clusterGroups = this.clusterGroups = {}
 
                 // Setup cluster marker CSS
-                this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one");
-                this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two");
-                this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three");
+                this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
+                this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
+                this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
 
                 // Configure context menu
                 if(this.isArgTrue(contextMenu)) {
@@ -997,6 +1520,10 @@ define([
                                            text: 'Show details',
                                            context: this,
                                            callback: this.showCoordinates
+                                    //    }, {
+                                    //         text: 'Measure details',
+                                    //         context: this,
+                                    //         callback: this.showLastMeasurement                                            
                                        }, {
                                            text: 'Center map here',
                                            context: this,
@@ -1023,34 +1550,37 @@ define([
                     L.Map = L.Map.extend({
                         openPopup: function (popup, latlng, options) {
                             if (!(popup instanceof L.Popup)) {
-                                popup = new L.Popup(options).setContent(popup);
+                                popup = new L.Popup(options).setContent(popup)
                             }
 
                             if (latlng) {
-                                popup.setLatLng(latlng);
+                                popup.setLatLng(latlng)
                             }
 
                             if (this.hasLayer(popup)) {
-                                return this;
+                                return this
                             }
 
-                            this._popup = popup;
-                            return this.addLayer(popup);
+                            this._popup = popup
+                            return this.addLayer(popup)
                         }
-                    });
+                    })
 
                     // Disable close popup on click to allow multiple popups
-                    this.mapOptions.closePopupOnClick = false;
+                    this.mapOptions.closePopupOnClick = false
                 }
 
                 // Create canvas render and prever canvas for paths
                 if(renderer == "canvas") {
-                    //this.mapOptions.renderer = L.canvas();
-                    this.mapOptions.preferCanvas = true;
+                    //this.mapOptions.renderer = L.canvas()
+                    this.mapOptions.preferCanvas = true
                 }
 
                 // Create map 
-                var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom);
+                var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+
+                // Dark Mode Support
+                if(this.isDarkTheme) { this._darkModeInit() }
 
 				// Load Google Places Search Control
                 if(this.isArgTrue(googlePlacesSearch)) {
@@ -1063,13 +1593,13 @@ define([
                             new L.Control.GPlaceAutocomplete({
                                 position: googlePlacesPosition,
                                 callback: function(l){
-                                    var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng());
-                                    map.flyTo(latlng, googlePlacesZoomLevel);
+                                    var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng())
+                                    map.flyTo(latlng, googlePlacesZoomLevel)
                                 }
-                            }).addTo(map);
+                            }).addTo(map)
                         }).catch(function(err) {
-                            //console.error(err);
-                            console.err("Failed to initialize Google Places search control");
+                            //console.error(err)
+                            console.err("Failed to initialize Google Places search control")
                         })
                     }, this))
                 }
@@ -1085,23 +1615,23 @@ define([
                                                                   imagerySet: bingMapsTileLayer,
                                                                   culture: bingMapsLabelLanguage,
                                                                   minZoom: minZoom,
-                                                                  maxZoom: maxZoom};
+                                                                  maxZoom: maxZoom}
 
-                            this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                            this.tileLayer = L.tileLayer.bing(this.bingOptions)
                         }, this))
                         .done($.proxy(function() {
                             // Add tile layer to map
-                            this.map.addLayer(this.tileLayer);
+                            this.map.addLayer(this.tileLayer)
                         }, this))
                     } else {
                         var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
                                                               imagerySet: bingMapsTileLayer,
                                                               culture: bingMapsLabelLanguage,
                                                               minZoom: minZoom,
-                                                              maxZoom: maxZoom};
-                        this.tileLayer = L.tileLayer.bing(this.bingOptions);
+                                                              maxZoom: maxZoom}
+                        this.tileLayer = L.tileLayer.bing(this.bingOptions)
                         // Add tile layer to map
-                        this.map.addLayer(this.tileLayer);
+                        this.map.addLayer(this.tileLayer)
                     }
                 } else {
                     // Setup the tile layer with map tile, zoom and attribution
@@ -1109,9 +1639,9 @@ define([
                         attribution: this.attribution,
                         minZoom: minZoom,
                         maxZoom: maxZoom
-                    });
+                    })
                     // Add tile layer to map
-                    this.map.addLayer(this.tileLayer);    
+                    this.map.addLayer(this.tileLayer)    
                 }
 
                 this.markers = new L.MarkerClusterGroup({ 
@@ -1123,49 +1653,46 @@ define([
                     singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
                     animate: (this.isArgTrue(animate)),
                     iconCreateFunction: function(cluster) {
-                        var childCount = cluster.getChildCount();
-                        var c = ' marker-cluster-';
+                        var childCount = cluster.getChildCount()
+                        var c = ' marker-cluster-'
                         if (childCount >= criticalThreshold) {
-                            c += 'three';
+                            c += 'three'
                         } else if (childCount >= warningThreshold) {
-                            c += 'two';
+                            c += 'two'
                         } else {
-                            c += 'one';
+                            c += 'one'
                         }
-                        return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) });
+                        return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
                     }
-                });
+                })
 
                 // Create layer control
-                var control = this.control = L.control.layers(null, null, { collapsed: this.isArgTrue(layerControlCollapsed)});
+                var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
+
+                let measureControl = this.measureControl
+
+                var measureFeatures = this.measureFeatures = L.layerGroup()
 				
-				// Get map size          
-				var mapSize = this.mapSize = this.map.getSize();
+				// Get map size
+				var mapSize = this.mapSize = this.map.getSize()
 
                 // Get parent element of div to resize 
                 // Nesting of Div's is different, try 7.x first
-                var parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid");
-                var parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view");
+                this.parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
+                this.parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
 
                 // Default to 6.x view
-                if(parentView != 'views/shared/ReportVisualizer') {
-                    var parentEl = $(this.el).parent().parent().closest("div").attr("data-cid");
-                    var parentView = $(this.el).parent().parent().closest("div").attr("data-view");
+                if(this.parentView != 'views/shared/ReportVisualizer') {
+                    this.parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
+                    this.parentView = $(this.el).parent().parent().closest("div").attr("data-view")
                 }
  
                 // Map Full Screen Mode
                 if (this.isArgTrue(fullScreen)) {
-                    var vh = $(window).height() - 120;
-                    $("div[data-cid=" + parentEl + "]").css("height", vh);
-
-                    $(window).resize(function() {
-                        var vh = $(window).height() - 120;
-                        $("div[data-cid=" + parentEl + "]").css("height", vh);
-                    });
-                    this.map.invalidateSize();
+                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
                 } else {
-                    $("div[data-cid=" + parentEl + "]").css("height", defaultHeight);
-                    this.map.invalidateSize();
+                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+                                                      defaultHeight: defaultHeight})
                 }
 
                 // Enable measure tool plugin and add to map
@@ -1177,197 +1704,105 @@ define([
                                            secondaryLengthUnit: measureSecondaryLengthUnit,
                                            primaryAreaUnit: measurePrimaryAreaUnit,
                                            secondaryAreaUnit: measureSecondaryAreaUnit,
-                                           localization: measureLocalization};
+                                           localization: measureLocalization,
+                                           features: this.measureFeatures,
+                                           map: this.map}
 
-                    var measureControl = new L.Control.Measure(measureOptions);
-                    measureControl.addTo(this.map);
+                    // var measureControl = new L.Control.Measure(measureOptions)
+                    this.measureControl = new L.Control.Measure(measureOptions)
+                    this.measureControl.addTo(this.map)
+
+                    if(this.isDarkTheme) { this._darkModeUpdate() }                    
                 }
 
                 // Iterate through KML files and load overlays into layers on map 
                 if(kmlOverlay) {
                     // Create array of kml/kmz files
-                    var kmlFiles = kmlOverlay.split(/\s*,\s*/);
+                    var kmlFiles = kmlOverlay.split(/\s*,\s*/)
 					// Pane zIndex used to facilitate layering of multiple KML/KMZ files
-                    var paneZIndex = this.paneZIndex = 400;
+                    var paneZIndex = this.paneZIndex = 400
 
                     // Loop through each file and load it onto the map
                     _.each(kmlFiles.reverse(), function(file, i) {
-                        var url = location.origin + this.contribUri + '/kml/' + file;
-                        this.fetchKmlAndMap(url, file, this.map, this.paneZIndex);
-                        this.paneZIndex = this.paneZIndex - (i+1);
-                    }, this);
+                        var url = location.origin + this.contribUri + '/kml/' + file
+                        this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
+                        this.paneZIndex = this.paneZIndex - (i+1)
+                    }, this)
                 }
                 
-                //var pathLineLayer = this.pathLineLayer = L.layerGroup();
+                //var pathLineLayer = this.pathLineLayer = L.layerGroup()
                 var pathLineLayers = this.pathLineLayers = {}
                 
                 // Store heatmap layers
-                var heatLayers = this.heatLayers = {};
+                var heatLayers = this.heatLayers = {}
+
+                // Polygon layers
+                var featureLayers = this.featureLayers = {}
                
                 // Init defaults
-                if(this.isSplunkSeven) {
-                    this.chunk = 50000;
-                } else {
-                    this.chunk = 10000;
-                }
-                this.offset = 0;
-				this.isInitializedDom = true;         
-                this.allDataProcessed = false;
+                this.chunk = 50000
+                this.offset = 0
+				this.isInitializedDom = true         
+                this.allDataProcessed = false
 
                 // Load localization file and init locale
-                var i18n = $.i18n();
-                i18n.locale = i18nLanguage;
-                i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale);
+                var i18n = $.i18n()
+                i18n.locale = i18nLanguage
+                i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
                 
                 if(this.isArgTrue(showProgress)) {
-                    this.map.spin(true);
+                    this.map.spin(true)
                 }
             } 
 
             // Map Scroll
-            (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable();
+            (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
 
             if(!this.isArgTrue(bingMaps)) {
                 // Reset Tile If Changed
                 if(this.tileLayer._url != this.activeTile) {
-                    this.tileLayer.setUrl(this.activeTile);
+                    this.tileLayer.setUrl(this.activeTile)
                 }
             }   
 
             // Reset tile zoom levels if changed
             if(!_.isNull(this.tileLayer)) {
                 if (this.tileLayer.options.maxZoom != maxZoom) {
-                    this.tileLayer.options.maxZoom = maxZoom;
+                    this.tileLayer.options.maxZoom = maxZoom
                 }
                 
                 if (this.tileLayer.options.minZoom != minZoom) {
-                    this.tileLayer.options.minZoom = minZoom;
+                    this.tileLayer.options.minZoom = minZoom
                 }
             }
 
             // Reset map zoom
             if (this.map.getZoom() != mapCenterZoom) {
-                this.map.setZoom(mapCenterZoom);
+                this.map.setZoom(mapCenterZoom)
             }
+
            
 			/********* BEGIN PROCESSING DATA **********/
  
             // Iterate through each row creating layer groups per icon type
             // and create markers appending to a markerList in each layerfilter object
-
-            // Init current position in dataRows
-            var curPos = this.curPos = 0;
-
             _.each(dataRows, function(userData, i) {
-                // Only return if we have > this.chunkSize and not on the first page of results
-                // Part of pagination logic to determine when we've fetched all results.
-                if(!this.isSplunkSeven) {
-                    if(this.curPage >= 1 && this.curPos == 0) {
-                        this.curPos += 1;
-                        return;
-                    }
-                }
-
                 if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
                     // Skip the marker to improve performance of rendering
-                    return;
+                    return
                 }
 
-                // Add heatmap layer
-                if (this.isArgTrue(heatmapEnable)) {
-                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"default";
-                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity;
-                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius;
-                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur;
-                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient;
-                    
-                    if(!_.has(this.heatLayers, this.heatLayer)) {
-                        // Create feature group
-                        var heatFg = L.featureGroup();
-
-                        // Create heat layer
-                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-                                                        radius: heatmapRadius,
-                                                        gradient: heatmapColorGradient,
-                                                        blur: heatmapBlur});
-                        // Add to feature group                                
-                        heatFg.addLayer(heatFgLayer);
-                        heatFg.options.name = this.heatLayer;
-                        this.heatLayers[this.heatLayer] = heatFg;
-                    }
-
-                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0;
-                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity));
-                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng);
-                    
-                    if(this.isArgTrue(heatmapOnly)) {
-                        return;
-                    }
-                }
-
-                // Set icon options
-                var icon = _.has(userData, "icon") ? userData["icon"]:"circle";
-                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon;
-				var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default";
-
-                // Create Cluster Group
-                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-                    var cg = this._createClusterGroup(disableClusteringAtZoom,
-                                                      disableClusteringAtZoomLevel,
-                                                      maxClusterRadius,
-                                                      maxSpiderfySize,
-                                                      spiderfyDistanceMultiplier,
-                                                      singleMarkerMode,
-                                                      animate,
-                                                      criticalThreshold,
-                                                      warningThreshold,
-                                                      this);
-
-                    this.clusterGroups[clusterGroup] = cg;
-                    cg.addTo(this.map);
-                }
-
-                // Create Clustered featuregroup subgroup layer
-                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
-                                                    'iconStyle' : icon,
-                                                    'layerExists' : false,
-                                                    'clusterGroup': []
-                                                    };
-                // Create normal layergroup
-                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
-                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
-                                                    'markerList' : [],
-                                                    'iconStyle' : icon,
-                                                    'layerExists' : false
-                                                    };
-                }
-
-                // Add clusterGroup to layerGroup
-                if(this.isArgTrue(cluster)
-                   && clusterGroup != ""
-                   && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
-                    this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
-                                                                    'cg': this.clusterGroups[clusterGroup],
-                                                                    'markerList': []});
-                }
-
-                // Get layer description and set
-                var layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:"";
-                
-                if (!_.isUndefined(this.layerFilter[layerGroup])) {
-                    this.layerFilter[layerGroup].layerDescription = layerDescription;
-                }
-			
-                // Get marker and icon properties	
+                                // Get marker and icon properties	
 				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
                     markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
                     iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
+                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
                     markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
                     markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
                     shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
                     shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
                     markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
+                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):undefined,
                     title = _.has(userData, "title") ? userData["title"]:null,
                     tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
                     prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
@@ -1378,29 +1813,162 @@ define([
                     circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
                     circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
                     circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
-                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2
+                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
+                    layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+                    description = _.has(userData, "description") ? userData["description"]:null,
+                    featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
+                    featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
+                    featureColor = _.has(userData, "featureColor") ? this.convertHex(userData["featureColor"]):this.convertHex("#3388ff"),
+                    featureWeight = _.has(userData, "featureWeight") ? userData["featureWeight"]:3,
+                    featureOpacity = _.has(userData, "featureOpacity") ? userData["featureOpacity"]:1.0,
+                    featureStroke = _.has(userData, "featureStroke") ? this.isArgTrue(userData["featureStroke"]):true,
+                    featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
+                    featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
+                    featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
+                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10
 
-                // Set icon class
-                if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
-                    var className = "";
-                    var popupAnchor = [-3, -35];
-                } else {
-                    var className = "awesome-marker";
-                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35];
+                // Add heatmap layer
+                if (this.isArgTrue(heatmapEnable)) {
+                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap"
+                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity
+                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius
+                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur
+                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient
+                    
+                    if(!_.has(this.heatLayers, this.heatLayer)) {
+                        // Create feature group
+                        var heatFg = L.featureGroup()
+
+                        // Create heat layer
+                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
+                                                        radius: heatmapRadius,
+                                                        gradient: heatmapColorGradient,
+                                                        blur: heatmapBlur,
+                                                        map: this.map})
+                        // Add to feature group                                
+                        heatFg.addLayer(heatFgLayer)
+                        heatFg.options.name = this.heatLayer
+                        heatFg.options.layerDescription = layerDescription
+                        heatFg.options.layerType = "heat"
+                        heatFg.options.layerPriority = layerPriority
+                        this.heatLayers[this.heatLayer] = heatFg
+                    }
+
+                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
+                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
+                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+                    
+                    if(this.isArgTrue(heatmapOnly)) {
+                        return
+                    }
                 }
 
-                // Get description
-                var description = _.has(userData, "description") ? userData["description"]:"";
+                // Feature Layer implemented as polygon, but could be point, line or polygon
+                if(_.has(userData, "feature")) {
+                    const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
+                    let feature
+
+                    if(!_.has(this.featureLayers, this.featureLayer)) {
+                        let featureFg = L.featureGroup()
+                        featureFg.options.name = this.featureLayer
+                        featureFg.options.layerDescription = layerDescription
+                        featureFg.options.layerPriority = layerPriority
+                        this.featureLayers[this.featureLayer] = featureFg
+                    }
+
+                    let latlngs = _.map(userData["feature"].split(';'), function(coordinates) {
+                        let latlngarr = coordinates.split(',')
+                        return L.latLng({lat: parseFloat(latlngarr[0]),
+                                         lng: parseFloat(latlngarr[1])})
+                    })
+
+                    if(latlngs.length === 1) {
+                        feature = L.circleMarker(latlngs[0], {color: featureColor,
+                            weight: featureWeight,
+                            radius: featureRadius,
+                            opacity: featureOpacity,
+                            stroke: featureStroke,
+                            fill: featureFill,
+                            fillOpacity: featureFillOpacity,
+                            fillColor: featureFillColor})
+                    } else {
+                        feature = L.polygon(latlngs, {color: featureColor,
+                            weight: featureWeight,
+                            opacity: featureOpacity,
+                            stroke: featureStroke,
+                            fill: featureFill,
+                            fillOpacity: featureFillOpacity,
+                            fillColor: featureFillColor})
+                    }
+
+                    if(!_.isNull(featureDescription)) {
+                        feature.bindPopup(featureDescription)
+                    }
+
+                    if(!_.isNull(featureTooltip)) {
+                        feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
+                                                             direction: 'auto',
+                                                             sticky: this.isArgTrue(stickyTooltip)})
+                    }
+                    this.featureLayers[this.featureLayer].addLayer(feature)
+
+                    // No latitude or longitude fields
+                    if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
+                        return
+                    }                    
+                }
+
+                // Set icon options
+                var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
+                var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
+                var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
+                var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
+                var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
+                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
+                var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+
+                // When using ionicons use material design by default unless explicitly set
+                if(prefix == "ion") { 
+                    if(!/^(md|ios|logo)-/.test(icon)) {
+                        prefix += "-md"
+                        layerIconPrefix += "-md"
+                    }
+                }
+            
+                // Set icon class
+                if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
+                    var className = ""
+                    var popupAnchor = [-3, -35]
+                } else {
+                    var className = "awesome-marker"
+                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35]
+                }
 
 				// SVG and PNG based markers both support hex iconColor do conversion outside
-				iconColor = this.convertHex(iconColor);	
+				iconColor = this.convertHex(iconColor)	
+
+                markerType = _.isNull(customIcon) ? markerType:"custom"
 
                 // Create marker
+                if(markerType == "custom") {
+                    var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+                    
+                    var markerIcon = L.icon({
+                        iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                        shadowUrl: customIconShadow,
+                        iconSize: markerSize,
+                        iconAnchor: markerAnchor,
+                        shadowAnchor: shadowAnchor,
+                        popupAnchor: popupAnchor
+                    })
+                }
+
                 if (markerType == "svg") {
 					// Update marker to shade of Awesome Marker blue
-					if(markerColor == "blue") { markerColor = "#38AADD"; }
-                    markerColor = this.convertHex(markerColor);
-                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50];
+					if(markerColor == "blue") { markerColor = "#38AADD" }
+                    markerColor = this.convertHex(markerColor)
+                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
+                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
 
                     var markerIcon = L.VectorMarkers.icon({
                         icon: icon,
@@ -1413,9 +1981,13 @@ define([
                         popupAnchor: popupAnchor,
                         iconSize: markerSize,
                         iconAnchor: markerAnchor,
-                    });
-                } else {
+                    })
+                } 
+                
+                if(markerType == "png") {
                     // Create markerIcon
+                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
+                    if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
                     var markerIcon = L.AwesomeMarkers.icon({
                         icon: icon,
                         markerColor: markerColor,
@@ -1424,8 +1996,34 @@ define([
                         className: className,
                         extraClasses: extraClasses,
                         popupAnchor: popupAnchor,
-                        description: description
-                    });
+                        description: description,
+                        iconAnchor: markerAnchor
+                    })
+                }
+
+                if(markerType == "icon") {
+                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
+                    className = "icon-only"
+                    var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
+                    var markerIcon = L.divIcon({
+                        html: divIconHtml,
+                        className: className,
+                        icon: icon,
+                        markerColor: iconColor,
+                        iconColor: iconColor,
+                        prefix: prefix,
+                        extraClasses: extraClasses,
+                        popupAnchor: popupAnchor,
+                        description: description,
+                        iconAnchor: markerAnchor
+                    })
+                }
+
+                if(!this.validMarkerTypes.includes(markerType)) {
+                    // throw viz error
+                    throw new SplunkVisualizationBase.VisualizationError(
+                        'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle'
+                    )
                 }
 
                 var markerOptions = {markerType: markerType,
@@ -1440,6 +2038,7 @@ define([
                     markerIcon: markerIcon,
                     layerDescription: layerDescription,
                     markerPriority: markerPriority,
+                    layerPriority: layerPriority,
                     permanentTooltip: this.isArgTrue(permanentTooltip),
                     stickyTooltip: this.isArgTrue(stickyTooltip),
                     cluster: this.isArgTrue(cluster),
@@ -1451,6 +2050,56 @@ define([
                     drilldown: drilldown,
                     drilldownAction: drilldownAction}
 
+                // Create Cluster Group
+                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
+                    var cg = this._createClusterGroup(disableClusteringAtZoom,
+                                                        disableClusteringAtZoomLevel,
+                                                        maxClusterRadius,
+                                                        maxSpiderfySize,
+                                                        spiderfyDistanceMultiplier,
+                                                        singleMarkerMode,
+                                                        animate,
+                                                        criticalThreshold,
+                                                        warningThreshold,
+                                                        this)
+
+                    this.clusterGroups[clusterGroup] = cg
+                    cg.addTo(this.map)
+                }
+
+                // Create Clustered featuregroup subgroup layer
+                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
+                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+                                                    'iconStyle' : icon,
+                                                    'layerExists' : false,
+                                                    'clusterGroup': []
+                                                    }
+                // Create regular feature group
+                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
+                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+                                                    'markerList' : [],
+                                                    'iconStyle' : icon,
+                                                    'layerExists' : false
+                                                    }
+                }
+
+                // Add clusterGroup to layerGroup
+                if(this.isArgTrue(cluster)
+                    && clusterGroup != ""
+                    && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
+                    this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
+                                                                    'cg': this.clusterGroups[clusterGroup],
+                                                                    'markerList': []})
+                }
+
+                if (!_.isUndefined(this.layerFilter[layerGroup])) {
+                    this.layerFilter[layerGroup].layerDescription = layerDescription
+                    this.layerFilter[layerGroup].layerIcon = layerIcon
+                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
+                    this.layerFilter[layerGroup].layerIconColor = layerIconColor
+                    this.layerFilter[layerGroup].layerIconSize = layerIconSize
+                }
+
                 if (userData["markerVisibility"]) {
                     if (userData["markerVisibility"] == "marker") {
                         this._addMarker(markerOptions)
@@ -1458,15 +2107,14 @@ define([
                 } else {
                     this._addMarker(markerOptions)
                 }
-            }, this);
+            }, this)
             
-            // Enable/disable layer controls and toggle collapse 
+            // Enable layer controls and toggle collapse 
             if (this.isArgTrue(layerControl)) {           
-                this.control.addTo(this.map);
-                this.control.options.collapsed = this.isArgTrue(layerControlCollapsed);
-            } else {
-                this.control.remove();
-            }
+                this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
+                this.control.addTo(this.map)                
+                if(this.isDarkTheme) { this._darkModeUpdate() }
+            } 
 
             // Clustered
             if (this.isArgTrue(cluster)) {
@@ -1474,43 +2122,54 @@ define([
                                               layerControl: this.isArgTrue(layerControl),
                                               control: this.control,
                                               context: this})
-            // Single value
+            // Single value or Circle Marker
             } else {
                 this._addUnclustered(this.map, {layerFilter: this.layerFilter,
                                                 layerControl: this.isArgTrue(layerControl),
                                                 allPopups: this.isArgTrue(allPopups),
+                                                paneZIndex: this.paneZIndex,
                                                 control: this.control,
-                                                context: this});
+                                                context: this})
             }
 
             // Draw path lines
             if (this.isArgTrue(showPathLines)) {
-                var activePaths = [];
+                var activePaths = []
                 var colors = _.map(pathColorList.split(','), function(color) {
-                    return this.convertHex(color);
-                }, this);
+                    return this.convertHex(color)
+                }, this)
 
-                var pathData = this.pathData = [];
-                var interval = pathSplitInterval * 1000;
-                var intervalCounter = 0;
-                var previousTime = new Date();
+                var pathData = this.pathData = []
+                var interval = pathSplitInterval * 1000
+                var intervalCounter = 0
+                var previousTime = new Date()
 
                 var paths = _.chain(dataRows)
                     .map(function (d) {            
-                        var colorIndex = 0;
-                        var pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5;
-                        var pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5;
-						var dt = _.has(d, "_time") ? moment(d["_time"]):"";
-                        var tooltip = _.has(d, "tooltip") ? d["tooltip"]:"";
+                        var colorIndex = 0
+                            pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5
+                            pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5
+						    dt = _.has(d, "_time") ? moment(d["_time"]):""
+                            tooltip = _.has(d, "tooltip") ? d["tooltip"]:""
+                            description = _.has(d, "description") ? d["description"]:""
+                            antPath = _.has(d, "antPath") ? d["antPath"]:null
+                            antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000
+                            antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF"
+                            antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false
+                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
+                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
+                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
+                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined
 
                         if (pathIdentifier) {
-                            var id = d[pathIdentifier];
-                            var colorIndex = activePaths.indexOf(id);
+                            var id = d[pathIdentifier]
+                            var colorIndex = activePaths.indexOf(id)
                             if (colorIndex < 0) {
-                                colorIndex = activePaths.push(id) - 1;
+                                colorIndex = activePaths.push(id) - 1
                             }
                         }
-                        var color = (_.has(d, "pathColor")) ? d["pathColor"] : colors[colorIndex % colors.length];
+                        var color = (_.has(d, "pathColor")) ? d["pathColor"] : colors[colorIndex % colors.length]
                         return {
                             'time': dt,
                             'id': id,
@@ -1519,42 +2178,50 @@ define([
                             'pathWeight': pathWeight,
                             'pathOpacity': pathOpacity,
                             'tooltip': tooltip,
+                            'description': description,
                             'permanentTooltip': permanentTooltip,
                             'stickyTooltip': stickyTooltip,
-                            'color': color
+                            'color': color,
+                            'antPath': antPath,
+                            'antPathDelay': antPathDelay,
+                            'antPathPulseColor': antPathPulseColor,
+                            'antPathPaused': antPathPaused,
+                            'antPathReverse': antPathReverse,
+                            'antPathDashArray': antPathDashArray,
+                            'layerDescription': layerDescription,
+                            'layerPriority': layerPriority,
+                            'pathLayer': pathLayer,
+                            'layerType': "path"
                         }
-                    })
-                    .sortBy(function(d) {
-                        return -d.time;
                     })
                     .each(function(d) {
-                        var dt = d.time;
-                        if (interval && previousTime - dt > interval) {
-                            intervalCounter++;
+                        var dt = d.time
+                        if (interval && Math.abs(previousTime - dt) > interval) {
+                            intervalCounter++
                         }
-                        d.interval = 'interval' + intervalCounter;
+                        d.interval = 'interval' + intervalCounter
 
-                        previousTime = dt;
+                        previousTime = dt
                     })
                     .groupBy(function(d) {
-                        return d.id;
+                        return d.id
                     })
                     .values()
-                    .value();
+                    .value()
 
                 if(this.isArgTrue(pathSplits)) {
                     _.each(paths, function(path, i) {
                         this.pathData = _.chain(path)
                             .groupBy(function(d) {
-                                return d.interval;
+                                return d.interval
                         })
                         .values()
-                        .value();
-                        this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
-                    }, this);
+                        .value()
+                        this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
+                    }, this)
                 } else {
-                    this.pathData = paths;
-                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this});
+                    this.pathData = paths
+                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
                 }
             }
 
@@ -1565,78 +2232,23 @@ define([
              */
             if(this.mapSize.x == 0 && this.mapSize.y == 0) {
                 var intervalId = this.intervalId = setInterval(function(that) {
-                    curSize = that.curSize = that.map.getSize();
-                    that.map.invalidateSize();
+                    curSize = that.curSize = that.map.getSize()
+                    that.map.invalidateSize()
                     if(that.curSize.x > 0 && that.curSize.y > 0) {
-                        clearInterval(that.intervalId);
+                        clearInterval(that.intervalId)
                     }
-                }, 500, this);
+                }, 500, this)
             }
 
             // Update offset and fetch next chunk of data
-            if(this.isSplunkSeven) {
-                this.offset += dataRows.length;
+            // if(this.isSplunkSeven) {
+            this.offset += dataRows.length
 
-                setTimeout(function(that) {
-                    that.updateDataParams({count: that.chunk, offset: that.offset});
-                }, 100, this);
-            } else {
-                // It's Splunk 6.x
-                if(dataRows.length == this.chunk) {
-                    // This results in a dupe. The last element in the current result set
-                    // and the first element in the next result set. This dupe is handled in the 
-                    // loop processing the results.
-                    this.offset += this.chunk-1;
-                    this.curPage += 1;
-                    setTimeout(function(that) {
-                        that.updateDataParams({count: that.chunk, offset: that.offset});
-                    }, 100, this);
-                } else {
-                    this.allDataProcessed = true;
+            setTimeout(function(that) {
+                that.updateDataParams({count: that.chunk, offset: that.offset})
+            }, 100, this)
 
-                    if(this.isArgTrue(showProgress)) {
-                        if(!_.isUndefined(this.map)) {
-                            this.map.spin(false);
-                        }
-                    }
-                                    // Render hetmap layer on map
-                    if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
-                        this._renderLayersToMap(this.map, {layers: this.heatLayers,
-                                                           control: this.control,
-                                                           layerControl: this.isArgTrue(layerControl),
-                                                           layerType: "heat",
-                                                           context: this})
-                    }
-
-                    // Render paths to map
-                    if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
-                        this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-                                                           control: this.control,
-                                                           layerControl: this.isArgTrue(layerControl),
-                                                           layerType: "path",
-                                                           context: this})
-                    }
-
-                    if(this.isArgTrue(autoFitAndZoom)) {
-                        setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
-                                                                              layerFilter: this.layerFilter, 
-                                                                              pathLineLayers: this.pathLineLayers,
-                                                                              heatLayers: this.heatLayers,
-                                                                              context: this});
-                    }
-
-                    // Dashboard refresh
-                    if(refreshInterval > 0) {
-                        setTimeout(function() {
-                            location.reload();
-                        }, refreshInterval);
-                    }
-
-
-                }
-            }
-
-            return this;
+            return this
         }
-    });
-});
+    })
+})

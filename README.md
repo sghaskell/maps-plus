@@ -31,8 +31,9 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [moment](https://github.com/moment/moment)
 ##### [brfs](https://www.npmjs.com/package/brfs)
 ##### [fontawesome](https://fontawesome.com/)
-##### [Glyphicons](http://glyphicons.com/)
+##### [Glyphicons](https://getbootstrap.com/docs/3.3/components/#glyphicons-how-to-use)
 ##### [Ionicons](https://ionicons.com/)
+##### [leaflet-ant-path](https://github.com/rubenspgcavalcante/leaflet-ant-path)
 ##### Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](www.flaticon.com)
 ##### [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)
 ##### [UCI Machine Learning Repository - GPS Trajectories Data Set](https://archive.ics.uci.edu/ml/datasets/GPS+Trajectories)
@@ -49,12 +50,12 @@ Big thanks to the following people:
 * [dxwils3](https://github.com/dxwils3) for **pathColor** enhancement.
 
 ### Compatibility
-Maps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.
+Maps+ for Splunk is compatible with **Splunk 7.x**
 
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconSize | layerIconColor | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
 ```
 
 ### Required Fields
@@ -66,30 +67,40 @@ Longitude Coordinates
 ### Optional Fields
 ##### description
 Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. **This field supports HTML**.
-##### layerDescription
-Description that is added next to the icon in the layer control legend. **this field supports HTML**
+
 
 ### Style Markers And Icons Dynamically Through SPL
-Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.
+Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/).
 
 By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use [SVG based markers](#svg-markers).
 
-### Available Fields and Values
+Control the size of the icons using the `extraClasses` field. See [Font Awesome documentation](https://fontawesome.com/how-to-use/on-the-web/styling/sizing-icons) for details on which classes to use.
+
+If you own a [Font Awesome Pro license](https://fontawesome.com/pro), you can upload the remaining web fonts into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/fonts` and then [reference them using the appropriate](https://fontawesome.com/how-to-use/on-the-web/referencing-icons/basic-use) `prefix` values `far` or `fal`.
+
+### PNG Markers
+#### Available Fields and Values
+##### markerType
+`png` - **Default**
+
 ##### title
 Icon mouse hover over description. **Deprecated (with backwards compatibility) - see tooltip**
+
 ##### tooltip
-Tooltip to display on marker hover.
+Tooltip displayed on marker hover.
+
 ##### icon
-Icon displayed in map marker - Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). - **Default** ``circle``
+Icon displayed in map marker - Any icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** ``circle``
 ##### markerColor
 Color of map marker - ``red``, ``darkred``, ``lightred``, ``orange``, ``beige``, ``green``, ``darkgreen``, ``lightgreen``, ``blue``, ``darkblue``, ``lightblue``, ``purple``, ``darkpurple``, ``pink``, ``cadetblue``, ``white``, ``gray``, ``lightgray``, ``black``. - **Default** ``blue``
 ##### iconColor
 Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`.
 ##### prefix
-``fa`` (Font Awesome) or ``ion`` (ionicons). - **Default** ``fa``
+``fa`` ([Font Awesome](https://fontawesome.com/icons?d=gallery&s=solid&m=free)), ``fab`` ([Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free)), ``ion`` ([ionicons](http://ionicons.com/)) or ``glyphicon`` ([Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/)) - **Default** ``fa``
 
 ##### extraClasses
 Any extra CSS classes you wish to add for styling. Here are some [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) you can use with Font Awesome or Ionicons to change the styling. **Default** ``fa-lg``
+
 
 ### SVG Markers
 Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.
@@ -133,10 +144,10 @@ Use circle markers when you have a lot of points to plot and you need performanc
 Radius of the circle marker, in pixels
 
 ##### circleColor 
-Stroke color
+Stroke color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
 
 ##### circleFillColor 
-Fill color. Defaults to the value of the [circleColor](#circlecolor) field
+Fill color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`. Defaults to the value of the [circleColor](#circlecolor) field
 
 ##### circleOpacity
 Stroke opacity
@@ -150,12 +161,18 @@ Whether to draw stroke along the path. Set it to false to disable borders.
 ##### circleWeight 
 Stroke width in pixels
 
+### Custom Icons
+Use any image as a map marker. Copy the image into `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images` and set the `customIcon` field to the name of the image. Use `markerSize` to increase or decrease the size of the icon.
+
+### Display icon without marker
+Set the `markerType` field to `icon` to only display the icon without a marker. Control the size of the icons using the `extraClasses` field. See [Font Awesome documentation](https://fontawesome.com/how-to-use/on-the-web/styling/sizing-icons) for details on which classes to use. Control the color of the icon with [`iconColor`](#iconcolor).
+
 ### Heatmaps
 Render heatmaps with or without markers. Control heatmaps via the [format menu](#heatmap) or directly with SPL. Create multiple heatmap layers via SPL with the `heatmapLayer` field. When controlling heatmaps through SPL, the first event for a given `heatmapLayer` will define the heatmap settings `heatmapMinOpacity` `heatmapMaxZoom` `heatmapRadius` `heatmapBlur` `heatmapColorGradient`, if specified, otherwise values specified in the format menu will be used.
 
 #### Available Fields and Values
 ##### heatmapLayer
-Name of the heatmap layer to render.
+Name of group for display using [layer controls](#layer-controls) - **Default** `heatmap`
 
 ##### heatPointIntensity
 Control the intensity of the point - **Default** ``1.0``
@@ -172,6 +189,54 @@ Amount of blur - **Default** ``15``
 ##### heatmapColorGradient 
 Color gradient config - **Default** ``{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})``
 
+### Features
+Load features drawn with the [measure tool](#measure-tool) on the map through SPL or lookup files. 
+
+Use the measure tool in the upper right corner to draw a point, line or polygon on the map. Upon completion, a **Feature Defintion** can be copied and used with the `feature` field. 
+
+![Alt text](appserver/static/visualizations/maps-plus/contrib/images/feature-definition.png?raw=true)
+
+Adjust the look and behavior of the feature with the following fields.
+
+##### featureColor
+Feature color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
+
+##### featureDescription 
+Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. **This field supports HTML**.
+
+##### featureTooltip 
+Tooltip displayed on feature hover.
+
+##### featureLayer 
+Name of group for display using [layer controls](#layer-controls) - **Default** `feature`
+
+##### featureWeight 
+Stroke width in pixels - **Default** `3`
+
+##### featureStroke 
+Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles. 
+
+##### featureFill 
+Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
+
+##### featureFillColor
+Feature fill color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `featureColor`
+
+##### featureFillOpacity
+Fill opacity - **Default** `0.2`
+
+##### featureRadius 
+Radius of circle in meters - **Default** `10`
+
+Define the features with the `feature` field. Optionally, store the features in a lookup file and use `| append [|inputlookup feature-lookup.csv]` to load the features on map
+
+Example Search
+
+```| makeresults | eval feature="42.259016415705766,-87.99087524414064", featureWeight="3", featureColor="#5CBF5C", featureDescription="point description", featureTooltip="point tip", featureFillOpacity="0.350", featureFillColor="#f4f141", featureFill="false",featureStroke="true", featureRadius="10", featureLayer="point layer", featureFillOpacity="1.0"
+| append [| makeresults | eval feature="42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151", layerDescription="polygon layer", featureTooltip="polygon tooltip", featureDescription="polygon description", featureLayer="polygon layer", featureColor="#41dff4", featureFillColor="#55f441", featureFillOpacity="0.1"]
+| append [| makeresults | eval feature="42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131", layerDescription="line layer", featureDescription="line description", featureTooltip="line tooltip", featureLayer="line layer", featureColor="#f441d3"]
+| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity
+```
 
 ### Path Tracing
 If you have a dataset that contains multiple coordinates for each object (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path on the map. Control whether markers are displayed along the path using the ``markerVisibility`` setting. Show split intervals by enabling ``Path Splits`` and adjusting the ``Path Split Interval`` in the [format menu options](#path-lines). Note that ``_time`` must be present for split intervals to work.
@@ -179,6 +244,9 @@ If you have a dataset that contains multiple coordinates for each object (think 
 #### Available Fields and Values
 ##### markerVisibility
 Show marker for the given coordinates. Set to ``marker`` to show marker or any other value to hide.
+
+##### pathLayer
+Name of group for display using [layer controls](#layer-controls) - **Default** `path`
 
 ##### pathWeight
 Weight (width) of path - **Default** ``5``
@@ -189,6 +257,27 @@ Opacity of path line - **Default** ``0.5``
 ##### pathColor
 The color of the path.  If not specified, the color will be chosen randomly from the set of colors listed in the **Path Colors** option.
 
+#### Path Direction
+Use the following fields to add an ant path animation showing direction of travel. 
+
+##### antPath
+Enable or disable Ant Path animation. Disabled by default. Set to ``true`` to enable.
+
+##### antPathDelay
+Animation delay in milliseconds - **Default** ``1000``
+
+##### antPathPulseColor
+Color of dash - **Default** ``#FFFFFF``
+
+##### antPathPaused
+Pause animation - **Default** ``false``
+
+##### antPathReverse
+Reverse animation - **Default** ``false``
+
+##### antPathDashArray
+Comma separated size of animated dashes - **Default** ``10,20``
+
 ### Marker Priority
 Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.
 
@@ -196,6 +285,16 @@ Use the following setting to set the marker priority.
 
 ##### markerPriority
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
+
+### Layer Priority
+Use in conjunction with `layerGroup` for [circle markers](#circle-markers), `pathLayer` for [paths](#path-tracing) and `heatmapLayer` for [heatmaps](#heatmap) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
+
+**Warning**: When using the canvas renderer in conjunction with `layerPriority`, mouse events are affected for all layers below the highest priority layer. This is a [bug in Leaflet](https://github.com/Leaflet/Leaflet/issues/4135). If you don't need to use `tooltip`, `description` or [drilldown](#drilldown) and want the performance boost canvas provides, this shouldn't be an issue.
+
+Use the following setting to set the layer priority.
+
+##### layerPriority
+Number used to set layer priority when using Circle. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 ### Drilldown
 The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. 
@@ -218,10 +317,22 @@ Specify groups with the ``layerGroup`` field to filter markers via layer control
 
 #### Available Fields
 ##### layerDescription
-Add description text next to each icon in the layer control legend.
+Description that is added next to the icon in the layer control legend. **this field supports HTML**
 
 ##### layerGroup
-Specify unique group that markers belong to.
+Specify unique group that markers, including [circle markers](#circle-markers), belong to. Use `heatmapLayer` and `pathLayer` to group heatmap and path layers (repsectively) together
+
+##### layerIcon
+Icon displayed in layer control legend - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
+
+##### layerIconSize
+Size of icon, in pixels, displayed in the layer control legend, specified as `height,width`
+
+##### layerIconColor
+Color of icon in layer control legend - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
+
+##### layerIconPrefix
+Icon prefix - **Default** `fa`
 
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.
@@ -248,8 +359,8 @@ The files will be asynchronously loaded when the map is rendered.
 ### i18n Localization
 The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
 
-### Measurement Plugin
-Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
+### Measure Tool
+Interactively measure paths and area on the map. The feature is enabled by default. Hover over the icon in the upper right corner of the map and then select `Create new measurement`. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session. See the [features](#features) section for persisting features drawn by the measurement tool.
 
 ### API Key Storage
 API keys for use with Google Places search, Bing Maps and the Google Streetview comapnion viz must be stored in Splunk's [storage/passwords](http://docs.splunk.com/Documentation/Splunk/7.2.0/RESTREF/RESTaccess#storage.2Fpasswords) REST endpoint. Every user who needs access to a key must have the `list_storage_passwords` capability enabled for their role. Set ACL's on credentials to narrow the scope of who can access them. Download and install my [REST storage/passwords Manager for Splunk](https://splunkbase.splunk.com/app/4013/) to make this process painless.
@@ -287,7 +398,7 @@ Select one of six available map tiles
 ###### Map Tile Override
 Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles [here](http://wiki.openstreetmap.org/wiki/Tiles)
 ###### Map Attribution Override
-Use your own attribution. - **Requires browser Refresh**
+Use your own attribution.
 ###### Renderer
 Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.
 ###### Progress Indicator
@@ -295,7 +406,7 @@ Display progress spinner for long running searches
 ###### Scroll Wheel Zoom
 Enable or disable scroll wheel zoom
 ###### Full Screen Mode
-Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. - **Requires browser Refresh**
+Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. 
 ###### Drilldown
 Enable or disable drilldown - **Requires browser Refresh**
 ###### Drilldown Mouse Event
@@ -378,6 +489,7 @@ Comma-separated list of hex or html colors for path lines (wraps around if more 
 Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
 ###### Path Split Interval
 Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - **Default** `60`
+
 
 #### i18n
 ###### Language

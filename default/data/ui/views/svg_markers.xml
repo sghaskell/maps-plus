@@ -21,9 +21,10 @@ extraClasses=case(like(description, "%500 AND UNDER%"), "fa-sm", like(descriptio
 shadowSize=case(like(description, "%500 AND UNDER%"), "10,26", like(description, "%TO PROPERTY%"), "10,26", like(description, "%RETAIL THEFT%"), "10,26", like(description, "%TO VEHICLE%"), "10,26", 1=1, "30,46"),
 shadowAnchor=case(like(description, "%SIMPLE%"), "17,18"),
 markerSize=case(like(description, "%SIMPLE%"), "45,55", like(description, "%DOMESTIC BATTERY%"), "55,65", like(description, "%500 AND UNDER%"), "25,35", like(description, "%TO PROPERTY%"), "15,25", like(description, "%RETAIL THEFT%"), "25,25", like(description, "%TO VEHICLE%"), "15,20", 1=1, "35,45"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
 | eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, markerType, markerSize, extraClasses, shadowSize, shadowAnchor</query>
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, markerType, markerSize, extraClasses, shadowSize, shadowAnchor, layerDescription</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>

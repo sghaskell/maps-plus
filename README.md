@@ -55,7 +55,7 @@ Maps+ for Splunk is compatible with **Splunk 7.x**
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconPrefix | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
 ```
 
 ### Required Fields
@@ -277,7 +277,9 @@ Use the following setting to set the marker priority.
 Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like ``1000`` (or a high negative value to render beneath). **Default** ``0``
 
 ### Layer Priority
-Use in conjunction with ``layerGroup`` and vector layers ([circle markers]((#circle-markers)) and [paths](#path-tracing)) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
+Use in conjunction with `layerGroup` for [circle markers](#circle-markers), `pathLayer` for [paths](#path-tracing) and `heatmapLayer` for [heatmaps](#heatmap) to prioritize layer rendering. This is especially useful for dense maps where you need certain layers to stand out over others.
+
+**Warning**: When using the canvas renderer in conjunction with `layerPriority`, mouse events are affected for all layers below the highest priority layer. This is a [bug in Leaflet](https://github.com/Leaflet/Leaflet/issues/4135). If you don't need to use `tooltip`, `description` or [drilldown](#drilldown) and want the performance boost canvas provides, this shouldn't be an issue.
 
 Use the following setting to set the layer priority.
 

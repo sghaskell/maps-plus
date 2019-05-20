@@ -1,0 +1,10 @@
+latitude,longitude,icon,prefix,tooltip,layerDescription
+37.7764685,-122.4172004,twitter,fab,Twitter,Twitter
+37.3763719,-121.9576374,cc-paypal,fab,Paypal,Paypal
+37.5592563,-122.2785536,cc-visa,fab,Visa,Visa
+34.1655852,-118.5684899,aviato,fab,Aviato,Aviato
+37.7822713,-122.3934366,github,fab,GitHub,GitHub
+47.6222917,-122.3386826,amazon,fab,Amazon,Amazon
+37.7810611,-122.3948869,dropbox,fab,Dropbox,Dropbox
+37.4220041,-122.0862462,google,fab,Google,Google
+37.3926882,-122.0442225,linkedin,fab,LinkedIn,LinkedIn

@@ -8,14 +8,18 @@
         <view name="svg_markers" />
         <view name="circle_markers" />
         <view name="custom_icons" />
+        <view name="custom_icon_images" />
         <view name="multicluster_groups" />
         <view name="multilayer_groups" />
         <!--    <view name="dashboard5" /> -->
         <!-- </collection> -->
         <view name="google_streetview_drilldown" />
         <view name="path_lines" />
+        <view name="ant_path" />
         <view name="heatmap" />
+        <view name="features" />
         <view name="drilldown" />
+        <view name="png_markers_dark" />
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

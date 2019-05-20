@@ -4,7 +4,7 @@
     <panel>
       <html>
       <p>
-        The default behavior is to cluster all markers into the same cluster group. Use the <b>clusterGroup</b> field for granular control over cluster grouping. The following example creates seven cluster groups.
+        The default behavior is to cluster all markers into the same cluster group. Use the <code>clusterGroup</code> field for granular control over cluster grouping. The following example creates seven cluster groups.
       </p>
     </html>
     </panel>
@@ -37,6 +37,7 @@ clusterGroup=case(like(description, "%SIMPLE%"), "simple", like(description, "%D
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -48,6 +49,7 @@ clusterGroup=case(like(description, "%SIMPLE%"), "simple", like(description, "%D
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
@@ -80,6 +82,7 @@ clusterGroup=case(like(description, "%SIMPLE%"), "simple", like(description, "%D
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

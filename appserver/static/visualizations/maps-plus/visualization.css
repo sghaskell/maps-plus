@@ -1,7 +1,8 @@
 @import url('./contrib/css/leaflet.css');
 @import url('./contrib/css/MarkerCluster.Default.css');
 @import url('./contrib/css/MarkerCluster.css');
-@import url('./contrib/css/font-awesome.min.css');
+@import url('./contrib/css/fontawesome-all.min.css');
+@import url('./contrib/css/fontawesome-v4-shims.min.css');
 @import url('./contrib/css/glyphicon.css');
 @import url('./contrib/css/leaflet.awesome-markers.css');
 @import url('./contrib/css/ionicons.min.css');
@@ -11,3 +12,4 @@
 @import url('./contrib/css/Leaflet.Dialog.css');
 @import url('./contrib/css/leaflet-vector-markers.css');
 @import url('./contrib/css/leaflet-gplaces-autocomplete.css');
+@import url('./contrib/css/leaflet-dark.css');

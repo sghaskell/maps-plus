@@ -1,0 +1,4 @@
+feature,featureColor,featureDescription,featureTooltip,featureLayer,featureWeight,featureStroke,featureFill,featureFillColor,featureFillOpacity,featureRadius,layerPriority
+"42.259016415705766,-87.99087524414064","#5CBF5C","point description","point tooltip","point layer",3,,,"#f4f141",0.350,10,1
+"42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151","#41dff4","polygon description","polygon tooltip","polyogn layer",,,,"#55f441",,,2
+"42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131","#f441d3","line description","line tooltip","line layer",,,,,,,3

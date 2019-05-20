@@ -61,7 +61,11 @@
             if(options.icon.slice(0,options.prefix.length+1) === options.prefix + "-") {
                 iconClass = options.icon;
             } else {
-                iconClass = options.prefix + "-" + options.icon;
+                if(options.prefix === "fab") {
+                    iconClass = "fa-" + options.icon
+                } else {
+                    iconClass = options.prefix + "-" + options.icon;
+                }                
             }
 
             if(options.spin && typeof options.spinClass === "string") {
@@ -69,11 +73,6 @@
             }
 
             if(options.iconColor) {
-                //if(options.iconColor === 'white' || options.iconColor === 'black') {
-                //    iconColorClass = "icon-" + options.iconColor;
-                //} else {
-                //    iconColorStyle = "style='color: " + options.iconColor + "' ";
-                //}
                 iconColorStyle = "style='color: " + options.iconColor + "' ";
             }
 
@@ -121,6 +120,5 @@
     };
 
 }(this, document));
-
 
 

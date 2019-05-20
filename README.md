@@ -55,7 +55,7 @@ Maps+ for Splunk is compatible with **Splunk 7.x**
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconSize | layerIconColor | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
 ```
 
 ### Required Fields
@@ -68,11 +68,6 @@ Longitude Coordinates
 ##### description
 Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. **This field supports HTML**.
 
-##### layerDescription
-Description that is added next to the icon in the layer control legend. **this field supports HTML**
-
-##### layerIcon
-Icon displayed in layer filter menu - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
 
 ### Style Markers And Icons Dynamically Through SPL
 Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define colors for the marker or use an icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/).
@@ -90,8 +85,10 @@ If you own a [Font Awesome Pro license](https://fontawesome.com/pro), you can up
 
 ##### title
 Icon mouse hover over description. **Deprecated (with backwards compatibility) - see tooltip**
+
 ##### tooltip
-Tooltip to display on marker hover.
+Tooltip displayed on marker hover.
+
 ##### icon
 Icon displayed in map marker - Any icon from [Font Awesome](https://fontawesome.com/v4.7.0/icons/), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** ``circle``
 ##### markerColor
@@ -147,10 +144,10 @@ Use circle markers when you have a lot of points to plot and you need performanc
 Radius of the circle marker, in pixels
 
 ##### circleColor 
-Stroke color
+Stroke color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
 
 ##### circleFillColor 
-Fill color. Defaults to the value of the [circleColor](#circlecolor) field
+Fill color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`. Defaults to the value of the [circleColor](#circlecolor) field
 
 ##### circleOpacity
 Stroke opacity
@@ -175,7 +172,7 @@ Render heatmaps with or without markers. Control heatmaps via the [format menu](
 
 #### Available Fields and Values
 ##### heatmapLayer
-Name of the heatmap layer to render.
+Name of group for display using [layer controls](#layer-controls) - **Default** `heatmap`
 
 ##### heatPointIntensity
 Control the intensity of the point - **Default** ``1.0``
@@ -201,25 +198,35 @@ Use the measure tool in the upper right corner to draw a point, line or polygon 
 
 Adjust the look and behavior of the feature with the following fields.
 
-##### featureColor 
+##### featureColor
+Feature color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
 
 ##### featureDescription 
+Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. **This field supports HTML**.
 
 ##### featureTooltip 
+Tooltip displayed on feature hover.
 
 ##### featureLayer 
+Name of group for display using [layer controls](#layer-controls) - **Default** `feature`
 
 ##### featureWeight 
+Stroke width in pixels - **Default** `3`
 
 ##### featureStroke 
+Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles. 
 
 ##### featureFill 
+Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
 
-##### featureFillColor 
+##### featureFillColor
+Feature fill color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `featureColor`
 
-##### featureFillOpacity 
+##### featureFillOpacity
+Fill opacity - **Default** `0.2`
 
 ##### featureRadius 
+Radius of circle in meters - **Default** `10`
 
 Define the features with the `feature` field. Optionally, store the features in a lookup file and use `| append [|inputlookup feature-lookup.csv]` to load the features on map
 
@@ -237,6 +244,9 @@ If you have a dataset that contains multiple coordinates for each object (think 
 #### Available Fields and Values
 ##### markerVisibility
 Show marker for the given coordinates. Set to ``marker`` to show marker or any other value to hide.
+
+##### pathLayer
+Name of group for display using [layer controls](#layer-controls) - **Default** `path`
 
 ##### pathWeight
 Weight (width) of path - **Default** ``5``
@@ -310,7 +320,22 @@ Specify groups with the ``layerGroup`` field to filter markers via layer control
 Add description text next to each icon in the layer control legend.
 
 ##### layerGroup
-Specify unique group that markers belong to.
+Specify unique group that markers, including [circle markers](#circle-markers), belong to. Use `heatmapLayer` and `pathLayer` to group heatmap and path layers (repsectively) together
+
+##### layerDescription
+Description that is added next to the icon in the layer control legend. **this field supports HTML**
+
+##### layerIcon
+Icon displayed in layer filter menu - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
+
+##### layerIconSize
+Size of icon in pixels specified as `height,width`
+
+##### layerIconColor
+Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
+
+##### layerIconPrefix
+Icon prefix to use - **Default** `fa`
 
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.

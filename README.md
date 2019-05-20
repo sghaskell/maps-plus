@@ -317,25 +317,22 @@ Specify groups with the ``layerGroup`` field to filter markers via layer control
 
 #### Available Fields
 ##### layerDescription
-Add description text next to each icon in the layer control legend.
+Description that is added next to the icon in the layer control legend. **this field supports HTML**
 
 ##### layerGroup
 Specify unique group that markers, including [circle markers](#circle-markers), belong to. Use `heatmapLayer` and `pathLayer` to group heatmap and path layers (repsectively) together
 
-##### layerDescription
-Description that is added next to the icon in the layer control legend. **this field supports HTML**
-
 ##### layerIcon
-Icon displayed in layer filter menu - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
+Icon displayed in layer control legend - Any icon from [Font Awesome Solid](https://fontawesome.com/icons?d=gallery&s=solid&m=free), [Font Awesome Brands](https://fontawesome.com/icons?d=gallery&s=brands&m=free), [ionicons](http://ionicons.com/) or [Bootstrap Glyphicons](https://getbootstrap.com/docs/3.3/components/) - **Default** first icon detected for defined ``layerGroup``
 
 ##### layerIconSize
-Size of icon in pixels specified as `height,width`
+Size of icon, in pixels, displayed in the layer control legend, specified as `height,width`
 
 ##### layerIconColor
-Color of icon - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
+Color of icon in layer control legend - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `white`
 
 ##### layerIconPrefix
-Icon prefix to use - **Default** `fa`
+Icon prefix - **Default** `fa`
 
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.

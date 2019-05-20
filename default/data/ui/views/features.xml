@@ -3,15 +3,20 @@
   <row>
     <panel>
       <html>
-        <p>Use the measure tool in the upper right corner to draw features (point, line or polygon) on the map. Upon completion, a <b>Feature Definition</b> can be copied and used with the <code>feature</code> field. Adjust the look and behavior of the feature with the following fields <code>featureColor</code>, <code>featureDescription</code>, <code>featureTooltip</code>, <code>featureLayer</code>, <code>featureWeight</code>, <code>featureStroke</code>, <code>featureFill</code>, <code>featureFillColor</code>, <code>featureFillOpacity</code>, <code>featureRadius</code></p>
+        <p>Use the measure tool in the upper right corner to draw features (point, line or polygon) on the map. Upon completion, a <b>Feature Definition</b> can be copied and used with the <code>feature</code> field. Adjust the look and behavior of the feature with the following fields <code>featureColor</code>, <code>featureDescription</code>, <code>featureTooltip</code>, <code>featureLayer</code>, <code>featureWeight</code>, <code>featureStroke</code>, <code>featureFill</code>, <code>featureFillColor</code>, <code>featureFillOpacity</code>, <code>featureRadius</code>
+        </p>
         <p>Define the features with the <code>feature</code> field.</p>
-        <p><img src="/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/images/feature-definition.png"></img></p>
+        <p>
+          <img src="/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/images/feature-definition.png"/>
+        </p>
         <p>Optionally, store the features in a lookup file and use <code>| append [|inputlookup feature-lookup.csv]</code> to load the features on map</p>
         <h3>Example Feature Search</h3>
-        <pre><code>| makeresults | eval feature="42.259016415705766,-87.99087524414064", featureWeight="3", featureColor="#5CBF5C", featureDescription="point description", featureTooltip="point tip", featureFillOpacity="0.350", featureFillColor="#f4f141", featureFill="false",featureStroke="true", featureRadius="10", featureLayer="point layer", featureFillOpacity="1.0"
+        <pre>
+          <code>| makeresults | eval feature="42.259016415705766,-87.99087524414064", featureWeight="3", featureColor="#5CBF5C", featureDescription="point description", featureTooltip="point tip", featureFillOpacity="0.350", featureFillColor="#f4f141", featureFill="false",featureStroke="true", featureRadius="10", featureLayer="point layer", featureFillOpacity="1.0"
 | append [| makeresults | eval feature="42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151", layerDescription="polygon layer", featureTooltip="polygon tooltip", featureDescription="polygon description", featureLayer="polygon layer", featureColor="#41dff4", featureFillColor="#55f441", featureFillOpacity="0.1"]
 | append [| makeresults | eval feature="42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131", layerDescription="line layer", featureDescription="line description", featureTooltip="line tooltip", featureLayer="line layer", featureColor="#f441d3"]
-| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity</code></pre>
+| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity</code>
+        </pre>
       </html>
     </panel>
   </row>
@@ -84,7 +89,7 @@
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

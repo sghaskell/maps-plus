@@ -15,6 +15,7 @@
         <!-- </collection> -->
         <view name="google_streetview_drilldown" />
         <view name="path_lines" />
+        <view name="ant_path" />
         <view name="heatmap" />
         <view name="features" />
         <view name="drilldown" />

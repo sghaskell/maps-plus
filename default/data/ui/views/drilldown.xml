@@ -7,8 +7,8 @@
       <p>The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML.</p>
       <p>Use the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Access_the_drilldown_editor">drilldown editor</a> to <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Choose_a_drilldown_action">set the action</a> for the drilldown.</p>
       <p>See the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/ContextualDrilldown">documentation on contextual drilldown</a>. Refer to this section of the docs  on <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown">accessing tokens for dynamic drilldown</a>.</p>
-      <p>Note that <b>$click.value$</b> does not get set through the Custom Visualization API. Use <b>$row.fieldname$</b> to acceess a drilldown value.</p>
-      <p>When using the <b>Click</b> drilldown mouse event, use the <b>tooltip</b> field instead of the <b>description</b> field to display information about the marker as you hover over the icon.</p>
+      <p>Note that <code>$click.value$</code> does not get set through the Custom Visualization API. Use <code>$row.fieldname$</code> to acceess a drilldown value.</p>
+      <p>When using the <b>Click</b> drilldown mouse event, use the <code>tooltip</code> field instead of the <code>description</code> field to display information about the marker as you hover over the icon.</p>
     </html>
     </panel>
   </row>

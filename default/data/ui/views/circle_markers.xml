@@ -1,18 +1,24 @@
 <dashboard>
   <label>Circle Markers</label>
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
-        Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.
+        Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. Use the following fields to change the look and behavior of circle markers.
       </p>
       <p>
-        <b>circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight</b>
+        <code>circleColor</code> <code>circleFillColor</code> <code>circleOpacity</code> <code>circleFillOpacity</code> <code>circleRadius</code> <code>circleStroke</code> <code>circleWeight</code>
       </p>
-      
+      <p>
+          <font color="red">
+            <b>Warning:</b>
+          </font> When using the <code>canvas</code> renderer in conjunction with <code>layerPriority</code>, mouse events are affected for all layers below the highest priority layer. This is <a href="https://github.com/Leaflet/Leaflet/issues/4135" target="_new">a bug in Leaflet</a>. If you don't need to use <code>tooltip</code>, <code>description</code> or drilldown and want the performance boost canvas provides, this shouldn't be an issue.</p>
     </html>
+    </panel>
   </row>
   <row>
     <panel>
+      <title>circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight, layerGroup, layerPriority</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| inputlookup chicago-crime.csv
@@ -27,8 +33,9 @@ circleOpacity=case(like(description, "%SIMPLE%"), "0.4", like(description, "%DOM
 circleFillOpacity=case(like(description, "%SIMPLE%"), "1.0", like(description, "%DOMESTIC BATTERY%"), "0.3", like(description, "%500 AND UNDER%"), "0.5", like(description, "%TO PROPERTY%"), "0.6", like(description, "%RETAIL THEFT%"), "0.7", like(description, "%TO VEHICLE%"), "0.3", 1=1, "0.4"),
 circleRadius=case(like(description, "%SIMPLE%"), "15", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "7", like(description, "%RETAIL THEFT%"), "5", like(description, "%TO VEHICLE%"), "6", 1=1, "4"),
 circleStroke=case(like(description, "%SIMPLE%"), "true", like(description, "%DOMESTIC BATTERY%"), "true", like(description, "%500 AND UNDER%"), "false", like(description, "%TO PROPERTY%"), "true", like(description, "%RETAIL THEFT%"), "false", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "true"),
-circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "8", like(description, "%RETAIL THEFT%"), "15", like(description, "%TO VEHICLE%"), "13", 1=1, "8")
-| table latitude, longitude, description, tooltip, markerType, clusterGroup, layerGroup, circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight</query>
+circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "8", like(description, "%RETAIL THEFT%"), "15", like(description, "%TO VEHICLE%"), "13", 1=1, "8"),
+layerPriority=case(like(description, "%SIMPLE%"), "1", like(description, "%DOMESTIC BATTERY%"), "10", like(description, "%500 AND UNDER%"), "12", like(description, "%TO PROPERTY%"), "8", like(description, "%RETAIL THEFT%"), "15", like(description, "%TO VEHICLE%"), "13", 1=1, "8")
+| table latitude, longitude, description, tooltip, markerType, clusterGroup, layerGroup, circleColor, circleFillColor, circleOpacity, circleFillOpacity, circleRadius, circleStroke, circleWeight, layerPriority</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -47,6 +54,7 @@ circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMES
         <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -58,6 +66,7 @@ circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMES
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
@@ -79,7 +88,6 @@ circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMES
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
         <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
         <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
         <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
@@ -90,6 +98,7 @@ circleWeight=case(like(description, "%SIMPLE%"), "20", like(description, "%DOMES
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

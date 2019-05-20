@@ -1,5 +1,5 @@
-<dashboard>
-  <label>PNG Markers</label>
+<dashboard theme="dark">
+  <label>Dark Mode</label>
   <row>
     <panel>
       <html>
@@ -47,6 +47,7 @@ layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", lik
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">16</option>
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
@@ -58,12 +59,13 @@ layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", lik
         <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
         <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
@@ -90,6 +92,7 @@ layerDescription=case(like(description, "%SIMPLE%"), "exclamation-triangle", lik
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

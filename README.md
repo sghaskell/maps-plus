@@ -360,7 +360,7 @@ The files will be asynchronously loaded when the map is rendered.
 The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
 
 ### Measure Tool
-Interactively measure paths and area on the map. The feature is enabled by default. Hover over the icon in the upper right corner of the map and then select `Create new measurement`. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.
+Interactively measure paths and area on the map. The feature is enabled by default. Hover over the icon in the upper right corner of the map and then select `Create new measurement`. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session. See the [features](#features) section for persisting features drawn by the measurement tool.
 
 ### API Key Storage
 API keys for use with Google Places search, Bing Maps and the Google Streetview comapnion viz must be stored in Splunk's [storage/passwords](http://docs.splunk.com/Documentation/Splunk/7.2.0/RESTREF/RESTaccess#storage.2Fpasswords) REST endpoint. Every user who needs access to a key must have the `list_storage_passwords` capability enabled for their role. Set ACL's on credentials to narrow the scope of who can access them. Download and install my [REST storage/passwords Manager for Splunk](https://splunkbase.splunk.com/app/4013/) to make this process painless.
@@ -398,7 +398,7 @@ Select one of six available map tiles
 ###### Map Tile Override
 Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles [here](http://wiki.openstreetmap.org/wiki/Tiles)
 ###### Map Attribution Override
-Use your own attribution. - **Requires browser Refresh**
+Use your own attribution.
 ###### Renderer
 Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.
 ###### Progress Indicator
@@ -406,7 +406,7 @@ Display progress spinner for long running searches
 ###### Scroll Wheel Zoom
 Enable or disable scroll wheel zoom
 ###### Full Screen Mode
-Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. - **Requires browser Refresh**
+Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. 
 ###### Drilldown
 Enable or disable drilldown - **Requires browser Refresh**
 ###### Drilldown Mouse Event

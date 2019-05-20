@@ -10,7 +10,7 @@ Maps+ for Splunk Changelog
     - Draw features using feature Definition
 * Added layerPriority field to stack vector layers (works with heatmaps, path lines, circle markers and features)
 * Added layerDescription field to name layers in layer dialog (works with heatmaps, path lines, circle markers and features)
-* Added layerIcon and layerIconPrefix fields to explicitly set layerGroup icon in layer filter
+* Added layerIcon, layerIconSize, layerIconColor and layerIconPrefix to style groups in layer control
 * Added pathLayer field to group paths
 * Added Ant Path to visualize direction of path
 * Dark Mode support

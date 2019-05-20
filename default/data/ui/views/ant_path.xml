@@ -4,7 +4,7 @@
   <row>
     <panel>
       <html>
-        <p>Visualize direction flow with ant paths. Simply <code>| eval antPath="true" | table antPath</code> to display the ant path. Control behavior with the following fields.</p>
+        <p>Visualize direction flow with ant paths. Simply <code>| eval antPath="true" | table antPath</code> to display the ant path. Control behavior with <a href="https://github.com/sghaskell/maps-plus#path-direction" target="_new">the following fields</a>.</p>
         <p><code>antPath</code>, <code>antPathDelay</code>, <code>antPathPulseColor</code>, <code>antPathPaused</code>, <code>antPathReverse</code>, <code>antPathDashArray</code></p>
       </html>
     </panel>

@@ -8,9 +8,10 @@ Maps+ for Splunk Changelog
 * Added support for Features (Polygon, Line or Point) using measure tool
     - Feature Definition displayed on measure completion
     - Draw features using feature Definition
-* Added layerPriority field to stack layers (works for all layer types including heatmaps, path lines, circles and features)
-* Added layerDescription field to name layers in layer dialog (works for all layer types including heatmaps, path lines, circles and features)
+* Added layerPriority field to stack vector layers (works with heatmaps, path lines, circle markers and features)
+* Added layerDescription field to name layers in layer dialog (works with heatmaps, path lines, circle markers and features)
 * Added layerIcon and layerIconPrefix fields to explicitly set layerGroup icon in layer filter
+* Added pathLayer field to group paths
 * Added Ant Path to visualize direction of path
 * Dark Mode support
 * Upgrade Leaflet to 1.5.1

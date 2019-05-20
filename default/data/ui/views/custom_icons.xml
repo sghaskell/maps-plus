@@ -111,7 +111,7 @@ extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
@@ -196,7 +196,7 @@ extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

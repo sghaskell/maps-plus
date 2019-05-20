@@ -9,7 +9,10 @@
       <p>
         <code>circleColor</code> <code>circleFillColor</code> <code>circleOpacity</code> <code>circleFillOpacity</code> <code>circleRadius</code> <code>circleStroke</code> <code>circleWeight</code>
       </p>
-      
+      <p>
+          <font color="red">
+            <b>Warning:</b>
+          </font> When using the <code>canvas</code> renderer in conjunction with <code>layerPriority</code>, mouse events are affected for all layers below the highest priority layer. This is <a href="https://github.com/Leaflet/Leaflet/issues/4135" target="_new">a bug in Leaflet</a>. If you don't need to use <code>tooltip</code>, <code>description</code> or drilldown and want the performance boost canvas provides, this shouldn't be an issue.</p>
     </html>
     </panel>
   </row>
@@ -95,7 +98,7 @@ layerPriority=case(like(description, "%SIMPLE%"), "1", like(description, "%DOMES
         <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
         <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
         <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
         <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
         <option name="leaflet_maps_app.maps-plus.showProgress">1</option>

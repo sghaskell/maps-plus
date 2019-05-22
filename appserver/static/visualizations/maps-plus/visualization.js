@@ -1320,7 +1320,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            .each(function(lg) {
 	                // Create pane and set zIndex
 	                if(!_.isUndefined(lg.options.layerPriority)){
-	                    let styleOptions = {pane: options.paneZIndex.toString()}
+	                    let styleOptions = {pane: options.paneZIndex.toString(), 
+	                                        renderer: L.svg({pane: options.paneZIndex.toString()})}
 
 	                    map.createPane(options.paneZIndex.toString())
 	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex

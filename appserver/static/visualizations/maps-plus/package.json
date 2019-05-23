@@ -33,7 +33,7 @@
     "leaflet-bing-layer": "digidem/leaflet-bing-layer#gh-pages",
     "leaflet.markercluster": "^1.4.1",
     "spin.js": "^2.3.2",
-    "leaflet-ant-path": "sghaskell/leaflet-ant-path#master",
+    "leaflet-ant-path": "^1.3.0",
     "moment": "^2.20.1"
   }
 }

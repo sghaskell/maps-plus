@@ -26,6 +26,7 @@ define([
             '../contrib/js/leaflet-measure',
 			'../contrib/js/leaflet.awesome-markers',
             '../contrib/js/leaflet-vector-markers',
+            '../contrib/js/LeafletPlayback',
             '../contrib/js/CLDRPluralRuleParser',
             '../contrib/js/jquery.i18n',
             '../contrib/js/jquery.i18n.messagestore',

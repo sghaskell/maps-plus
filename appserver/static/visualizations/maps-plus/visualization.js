@@ -845,7 +845,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        drawPath: function(options) {
 	            //var paneZIndex = 400
 	           
-	            _.each(options.data, function(p) {        
+	            _.each(options.data, function(p) {   
 	                let id = p[0]['id'],
 	                  layerDescription = p[0]['layerDescription'],
 	                  layerPriority = p[0]['layerPriority'],
@@ -887,6 +887,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                                            "paused": p[0]['antPathPaused'],
 	                                                                            "reverse": p[0]['antPathReverse']
 	                                                }).bindPopup(p[0]['description'])
+
+	                    pl.options.geoJSON = {
+	                        "type": "Feature",
+	                        "geometry": {
+	                          "type": "LineString",
+	                          "coordinates":_.pluck(p, 'latlng')
+	                        },
+	                        "properties": {
+	                            "title" : p[0]['id'],
+	                            "path_options" : { "color" : "red" },
+	                            "time": _.pluck(p, 'unixtime')
+	                        }
+	                    }
 	                } else {
 	                    // create polyline and bind popup
 	                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
@@ -901,6 +914,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                     sticky: p[0]['stickyTooltip']})
 	                }
 
+	                console.log(pl)
 	                // Add polyline to feature group
 	                pathFg.addLayer(pl)
 	            })
@@ -1310,6 +1324,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        
 	        _renderLayersToMap: function(map, options) {
+	            //console.log(options)
 	            _.chain(options.layers)
 	            .sortBy(function(d) {
 	                if(!_.isUndefined(d.options.layerPriority)){
@@ -1319,6 +1334,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 	            })
 	            .each(function(lg) {
+	                //console.log(lg)
 	                // Create pane and set zIndex
 	                if(!_.isUndefined(lg.options.layerPriority)){
 	                    let styleOptions = {pane: options.paneZIndex.toString(), 
@@ -1329,6 +1345,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    lg.setStyle(styleOptions)
 	                }
 
+	                if(_.has(options, 'playback') && options.playback) {
+	                    // console.log(options.playback)
+	                    lg.eachLayer(function(l) {
+	                        options.playback.updateData(l.options.geoJSON)
+	                    })
+	                    
+	                }
+	                
 	                // Add layer controls
 	                lg.addTo(map)
 
@@ -1476,6 +1500,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       layerControl: this.isArgTrue(layerControl),
 	                                                       layerType: "path",
 	                                                       paneZIndex: this.paneZIndex,
+	                                                       //playback: true,
+	                                                       playback: this.playback,
 	                                                       context: this})
 	                }
 	                
@@ -1807,6 +1833,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true)
 	                }
+
+	                var playbackOptions = {
+	                    playControl: true,
+	                    dateControl: true,
+	                    sliderControl: true,
+	                    tracksLayer: false,
+	                    tickLen: 50
+	                };
+	                    
+	                // Initialize playback
+	                var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
 	            } 
 
 	            // Map Scroll
@@ -1969,7 +2006,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    // No latitude or longitude fields
 	                    if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
 	                        return
-	                    }                    
+	                    }
 	                }
 
 	                // Set icon options
@@ -2228,6 +2265,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'time': dt,
 	                            'id': id,
 	                            'coordinates': L.latLng(d['latitude'], d['longitude']),
+	                            'latlng': [parseFloat(d['longitude']),parseFloat(d['latitude'])],
 	                            'colorIndex': colorIndex,
 	                            'pathWeight': pathWeight,
 	                            'pathOpacity': pathOpacity,
@@ -2245,7 +2283,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'layerDescription': layerDescription,
 	                            'layerPriority': layerPriority,
 	                            'pathLayer': pathLayer,
-	                            'layerType': "path"
+	                            'layerType': "path",
+	                            'unixtime': dt.valueOf()
 	                        }
 	                    })
 	                    .each(function(d) {
@@ -2275,6 +2314,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }, this)
 	                } else {
 	                    this.pathData = paths
+	                    console.log(this.pathData)
 	                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
 	                }
 	            }
@@ -70615,13 +70655,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        var stop = L.DomEvent.stopPropagation;
 
 	        L.DomEvent
-	        .on(this._slider, 'click', stop)
-	        .on(this._slider, 'mousedown', stop)
-	        .on(this._slider, 'dblclick', stop)
-	        .on(this._slider, 'click', L.DomEvent.preventDefault)
+	        // .on(this._slider, 'click', stop)
+	        // .on(this._slider, 'mousedown', stop)
+	        // .on(this._slider, 'dblclick', stop)
+	        // .on(this._slider, 'click', L.DomEvent.preventDefault)
 	        //.on(this._slider, 'mousemove', L.DomEvent.preventDefault)
 	        .on(this._slider, 'change', onSliderChange, this)
-	        .on(this._slider, 'mousemove', onSliderChange, this);           
+	        // .on(this._slider, 'mousemove', onSliderChange, this);           
+	        .on(this._slider, 'mousemove', function(ev) {
+	            //let div = L.DomUtil.get(ev.path[1])
+	            //L.DomEvent.disableClickPropagation(div)
+	            //L.DomEvent.disableClickPropagation(ev)
+	            L.DomEvent.disableClickPropagation(this._slider)
+	            onSliderChange(ev)
+	        }, this);           
 
 
 	        function onSliderChange(e) {
@@ -70719,6 +70766,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        
 	        setData : function (geoJSON) {
+	            console.log(this)
 	            this.clearData();
 	        
 	            this.addData(geoJSON, this.getTime());
@@ -70726,8 +70774,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            this.setCursor(this.getStartTime());
 	        },
 
+	        updateData: function(geoJSON) {
+	            this.addData(geoJSON, this.getTime());
+	            
+	            this.setCursor(this.getStartTime());
+	        },
+
 	        // bad implementation
+	        //addData : function (geoJSON, ms, options) {
 	        addData : function (geoJSON, ms) {
+	            console.log(this)
 	            // return if data not set
 	            if (!geoJSON) {
 	                return;
@@ -70741,7 +70797,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this._trackController.addTrack(new L.Playback.Track(geoJSON, this.options), ms);
 	            }
 
-	            this._map.fire('playback:set:data');
+	            this._map.fire('playback:add_tracks');
 	            
 	            if (this.options.tracksLayer) {
 	                this._tracksLayer.addLayer(geoJSON);

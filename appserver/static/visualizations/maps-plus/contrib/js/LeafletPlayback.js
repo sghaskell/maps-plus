@@ -858,13 +858,20 @@ L.Playback.SliderControl = L.Control.extend({
         var stop = L.DomEvent.stopPropagation;
 
         L.DomEvent
-        .on(this._slider, 'click', stop)
-        .on(this._slider, 'mousedown', stop)
-        .on(this._slider, 'dblclick', stop)
-        .on(this._slider, 'click', L.DomEvent.preventDefault)
+        // .on(this._slider, 'click', stop)
+        // .on(this._slider, 'mousedown', stop)
+        // .on(this._slider, 'dblclick', stop)
+        // .on(this._slider, 'click', L.DomEvent.preventDefault)
         //.on(this._slider, 'mousemove', L.DomEvent.preventDefault)
         .on(this._slider, 'change', onSliderChange, this)
-        .on(this._slider, 'mousemove', onSliderChange, this);           
+        // .on(this._slider, 'mousemove', onSliderChange, this);           
+        .on(this._slider, 'mousemove', function(ev) {
+            //let div = L.DomUtil.get(ev.path[1])
+            //L.DomEvent.disableClickPropagation(div)
+            //L.DomEvent.disableClickPropagation(ev)
+            L.DomEvent.disableClickPropagation(this._slider)
+            onSliderChange(ev)
+        }, this);           
 
 
         function onSliderChange(e) {
@@ -984,7 +991,7 @@ L.Playback = L.Playback.Clock.extend({
                 this._trackController.addTrack(new L.Playback.Track(geoJSON, this.options), ms);
             }
 
-            this._map.fire('playback:set:data');
+            this._map.fire('playback:add_tracks');
             
             if (this.options.tracksLayer) {
                 this._tracksLayer.addLayer(geoJSON);

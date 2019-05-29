@@ -969,6 +969,7 @@ L.Playback = L.Playback.Clock.extend({
         },
         
         setData : function (geoJSON) {
+            console.log(this)
             this.clearData();
         
             this.addData(geoJSON, this.getTime());
@@ -976,8 +977,16 @@ L.Playback = L.Playback.Clock.extend({
             this.setCursor(this.getStartTime());
         },
 
+        updateData: function(geoJSON) {
+            this.addData(geoJSON, this.getTime());
+            
+            this.setCursor(this.getStartTime());
+        },
+
         // bad implementation
+        //addData : function (geoJSON, ms, options) {
         addData : function (geoJSON, ms) {
+            console.log(this)
             // return if data not set
             if (!geoJSON) {
                 return;

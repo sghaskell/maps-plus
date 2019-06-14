@@ -546,6 +546,21 @@ L.Playback.TrackController = L.Class.extend({
             this.addTrack(tracks);
         }            
     },
+
+    removeTrack: function(track) {
+        for (var i = 0, len = this._tracks.length; i < len; i++) {
+            if(this._tracks[i]._geoJSON.properties.title === track.options.geoJSON.properties.title) {
+                var marker = this._tracks[i].getMarker();
+            
+                if (marker){
+                    this._map.removeLayer(marker);
+                }
+
+                this._tracks.splice(i, 1)
+                i = len
+            }
+        }
+    },
     
     // add single track
     addTrack : function (track, timestamp) {
@@ -665,9 +680,18 @@ L.Playback.Clock = L.Class.extend({
     return this._intervalID ? true : false;
   },
 
-  setSpeed: function (speed) {
-    this._speed = speed;
-    this._transitionTime = this._tickLen / speed;
+//   setSpeed: function (speed) {
+//     this._speed = speed;
+//     this._transitionTime = this._tickLen / speed;
+//     if (this._intervalID) {
+//       this.stop();
+//       this.start();
+//     }
+//   },
+
+  setSpeed: function () {
+    //this._speed = speed;
+    this._transitionTime = this._tickLen / this._speed;
     if (this._intervalID) {
       this.stop();
       this.start();
@@ -800,7 +824,8 @@ L.Playback.PlayControl = L.Control.extend({
 
         var self = this;
         var playback = this.playback;
-        playback.setSpeed(100);
+        //playback.setSpeed(100);
+        //playback.setSpeed();
 
         var playControl = L.DomUtil.create('div', 'playControl', this._container);
 
@@ -933,6 +958,7 @@ L.Playback = L.Playback.Clock.extend({
             L.setOptions(this, options);
             
             this._map = map;
+            this._showPlayback = this.options.showPlayback
             this._trackController = new L.Playback.TrackController(map, null, this.options);
             L.Playback.Clock.prototype.initialize.call(this, this._trackController, callback, this.options);
             
@@ -958,6 +984,11 @@ L.Playback = L.Playback.Clock.extend({
                 this.dateControl.addTo(map);
             }
 
+            if(this._showPlayback) {
+                this.showControls()
+            } else {
+                this.hideControls()
+            }
         },
         
         clearData : function(){
@@ -969,7 +1000,6 @@ L.Playback = L.Playback.Clock.extend({
         },
         
         setData : function (geoJSON) {
-            console.log(this)
             this.clearData();
         
             this.addData(geoJSON, this.getTime());
@@ -986,7 +1016,6 @@ L.Playback = L.Playback.Clock.extend({
         // bad implementation
         //addData : function (geoJSON, ms, options) {
         addData : function (geoJSON, ms) {
-            console.log(this)
             // return if data not set
             if (!geoJSON) {
                 return;
@@ -1005,6 +1034,38 @@ L.Playback = L.Playback.Clock.extend({
             if (this.options.tracksLayer) {
                 this._tracksLayer.addLayer(geoJSON);
             }                  
+        },
+
+        removeData: function(o) {
+            this._trackController.removeTrack(o)
+        },
+
+        showControls: function() {
+            this._showPlayback = true
+
+            if (this.playControl) {
+                this._map.addControl(this.playControl);
+            }
+            if (this.sliderControl) {
+                this._map.addControl(this.sliderControl);
+            }
+            if (this.dateControl) {
+                this._map.addControl(this.dateControl);
+            }
+        },
+
+        hideControls: function() {
+            this._showPlayback = false
+
+            if (this.playControl) {
+                this._map.removeControl(this.playControl);
+            }
+            if (this.sliderControl) {
+                this._map.removeControl(this.sliderControl);
+            }
+            if (this.dateControl) {
+                this._map.removeControl(this.dateControl);
+            }
         },
 
         destroy: function() {

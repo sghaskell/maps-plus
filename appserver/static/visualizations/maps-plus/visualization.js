@@ -112,6 +112,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        measureDialogOpen: false,
 	        parentEl: null,
 	        parentView: null,
+	        showClearPlayback: false,
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	        validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
@@ -181,6 +182,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
 				'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlayback': 0,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackSliderControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
@@ -348,6 +355,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
 	                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
 	                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+	                showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
 	                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
 	                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
 	                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
@@ -424,8 +432,49 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            // Handle context menu enable/disable
 	            if(this._propertyExists('contextMenu', configChanges)) {
 	                if(contextMenu) {
+	                    _.each(this.pathLineLayers, function(lg) {
+	                        lg.eachLayer(function(l) {
+	                            if(this.isArgTrue(l.options.playback)) {
+	                                l.bindContextMenu(l.options.pathContextMenuRemove)
+	                            } else {
+	                                l.bindContextMenu(l.options.pathContextMenuAdd)
+	                            }
+	                            // l.bindContextMenu(l.options.pathContextMenu)
+	                        }) 
+	                    })
+
+	                    // if(!_.isEmpty(this.pathLineLayers)) {
+	                    // this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
+	                    //                                 control: this.control,
+	                    //                                 layerControl: false,
+	                    //                                 layerType: "path",
+	                    //                                 paneZIndex: this.paneZIndex,
+	                    //                                 playback: this.playback,
+	                    //                                 //showPlayback: this.playback._showPlayback,
+	                    //                                 context: this})
+	                    // }
+	                    this.contextMenuEnabled = true
 	                    this.map.contextmenu.enable()
+
 	                } else {
+	                    _.each(this.pathLineLayers, function(lg) {
+	                        lg.eachLayer(function(l) {
+	                            l.unbindContextMenu()
+	                        }) 
+	                    })
+
+	                    // if(!_.isEmpty(this.pathLineLayers)) {
+	                    // this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
+	                    //                                 control: this.control,
+	                    //                                 layerControl: false,
+	                    //                                 layerType: "path",
+	                    //                                 paneZIndex: this.paneZIndex,
+	                    //                                 playback: this.playback,
+	                    //                                 //showPlayback: this.playback._showPlayback,
+	                    //                                 context: this})
+	                    // }
+	                    
+	                    this.contextMenuEnabled = false
 	                    this.map.contextmenu.disable()
 	                }
 	            }
@@ -542,6 +591,50 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    this.measureControl.remove()
 	                } else {
 	                    this.measureControl.addTo(this.map)
+	                }
+
+	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	            }
+
+	            // Handle Playback
+	            if(this._propertyExists('showPlayback', configChanges)) {
+	                if(!showPlayback) {
+	                    this.playback.clearData()
+	                    this.playback.hideControls()
+	                    if(this.showClearPlayback) {
+	                        this.map.contextmenu.removeItem(0)
+	                        this.map.contextmenu.removeItem(0)
+	                        this.showClearPlayback = false  
+	                    }
+
+	                    _.each(this.pathLineLayers, function(lg) {
+	                        lg.eachLayer(function(l) {
+	                            l.unbindContextMenu()
+	                        }) 
+	                    })
+	                } else {
+	                    this.playback.showControls()
+
+	                    if(contextMenu) {
+	                        this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                                        context: this,
+	                                                        callback: this.clearPlayback}, 0)
+	                        this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                                        context: this,
+	                                                        callback: this.addAllToPlayback}, 1)
+
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(l) {
+	                                if(l.options.playback) {
+	                                    l.bindContextMenu(l.options.pathContextMenuRemove)
+	                                } else {
+	                                    l.bindContextMenu(l.options.pathContextMenuAdd)
+	                                }                                
+	                            }) 
+	                        })
+	                    }
+	                    
+	                    this.showClearPlayback = true
 	                }
 
 	                if(this.isDarkTheme) { this._darkModeUpdate() }
@@ -734,7 +827,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        // Convert string '1/0' or 'true/false' to boolean true/false
 	        isArgTrue: function(arg) {
-	            if(arg === 1 || arg === 'true') {
+	            if(arg === 1 || arg === 'true' || arg === true) {
 	                return true
 	            } else {
 	                return false
@@ -876,35 +969,70 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    pathFg.options.layerDescription = layerDescription
 	                }
 
+	                const pathContextMenuAdd = {
+	                    contextmenu: true,
+	                    contextmenuInheritItems: true,
+	                    contextmenuItems: [{
+	                            text: 'Add To Playback',
+	                            index: 0,
+	                            context: options.context,
+	                            callback: options.context.addToPlayback
+	                        },{
+	                            index: 1,
+	                            separator: true
+	                        }]
+	                }
+
+	                const pathContextMenuRemove = {
+	                    contextmenu: true,
+	                    contextmenuInheritItems: true,
+	                    contextmenuItems: [{
+	                            text: 'Remove From Playback',
+	                            index: 0,
+	                            context: options.context,
+	                            callback: options.context.removeFromPlayback
+	                        },{
+	                            index: 1,
+	                            separator: true
+	                        }]
+	                }
+
+	                const geoJSON = {
+	                    "type": "Feature",
+	                    "geometry": {
+	                      "type": "LineString",
+	                      "coordinates":_.pluck(p, 'latlng')
+	                    },
+	                    "properties": {
+	                        "title" : p[0]['id'],
+	                        "path_options" : { "color" : "red" },
+	                        "time": _.pluck(p, 'unixtime')
+	                    }
+	                }
+
 	                // Ant Path
 	                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
-	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                                                                            weight: p[0]['pathWeight'],
-	                                                                            opacity: p[0]['pathOpacity'],
-	                                                                            "delay": p[0]['antPathDelay'],
-	                                                                            "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
-	                                                                            "pulseColor": p[0]['antPathPulseColor'],
-	                                                                            "paused": p[0]['antPathPaused'],
-	                                                                            "reverse": p[0]['antPathReverse']
-	                                                }).bindPopup(p[0]['description'])
-
-	                    pl.options.geoJSON = {
-	                        "type": "Feature",
-	                        "geometry": {
-	                          "type": "LineString",
-	                          "coordinates":_.pluck(p, 'latlng')
-	                        },
-	                        "properties": {
-	                            "title" : p[0]['id'],
-	                            "path_options" : { "color" : "red" },
-	                            "time": _.pluck(p, 'unixtime')
-	                        }
-	                    }
+	                    let antPathOptions = {
+	                                                color: options.context.convertHex(p[0]['color']),
+	                                                weight: p[0]['pathWeight'],
+	                                                opacity: p[0]['pathOpacity'],
+	                                                "delay": p[0]['antPathDelay'],
+	                                                "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+	                                                "pulseColor": p[0]['antPathPulseColor'],
+	                                                "paused": p[0]['antPathPaused'],
+	                                                "reverse": p[0]['antPathReverse']
+	                                            }
+	                    
+	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
 	                } else {
+	                    let pathOptions = { 
+	                        color: options.context.convertHex(p[0]['color']),
+	                        weight: p[0]['pathWeight'],
+	                        opacity: p[0]['pathOpacity']
+	                    }
+
 	                    // create polyline and bind popup
-	                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                                                                    weight: p[0]['pathWeight'],
-	                                                                    opacity: p[0]['pathOpacity']}).bindPopup(p[0]['description'])
+	                    var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
 	                }
 
 	                // Apply tooltip to polyline
@@ -914,7 +1042,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                     sticky: p[0]['stickyTooltip']})
 	                }
 
-	                console.log(pl)
+	                // Bind appropriate context menu for playback
+	                if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                    if(options.context.isArgTrue(p[0]['playback'])) {
+	                        pl.bindContextMenu(pathContextMenuRemove)
+	                    } else {
+	                        pl.bindContextMenu(pathContextMenuAdd)
+	                    }
+	                }
+
+	                pl.options.geoJSON = geoJSON
+	                pl.options.playback = options.context.isArgTrue(p[0]['playback'])
+	                pl.options.pathContextMenuAdd = pathContextMenuAdd
+	                pl.options.pathContextMenuRemove = pathContextMenuRemove
+
 	                // Add polyline to feature group
 	                pathFg.addLayer(pl)
 	            })
@@ -989,6 +1130,72 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	              .addTo(this.map)
 	              .open()
 	        },
+
+	        addToPlayback: function(e) {
+	            if(this.playback._showPlayback) {
+	                _.each(this.pathLineLayers, function(l, i){                   
+	                    l.eachLayer(function(layer) {
+	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
+	                            layer.options.playback = true
+	                            this.playback.updateData(this.contextMenuTarget.options.geoJSON)
+	                            layer.unbindContextMenu()
+	                            layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                        }
+	                    }, this)
+	                 }, this)
+	            }
+	        },
+
+	        clearPlayback: function(e) {
+	            _.each(this.pathLineLayers, function(l, i){
+	                l.eachLayer(function(layer) {
+	                    layer.options.playback = false
+	                    layer.unbindContextMenu()
+	                    layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                }, this)
+	             }, this)
+
+	            this.playback.clearData()
+	            this.playback.hideControls()
+	            this.playback.showControls()
+	            if(this.isDarkTheme) { this._darkModeUpdate() }
+	        },
+
+	        addAllToPlayback: function(e) {
+	            this.playback.clearData()
+	            
+	            _.each(this.pathLineLayers, function(l, i){                   
+	                l.eachLayer(function(layer) {
+	                    this.playback.updateData(layer.options.geoJSON)
+	                    layer.options.playback = true
+	                    layer.unbindContextMenu()
+	                    layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                }, this)
+	            }, this)
+
+	            this.playback.hideControls()
+	            this.playback.showControls()
+	            if(this.isDarkTheme) { this._darkModeUpdate() }
+	        },
+
+	        removeFromPlayback: function(e) {
+	            if(this.playback._showPlayback) {
+	                _.each(this.pathLineLayers, function(l, i){                   
+	                    l.eachLayer(function(layer) {
+	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
+	                            layer.options.playback = false
+	                            this.playback.removeData(this.contextMenuTarget)
+	                            layer.unbindContextMenu()
+	                            layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                        }
+	                    }, this)
+	                }, this)
+	             }
+
+	            this.playback.hideControls()
+	            this.playback.showControls()
+	            if(this.isDarkTheme) { this._darkModeUpdate() }
+	         },
 
 	        centerMap: function (e) {
 	            this.map.panTo(e.latlng)
@@ -1324,7 +1531,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        
 	        _renderLayersToMap: function(map, options) {
-	            //console.log(options)
 	            _.chain(options.layers)
 	            .sortBy(function(d) {
 	                if(!_.isUndefined(d.options.layerPriority)){
@@ -1334,7 +1540,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 	            })
 	            .each(function(lg) {
-	                //console.log(lg)
 	                // Create pane and set zIndex
 	                if(!_.isUndefined(lg.options.layerPriority)){
 	                    let styleOptions = {pane: options.paneZIndex.toString(), 
@@ -1345,14 +1550,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    lg.setStyle(styleOptions)
 	                }
 
-	                if(_.has(options, 'playback') && options.playback) {
-	                    // console.log(options.playback)
-	                    lg.eachLayer(function(l) {
-	                        options.playback.updateData(l.options.geoJSON)
-	                    })
-	                    
-	                }
+	                lg.eachLayer(function(l) {
+	                    if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
+	                })                
 	                
+	                // Check if layer is already on the map, remove before re-adding
+	                if(map.hasLayer(lg)) {
+	                    map.removeLayer(lg)
+	                }
 	                // Add layer controls
 	                lg.addTo(map)
 
@@ -1458,6 +1663,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
 	                pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
 	                pathColorList = this._getEscapedProperty('pathColorList', config),
+	                showPlayback = parseInt(this._getEscapedProperty('showPlayback', config)),
+	                showPlaybackSliderControl = parseInt(this._getEscapedProperty('showPlaybackSliderControl', config)),
+	                showPlaybackDateControl = parseInt(this._getEscapedProperty('showPlaybackDateControl', config)),
+	                showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
+	                playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
+	                playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
 	                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
 	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
 	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
@@ -1502,6 +1713,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       paneZIndex: this.paneZIndex,
 	                                                       //playback: true,
 	                                                       playback: this.playback,
+	                                                       showPlayback: showPlayback,
 	                                                       context: this})
 	                }
 	                
@@ -1590,41 +1802,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
 	                this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
 
-	                // Configure context menu
-	                if(this.isArgTrue(contextMenu)) {
-	                    this.mapOptions =  {contextmenu: true,
-	                                       contextmenuWidth: 140,
-	                                       minZoom: minZoom,
-	                                       maxZoom: maxZoom,
-	                                       contextmenuItems: [{
-	                                           text: 'Show details',
-	                                           context: this,
-	                                           callback: this.showCoordinates
-	                                    //    }, {
-	                                    //         text: 'Measure details',
-	                                    //         context: this,
-	                                    //         callback: this.showLastMeasurement                                            
-	                                       }, {
-	                                           text: 'Center map here',
-	                                           context: this,
-	                                           callback: this.centerMap
-	                                       }, '-', {
-	                                               text: 'Auto Fit & Zoom',
-	                                               context: this,
-	                                               callback: this.fitLayerBounds
-	                                       }, {
-	                                           text: 'Zoom in',
-	                                           iconCls: 'fa fa-search-plus',
-	                                           context: this,
-	                                           callback: this.zoomIn
-	                                       }, {
-	                                           text: 'Zoom out',
-	                                           iconCls: 'fa fa-search-minus',
-	                                           context: this,
-	                                           callback: this.zoomOut
-	                                       }]}
-	                }
-
 	                // Enable all or multiple popups
 	                if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
 	                    L.Map = L.Map.extend({
@@ -1654,6 +1831,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(renderer == "canvas") {
 	                    //this.mapOptions.renderer = L.canvas()
 	                    this.mapOptions.preferCanvas = true
+	                }
+
+	                // Configure context menu
+	                if(this.isArgTrue(contextMenu)) {
+	                    var contextMenuTarget = this.contextMenuTarget = undefined
+	                    var contextMenuEnabled = this.contextMenuEnabled = true
+
+	                    this.mapOptions =  {contextmenu: true,
+	                                       contextmenuWidth: 140,
+	                                       minZoom: minZoom,
+	                                       maxZoom: maxZoom,
+	                                       contextmenuItems: [{
+	                                           text: 'Show details',
+	                                           context: this,
+	                                           callback: this.showCoordinates
+	                                       }, {
+	                                           text: 'Center map here',
+	                                           context: this,
+	                                           callback: this.centerMap
+	                                       }, '-', {
+	                                               text: 'Auto Fit & Zoom',
+	                                               context: this,
+	                                               callback: this.fitLayerBounds
+	                                       }, {
+	                                           text: 'Zoom in',
+	                                           iconCls: 'fa fa-search-plus',
+	                                           context: this,
+	                                           callback: this.zoomIn
+	                                       }, {
+	                                           text: 'Zoom out',
+	                                           iconCls: 'fa fa-search-minus',
+	                                           context: this,
+	                                           callback: this.zoomOut
+	                                       }]}
 	                }
 
 	                // Create map 
@@ -1834,16 +2045,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    this.map.spin(true)
 	                }
 
+	                // Init playback
+	                //if(this.isArgTrue(showPlayback)) {
 	                var playbackOptions = {
-	                    playControl: true,
-	                    dateControl: true,
-	                    sliderControl: true,
+	                    playControl: this.isArgTrue(showPlaybackPlayControl),
+	                    dateControl: this.isArgTrue(showPlaybackDateControl),
+	                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
 	                    tracksLayer: false,
-	                    tickLen: 50
-	                };
-	                    
-	                // Initialize playback
+	                    tickLen: playbackTickLength,
+	                    speed: playbackSpeed,
+	                    showPlayback: showPlayback
+	                }
+
+	                // Add clear playback menu item to contextmenu
+	                if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
+	                    this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                                     context: this,
+	                                                     callback: this.clearPlayback}, 0)
+	                    this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                                     context: this,
+	                                                     callback: this.addAllToPlayback}, 1)
+	                    // Flag that we're showing menu item                                                        
+	                    this.showClearPlayback = true                                                    
+	                }                        
+	                    // Initialize playback
 	                var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
+
+	                // Save context menu target to use with add/remove playback on paths
+	                if(this.isArgTrue(contextMenu)) {
+	                    L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
+	                        if(_.has(e, 'relatedTarget')) {
+	                            this.contextMenuTarget = e.relatedTarget
+	                        }                        
+	                    }, this)
+	                }       
 	            } 
 
 	            // Map Scroll
@@ -1916,7 +2151,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
 	                    featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
 	                    featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
-	                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10
+	                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10                    
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
@@ -2251,7 +2486,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
 	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
-	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined
+	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
+	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier]
@@ -2283,6 +2520,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'layerDescription': layerDescription,
 	                            'layerPriority': layerPriority,
 	                            'pathLayer': pathLayer,
+	                            'playback': playback,
+	                            'showPlayback': showPlayback,
+	                            'layerControl': layerControl,
 	                            'layerType': "path",
 	                            'unixtime': dt.valueOf()
 	                        }
@@ -2314,7 +2554,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }, this)
 	                } else {
 	                    this.pathData = paths
-	                    console.log(this.pathData)
 	                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
 	                }
 	            }
@@ -70343,6 +70582,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            this.addTrack(tracks);
 	        }            
 	    },
+
+	    removeTrack: function(track) {
+	        for (var i = 0, len = this._tracks.length; i < len; i++) {
+	            if(this._tracks[i]._geoJSON.properties.title === track.options.geoJSON.properties.title) {
+	                var marker = this._tracks[i].getMarker();
+	            
+	                if (marker){
+	                    this._map.removeLayer(marker);
+	                }
+
+	                this._tracks.splice(i, 1)
+	                i = len
+	            }
+	        }
+	    },
 	    
 	    // add single track
 	    addTrack : function (track, timestamp) {
@@ -70462,9 +70716,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    return this._intervalID ? true : false;
 	  },
 
-	  setSpeed: function (speed) {
-	    this._speed = speed;
-	    this._transitionTime = this._tickLen / speed;
+	//   setSpeed: function (speed) {
+	//     this._speed = speed;
+	//     this._transitionTime = this._tickLen / speed;
+	//     if (this._intervalID) {
+	//       this.stop();
+	//       this.start();
+	//     }
+	//   },
+
+	  setSpeed: function () {
+	    //this._speed = speed;
+	    this._transitionTime = this._tickLen / this._speed;
 	    if (this._intervalID) {
 	      this.stop();
 	      this.start();
@@ -70597,7 +70860,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        var self = this;
 	        var playback = this.playback;
-	        playback.setSpeed(100);
+	        //playback.setSpeed(100);
+	        //playback.setSpeed();
 
 	        var playControl = L.DomUtil.create('div', 'playControl', this._container);
 
@@ -70730,6 +70994,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            L.setOptions(this, options);
 	            
 	            this._map = map;
+	            this._showPlayback = this.options.showPlayback
 	            this._trackController = new L.Playback.TrackController(map, null, this.options);
 	            L.Playback.Clock.prototype.initialize.call(this, this._trackController, callback, this.options);
 	            
@@ -70755,6 +71020,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this.dateControl.addTo(map);
 	            }
 
+	            if(this._showPlayback) {
+	                this.showControls()
+	            } else {
+	                this.hideControls()
+	            }
 	        },
 	        
 	        clearData : function(){
@@ -70766,7 +71036,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 	        
 	        setData : function (geoJSON) {
-	            console.log(this)
 	            this.clearData();
 	        
 	            this.addData(geoJSON, this.getTime());
@@ -70783,7 +71052,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        // bad implementation
 	        //addData : function (geoJSON, ms, options) {
 	        addData : function (geoJSON, ms) {
-	            console.log(this)
 	            // return if data not set
 	            if (!geoJSON) {
 	                return;
@@ -70802,6 +71070,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            if (this.options.tracksLayer) {
 	                this._tracksLayer.addLayer(geoJSON);
 	            }                  
+	        },
+
+	        removeData: function(o) {
+	            this._trackController.removeTrack(o)
+	        },
+
+	        showControls: function() {
+	            this._showPlayback = true
+
+	            if (this.playControl) {
+	                this._map.addControl(this.playControl);
+	            }
+	            if (this.sliderControl) {
+	                this._map.addControl(this.sliderControl);
+	            }
+	            if (this.dateControl) {
+	                this._map.addControl(this.dateControl);
+	            }
+	        },
+
+	        hideControls: function() {
+	            this._showPlayback = false
+
+	            if (this.playControl) {
+	                this._map.removeControl(this.playControl);
+	            }
+	            if (this.sliderControl) {
+	                this._map.removeControl(this.sliderControl);
+	            }
+	            if (this.dateControl) {
+	                this._map.removeControl(this.dateControl);
+	            }
 	        },
 
 	        destroy: function() {

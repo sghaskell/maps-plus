@@ -1022,6 +1022,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                "paused": p[0]['antPathPaused'],
 	                                                "reverse": p[0]['antPathReverse']
 	                                            }
+
+	                    // Bind appropriate context menu for playback
+	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                        if(options.context.isArgTrue(p[0]['playback'])) {
+	                            _.defaults(antPathOptions, pathContextMenuRemove)
+	                        } else {
+	                            _.defaults(antPathOptions, pathContextMenuAdd)
+	                        }
+	                    }
 	                    
 	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
 	                } else {
@@ -1029,6 +1038,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        color: options.context.convertHex(p[0]['color']),
 	                        weight: p[0]['pathWeight'],
 	                        opacity: p[0]['pathOpacity']
+	                    }
+
+	                    // Bind appropriate context menu for playback
+	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                        if(options.context.isArgTrue(p[0]['playback'])) {
+	                            _.defaults(pathOptions, pathContextMenuRemove)
+	                        } else {
+	                            _.defaults(pathOptions, pathContextMenuAdd)
+	                        }
 	                    }
 
 	                    // create polyline and bind popup
@@ -1040,15 +1058,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
 	                                                     direction: 'auto',
 	                                                     sticky: p[0]['stickyTooltip']})
-	                }
-
-	                // Bind appropriate context menu for playback
-	                if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
-	                    if(options.context.isArgTrue(p[0]['playback'])) {
-	                        pl.bindContextMenu(pathContextMenuRemove)
-	                    } else {
-	                        pl.bindContextMenu(pathContextMenuAdd)
-	                    }
 	                }
 
 	                pl.options.geoJSON = geoJSON
@@ -1136,10 +1145,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                _.each(this.pathLineLayers, function(l, i){                   
 	                    l.eachLayer(function(layer) {
 	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
+	                            console.log("LAYER")
+	                            console.log(layer)
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()    
+	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                            }
 	                            layer.options.playback = true
 	                            this.playback.updateData(this.contextMenuTarget.options.geoJSON)
-	                            layer.unbindContextMenu()
-	                            layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+
 	                        }
 	                    }, this)
 	                 }, this)
@@ -1150,8 +1169,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            _.each(this.pathLineLayers, function(l, i){
 	                l.eachLayer(function(layer) {
 	                    layer.options.playback = false
-	                    layer.unbindContextMenu()
-	                    layer.bindContextMenu(layer.options.pathContextMenuAdd)
+
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                    }
+	                    // layer.unbindContextMenu()
+	                    // layer.bindContextMenu(layer.options.pathContextMenuAdd)
 	                }, this)
 	             }, this)
 
@@ -1168,8 +1197,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                l.eachLayer(function(layer) {
 	                    this.playback.updateData(layer.options.geoJSON)
 	                    layer.options.playback = true
-	                    layer.unbindContextMenu()
-	                    layer.bindContextMenu(layer.options.pathContextMenuRemove)
+
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                    }
+	                    // layer.unbindContextMenu()
+	                    // layer.bindContextMenu(layer.options.pathContextMenuRemove)
 	                }, this)
 	            }, this)
 
@@ -1185,8 +1224,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
 	                            layer.options.playback = false
 	                            this.playback.removeData(this.contextMenuTarget)
-	                            layer.unbindContextMenu()
-	                            layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()    
+	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                            }
+	                            // layer.unbindContextMenu()
+	                            // layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
 	                        }
 	                    }, this)
 	                }, this)

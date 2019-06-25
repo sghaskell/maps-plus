@@ -383,17 +383,18 @@ define([
             // Handle context menu enable/disable
             if(this._propertyExists('contextMenu', configChanges)) {
                 if(contextMenu) {
-
                     if(showPlayback) {
                         _.each(this.pathLineLayers, function(lg) {
                             lg.eachLayer(function(layer) {
                                 // Ant Path
                                 if(_.has(layer, '_animatedPathClass')) { 
                                     layer.eachLayer(function(p) {
-                                        p.bindContextMenu(layer.options.pathContextMenuAdd)  
+                                        p.bindContextMenu(layer.options.pathContextMenuAdd)
+                                        layer.options.playback = true
                                     }, this)
                                 }  else {
                                     layer.bindContextMenu(l.options.pathContextMenuAdd)
+                                    layer.options.playback = true
                                 }
                             }) 
                         }, this)
@@ -410,9 +411,11 @@ define([
                                 if(_.has(layer, '_animatedPathClass')) { 
                                     layer.eachLayer(function(p) {
                                         p.unbindContextMenu()
+                                        layer.options.playback = false
                                     }, this)
                                 }  else {
                                     layer.unbindContextMenu()
+                                    layer.options.playback = false
                                 }
                             }) 
                         }, this)

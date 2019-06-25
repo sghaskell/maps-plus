@@ -356,6 +356,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
 	                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
 	                showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
+	                showPlaybackSliderControl = this._propertyExists('showPlaybackSliderControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', previousConfig))),
+	                showPlaybackDateControl = this._propertyExists('showPlaybackDateControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', previousConfig))),
+	                showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
 	                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
 	                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
 	                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
@@ -432,47 +435,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            // Handle context menu enable/disable
 	            if(this._propertyExists('contextMenu', configChanges)) {
 	                if(contextMenu) {
-	                    _.each(this.pathLineLayers, function(lg) {
-	                        lg.eachLayer(function(l) {
-	                            if(this.isArgTrue(l.options.playback)) {
-	                                l.bindContextMenu(l.options.pathContextMenuRemove)
-	                            } else {
-	                                l.bindContextMenu(l.options.pathContextMenuAdd)
-	                            }
-	                            // l.bindContextMenu(l.options.pathContextMenu)
-	                        }) 
-	                    })
 
-	                    // if(!_.isEmpty(this.pathLineLayers)) {
-	                    // this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-	                    //                                 control: this.control,
-	                    //                                 layerControl: false,
-	                    //                                 layerType: "path",
-	                    //                                 paneZIndex: this.paneZIndex,
-	                    //                                 playback: this.playback,
-	                    //                                 //showPlayback: this.playback._showPlayback,
-	                    //                                 context: this})
-	                    // }
+	                    if(showPlayback) {
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        p.bindContextMenu(layer.options.pathContextMenuAdd)  
+	                                    }, this)
+	                                }  else {
+	                                    layer.bindContextMenu(l.options.pathContextMenuAdd)
+	                                }
+	                            }) 
+	                        }, this)
+	                    }
+
 	                    this.contextMenuEnabled = true
 	                    this.map.contextmenu.enable()
 
 	                } else {
-	                    _.each(this.pathLineLayers, function(lg) {
-	                        lg.eachLayer(function(l) {
-	                            l.unbindContextMenu()
-	                        }) 
-	                    })
-
-	                    // if(!_.isEmpty(this.pathLineLayers)) {
-	                    // this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-	                    //                                 control: this.control,
-	                    //                                 layerControl: false,
-	                    //                                 layerType: "path",
-	                    //                                 paneZIndex: this.paneZIndex,
-	                    //                                 playback: this.playback,
-	                    //                                 //showPlayback: this.playback._showPlayback,
-	                    //                                 context: this})
-	                    // }
+	                    if(showPlayback) {
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        p.unbindContextMenu()
+	                                    }, this)
+	                                }  else {
+	                                    layer.unbindContextMenu()
+	                                }
+	                            }) 
+	                        }, this)
+	                    }
 	                    
 	                    this.contextMenuEnabled = false
 	                    this.map.contextmenu.disable()
@@ -596,6 +592,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(this.isDarkTheme) { this._darkModeUpdate() }
 	            }
 
+	            if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
+	                if(!showPlaybackSliderControl) {
+	                    this.map.removeControl(this.playback.sliderControl)
+	                } else {
+	                    //this.map.removeControl(this.playback.dateControl)
+	                    if(showPlayback) { this.map.addControl(this.playback.sliderControl) }
+	                    // this.map.addControl(this.playback.dateControl)                    
+	                }
+
+	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	            }
+
+	            if(this._propertyExists('showPlaybackDateControl', configChanges)) {
+	                if(!showPlaybackDateControl) {
+	                    this.map.removeControl(this.playback.dateControl)
+	                } else {
+	                    if(showPlayback) { this.map.addControl(this.playback.dateControl) }                    
+	                }
+
+	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	            }
+
+	            if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
+	                if(!showPlaybackPlayControl) {
+	                    this.map.removeControl(this.playback.playControl)
+	                } else {
+	                   if(showPlayback) { this.map.addControl(this.playback.playControl) }
+	                }
+	                
+	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	            }
+
 	            // Handle Playback
 	            if(this._propertyExists('showPlayback', configChanges)) {
 	                if(!showPlayback) {
@@ -608,12 +636,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 
 	                    _.each(this.pathLineLayers, function(lg) {
-	                        lg.eachLayer(function(l) {
-	                            l.unbindContextMenu()
+	                        lg.eachLayer(function(layer) {
+	                            // Ant Path
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()
+	                                    layer.options.playback = false  
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                                layer.options.playback = false
+	                            }
 	                        }) 
-	                    })
+	                    }, this)
 	                } else {
-	                    this.playback.showControls()
+	                    // this.playback.showControls()
 
 	                    if(contextMenu) {
 	                        this.map.contextmenu.insertItem({text: 'Clear Playback',
@@ -624,19 +661,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                        callback: this.addAllToPlayback}, 1)
 
 	                        _.each(this.pathLineLayers, function(lg) {
-	                            lg.eachLayer(function(l) {
-	                                if(l.options.playback) {
-	                                    l.bindContextMenu(l.options.pathContextMenuRemove)
-	                                } else {
-	                                    l.bindContextMenu(l.options.pathContextMenuAdd)
-	                                }                                
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        if(p.options.playback) {
+	                                            p.bindContextMenu(p.options.pathContextMenuRemove)
+	                                        } else {
+	                                            p.bindContextMenu(p.options.pathContextMenuAdd)
+	                                        }
+	                                    }, this)
+	                                }  else {
+	                                    if(layer.options.playback) {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                    } else {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                    }                                
+	                                }
 	                            }) 
 	                        })
 	                    }
 	                    
+	                    if(showPlaybackSliderControl) { this.map.addControl(this.playback.sliderControl) }
+	                    if(showPlaybackPlayControl) { this.map.addControl(this.playback.playControl) }
+	                    if(showPlaybackDateControl) { this.map.addControl(this.playback.dateControl) }
+	                    
 	                    this.showClearPlayback = true
 	                }
 
+	                
+	                                
 	                if(this.isDarkTheme) { this._darkModeUpdate() }
 	            }
 

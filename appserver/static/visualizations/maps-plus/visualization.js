@@ -435,20 +435,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            // Handle context menu enable/disable
 	            if(this._propertyExists('contextMenu', configChanges)) {
 	                if(contextMenu) {
-
 	                    if(showPlayback) {
 	                        _.each(this.pathLineLayers, function(lg) {
 	                            lg.eachLayer(function(layer) {
 	                                // Ant Path
 	                                if(_.has(layer, '_animatedPathClass')) { 
 	                                    layer.eachLayer(function(p) {
-	                                        p.bindContextMenu(layer.options.pathContextMenuAdd)  
+	                                        console.log(p)
+	                                        if(layer.options.playback) {
+	                                            p.bindContextMenu(p.options.pathContextMenuRemove)
+	                                        } else {
+	                                            p.bindContextMenu(p.options.pathContextMenuAdd)
+	                                        }
 	                                    }, this)
 	                                }  else {
-	                                    layer.bindContextMenu(l.options.pathContextMenuAdd)
+	                                    if(layer.options.playback) {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                    } else {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                    }                                
 	                                }
 	                            }) 
-	                        }, this)
+	                        })
 	                    }
 
 	                    this.contextMenuEnabled = true
@@ -462,9 +470,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                if(_.has(layer, '_animatedPathClass')) { 
 	                                    layer.eachLayer(function(p) {
 	                                        p.unbindContextMenu()
+	                                        //layer.options.playback = false
 	                                    }, this)
 	                                }  else {
 	                                    layer.unbindContextMenu()
+	                                    //layer.options.playback = false
 	                                }
 	                            }) 
 	                        }, this)
@@ -635,6 +645,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        this.showClearPlayback = false  
 	                    }
 
+	                    console.log("NOT SHOW PLAYBACK")
 	                    _.each(this.pathLineLayers, function(lg) {
 	                        lg.eachLayer(function(layer) {
 	                            // Ant Path
@@ -1199,8 +1210,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                _.each(this.pathLineLayers, function(l, i){                   
 	                    l.eachLayer(function(layer) {
 	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
-	                            console.log("LAYER")
-	                            console.log(layer)
+	                            // console.log("LAYER")
+	                            // console.log(layer)
 	                            if(_.has(layer, '_animatedPathClass')) { 
 	                                layer.eachLayer(function(p) {
 	                                    p.unbindContextMenu()    

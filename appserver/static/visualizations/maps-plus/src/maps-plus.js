@@ -389,11 +389,10 @@ define([
                                 // Ant Path
                                 if(_.has(layer, '_animatedPathClass')) { 
                                     layer.eachLayer(function(p) {
-                                        console.log(p)
                                         if(layer.options.playback) {
-                                            p.bindContextMenu(p.options.pathContextMenuRemove)
+                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
                                         } else {
-                                            p.bindContextMenu(p.options.pathContextMenuAdd)
+                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
                                         }
                                     }, this)
                                 }  else {
@@ -546,39 +545,27 @@ define([
                 } else {
                     this.measureControl.addTo(this.map)
                 }
-
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
             if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
-                if(!showPlaybackSliderControl) {
-                    this.map.removeControl(this.playback.sliderControl)
-                } else {
-                    //this.map.removeControl(this.playback.dateControl)
-                    if(showPlayback) { this.map.addControl(this.playback.sliderControl) }
-                    // this.map.addControl(this.playback.dateControl)                    
-                }
-
+                this.playback.options.sliderControl = showPlaybackSliderControls
+                this.playback.hideControls()
+                this.playback.showControls()
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
             if(this._propertyExists('showPlaybackDateControl', configChanges)) {
-                if(!showPlaybackDateControl) {
-                    this.map.removeControl(this.playback.dateControl)
-                } else {
-                    if(showPlayback) { this.map.addControl(this.playback.dateControl) }                    
-                }
-
+                this.playback.options.dateControl = showPlaybackDateControl
+                this.playback.hideControls()
+                this.playback.showControls()
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
             if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
-                if(!showPlaybackPlayControl) {
-                    this.map.removeControl(this.playback.playControl)
-                } else {
-                   if(showPlayback) { this.map.addControl(this.playback.playControl) }
-                }
-                
+                this.playback.options.playControl = showPlaybackPlayControl
+                this.playback.hideControls()
+                this.playback.showControls()
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
@@ -586,48 +573,52 @@ define([
             if(this._propertyExists('showPlayback', configChanges)) {
                 if(!showPlayback) {
                     this.playback.clearData()
+                    this.playback.options.playControl = false
+                    this.playback.options.dateControl = false
+                    this.playback.options.sliderControl = false
+
                     this.playback.hideControls()
                     if(this.showClearPlayback) {
+                        this.map.contextmenu.removeItem(0)
                         this.map.contextmenu.removeItem(0)
                         this.map.contextmenu.removeItem(0)
                         this.showClearPlayback = false  
                     }
 
-                    console.log("NOT SHOW PLAYBACK")
                     _.each(this.pathLineLayers, function(lg) {
                         lg.eachLayer(function(layer) {
                             // Ant Path
                             if(_.has(layer, '_animatedPathClass')) { 
                                 layer.eachLayer(function(p) {
                                     p.unbindContextMenu()
-                                    layer.options.playback = false  
                                 }, this)
                             }  else {
                                 layer.unbindContextMenu()
-                                layer.options.playback = false
                             }
+                            layer.options.playback = false
                         }) 
                     }, this)
                 } else {
-                    // this.playback.showControls()
-
                     if(contextMenu) {
                         this.map.contextmenu.insertItem({text: 'Clear Playback',
                                                         context: this,
                                                         callback: this.clearPlayback}, 0)
+                        this.map.contextmenu.insertItem({text: 'Reset Playback',
+                                                        context: this,
+                                                        callback: this.resetPlayback}, 1)
                         this.map.contextmenu.insertItem({text: 'Add All To Playback',
                                                         context: this,
-                                                        callback: this.addAllToPlayback}, 1)
+                                                        callback: this.addAllToPlayback}, 2)
 
                         _.each(this.pathLineLayers, function(lg) {
                             lg.eachLayer(function(layer) {
                                 // Ant Path
                                 if(_.has(layer, '_animatedPathClass')) { 
                                     layer.eachLayer(function(p) {
-                                        if(p.options.playback) {
-                                            p.bindContextMenu(p.options.pathContextMenuRemove)
+                                        if(layer.options.playback) {
+                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
                                         } else {
-                                            p.bindContextMenu(p.options.pathContextMenuAdd)
+                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
                                         }
                                     }, this)
                                 }  else {
@@ -641,15 +632,17 @@ define([
                         })
                     }
                     
-                    if(showPlaybackSliderControl) { this.map.addControl(this.playback.sliderControl) }
-                    if(showPlaybackPlayControl) { this.map.addControl(this.playback.playControl) }
-                    if(showPlaybackDateControl) { this.map.addControl(this.playback.dateControl) }
+                    if(showPlaybackSliderControl) { this.playback.options.sliderControl = true }
+                    if(showPlaybackPlayControl) { this.playback.options.playControl = true }
+                    if(showPlaybackDateControl) { this.playback.options.dateControl = true }
                     
+                    this.playback._showPlayback = true
                     this.showClearPlayback = true
                 }
 
                 
-                                
+                this.playback.hideControls()
+                this.playback.showControls()              
                 if(this.isDarkTheme) { this._darkModeUpdate() }
             }
 
@@ -1158,8 +1151,6 @@ define([
                 _.each(this.pathLineLayers, function(l, i){                   
                     l.eachLayer(function(layer) {
                         if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
-                            // console.log("LAYER")
-                            // console.log(layer)
                             if(_.has(layer, '_animatedPathClass')) { 
                                 layer.eachLayer(function(p) {
                                     p.unbindContextMenu()    
@@ -1171,12 +1162,28 @@ define([
                             }
                             layer.options.playback = true
                             this.playback.updateData(this.contextMenuTarget.options.geoJSON)
-
                         }
                     }, this)
                  }, this)
+
+                this.playback.setCursor(this.playback.getStartTime())
             }
         },
+
+        resetPlayback: function(e) {
+            this.playback.clearData()
+
+            _.each(this.pathLineLayers, function(l, i){                   
+                l.eachLayer(function(layer) {
+                    if(layer.options.playback) {
+                        this.playback.updateData(layer.options.geoJSON)
+                    }
+                }, this)
+            }, this)
+
+            // Update cursor and reset date control
+            this.playback.setCursor(this.playback.getStartTime())
+        }, 
 
         clearPlayback: function(e) {
             _.each(this.pathLineLayers, function(l, i){
@@ -1192,15 +1199,12 @@ define([
                         layer.unbindContextMenu()
                         layer.bindContextMenu(layer.options.pathContextMenuAdd)
                     }
-                    // layer.unbindContextMenu()
-                    // layer.bindContextMenu(layer.options.pathContextMenuAdd)
                 }, this)
              }, this)
 
             this.playback.clearData()
-            this.playback.hideControls()
-            this.playback.showControls()
-            if(this.isDarkTheme) { this._darkModeUpdate() }
+            // Update cursor and reset date control
+            this.playback.setCursor(this.playback.getStartTime())
         },
 
         addAllToPlayback: function(e) {
@@ -1220,14 +1224,11 @@ define([
                         layer.unbindContextMenu()
                         layer.bindContextMenu(layer.options.pathContextMenuRemove)
                     }
-                    // layer.unbindContextMenu()
-                    // layer.bindContextMenu(layer.options.pathContextMenuRemove)
                 }, this)
             }, this)
 
-            this.playback.hideControls()
-            this.playback.showControls()
-            if(this.isDarkTheme) { this._darkModeUpdate() }
+            // Update cursor and reset date control
+            this.playback.setCursor(this.playback.getStartTime())
         },
 
         removeFromPlayback: function(e) {
@@ -1247,16 +1248,13 @@ define([
                                 layer.unbindContextMenu()
                                 layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
                             }
-                            // layer.unbindContextMenu()
-                            // layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
                         }
                     }, this)
                 }, this)
              }
 
-            this.playback.hideControls()
-            this.playback.showControls()
-            if(this.isDarkTheme) { this._darkModeUpdate() }
+            // Update cursor and reset date control
+            this.playback.setCursor(this.playback.getStartTime())
          },
 
         centerMap: function (e) {
@@ -2124,9 +2122,12 @@ define([
                     this.map.contextmenu.insertItem({text: 'Clear Playback',
                                                      context: this,
                                                      callback: this.clearPlayback}, 0)
+                    this.map.contextmenu.insertItem({text: 'Reset Playback',
+                                                     context: this,
+                                                     callback: this.resetPlayback}, 1)                                                     
                     this.map.contextmenu.insertItem({text: 'Add All To Playback',
                                                      context: this,
-                                                     callback: this.addAllToPlayback}, 1)
+                                                     callback: this.addAllToPlayback}, 2)
                     // Flag that we're showing menu item                                                        
                     this.showClearPlayback = true                                                    
                 }                        

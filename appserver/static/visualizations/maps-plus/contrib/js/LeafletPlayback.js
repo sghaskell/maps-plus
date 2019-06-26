@@ -1043,13 +1043,13 @@ L.Playback = L.Playback.Clock.extend({
         showControls: function() {
             this._showPlayback = true
 
-            if (this.playControl) {
+            if (this.options.playControl) {
                 this._map.addControl(this.playControl);
             }
-            if (this.sliderControl) {
+            if (this.options.sliderControl) {
                 this._map.addControl(this.sliderControl);
             }
-            if (this.dateControl) {
+            if (this.options.dateControl) {
                 this._map.addControl(this.dateControl);
             }
         },
@@ -1057,13 +1057,13 @@ L.Playback = L.Playback.Clock.extend({
         hideControls: function() {
             this._showPlayback = false
 
-            if (this.playControl) {
+            if (!this.options.playControl) {
                 this._map.removeControl(this.playControl);
             }
-            if (this.sliderControl) {
+            if (!this.options.sliderControl) {
                 this._map.removeControl(this.sliderControl);
             }
-            if (this.dateControl) {
+            if (!this.options.dateControl) {
                 this._map.removeControl(this.dateControl);
             }
         },

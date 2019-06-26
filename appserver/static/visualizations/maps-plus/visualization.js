@@ -601,24 +601,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
-	                this.playback.options.sliderControl = showPlaybackSliderControls
-	                this.playback.hideControls()
-	                this.playback.showControls()
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	                this.playback.options.sliderControl = showPlaybackSliderControl
+	                this.updatePlaybackControls()
 	            }
 
 	            if(this._propertyExists('showPlaybackDateControl', configChanges)) {
 	                this.playback.options.dateControl = showPlaybackDateControl
-	                this.playback.hideControls()
-	                this.playback.showControls()
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	                this.updatePlaybackControls()
 	            }
 
 	            if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
 	                this.playback.options.playControl = showPlaybackPlayControl
-	                this.playback.hideControls()
-	                this.playback.showControls()
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	                this.updatePlaybackControls()
 	            }
 
 	            // Handle Playback
@@ -692,10 +686,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    this.showClearPlayback = true
 	                }
 
-	                
-	                this.playback.hideControls()
-	                this.playback.showControls()              
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	                this.updatePlaybackControls()
 	            }
 
 	            // Handle layer control expand/collapse
@@ -1218,7 +1209,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }, this)
 	                 }, this)
 
-	                this.playback.setCursor(this.playback.getStartTime())
+	                this.updatePlaybackControls()
 	            }
 	        },
 
@@ -1233,8 +1224,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }, this)
 	            }, this)
 
-	            // Update cursor and reset date control
-	            this.playback.setCursor(this.playback.getStartTime())
+	            this.updatePlaybackControls()
 	        }, 
 
 	        clearPlayback: function(e) {
@@ -1255,8 +1245,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	             }, this)
 
 	            this.playback.clearData()
-	            // Update cursor and reset date control
-	            this.playback.setCursor(this.playback.getStartTime())
+	            this.updatePlaybackControls()
 	        },
 
 	        addAllToPlayback: function(e) {
@@ -1279,8 +1268,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }, this)
 	            }, this)
 
-	            // Update cursor and reset date control
-	            this.playback.setCursor(this.playback.getStartTime())
+	            this.updatePlaybackControls()
 	        },
 
 	        removeFromPlayback: function(e) {
@@ -1305,9 +1293,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }, this)
 	             }
 
-	            // Update cursor and reset date control
-	            this.playback.setCursor(this.playback.getStartTime())
+	            this.updatePlaybackControls()
 	         },
+
+	        updatePlaybackControls: function() {
+	            this.playback.setCursor(this.playback.getStartTime())
+	            this.playback.hideControls()
+	            this.playback.showControls()
+	            if(this.isDarkTheme) { this._darkModeUpdate() }
+	        },
 
 	        centerMap: function (e) {
 	            this.map.panTo(e.latlng)

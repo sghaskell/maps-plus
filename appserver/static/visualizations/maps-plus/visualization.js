@@ -86,7 +86,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            __webpack_require__(248),
 	            __webpack_require__(249),
 	            __webpack_require__(250),
-	            __webpack_require__(251)
+	            __webpack_require__(251),
+	            __webpack_require__(252)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
@@ -104,6 +105,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ) {
 
 
+	    
 	    return SplunkVisualizationBase.extend({
 	        maxResults: 0,
 	        paneZIndex: 400,
@@ -111,6 +113,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        measureDialogOpen: false,
 	        parentEl: null,
 	        parentView: null,
+	        showClearPlayback: false,
 	        mapOptions: {},
 	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	        validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
@@ -180,6 +183,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
 				'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlayback': 0,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackSliderControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
+	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
 	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
@@ -196,7 +205,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
 	        'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
 	        },
-
 
 	        initialize: function() {
 	            SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
@@ -347,6 +355,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
 	                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
 	                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+	                showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
+	                showPlaybackSliderControl = this._propertyExists('showPlaybackSliderControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', previousConfig))),
+	                showPlaybackDateControl = this._propertyExists('showPlaybackDateControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', previousConfig))),
+	                showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
 	                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
 	                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
 	                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
@@ -423,8 +435,51 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            // Handle context menu enable/disable
 	            if(this._propertyExists('contextMenu', configChanges)) {
 	                if(contextMenu) {
+	                    if(showPlayback) {
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        if(layer.options.playback) {
+	                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                        } else {
+	                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                        }
+	                                    }, this)
+	                                }  else {
+	                                    if(layer.options.playback) {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                    } else {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                    }                                
+	                                }
+	                            }) 
+	                        })
+	                    }
+
+	                    this.contextMenuEnabled = true
 	                    this.map.contextmenu.enable()
+
 	                } else {
+	                    if(showPlayback) {
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        p.unbindContextMenu()
+	                                        //layer.options.playback = false
+	                                    }, this)
+	                                }  else {
+	                                    layer.unbindContextMenu()
+	                                    //layer.options.playback = false
+	                                }
+	                            }) 
+	                        }, this)
+	                    }
+	                    
+	                    this.contextMenuEnabled = false
 	                    this.map.contextmenu.disable()
 	                }
 	            }
@@ -542,8 +597,96 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                } else {
 	                    this.measureControl.addTo(this.map)
 	                }
-
 	                if(this.isDarkTheme) { this._darkModeUpdate() }
+	            }
+
+	            if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
+	                this.playback.options.sliderControl = showPlaybackSliderControl
+	                this.updatePlaybackControls()
+	            }
+
+	            if(this._propertyExists('showPlaybackDateControl', configChanges)) {
+	                this.playback.options.dateControl = showPlaybackDateControl
+	                this.updatePlaybackControls()
+	            }
+
+	            if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
+	                this.playback.options.playControl = showPlaybackPlayControl
+	                this.updatePlaybackControls()
+	            }
+
+	            // Handle Playback
+	            if(this._propertyExists('showPlayback', configChanges)) {
+	                if(!showPlayback) {
+	                    this.playback.clearData()
+	                    this.playback.options.playControl = false
+	                    this.playback.options.dateControl = false
+	                    this.playback.options.sliderControl = false
+
+	                    this.playback.hideControls()
+	                    if(this.showClearPlayback) {
+	                        this.map.contextmenu.removeItem(0)
+	                        this.map.contextmenu.removeItem(0)
+	                        this.map.contextmenu.removeItem(0)
+	                        this.showClearPlayback = false  
+	                    }
+
+	                    _.each(this.pathLineLayers, function(lg) {
+	                        lg.eachLayer(function(layer) {
+	                            // Ant Path
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                            }
+	                            layer.options.playback = false
+	                        }) 
+	                    }, this)
+	                } else {
+	                    if(contextMenu) {
+	                        this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                                        context: this,
+	                                                        callback: this.clearPlayback}, 0)
+	                        this.map.contextmenu.insertItem({text: 'Reset Playback',
+	                                                        context: this,
+	                                                        callback: this.resetPlayback}, 1)
+	                        this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                                        context: this,
+	                                                        callback: this.addAllToPlayback}, 2)
+
+	                        _.each(this.pathLineLayers, function(lg) {
+	                            lg.eachLayer(function(layer) {
+	                                // Ant Path
+	                                if(_.has(layer, '_animatedPathClass')) { 
+	                                    layer.eachLayer(function(p) {
+	                                        if(layer.options.playback) {
+	                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                        } else {
+	                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                        }
+	                                    }, this)
+	                                }  else {
+	                                    if(layer.options.playback) {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                    } else {
+	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                    }                                
+	                                }
+	                            }) 
+	                        })
+	                    }
+	                    
+	                    if(showPlaybackSliderControl) { this.playback.options.sliderControl = true }
+	                    if(showPlaybackPlayControl) { this.playback.options.playControl = true }
+	                    if(showPlaybackDateControl) { this.playback.options.dateControl = true }
+	                    
+	                    this.playback._showPlayback = true
+	                    this.showClearPlayback = true
+	                }
+
+	                this.updatePlaybackControls()
 	            }
 
 	            // Handle layer control expand/collapse
@@ -616,7 +759,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'layerDescription',
 	                               'pathLayer',
 								   'pathWeight',
-								   'pathOpacity',
+	                               'pathOpacity',
+	                               'playback',
 	                               'layerGroup',
 	                               'layerPriority',
 	                               'layerIcon',
@@ -733,7 +877,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	        // Convert string '1/0' or 'true/false' to boolean true/false
 	        isArgTrue: function(arg) {
-	            if(arg === 1 || arg === 'true') {
+	            if(arg === 1 || arg === 'true' || arg === true) {
 	                return true
 	            } else {
 	                return false
@@ -844,7 +988,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        drawPath: function(options) {
 	            //var paneZIndex = 400
 	           
-	            _.each(options.data, function(p) {        
+	            _.each(options.data, function(p) {   
 	                let id = p[0]['id'],
 	                  layerDescription = p[0]['layerDescription'],
 	                  layerPriority = p[0]['layerPriority'],
@@ -875,22 +1019,90 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    pathFg.options.layerDescription = layerDescription
 	                }
 
+	                const pathContextMenuAdd = {
+	                    contextmenu: true,
+	                    contextmenuInheritItems: true,
+	                    contextmenuItems: [{
+	                            text: 'Add To Playback',
+	                            index: 0,
+	                            context: options.context,
+	                            callback: options.context.addToPlayback
+	                        },{
+	                            index: 1,
+	                            separator: true
+	                        }]
+	                }
+
+	                const pathContextMenuRemove = {
+	                    contextmenu: true,
+	                    contextmenuInheritItems: true,
+	                    contextmenuItems: [{
+	                            text: 'Remove From Playback',
+	                            index: 0,
+	                            context: options.context,
+	                            callback: options.context.removeFromPlayback
+	                        },{
+	                            index: 1,
+	                            separator: true
+	                        }]
+	                }
+
+	                const geoJSON = {
+	                    "type": "Feature",
+	                    "geometry": {
+	                      "type": "LineString",
+	                      "coordinates":_.pluck(p, 'latlng')
+	                    },
+	                    "properties": {
+	                        "title" : p[0]['id'],
+	                        "prefix": p[0]['prefix'],
+	                        "icon": p[0]['icon'],
+	                        "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
+	                        "time": _.pluck(p, 'unixtime')
+	                    }
+	                }
+
 	                // Ant Path
 	                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
-	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                                                                            weight: p[0]['pathWeight'],
-	                                                                            opacity: p[0]['pathOpacity'],
-	                                                                            "delay": p[0]['antPathDelay'],
-	                                                                            "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
-	                                                                            "pulseColor": p[0]['antPathPulseColor'],
-	                                                                            "paused": p[0]['antPathPaused'],
-	                                                                            "reverse": p[0]['antPathReverse']
-	                                                }).bindPopup(p[0]['description'])
+	                    let antPathOptions = {
+	                                                color: options.context.convertHex(p[0]['color']),
+	                                                weight: p[0]['pathWeight'],
+	                                                opacity: p[0]['pathOpacity'],
+	                                                "delay": p[0]['antPathDelay'],
+	                                                "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+	                                                "pulseColor": p[0]['antPathPulseColor'],
+	                                                "paused": p[0]['antPathPaused'],
+	                                                "reverse": p[0]['antPathReverse']
+	                                            }
+
+	                    // Bind appropriate context menu for playback
+	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                        if(options.context.isArgTrue(p[0]['playback'])) {
+	                            _.defaults(antPathOptions, pathContextMenuRemove)
+	                        } else {
+	                            _.defaults(antPathOptions, pathContextMenuAdd)
+	                        }
+	                    }
+	                    
+	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
 	                } else {
+	                    let pathOptions = { 
+	                        color: options.context.convertHex(p[0]['color']),
+	                        weight: p[0]['pathWeight'],
+	                        opacity: p[0]['pathOpacity']
+	                    }
+
+	                    // Bind appropriate context menu for playback
+	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                        if(options.context.isArgTrue(p[0]['playback'])) {
+	                            _.defaults(pathOptions, pathContextMenuRemove)
+	                        } else {
+	                            _.defaults(pathOptions, pathContextMenuAdd)
+	                        }
+	                    }
+
 	                    // create polyline and bind popup
-	                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-	                                                                    weight: p[0]['pathWeight'],
-	                                                                    opacity: p[0]['pathOpacity']}).bindPopup(p[0]['description'])
+	                    var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
 	                }
 
 	                // Apply tooltip to polyline
@@ -899,6 +1111,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                     direction: 'auto',
 	                                                     sticky: p[0]['stickyTooltip']})
 	                }
+
+	                pl.options.geoJSON = geoJSON
+	                pl.options.playback = options.context.isArgTrue(p[0]['playback'])
+	                pl.options.pathContextMenuAdd = pathContextMenuAdd
+	                pl.options.pathContextMenuRemove = pathContextMenuRemove
 
 	                // Add polyline to feature group
 	                pathFg.addLayer(pl)
@@ -973,6 +1190,120 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	              .setContent(content)
 	              .addTo(this.map)
 	              .open()
+	        },
+
+	        addToPlayback: function(e) {
+	            if(this.playback._showPlayback) {
+	                _.each(this.pathLineLayers, function(l, i){                   
+	                    l.eachLayer(function(layer) {
+	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()    
+	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                            }
+	                            layer.options.playback = true
+	                            this.playback.updateData(this.contextMenuTarget.options.geoJSON)
+	                        }
+	                    }, this)
+	                 }, this)
+
+	                this.updatePlaybackControls()
+	            }
+	        },
+
+	        resetPlayback: function(e) {
+	            this.playback.clearData()
+
+	            _.each(this.pathLineLayers, function(l, i){                   
+	                l.eachLayer(function(layer) {
+	                    if(layer.options.playback) {
+	                        this.playback.updateData(layer.options.geoJSON)
+	                    }
+	                }, this)
+	            }, this)
+
+	            this.updatePlaybackControls()
+	        }, 
+
+	        clearPlayback: function(e) {
+	            _.each(this.pathLineLayers, function(l, i){
+	                l.eachLayer(function(layer) {
+	                    layer.options.playback = false
+
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                    }
+	                }, this)
+	             }, this)
+
+	            this.playback.clearData()
+	            this.updatePlaybackControls()
+	        },
+
+	        addAllToPlayback: function(e) {
+	            this.playback.clearData()
+	            
+	            _.each(this.pathLineLayers, function(l, i){                   
+	                l.eachLayer(function(layer) {
+	                    this.playback.updateData(layer.options.geoJSON)
+	                    layer.options.playback = true
+
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                    }
+	                }, this)
+	            }, this)
+
+	            this.updatePlaybackControls()
+	        },
+
+	        removeFromPlayback: function(e) {
+	            if(this.playback._showPlayback) {
+	                _.each(this.pathLineLayers, function(l, i){                   
+	                    l.eachLayer(function(layer) {
+	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
+	                            layer.options.playback = false
+	                            this.playback.removeData(this.contextMenuTarget)
+
+	                            if(_.has(layer, '_animatedPathClass')) { 
+	                                layer.eachLayer(function(p) {
+	                                    p.unbindContextMenu()    
+	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                                }, this)
+	                            }  else {
+	                                layer.unbindContextMenu()
+	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                            }
+	                        }
+	                    }, this)
+	                }, this)
+	             }
+
+	            this.updatePlaybackControls()
+	         },
+
+	        updatePlaybackControls: function() {
+	            this.playback.setCursor(this.playback.getStartTime())
+	            this.playback.hideControls()
+	            this.playback.showControls()
+	            if(this.isDarkTheme) { this._darkModeUpdate() }
 	        },
 
 	        centerMap: function (e) {
@@ -1328,6 +1659,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    lg.setStyle(styleOptions)
 	                }
 
+	                lg.eachLayer(function(l) {
+	                    if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
+	                })                
+	                
+	                // Check if layer is already on the map, remove before re-adding
+	                if(map.hasLayer(lg)) {
+	                    map.removeLayer(lg)
+	                }
 	                // Add layer controls
 	                lg.addTo(map)
 
@@ -1433,6 +1772,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
 	                pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
 	                pathColorList = this._getEscapedProperty('pathColorList', config),
+	                showPlayback = parseInt(this._getEscapedProperty('showPlayback', config)),
+	                showPlaybackSliderControl = parseInt(this._getEscapedProperty('showPlaybackSliderControl', config)),
+	                showPlaybackDateControl = parseInt(this._getEscapedProperty('showPlaybackDateControl', config)),
+	                showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
+	                playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
+	                playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
 	                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
 	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
 	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
@@ -1475,6 +1820,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       layerControl: this.isArgTrue(layerControl),
 	                                                       layerType: "path",
 	                                                       paneZIndex: this.paneZIndex,
+	                                                       //playback: true,
+	                                                       playback: this.playback,
+	                                                       showPlayback: showPlayback,
 	                                                       context: this})
 	                }
 	                
@@ -1563,41 +1911,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
 	                this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
 
-	                // Configure context menu
-	                if(this.isArgTrue(contextMenu)) {
-	                    this.mapOptions =  {contextmenu: true,
-	                                       contextmenuWidth: 140,
-	                                       minZoom: minZoom,
-	                                       maxZoom: maxZoom,
-	                                       contextmenuItems: [{
-	                                           text: 'Show details',
-	                                           context: this,
-	                                           callback: this.showCoordinates
-	                                    //    }, {
-	                                    //         text: 'Measure details',
-	                                    //         context: this,
-	                                    //         callback: this.showLastMeasurement                                            
-	                                       }, {
-	                                           text: 'Center map here',
-	                                           context: this,
-	                                           callback: this.centerMap
-	                                       }, '-', {
-	                                               text: 'Auto Fit & Zoom',
-	                                               context: this,
-	                                               callback: this.fitLayerBounds
-	                                       }, {
-	                                           text: 'Zoom in',
-	                                           iconCls: 'fa fa-search-plus',
-	                                           context: this,
-	                                           callback: this.zoomIn
-	                                       }, {
-	                                           text: 'Zoom out',
-	                                           iconCls: 'fa fa-search-minus',
-	                                           context: this,
-	                                           callback: this.zoomOut
-	                                       }]}
-	                }
-
 	                // Enable all or multiple popups
 	                if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
 	                    L.Map = L.Map.extend({
@@ -1627,6 +1940,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(renderer == "canvas") {
 	                    //this.mapOptions.renderer = L.canvas()
 	                    this.mapOptions.preferCanvas = true
+	                }
+
+	                // Configure context menu
+	                if(this.isArgTrue(contextMenu)) {
+	                    var contextMenuTarget = this.contextMenuTarget = undefined
+	                    var contextMenuEnabled = this.contextMenuEnabled = true
+
+	                    this.mapOptions =  {contextmenu: true,
+	                                       contextmenuWidth: 140,
+	                                       minZoom: minZoom,
+	                                       maxZoom: maxZoom,
+	                                       contextmenuItems: [{
+	                                           text: 'Show details',
+	                                           context: this,
+	                                           callback: this.showCoordinates
+	                                       }, {
+	                                           text: 'Center map here',
+	                                           context: this,
+	                                           callback: this.centerMap
+	                                       }, '-', {
+	                                               text: 'Auto Fit & Zoom',
+	                                               context: this,
+	                                               callback: this.fitLayerBounds
+	                                       }, {
+	                                           text: 'Zoom in',
+	                                           iconCls: 'fa fa-search-plus',
+	                                           context: this,
+	                                           callback: this.zoomIn
+	                                       }, {
+	                                           text: 'Zoom out',
+	                                           iconCls: 'fa fa-search-minus',
+	                                           context: this,
+	                                           callback: this.zoomOut
+	                                       }]}
 	                }
 
 	                // Create map 
@@ -1806,6 +2153,54 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                if(this.isArgTrue(showProgress)) {
 	                    this.map.spin(true)
 	                }
+
+	                // Init playback
+	                //if(this.isArgTrue(showPlayback)) {
+	                var playbackOptions = {
+	                    playControl: this.isArgTrue(showPlaybackPlayControl),
+	                    dateControl: this.isArgTrue(showPlaybackDateControl),
+	                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
+	                    tracksLayer: false,
+	                    tickLen: playbackTickLength,
+	                    speed: playbackSpeed,
+	                    showPlayback: showPlayback,
+	                    labels: true,
+	                    marker: function(f){
+	                        return {
+	                            icon: L.VectorMarkers.icon({
+	                                icon: f.properties.icon,
+	                                markerColor: f.properties.path_options.color,
+	                                prefix: f.properties.prefix,
+	                            })
+	                        }
+	                    }
+	                }
+
+	                // Add clear playback menu item to contextmenu
+	                if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
+	                    this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                                     context: this,
+	                                                     callback: this.clearPlayback}, 0)
+	                    this.map.contextmenu.insertItem({text: 'Reset Playback',
+	                                                     context: this,
+	                                                     callback: this.resetPlayback}, 1)                                                     
+	                    this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                                     context: this,
+	                                                     callback: this.addAllToPlayback}, 2)
+	                    // Flag that we're showing menu item                                                        
+	                    this.showClearPlayback = true                                                    
+	                }                        
+	                    // Initialize playback
+	                var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
+
+	                // Save context menu target to use with add/remove playback on paths
+	                if(this.isArgTrue(contextMenu)) {
+	                    L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
+	                        if(_.has(e, 'relatedTarget')) {
+	                            this.contextMenuTarget = e.relatedTarget
+	                        }                        
+	                    }, this)
+	                }       
 	            } 
 
 	            // Map Scroll
@@ -1878,7 +2273,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
 	                    featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
 	                    featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
-	                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10
+	                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10                    
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
@@ -1968,7 +2363,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    // No latitude or longitude fields
 	                    if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
 	                        return
-	                    }                    
+	                    }
 	                }
 
 	                // Set icon options
@@ -2213,7 +2608,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
 	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
-	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined
+	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
+	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
+	                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
+	                            icon = _.has(d, "icon") ? d["icon"]:"play-circle"
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier]
@@ -2227,6 +2626,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'time': dt,
 	                            'id': id,
 	                            'coordinates': L.latLng(d['latitude'], d['longitude']),
+	                            'latlng': [parseFloat(d['longitude']),parseFloat(d['latitude'])],
 	                            'colorIndex': colorIndex,
 	                            'pathWeight': pathWeight,
 	                            'pathOpacity': pathOpacity,
@@ -2244,7 +2644,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'layerDescription': layerDescription,
 	                            'layerPriority': layerPriority,
 	                            'pathLayer': pathLayer,
-	                            'layerType': "path"
+	                            'playback': playback,
+	                            'showPlayback': showPlayback,
+	                            'layerControl': layerControl,
+	                            'layerType': "path",
+	                            'icon': icon,
+	                            'prefix': prefix,
+	                            'unixtime': dt.valueOf()
 	                        }
 	                    })
 	                    .each(function(d) {
@@ -69750,6 +70156,1113 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /* 244 */
 /***/ (function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
+	var $ = __webpack_require__(2);
+	var jQuery = __webpack_require__(2);
+
+	// UMD initialization to work with CommonJS, AMD and basic browser script include
+	(function (factory) {
+		var L;
+		if (true) {
+			// AMD
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(5)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else if (typeof module === 'object' && typeof module.exports === "object") {
+			// Node/CommonJS
+			L = require('leaflet');
+			module.exports = factory(L);
+		} else {
+			// Browser globals
+			if (typeof window.L === 'undefined')
+				throw 'Leaflet must be loaded first';
+			factory(window.L);
+		}
+	}(function (L) {
+
+	L.Playback = L.Playback || {};
+
+	L.Playback.Util = L.Class.extend({
+	  statics: {
+
+	    DateStr: function(time) {
+	      return new Date(time).toDateString();
+	    },
+
+	    TimeStr: function(time) {
+	      var d = new Date(time);
+	      var h = d.getHours();
+	      var m = d.getMinutes();
+	      var s = d.getSeconds();
+	      var tms = time / 1000;
+	      var dec = (tms - Math.floor(tms)).toFixed(2).slice(1);
+	      var mer = 'AM';
+	      if (h > 11) {
+	        h %= 12;
+	        mer = 'PM';
+	      } 
+	      if (h === 0) h = 12;
+	      if (m < 10) m = '0' + m;
+	      if (s < 10) s = '0' + s;
+	      return h + ':' + m + ':' + s + dec + ' ' + mer;
+	    },
+
+	    ParseGPX: function(gpx) {
+	      var geojson = {
+	        type: 'Feature',
+	        geometry: {
+	          type: 'MultiPoint',
+	          coordinates: []
+	        },
+	        properties: {
+	          time: [],
+	          speed: [],
+	          altitude: []
+	        },
+	        bbox: []
+	      };
+	      var xml = $.parseXML(gpx);
+	      var pts = $(xml).find('trkpt');
+	      for (var i=0, len=pts.length; i<len; i++) {
+	        var p = pts[i];
+	        var lat = parseFloat(p.getAttribute('lat'));
+	        var lng = parseFloat(p.getAttribute('lon'));
+	        var timeStr = $(p).find('time').text();
+	        var eleStr = $(p).find('ele').text();
+	        var t = new Date(timeStr).getTime();
+	        var ele = parseFloat(eleStr);
+
+	        var coords = geojson.geometry.coordinates;
+	        var props = geojson.properties;
+	        var time = props.time;
+	        var altitude = geojson.properties.altitude;
+
+	        coords.push([lng,lat]);
+	        time.push(t);
+	        altitude.push(ele);
+	      }
+	      return geojson;
+	    }
+	  }
+
+	});
+
+	L.Playback = L.Playback || {};
+
+	L.Playback.MoveableMarker = L.Marker.extend({    
+	    initialize: function (startLatLng, options, feature) {    
+	        var marker_options = options.marker || {};
+
+	        if (jQuery.isFunction(marker_options)){        
+	            marker_options = marker_options(feature);
+	        }
+	        
+	        L.Marker.prototype.initialize.call(this, startLatLng, marker_options);
+	        
+	        this.popupContent = '';
+	        this.feature = feature;
+			
+	        if (marker_options.getPopup){
+	            this.popupContent = marker_options.getPopup(feature);            
+	        }
+	        
+	        if(options.popups)
+	        {
+	            this.bindPopup(feature.properties.title);
+	        }
+	        	
+	        if(options.labels)
+	        {
+	            this.bindTooltip(feature.properties.title);
+	            // if(this.bindLabel)
+	            // {
+	            //     this.bindLabel(this.getPopupContent());
+	            // }
+	            // else
+	            // {
+	            //     console.log("Label binding requires leaflet-label (https://github.com/Leaflet/Leaflet.label)");
+	            // }
+	        }
+	    },
+	    
+	    getPopupContent: function() {
+	        if (this.popupContent !== ''){
+	            return '<b>' + this.popupContent + '</b><br/>';
+	        }
+	        
+	        return '';
+	    },
+
+	    move: function (latLng, transitionTime) {
+	        // Only if CSS3 transitions are supported
+	        if (L.DomUtil.TRANSITION) {
+	            if (this._icon) { 
+	                this._icon.style[L.DomUtil.TRANSITION] = 'all ' + transitionTime + 'ms linear'; 
+	                if (this._popup && this._popup._wrapper)
+	                    this._popup._wrapper.style[L.DomUtil.TRANSITION] = 'all ' + transitionTime + 'ms linear'; 
+	            }
+	            if (this._shadow) { 
+	                this._shadow.style[L.DomUtil.TRANSITION] = 'all ' + transitionTime + 'ms linear'; 
+	            }
+	        }
+	        this.setLatLng(latLng);
+	        if (this._popup) {
+	            this._popup.setContent(this.getPopupContent() + this._latlng.toString());
+	        }    
+	    },
+	    
+	    // modify leaflet markers to add our roration code
+	    /*
+	     * Based on comments by @runanet and @coomsie 
+	     * https://github.com/CloudMade/Leaflet/issues/386
+	     *
+	     * Wrapping function is needed to preserve L.Marker.update function
+	     */
+	    _old__setPos:L.Marker.prototype._setPos,
+	    
+	    _updateImg: function (i, a, s) {
+	        a = L.point(s).divideBy(2)._subtract(L.point(a));
+	        var transform = '';
+	        transform += ' translate(' + -a.x + 'px, ' + -a.y + 'px)';
+	        transform += ' rotate(' + this.options.iconAngle + 'deg)';
+	        transform += ' translate(' + a.x + 'px, ' + a.y + 'px)';
+	        i.style[L.DomUtil.TRANSFORM] += transform;
+	    },
+	    setIconAngle: function (iconAngle) {
+	        this.options.iconAngle = iconAngle;
+	        if (this._map)
+	            this.update();
+	    },
+	    _setPos: function (pos) {
+	        if (this._icon) {
+	            this._icon.style[L.DomUtil.TRANSFORM] = "";
+	        }
+	        if (this._shadow) {
+	            this._shadow.style[L.DomUtil.TRANSFORM] = "";
+	        }
+
+	        this._old__setPos.apply(this, [pos]);
+	        if (this.options.iconAngle) {
+	            var a = this.options.icon.options.iconAnchor;
+	            var s = this.options.icon.options.iconSize;
+	            var i;
+	            if (this._icon) {
+	                i = this._icon;
+	                this._updateImg(i, a, s);
+	            }
+
+	            if (this._shadow) {
+	                // Rotate around the icons anchor.
+	                s = this.options.icon.options.shadowSize;
+	                i = this._shadow;
+	                this._updateImg(i, a, s);
+	            }
+
+	        }
+	    }
+	});
+
+	L.Playback = L.Playback || {};
+
+
+	        
+	L.Playback.Track = L.Class.extend({
+
+	        initialize : function (geoJSON, options) {
+	            options = options || {};
+	            var tickLen = options.tickLen || 250;
+	            this._staleTime = options.staleTime || 60*60*1000;
+	            this._fadeMarkersWhenStale = options.fadeMarkersWhenStale || false;
+	            
+	            this._geoJSON = geoJSON;
+	            this._tickLen = tickLen;
+	            this._ticks = [];
+	            this._marker = null;
+				this._orientations = [];
+				
+	            var sampleTimes = geoJSON.properties.time;
+				
+	            this._orientIcon = options.orientIcons;
+	            var previousOrientation;
+				
+	            var samples = geoJSON.geometry.coordinates;
+	            var currSample = samples[0];
+	            var nextSample = samples[1];
+				
+	            var currSampleTime = sampleTimes[0];
+	            var t = currSampleTime;  // t is used to iterate through tick times
+	            var nextSampleTime = sampleTimes[1];
+	            var tmod = t % tickLen; // ms past a tick time
+	            var rem,
+	            ratio;
+
+	            // handle edge case of only one t sample
+	            if (sampleTimes.length === 1) {
+	                if (tmod !== 0)
+	                    t += tickLen - tmod;
+	                this._ticks[t] = samples[0];
+					this._orientations[t] = 0;
+	                this._startTime = t;
+	                this._endTime = t;
+	                return;
+	            }
+
+	            // interpolate first tick if t not a tick time
+	            if (tmod !== 0) {
+	                rem = tickLen - tmod;
+	                ratio = rem / (nextSampleTime - currSampleTime);
+	                t += rem;
+	                this._ticks[t] = this._interpolatePoint(currSample, nextSample, ratio);
+					this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                previousOrientation = this._orientations[t];
+	            } else {
+	                this._ticks[t] = currSample;
+					this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                previousOrientation = this._orientations[t];
+	            }
+
+	            this._startTime = t;
+	            t += tickLen;
+	            while (t < nextSampleTime) {
+	                ratio = (t - currSampleTime) / (nextSampleTime - currSampleTime);
+	                this._ticks[t] = this._interpolatePoint(currSample, nextSample, ratio);
+					this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                previousOrientation = this._orientations[t];
+	                t += tickLen;
+	            }
+
+	            // iterating through the rest of the samples
+	            for (var i = 1, len = samples.length; i < len; i++) {
+	                currSample = samples[i];
+	                nextSample = samples[i + 1];
+	                t = currSampleTime = sampleTimes[i];
+	                nextSampleTime = sampleTimes[i + 1];
+
+	                tmod = t % tickLen;
+	                if (tmod !== 0 && nextSampleTime) {
+	                    rem = tickLen - tmod;
+	                    ratio = rem / (nextSampleTime - currSampleTime);
+	                    t += rem;
+	                    this._ticks[t] = this._interpolatePoint(currSample, nextSample, ratio);
+						if(nextSample){
+	                        this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                        previousOrientation = this._orientations[t];
+	                    } else {
+	                        this._orientations[t] = previousOrientation;    
+	                    }
+	                } else {
+	                    this._ticks[t] = currSample;
+	                    if(nextSample){
+	                        this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                        previousOrientation = this._orientations[t];
+	                    } else {
+	                        this._orientations[t] = previousOrientation;    
+	                    }
+	                }
+
+	                t += tickLen;
+	                while (t < nextSampleTime) {
+	                    ratio = (t - currSampleTime) / (nextSampleTime - currSampleTime);
+	                    
+	                    if (nextSampleTime - currSampleTime > options.maxInterpolationTime){
+	                        this._ticks[t] = currSample;
+	                        
+							if(nextSample){
+	                            this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                            previousOrientation = this._orientations[t];
+	                        } else {
+	                            this._orientations[t] = previousOrientation;    
+	                        }
+	                    }
+	                    else {
+	                        this._ticks[t] = this._interpolatePoint(currSample, nextSample, ratio);
+							if(nextSample) {
+	                            this._orientations[t] = this._directionOfPoint(currSample,nextSample);
+	                            previousOrientation = this._orientations[t];
+	                        } else {
+	                            this._orientations[t] = previousOrientation;    
+	                        }
+	                    }
+	                    
+	                    t += tickLen;
+	                }
+	            }
+
+	            // the last t in the while would be past bounds
+	            this._endTime = t - tickLen;
+	            this._lastTick = this._ticks[this._endTime];
+
+	        },
+
+	        _interpolatePoint : function (start, end, ratio) {
+	            try {
+	                var delta = [end[0] - start[0], end[1] - start[1]];
+	                var offset = [delta[0] * ratio, delta[1] * ratio];
+	                return [start[0] + offset[0], start[1] + offset[1]];
+	            } catch (e) {
+	                console.log('err: cant interpolate a point');
+	                console.log(['start', start]);
+	                console.log(['end', end]);
+	                console.log(['ratio', ratio]);
+	            }
+	        },
+	        
+	        _directionOfPoint:function(start,end){
+	            return this._getBearing(start[1],start[0],end[1],end[0]);
+	        },
+	        
+	        _getBearing:function(startLat,startLong,endLat,endLong){
+	              startLat = this._radians(startLat);
+	              startLong = this._radians(startLong);
+	              endLat = this._radians(endLat);
+	              endLong = this._radians(endLong);
+
+	              var dLong = endLong - startLong;
+
+	              var dPhi = Math.log(Math.tan(endLat/2.0+Math.PI/4.0)/Math.tan(startLat/2.0+Math.PI/4.0));
+	              if (Math.abs(dLong) > Math.PI){
+	                if (dLong > 0.0)
+	                   dLong = -(2.0 * Math.PI - dLong);
+	                else
+	                   dLong = (2.0 * Math.PI + dLong);
+	              }
+
+	              return (this._degrees(Math.atan2(dLong, dPhi)) + 360.0) % 360.0;
+	        },
+	        
+	        _radians:function(n) {
+	          return n * (Math.PI / 180);
+	        },
+	        _degrees:function(n) {
+	          return n * (180 / Math.PI);
+	        },
+
+	        getFirstTick : function () {
+	            return this._ticks[this._startTime];
+	        },
+
+	        getLastTick : function () {
+	            return this._ticks[this._endTime];
+	        },
+
+	        getStartTime : function () {
+	            return this._startTime;
+	        },
+
+	        getEndTime : function () {
+	            return this._endTime;
+	        },
+
+	        getTickMultiPoint : function () {
+	            var t = this.getStartTime();
+	            var endT = this.getEndTime();
+	            var coordinates = [];
+	            var time = [];
+	            while (t <= endT) {
+	                time.push(t);
+	                coordinates.push(this.tick(t));
+	                t += this._tickLen;
+	            }
+
+	            return {
+	                type : 'Feature',
+	                geometry : {
+	                    type : 'MultiPoint',
+	                    coordinates : coordinates
+	                },
+	                properties : {
+	                    time : time
+	                }
+	            };
+	        },
+			
+	        trackPresentAtTick : function(timestamp)
+	        {
+	            return (timestamp >= this._startTime);
+	        },
+	        
+	        trackStaleAtTick : function(timestamp)
+	        {
+	            return ((this._endTime + this._staleTime) <= timestamp);
+	        },
+
+	        tick : function (timestamp) {
+	            if (timestamp > this._endTime)
+	                timestamp = this._endTime;
+	            if (timestamp < this._startTime)
+	                timestamp = this._startTime;
+	            return this._ticks[timestamp];
+	        },
+			
+	        courseAtTime: function(timestamp)
+	        {
+	            //return 90;
+	            if (timestamp > this._endTime)
+	               timestamp = this._endTime;
+	            if (timestamp < this._startTime)
+	                timestamp = this._startTime;
+	            return this._orientations[timestamp];
+	        },
+	        
+	        setMarker : function(timestamp, options){
+	            var lngLat = null;
+	            
+	            // if time stamp is not set, then get first tick
+	            if (timestamp) {
+	                lngLat = this.tick(timestamp);
+	            }
+	            else {
+	                lngLat = this.getFirstTick();
+	            }        
+	        
+	            if (lngLat) {
+	                var latLng = new L.LatLng(lngLat[1], lngLat[0]);
+	                this._marker = new L.Playback.MoveableMarker(latLng, options, this._geoJSON);     
+					if(options.mouseOverCallback) {
+	                    this._marker.on('mouseover',options.mouseOverCallback);
+	                }
+					if(options.clickCallback) {
+	                    this._marker.on('click',options.clickCallback);
+	                }
+					
+					//hide the marker if its not present yet and fadeMarkersWhenStale is true
+					if(this._fadeMarkersWhenStale && !this.trackPresentAtTick(timestamp))
+					{
+						this._marker.setOpacity(0);
+					}
+	            }
+	            
+	            return this._marker;
+	        },
+	        
+	        moveMarker : function(latLng, transitionTime,timestamp) {
+	            if (this._marker) {
+	                if(this._fadeMarkersWhenStale) {
+	                    //show the marker if its now present
+	                    if(this.trackPresentAtTick(timestamp)) {
+	                        this._marker.setOpacity(1);
+	                    } else {
+	                        this._marker.setOpacity(0);
+	                    }
+	                    
+	                    if(this.trackStaleAtTick(timestamp)) {
+	                        this._marker.setOpacity(0.25);
+	                    }
+	                }
+					
+	                if(this._orientIcon){
+	                    this._marker.setIconAngle(this.courseAtTime(timestamp));
+	                }
+					
+	                this._marker.move(latLng, transitionTime);
+	            }
+	        },
+	        
+	        getMarker : function() {
+	            return this._marker;
+	        }
+
+	    });
+
+	L.Playback = L.Playback || {};
+
+	L.Playback.TrackController = L.Class.extend({
+
+	    initialize : function (map, tracks, options) {
+	        this.options = options || {};
+	    
+	        this._map = map;
+
+	        this._tracks = [];
+
+	        // initialize tick points
+	        this.setTracks(tracks);
+	    },
+	    
+	    clearTracks: function(){
+	        while (this._tracks.length > 0) {
+	            var track = this._tracks.pop();
+	            var marker = track.getMarker();
+	            
+	            if (marker){
+	                this._map.removeLayer(marker);
+	            }
+	        }            
+	    },
+
+	    setTracks : function (tracks) {
+	        // reset current tracks
+	        this.clearTracks();
+	        
+	        this.addTracks(tracks);
+	    },
+	    
+	    addTracks : function (tracks) {
+	        // return if nothing is set
+	        if (!tracks) {
+	            return;
+	        }
+	        
+	        if (tracks instanceof Array) {            
+	            for (var i = 0, len = tracks.length; i < len; i++) {
+	                this.addTrack(tracks[i]);
+	            }
+	        } else {
+	            this.addTrack(tracks);
+	        }            
+	    },
+
+	    removeTrack: function(track) {
+	        for (var i = 0, len = this._tracks.length; i < len; i++) {
+	            if(this._tracks[i]._geoJSON.properties.title === track.options.geoJSON.properties.title) {
+	                var marker = this._tracks[i].getMarker();
+	            
+	                if (marker){
+	                    this._map.removeLayer(marker);
+	                }
+
+	                this._tracks.splice(i, 1)
+	                i = len
+	            }
+	        }
+	    },
+	    
+	    // add single track
+	    addTrack : function (track, timestamp) {
+	        // return if nothing is set
+	        if (!track) {
+	            return;
+	        }
+
+	        var marker = track.setMarker(timestamp, this.options);
+
+	        if (marker) {
+	            marker.addTo(this._map);
+	            
+	            this._tracks.push(track);
+	        }            
+	    },
+
+	    tock : function (timestamp, transitionTime) {
+	        for (var i = 0, len = this._tracks.length; i < len; i++) {
+	            var lngLat = this._tracks[i].tick(timestamp);
+	            var latLng = new L.LatLng(lngLat[1], lngLat[0]);
+	            this._tracks[i].moveMarker(latLng, transitionTime,timestamp);
+	        }
+	    },
+
+	    getStartTime : function () {
+	        var earliestTime = 0;
+
+	        if (this._tracks.length > 0) {
+	            earliestTime = this._tracks[0].getStartTime();
+	            for (var i = 1, len = this._tracks.length; i < len; i++) {
+	                var t = this._tracks[i].getStartTime();
+	                if (t < earliestTime) {
+	                    earliestTime = t;
+	                }
+	            }
+	        }
+	        
+	        return earliestTime;
+	    },
+
+	    getEndTime : function () {
+	        var latestTime = 0;
+	    
+	        if (this._tracks.length > 0){
+	            latestTime = this._tracks[0].getEndTime();
+	            for (var i = 1, len = this._tracks.length; i < len; i++) {
+	                var t = this._tracks[i].getEndTime();
+	                if (t > latestTime) {
+	                    latestTime = t;
+	                }
+	            }
+	        }
+	    
+	        return latestTime;
+	    },
+
+	    getTracks : function () {
+	        return this._tracks;
+	    }
+	});
+	L.Playback = L.Playback || {};
+
+	L.Playback.Clock = L.Class.extend({
+
+	  initialize: function (trackController, callback, options) {
+	    this._trackController = trackController;
+	    this._callbacksArry = [];
+	    if (callback) this.addCallback(callback);
+	    L.setOptions(this, options);
+	    this._speed = this.options.speed;
+	    this._tickLen = this.options.tickLen;
+	    this._cursor = trackController.getStartTime();
+	    this._transitionTime = this._tickLen / this._speed;
+	  },
+
+	  _tick: function (self) {
+	    if (self._cursor > self._trackController.getEndTime()) {
+	      clearInterval(self._intervalID);
+	      return;
+	    }
+	    self._trackController.tock(self._cursor, self._transitionTime);
+	    self._callbacks(self._cursor);
+	    self._cursor += self._tickLen;
+	  },
+
+	  _callbacks: function(cursor) {
+	    var arry = this._callbacksArry;
+	    for (var i=0, len=arry.length; i<len; i++) {
+	      arry[i](cursor);
+	    }
+	  },
+
+	  addCallback: function(fn) {
+	    this._callbacksArry.push(fn);
+	  },
+
+	  start: function () {
+	    if (this._intervalID) return;
+	    this._intervalID = window.setInterval(
+	      this._tick, 
+	      this._transitionTime, 
+	      this);
+	  },
+
+	  stop: function () {
+	    if (!this._intervalID) return;
+	    clearInterval(this._intervalID);
+	    this._intervalID = null;
+	  },
+
+	  getSpeed: function() {
+	    return this._speed;
+	  },
+
+	  isPlaying: function() {
+	    return this._intervalID ? true : false;
+	  },
+
+	//   setSpeed: function (speed) {
+	//     this._speed = speed;
+	//     this._transitionTime = this._tickLen / speed;
+	//     if (this._intervalID) {
+	//       this.stop();
+	//       this.start();
+	//     }
+	//   },
+
+	  setSpeed: function () {
+	    //this._speed = speed;
+	    this._transitionTime = this._tickLen / this._speed;
+	    if (this._intervalID) {
+	      this.stop();
+	      this.start();
+	    }
+	  },
+
+	  setCursor: function (ms) {
+	    var time = parseInt(ms);
+	    if (!time) return;
+	    var mod = time % this._tickLen;
+	    if (mod !== 0) {
+	      time += this._tickLen - mod;
+	    }
+	    this._cursor = time;
+	    this._trackController.tock(this._cursor, 0);
+	    this._callbacks(this._cursor);
+	  },
+
+	  getTime: function() {
+	    return this._cursor;
+	  },
+
+	  getStartTime: function() {
+	    return this._trackController.getStartTime();
+	  },
+
+	  getEndTime: function() {
+	    return this._trackController.getEndTime();
+	  },
+
+	  getTickLen: function() {
+	    return this._tickLen;
+	  }
+
+	});
+
+	// Simply shows all of the track points as circles.
+	// TODO: Associate circle color with the marker color.
+
+	L.Playback = L.Playback || {};
+
+	L.Playback.TracksLayer = L.Class.extend({
+	    initialize : function (map, options) {
+	        var layer_options = options.layer || {};
+	        
+	        if (jQuery.isFunction(layer_options)){
+	            layer_options = layer_options(feature);
+	        }
+	        
+	        if (!layer_options.pointToLayer) {
+	            layer_options.pointToLayer = function (featureData, latlng) {
+	                return new L.CircleMarker(latlng, { radius : 5 });
+	            };
+	        }
+	    
+	        this.layer = new L.GeoJSON(null, layer_options);
+
+	        var overlayControl = {
+	            'GPS Tracks' : this.layer
+	        };
+
+	        L.control.layers(null, overlayControl, {
+	            collapsed : false
+	        }).addTo(map);
+	    },
+
+	    // clear all geoJSON layers
+	    clearLayer : function(){
+	        for (var i in this.layer._layers) {
+	            this.layer.removeLayer(this.layer._layers[i]);            
+	        }
+	    },
+
+	    // add new geoJSON layer
+	    addLayer : function(geoJSON) {
+	        this.layer.addData(geoJSON);
+	    }
+	});
+	L.Playback = L.Playback || {};
+
+	L.Playback.DateControl = L.Control.extend({
+	    options : {
+	        position : 'bottomleft',
+	        dateFormatFn: L.Playback.Util.DateStr,
+	        timeFormatFn: L.Playback.Util.TimeStr
+	    },
+
+	    initialize : function (playback, options) {
+	        L.setOptions(this, options);
+	        this.playback = playback;
+	    },
+
+	    onAdd : function (map) {
+	        this._container = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control-layers-expanded');
+
+	        var self = this;
+	        var playback = this.playback;
+	        var time = playback.getTime();
+
+	        var datetime = L.DomUtil.create('div', 'datetimeControl', this._container);
+
+	        // date time
+	        this._date = L.DomUtil.create('p', '', datetime);
+	        this._time = L.DomUtil.create('p', '', datetime);
+
+	        this._date.innerHTML = this.options.dateFormatFn(time);
+	        this._time.innerHTML = this.options.timeFormatFn(time);
+
+	        // setup callback
+	        playback.addCallback(function (ms) {
+	            self._date.innerHTML = self.options.dateFormatFn(ms);
+	            self._time.innerHTML = self.options.timeFormatFn(ms);
+	        });
+
+	        return this._container;
+	    }
+	});
+	    
+	L.Playback.PlayControl = L.Control.extend({
+	    options : {
+	        position : 'bottomright'
+	    },
+
+	    initialize : function (playback) {
+	        this.playback = playback;
+	    },
+
+	    onAdd : function (map) {
+	        this._container = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control-layers-expanded');
+
+	        var self = this;
+	        var playback = this.playback;
+	        //playback.setSpeed(100);
+	        //playback.setSpeed();
+
+	        var playControl = L.DomUtil.create('div', 'playControl', this._container);
+
+
+	        this._button = L.DomUtil.create('button', '', playControl);
+	        this._button.innerHTML = 'Play';
+
+
+	        var stop = L.DomEvent.stopPropagation;
+
+	        L.DomEvent
+	        .on(this._button, 'click', stop)
+	        .on(this._button, 'mousedown', stop)
+	        .on(this._button, 'dblclick', stop)
+	        .on(this._button, 'click', L.DomEvent.preventDefault)
+	        .on(this._button, 'click', play, this);
+	        
+	        function play(){
+	            if (playback.isPlaying()) {
+	                playback.stop();
+	                self._button.innerHTML = 'Play';
+	            }
+	            else {
+	                playback.start();
+	                self._button.innerHTML = 'Stop';
+	            }                
+	        }
+
+	        return this._container;
+	    }
+	});    
+	    
+	L.Playback.SliderControl = L.Control.extend({
+	    options : {
+	        position : 'bottomleft'
+	    },
+
+	    initialize : function (playback) {
+	        this.playback = playback;
+	    },
+
+	    onAdd : function (map) {
+	        this._container = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control-layers-expanded');
+
+	        var self = this;
+	        var playback = this.playback;
+
+	        // slider
+	        this._slider = L.DomUtil.create('input', 'slider', this._container);
+	        this._slider.type = 'range';
+	        this._slider.min = playback.getStartTime();
+	        this._slider.max = playback.getEndTime();
+	        this._slider.value = playback.getTime();
+
+	        var stop = L.DomEvent.stopPropagation;
+
+	        L.DomEvent
+	        // .on(this._slider, 'click', stop)
+	        // .on(this._slider, 'mousedown', stop)
+	        // .on(this._slider, 'dblclick', stop)
+	        // .on(this._slider, 'click', L.DomEvent.preventDefault)
+	        //.on(this._slider, 'mousemove', L.DomEvent.preventDefault)
+	        .on(this._slider, 'change', onSliderChange, this)
+	        // .on(this._slider, 'mousemove', onSliderChange, this);           
+	        .on(this._slider, 'mousemove', function(ev) {
+	            //let div = L.DomUtil.get(ev.path[1])
+	            //L.DomEvent.disableClickPropagation(div)
+	            //L.DomEvent.disableClickPropagation(ev)
+	            L.DomEvent.disableClickPropagation(this._slider)
+	            onSliderChange(ev)
+	        }, this);           
+
+
+	        function onSliderChange(e) {
+	            var val = Number(e.target.value);
+	            playback.setCursor(val);
+	        }
+
+	        playback.addCallback(function (ms) {
+	            self._slider.value = ms;
+	        });
+	        
+	        
+	        map.on('playback:add_tracks', function() {
+	            self._slider.min = playback.getStartTime();
+	            self._slider.max = playback.getEndTime();
+	            self._slider.value = playback.getTime();
+	        });
+
+	        return this._container;
+	    }
+	});      
+
+	L.Playback = L.Playback.Clock.extend({
+	        statics : {
+	            MoveableMarker : L.Playback.MoveableMarker,
+	            Track : L.Playback.Track,
+	            TrackController : L.Playback.TrackController,
+	            Clock : L.Playback.Clock,
+	            Util : L.Playback.Util,
+	            
+	            TracksLayer : L.Playback.TracksLayer,
+	            PlayControl : L.Playback.PlayControl,
+	            DateControl : L.Playback.DateControl,
+	            SliderControl : L.Playback.SliderControl
+	        },
+
+	        options : {
+	            tickLen: 250,
+	            speed: 1,
+	            maxInterpolationTime: 5*60*1000, // 5 minutes
+
+	            tracksLayer : true,
+	            
+	            playControl: false,
+	            dateControl: false,
+	            sliderControl: false,
+	            
+	            // options
+	            layer: {
+	                // pointToLayer(featureData, latlng)
+	            },
+	            
+	            marker : {
+	                // getPopup(feature)
+	            }
+	        },
+
+	        initialize : function (map, geoJSON, callback, options) {
+	            L.setOptions(this, options);
+	            
+	            this._map = map;
+	            this._showPlayback = this.options.showPlayback
+	            this._trackController = new L.Playback.TrackController(map, null, this.options);
+	            L.Playback.Clock.prototype.initialize.call(this, this._trackController, callback, this.options);
+	            
+	            if (this.options.tracksLayer) {
+	                this._tracksLayer = new L.Playback.TracksLayer(map, options);
+	            }
+
+	            this.setData(geoJSON);            
+	            
+
+	            if (this.options.playControl) {
+	                this.playControl = new L.Playback.PlayControl(this);
+	                this.playControl.addTo(map);
+	            }
+
+	            if (this.options.sliderControl) {
+	                this.sliderControl = new L.Playback.SliderControl(this);
+	                this.sliderControl.addTo(map);
+	            }
+
+	            if (this.options.dateControl) {
+	                this.dateControl = new L.Playback.DateControl(this, options);
+	                this.dateControl.addTo(map);
+	            }
+
+	            if(this._showPlayback) {
+	                this.showControls()
+	            } else {
+	                this.hideControls()
+	            }
+	        },
+	        
+	        clearData : function(){
+	            this._trackController.clearTracks();
+	            
+	            if (this._tracksLayer) {
+	                this._tracksLayer.clearLayer();
+	            }
+	        },
+	        
+	        setData : function (geoJSON) {
+	            this.clearData();
+	        
+	            this.addData(geoJSON, this.getTime());
+	            
+	            this.setCursor(this.getStartTime());
+	        },
+
+	        updateData: function(geoJSON) {
+	            this.addData(geoJSON, this.getTime());
+	            
+	            this.setCursor(this.getStartTime());
+	        },
+
+	        // bad implementation
+	        //addData : function (geoJSON, ms, options) {
+	        addData : function (geoJSON, ms) {
+	            // return if data not set
+	            if (!geoJSON) {
+	                return;
+	            }
+	        
+	            if (geoJSON instanceof Array) {
+	                for (var i = 0, len = geoJSON.length; i < len; i++) {
+	                    this._trackController.addTrack(new L.Playback.Track(geoJSON[i], this.options), ms);
+	                }
+	            } else {
+	                this._trackController.addTrack(new L.Playback.Track(geoJSON, this.options), ms);
+	            }
+
+	            this._map.fire('playback:add_tracks');
+	            
+	            if (this.options.tracksLayer) {
+	                this._tracksLayer.addLayer(geoJSON);
+	            }                  
+	        },
+
+	        removeData: function(o) {
+	            this._trackController.removeTrack(o)
+	        },
+
+	        showControls: function() {
+	            this._showPlayback = true
+
+	            if (this.options.playControl) {
+	                this._map.addControl(this.playControl);
+	            }
+	            if (this.options.sliderControl) {
+	                this._map.addControl(this.sliderControl);
+	            }
+	            if (this.options.dateControl) {
+	                this._map.addControl(this.dateControl);
+	            }
+	        },
+
+	        hideControls: function() {
+	            this._showPlayback = false
+
+	            if (!this.options.playControl) {
+	                this._map.removeControl(this.playControl);
+	            }
+	            if (!this.options.sliderControl) {
+	                this._map.removeControl(this.sliderControl);
+	            }
+	            if (!this.options.dateControl) {
+	                this._map.removeControl(this.dateControl);
+	            }
+	        },
+
+	        destroy: function() {
+	            this.clearData();
+	            if (this.playControl) {
+	                this._map.removeControl(this.playControl);
+	            }
+	            if (this.sliderControl) {
+	                this._map.removeControl(this.sliderControl);
+	            }
+	            if (this.dateControl) {
+	                this._map.removeControl(this.dateControl);
+	            }
+	        }
+	    });
+
+	L.Map.addInitHook(function () {
+	    if (this.options.playback) {
+	        this.playback = new L.Playback(this);
+	    }
+	});
+
+	L.playback = function (map, geoJSON, callback, options) {
+	    return new L.Playback(map, geoJSON, callback, options);
+	};
+	return L.Playback;
+
+	}));
+
+
+/***/ }),
+/* 245 */
+/***/ (function(module, exports, __webpack_require__) {
+
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
 	var $ = __webpack_require__(2);
 	var jQuery = __webpack_require__(2);
@@ -70365,7 +71878,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 245 */
+/* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -70666,7 +72179,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 246 */
+/* 247 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -70803,7 +72316,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 247 */
+/* 248 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -71000,7 +72513,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 248 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -71509,7 +73022,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 249 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -71830,7 +73343,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 250 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -72009,7 +73522,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 251 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/

@@ -26,6 +26,7 @@ define([
             '../contrib/js/leaflet-measure',
 			'../contrib/js/leaflet.awesome-markers',
             '../contrib/js/leaflet-vector-markers',
+            '../contrib/js/LeafletPlayback',
             '../contrib/js/CLDRPluralRuleParser',
             '../contrib/js/jquery.i18n',
             '../contrib/js/jquery.i18n.messagestore',
@@ -52,6 +53,7 @@ define([
         ) {
 
 
+    
     return SplunkVisualizationBase.extend({
         maxResults: 0,
         paneZIndex: 400,
@@ -59,6 +61,7 @@ define([
         measureDialogOpen: false,
         parentEl: null,
         parentView: null,
+        showClearPlayback: false,
         mapOptions: {},
         contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
         validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
@@ -128,6 +131,12 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
 			'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
             'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlayback': 0,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackSliderControl': 1,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
@@ -144,7 +153,6 @@ define([
         'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
         'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
         },
-
 
         initialize: function() {
             SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
@@ -295,6 +303,10 @@ define([
                 layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
                 layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
                 measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+                showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
+                showPlaybackSliderControl = this._propertyExists('showPlaybackSliderControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', previousConfig))),
+                showPlaybackDateControl = this._propertyExists('showPlaybackDateControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', previousConfig))),
+                showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
                 measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
                 measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
                 measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
@@ -371,8 +383,51 @@ define([
             // Handle context menu enable/disable
             if(this._propertyExists('contextMenu', configChanges)) {
                 if(contextMenu) {
+                    if(showPlayback) {
+                        _.each(this.pathLineLayers, function(lg) {
+                            lg.eachLayer(function(layer) {
+                                // Ant Path
+                                if(_.has(layer, '_animatedPathClass')) { 
+                                    layer.eachLayer(function(p) {
+                                        if(layer.options.playback) {
+                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+                                        } else {
+                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+                                        }
+                                    }, this)
+                                }  else {
+                                    if(layer.options.playback) {
+                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+                                    } else {
+                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+                                    }                                
+                                }
+                            }) 
+                        })
+                    }
+
+                    this.contextMenuEnabled = true
                     this.map.contextmenu.enable()
+
                 } else {
+                    if(showPlayback) {
+                        _.each(this.pathLineLayers, function(lg) {
+                            lg.eachLayer(function(layer) {
+                                // Ant Path
+                                if(_.has(layer, '_animatedPathClass')) { 
+                                    layer.eachLayer(function(p) {
+                                        p.unbindContextMenu()
+                                        //layer.options.playback = false
+                                    }, this)
+                                }  else {
+                                    layer.unbindContextMenu()
+                                    //layer.options.playback = false
+                                }
+                            }) 
+                        }, this)
+                    }
+                    
+                    this.contextMenuEnabled = false
                     this.map.contextmenu.disable()
                 }
             }
@@ -490,8 +545,96 @@ define([
                 } else {
                     this.measureControl.addTo(this.map)
                 }
-
                 if(this.isDarkTheme) { this._darkModeUpdate() }
+            }
+
+            if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
+                this.playback.options.sliderControl = showPlaybackSliderControl
+                this.updatePlaybackControls()
+            }
+
+            if(this._propertyExists('showPlaybackDateControl', configChanges)) {
+                this.playback.options.dateControl = showPlaybackDateControl
+                this.updatePlaybackControls()
+            }
+
+            if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
+                this.playback.options.playControl = showPlaybackPlayControl
+                this.updatePlaybackControls()
+            }
+
+            // Handle Playback
+            if(this._propertyExists('showPlayback', configChanges)) {
+                if(!showPlayback) {
+                    this.playback.clearData()
+                    this.playback.options.playControl = false
+                    this.playback.options.dateControl = false
+                    this.playback.options.sliderControl = false
+
+                    this.playback.hideControls()
+                    if(this.showClearPlayback) {
+                        this.map.contextmenu.removeItem(0)
+                        this.map.contextmenu.removeItem(0)
+                        this.map.contextmenu.removeItem(0)
+                        this.showClearPlayback = false  
+                    }
+
+                    _.each(this.pathLineLayers, function(lg) {
+                        lg.eachLayer(function(layer) {
+                            // Ant Path
+                            if(_.has(layer, '_animatedPathClass')) { 
+                                layer.eachLayer(function(p) {
+                                    p.unbindContextMenu()
+                                }, this)
+                            }  else {
+                                layer.unbindContextMenu()
+                            }
+                            layer.options.playback = false
+                        }) 
+                    }, this)
+                } else {
+                    if(contextMenu) {
+                        this.map.contextmenu.insertItem({text: 'Clear Playback',
+                                                        context: this,
+                                                        callback: this.clearPlayback}, 0)
+                        this.map.contextmenu.insertItem({text: 'Reset Playback',
+                                                        context: this,
+                                                        callback: this.resetPlayback}, 1)
+                        this.map.contextmenu.insertItem({text: 'Add All To Playback',
+                                                        context: this,
+                                                        callback: this.addAllToPlayback}, 2)
+
+                        _.each(this.pathLineLayers, function(lg) {
+                            lg.eachLayer(function(layer) {
+                                // Ant Path
+                                if(_.has(layer, '_animatedPathClass')) { 
+                                    layer.eachLayer(function(p) {
+                                        if(layer.options.playback) {
+                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+                                        } else {
+                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+                                        }
+                                    }, this)
+                                }  else {
+                                    if(layer.options.playback) {
+                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+                                    } else {
+                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+                                    }                                
+                                }
+                            }) 
+                        })
+                    }
+                    
+                    if(showPlaybackSliderControl) { this.playback.options.sliderControl = true }
+                    if(showPlaybackPlayControl) { this.playback.options.playControl = true }
+                    if(showPlaybackDateControl) { this.playback.options.dateControl = true }
+                    
+                    this.playback._showPlayback = true
+                    this.showClearPlayback = true
+                }
+
+                this.updatePlaybackControls()
             }
 
             // Handle layer control expand/collapse
@@ -564,7 +707,8 @@ define([
                                'layerDescription',
                                'pathLayer',
 							   'pathWeight',
-							   'pathOpacity',
+                               'pathOpacity',
+                               'playback',
                                'layerGroup',
                                'layerPriority',
                                'layerIcon',
@@ -681,7 +825,7 @@ define([
 
         // Convert string '1/0' or 'true/false' to boolean true/false
         isArgTrue: function(arg) {
-            if(arg === 1 || arg === 'true') {
+            if(arg === 1 || arg === 'true' || arg === true) {
                 return true
             } else {
                 return false
@@ -792,7 +936,7 @@ define([
         drawPath: function(options) {
             //var paneZIndex = 400
            
-            _.each(options.data, function(p) {        
+            _.each(options.data, function(p) {   
                 let id = p[0]['id'],
                   layerDescription = p[0]['layerDescription'],
                   layerPriority = p[0]['layerPriority'],
@@ -823,22 +967,90 @@ define([
                     pathFg.options.layerDescription = layerDescription
                 }
 
+                const pathContextMenuAdd = {
+                    contextmenu: true,
+                    contextmenuInheritItems: true,
+                    contextmenuItems: [{
+                            text: 'Add To Playback',
+                            index: 0,
+                            context: options.context,
+                            callback: options.context.addToPlayback
+                        },{
+                            index: 1,
+                            separator: true
+                        }]
+                }
+
+                const pathContextMenuRemove = {
+                    contextmenu: true,
+                    contextmenuInheritItems: true,
+                    contextmenuItems: [{
+                            text: 'Remove From Playback',
+                            index: 0,
+                            context: options.context,
+                            callback: options.context.removeFromPlayback
+                        },{
+                            index: 1,
+                            separator: true
+                        }]
+                }
+
+                const geoJSON = {
+                    "type": "Feature",
+                    "geometry": {
+                      "type": "LineString",
+                      "coordinates":_.pluck(p, 'latlng')
+                    },
+                    "properties": {
+                        "title" : p[0]['id'],
+                        "prefix": p[0]['prefix'],
+                        "icon": p[0]['icon'],
+                        "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
+                        "time": _.pluck(p, 'unixtime')
+                    }
+                }
+
                 // Ant Path
                 if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
-                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-                                                                            weight: p[0]['pathWeight'],
-                                                                            opacity: p[0]['pathOpacity'],
-                                                                            "delay": p[0]['antPathDelay'],
-                                                                            "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
-                                                                            "pulseColor": p[0]['antPathPulseColor'],
-                                                                            "paused": p[0]['antPathPaused'],
-                                                                            "reverse": p[0]['antPathReverse']
-                                                }).bindPopup(p[0]['description'])
+                    let antPathOptions = {
+                                                color: options.context.convertHex(p[0]['color']),
+                                                weight: p[0]['pathWeight'],
+                                                opacity: p[0]['pathOpacity'],
+                                                "delay": p[0]['antPathDelay'],
+                                                "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+                                                "pulseColor": p[0]['antPathPulseColor'],
+                                                "paused": p[0]['antPathPaused'],
+                                                "reverse": p[0]['antPathReverse']
+                                            }
+
+                    // Bind appropriate context menu for playback
+                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+                        if(options.context.isArgTrue(p[0]['playback'])) {
+                            _.defaults(antPathOptions, pathContextMenuRemove)
+                        } else {
+                            _.defaults(antPathOptions, pathContextMenuAdd)
+                        }
+                    }
+                    
+                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
                 } else {
+                    let pathOptions = { 
+                        color: options.context.convertHex(p[0]['color']),
+                        weight: p[0]['pathWeight'],
+                        opacity: p[0]['pathOpacity']
+                    }
+
+                    // Bind appropriate context menu for playback
+                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+                        if(options.context.isArgTrue(p[0]['playback'])) {
+                            _.defaults(pathOptions, pathContextMenuRemove)
+                        } else {
+                            _.defaults(pathOptions, pathContextMenuAdd)
+                        }
+                    }
+
                     // create polyline and bind popup
-                    var pl = L.polyline(_.pluck(p, 'coordinates'), {color: options.context.convertHex(p[0]['color']),
-                                                                    weight: p[0]['pathWeight'],
-                                                                    opacity: p[0]['pathOpacity']}).bindPopup(p[0]['description'])
+                    var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
                 }
 
                 // Apply tooltip to polyline
@@ -847,6 +1059,11 @@ define([
                                                      direction: 'auto',
                                                      sticky: p[0]['stickyTooltip']})
                 }
+
+                pl.options.geoJSON = geoJSON
+                pl.options.playback = options.context.isArgTrue(p[0]['playback'])
+                pl.options.pathContextMenuAdd = pathContextMenuAdd
+                pl.options.pathContextMenuRemove = pathContextMenuRemove
 
                 // Add polyline to feature group
                 pathFg.addLayer(pl)
@@ -921,6 +1138,120 @@ define([
               .setContent(content)
               .addTo(this.map)
               .open()
+        },
+
+        addToPlayback: function(e) {
+            if(this.playback._showPlayback) {
+                _.each(this.pathLineLayers, function(l, i){                   
+                    l.eachLayer(function(layer) {
+                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
+                            if(_.has(layer, '_animatedPathClass')) { 
+                                layer.eachLayer(function(p) {
+                                    p.unbindContextMenu()    
+                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+                                }, this)
+                            }  else {
+                                layer.unbindContextMenu()
+                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+                            }
+                            layer.options.playback = true
+                            this.playback.updateData(this.contextMenuTarget.options.geoJSON)
+                        }
+                    }, this)
+                 }, this)
+
+                this.updatePlaybackControls()
+            }
+        },
+
+        resetPlayback: function(e) {
+            this.playback.clearData()
+
+            _.each(this.pathLineLayers, function(l, i){                   
+                l.eachLayer(function(layer) {
+                    if(layer.options.playback) {
+                        this.playback.updateData(layer.options.geoJSON)
+                    }
+                }, this)
+            }, this)
+
+            this.updatePlaybackControls()
+        }, 
+
+        clearPlayback: function(e) {
+            _.each(this.pathLineLayers, function(l, i){
+                l.eachLayer(function(layer) {
+                    layer.options.playback = false
+
+                    if(_.has(layer, '_animatedPathClass')) { 
+                        layer.eachLayer(function(p) {
+                            p.unbindContextMenu()    
+                            p.bindContextMenu(layer.options.pathContextMenuAdd)
+                        }, this)
+                    }  else {
+                        layer.unbindContextMenu()
+                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
+                    }
+                }, this)
+             }, this)
+
+            this.playback.clearData()
+            this.updatePlaybackControls()
+        },
+
+        addAllToPlayback: function(e) {
+            this.playback.clearData()
+            
+            _.each(this.pathLineLayers, function(l, i){                   
+                l.eachLayer(function(layer) {
+                    this.playback.updateData(layer.options.geoJSON)
+                    layer.options.playback = true
+
+                    if(_.has(layer, '_animatedPathClass')) { 
+                        layer.eachLayer(function(p) {
+                            p.unbindContextMenu()    
+                            p.bindContextMenu(layer.options.pathContextMenuRemove)
+                        }, this)
+                    }  else {
+                        layer.unbindContextMenu()
+                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
+                    }
+                }, this)
+            }, this)
+
+            this.updatePlaybackControls()
+        },
+
+        removeFromPlayback: function(e) {
+            if(this.playback._showPlayback) {
+                _.each(this.pathLineLayers, function(l, i){                   
+                    l.eachLayer(function(layer) {
+                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
+                            layer.options.playback = false
+                            this.playback.removeData(this.contextMenuTarget)
+
+                            if(_.has(layer, '_animatedPathClass')) { 
+                                layer.eachLayer(function(p) {
+                                    p.unbindContextMenu()    
+                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+                                }, this)
+                            }  else {
+                                layer.unbindContextMenu()
+                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+                            }
+                        }
+                    }, this)
+                }, this)
+             }
+
+            this.updatePlaybackControls()
+         },
+
+        updatePlaybackControls: function() {
+            this.playback.setCursor(this.playback.getStartTime())
+            this.playback.hideControls()
+            this.playback.showControls()
+            if(this.isDarkTheme) { this._darkModeUpdate() }
         },
 
         centerMap: function (e) {
@@ -1276,6 +1607,14 @@ define([
                     lg.setStyle(styleOptions)
                 }
 
+                lg.eachLayer(function(l) {
+                    if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
+                })                
+                
+                // Check if layer is already on the map, remove before re-adding
+                if(map.hasLayer(lg)) {
+                    map.removeLayer(lg)
+                }
                 // Add layer controls
                 lg.addTo(map)
 
@@ -1381,6 +1720,12 @@ define([
                 showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
                 pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
                 pathColorList = this._getEscapedProperty('pathColorList', config),
+                showPlayback = parseInt(this._getEscapedProperty('showPlayback', config)),
+                showPlaybackSliderControl = parseInt(this._getEscapedProperty('showPlaybackSliderControl', config)),
+                showPlaybackDateControl = parseInt(this._getEscapedProperty('showPlaybackDateControl', config)),
+                showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
+                playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
+                playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
                 refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
                 heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
                 heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
@@ -1423,6 +1768,9 @@ define([
                                                        layerControl: this.isArgTrue(layerControl),
                                                        layerType: "path",
                                                        paneZIndex: this.paneZIndex,
+                                                       //playback: true,
+                                                       playback: this.playback,
+                                                       showPlayback: showPlayback,
                                                        context: this})
                 }
                 
@@ -1511,41 +1859,6 @@ define([
                 this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
                 this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
 
-                // Configure context menu
-                if(this.isArgTrue(contextMenu)) {
-                    this.mapOptions =  {contextmenu: true,
-                                       contextmenuWidth: 140,
-                                       minZoom: minZoom,
-                                       maxZoom: maxZoom,
-                                       contextmenuItems: [{
-                                           text: 'Show details',
-                                           context: this,
-                                           callback: this.showCoordinates
-                                    //    }, {
-                                    //         text: 'Measure details',
-                                    //         context: this,
-                                    //         callback: this.showLastMeasurement                                            
-                                       }, {
-                                           text: 'Center map here',
-                                           context: this,
-                                           callback: this.centerMap
-                                       }, '-', {
-                                               text: 'Auto Fit & Zoom',
-                                               context: this,
-                                               callback: this.fitLayerBounds
-                                       }, {
-                                           text: 'Zoom in',
-                                           iconCls: 'fa fa-search-plus',
-                                           context: this,
-                                           callback: this.zoomIn
-                                       }, {
-                                           text: 'Zoom out',
-                                           iconCls: 'fa fa-search-minus',
-                                           context: this,
-                                           callback: this.zoomOut
-                                       }]}
-                }
-
                 // Enable all or multiple popups
                 if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
                     L.Map = L.Map.extend({
@@ -1575,6 +1888,40 @@ define([
                 if(renderer == "canvas") {
                     //this.mapOptions.renderer = L.canvas()
                     this.mapOptions.preferCanvas = true
+                }
+
+                // Configure context menu
+                if(this.isArgTrue(contextMenu)) {
+                    var contextMenuTarget = this.contextMenuTarget = undefined
+                    var contextMenuEnabled = this.contextMenuEnabled = true
+
+                    this.mapOptions =  {contextmenu: true,
+                                       contextmenuWidth: 140,
+                                       minZoom: minZoom,
+                                       maxZoom: maxZoom,
+                                       contextmenuItems: [{
+                                           text: 'Show details',
+                                           context: this,
+                                           callback: this.showCoordinates
+                                       }, {
+                                           text: 'Center map here',
+                                           context: this,
+                                           callback: this.centerMap
+                                       }, '-', {
+                                               text: 'Auto Fit & Zoom',
+                                               context: this,
+                                               callback: this.fitLayerBounds
+                                       }, {
+                                           text: 'Zoom in',
+                                           iconCls: 'fa fa-search-plus',
+                                           context: this,
+                                           callback: this.zoomIn
+                                       }, {
+                                           text: 'Zoom out',
+                                           iconCls: 'fa fa-search-minus',
+                                           context: this,
+                                           callback: this.zoomOut
+                                       }]}
                 }
 
                 // Create map 
@@ -1754,6 +2101,54 @@ define([
                 if(this.isArgTrue(showProgress)) {
                     this.map.spin(true)
                 }
+
+                // Init playback
+                //if(this.isArgTrue(showPlayback)) {
+                var playbackOptions = {
+                    playControl: this.isArgTrue(showPlaybackPlayControl),
+                    dateControl: this.isArgTrue(showPlaybackDateControl),
+                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
+                    tracksLayer: false,
+                    tickLen: playbackTickLength,
+                    speed: playbackSpeed,
+                    showPlayback: showPlayback,
+                    labels: true,
+                    marker: function(f){
+                        return {
+                            icon: L.VectorMarkers.icon({
+                                icon: f.properties.icon,
+                                markerColor: f.properties.path_options.color,
+                                prefix: f.properties.prefix,
+                            })
+                        }
+                    }
+                }
+
+                // Add clear playback menu item to contextmenu
+                if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
+                    this.map.contextmenu.insertItem({text: 'Clear Playback',
+                                                     context: this,
+                                                     callback: this.clearPlayback}, 0)
+                    this.map.contextmenu.insertItem({text: 'Reset Playback',
+                                                     context: this,
+                                                     callback: this.resetPlayback}, 1)                                                     
+                    this.map.contextmenu.insertItem({text: 'Add All To Playback',
+                                                     context: this,
+                                                     callback: this.addAllToPlayback}, 2)
+                    // Flag that we're showing menu item                                                        
+                    this.showClearPlayback = true                                                    
+                }                        
+                    // Initialize playback
+                var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
+
+                // Save context menu target to use with add/remove playback on paths
+                if(this.isArgTrue(contextMenu)) {
+                    L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
+                        if(_.has(e, 'relatedTarget')) {
+                            this.contextMenuTarget = e.relatedTarget
+                        }                        
+                    }, this)
+                }       
             } 
 
             // Map Scroll
@@ -1826,7 +2221,7 @@ define([
                     featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
                     featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
                     featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
-                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10
+                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10                    
 
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
@@ -1916,7 +2311,7 @@ define([
                     // No latitude or longitude fields
                     if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
                         return
-                    }                    
+                    }
                 }
 
                 // Set icon options
@@ -2161,7 +2556,11 @@ define([
                             antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
                             layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                             layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
-                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined
+                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
+                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
+                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
+                            icon = _.has(d, "icon") ? d["icon"]:"play-circle"
 
                         if (pathIdentifier) {
                             var id = d[pathIdentifier]
@@ -2175,6 +2574,7 @@ define([
                             'time': dt,
                             'id': id,
                             'coordinates': L.latLng(d['latitude'], d['longitude']),
+                            'latlng': [parseFloat(d['longitude']),parseFloat(d['latitude'])],
                             'colorIndex': colorIndex,
                             'pathWeight': pathWeight,
                             'pathOpacity': pathOpacity,
@@ -2192,7 +2592,13 @@ define([
                             'layerDescription': layerDescription,
                             'layerPriority': layerPriority,
                             'pathLayer': pathLayer,
-                            'layerType': "path"
+                            'playback': playback,
+                            'showPlayback': showPlayback,
+                            'layerControl': layerControl,
+                            'layerType': "path",
+                            'icon': icon,
+                            'prefix': prefix,
+                            'unixtime': dt.valueOf()
                         }
                     })
                     .each(function(d) {

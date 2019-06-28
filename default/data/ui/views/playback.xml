@@ -1,0 +1,134 @@
+<form>
+  <label>Path Playback</label>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <html>
+        <p>Visualize direction along a path with playback. Enable playback under <b>Format Menu -&gt; Path Lines -&gt; Playback</b>. Toggling playback will globally enable playback on all paths. To control playback through SPL, simply <code>| eval playback="true" | table playback</code>. Alternately, setting <code>| eval playback="false" | table playback</code> will disable playback for a path or all paths. Use the context menu (right click) to add all paths to playback, clear all paths from playback or reset playback. Use the context menu by right clicking on the path to add or remove the clicked path from playback.</p>
+        <p>If set, the moveable marker's icon, prefix and color are inherited from the following fields <code>icon</code>, <code>prefix</code> and <code>pathColor</code>.</p>
+        <p>Use the play and slider controls to move the markers along their paths. If time ranges for paths vary wildly there may be significant gaps (wait times) before the next marker(s) begin to play.</p>
+        <p>Adjust the playback speed by increasing/decresing the <b>Tick Length</b> and <b>Playback Speed</b> under the format menu.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="multiselect" token="track_id_viz_3" searchWhenChanged="true">
+        <label>Vehicle ID</label>
+        <choice value="*">All</choice>
+        <prefix>track_id=</prefix>
+        <valuePrefix>"</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR  track_id=</delimiter>
+        <fieldForLabel>track_id</fieldForLabel>
+        <fieldForValue>track_id</fieldForValue>
+        <search>
+          <query>| inputlookup go_track_trackspoints.csv | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ | stats values(track_id) as track_id | mvexpand track_id | sort +track_id</query>
+        </search>
+        <initialValue>16,17,20,22,23</initialValue>
+      </input>
+      <input type="multiselect" token="date_filter_viz_3" searchWhenChanged="true">
+        <label>Date</label>
+        <choice value="*">All</choice>
+        <prefix>date=</prefix>
+        <valuePrefix>"</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR date=</delimiter>
+        <fieldForLabel>day</fieldForLabel>
+        <fieldForValue>day</fieldForValue>
+        <search>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $track_id_viz_3$ | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | stats values(date) as day | mvexpand day</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <initialValue>*</initialValue>
+      </input>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="car ".id, tooltip=description, pathColor=case(like(id, "16"), "#e50de5"), layerDescription=case(like(pathLayer, "cars-16-20"), "cars-16-20", like(pathLayer, "cars-17-22-23"), "cars-17-22-23"), pathLayer=case(like(id, "16"), "cars-16-20", like(id, "17"), "cars-17-22-23", like(id, "20"), "cars-16-20", like(id, "22"), "cars-17-22-23", like(id, "23"), "cars-17-22-23"), layerPriority=case(like(pathLayer, "cars-16-20"), 10, like(pathLayer, "cars-17-22-23"), 5)</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-10.698394</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-37.026672</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">9</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">track_id</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">30</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+</form>

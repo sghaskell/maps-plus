@@ -278,6 +278,14 @@ Reverse animation - **Default** ``false``
 ##### antPathDashArray
 Comma separated size of animated dashes - **Default** ``10,20``
 
+#### Path Playback
+Visualize direction along a path with a moveable marker. Enable playback on all paths under **Format Menu -> Path Lines -> Playback**. When playback is enabled, use the play or slider controls to replay the route for a path. Use the context menu to add all paths, clear or reset playback. Use the context menu by clicking on a path to add or remove it from playback. If time ranges for paths vary wildly there may be significant gaps (wait times) before the next marker(s) begin to play.
+
+Use the following fields to control playback.
+
+##### playback
+toggle playback for a path - **Default** ``false``
+
 ### Marker Priority
 Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.
 
@@ -489,6 +497,18 @@ Comma-separated list of hex or html colors for path lines (wraps around if more 
 Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.
 ###### Path Split Interval
 Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - **Default** `60`
+###### Playback
+Playback route along path line.
+###### Slider Control
+Show playback slider control.
+###### Date Control
+Show playback date control.
+###### Play Control
+Show playback play control.
+###### Tick Length
+Tick length in milliseconds. Increasing this value may improve performance at the cost of animation smoothness. - **Default** ``50``
+###### Playback Speed
+Multiplier for default animation speed. - **Default** ``100``
 
 
 #### i18n

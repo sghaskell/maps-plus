@@ -371,7 +371,63 @@
                 <span class="help-block">Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. (Default: 60)</span>
             </div>
         </div>
+        <hr>
+        <div class="control-group">
+            <label class="control-label">Playback</label>
+            <div class="controls controls-fill">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlayback" value="0">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input> 
+                <span class="help-block">Playback route along path line.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Slider Control</label>
+            <div class="controls controls-fill">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackSliderControl" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input> 
+                <span class="help-block">Show playback slider control.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Date Control</label>
+            <div class="controls controls-fill">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackDateControl" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input> 
+                <span class="help-block">Show playback date control.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Play Control</label>
+            <div class="controls controls-fill">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackPlayControl" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input> 
+                <span class="help-block">Show playback play control.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Tick Length</label>
+            <div class="controls controls-fill">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.playbackTickLength" value="50"></splunk-text-input>
+                <span class="help-block">Tick length in milliseconds. Increasing this value may improve performance at the cost of animation smoothness.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Playback Speed</label>
+            <div class="controls controls-fill">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.playbackSpeed" value="100"></splunk-text-input>
+                <span class="help-block">Multiplier for default animation speed</span>
+            </div>
+        </div>
     </form>
+
     <form class="splunk-formatter-section" section-label="i18n">
         <div class="control-group">
             <label class="control-label">Language</label>

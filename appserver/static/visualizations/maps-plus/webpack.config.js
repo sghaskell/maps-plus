@@ -70,9 +70,13 @@ module.exports = {
                 test: /jquery\.i18n\.parser\.js$/,
                 loader: 'imports-loader?$=jquery,jQuery=jquery'
             },
-           {
+            {
                 test: /leaflet-measure\.js$/,
                 loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
+            },
+            {
+                test: /LeafletPlayback\.js$/,
+                loader: 'imports-loader?$=jquery,jQuery=jquery'
             }
         ]
     },

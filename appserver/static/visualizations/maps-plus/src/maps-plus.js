@@ -53,6 +53,7 @@ define([
         ) {
 
 
+    
     return SplunkVisualizationBase.extend({
         maxResults: 0,
         paneZIndex: 400,
@@ -152,7 +153,6 @@ define([
         'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
         'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
         },
-
 
         initialize: function() {
             SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
@@ -707,7 +707,8 @@ define([
                                'layerDescription',
                                'pathLayer',
 							   'pathWeight',
-							   'pathOpacity',
+                               'pathOpacity',
+                               'playback',
                                'layerGroup',
                                'layerPriority',
                                'layerIcon',
@@ -1002,7 +1003,9 @@ define([
                     },
                     "properties": {
                         "title" : p[0]['id'],
-                        "path_options" : { "color" : "red" },
+                        "prefix": p[0]['prefix'],
+                        "icon": p[0]['icon'],
+                        "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
                         "time": _.pluck(p, 'unixtime')
                     }
                 }
@@ -2108,7 +2111,17 @@ define([
                     tracksLayer: false,
                     tickLen: playbackTickLength,
                     speed: playbackSpeed,
-                    showPlayback: showPlayback
+                    showPlayback: showPlayback,
+                    labels: true,
+                    marker: function(f){
+                        return {
+                            icon: L.VectorMarkers.icon({
+                                icon: f.properties.icon,
+                                markerColor: f.properties.path_options.color,
+                                prefix: f.properties.prefix,
+                            })
+                        }
+                    }
                 }
 
                 // Add clear playback menu item to contextmenu
@@ -2545,7 +2558,9 @@ define([
                             layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
                             layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                             pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
-                            playback = _.has(d, "playback") ? d["playback"]:showPlayback
+                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
+                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
+                            icon = _.has(d, "icon") ? d["icon"]:"play-circle"
 
                         if (pathIdentifier) {
                             var id = d[pathIdentifier]
@@ -2581,6 +2596,8 @@ define([
                             'showPlayback': showPlayback,
                             'layerControl': layerControl,
                             'layerType': "path",
+                            'icon': icon,
+                            'prefix': prefix,
                             'unixtime': dt.valueOf()
                         }
                     })

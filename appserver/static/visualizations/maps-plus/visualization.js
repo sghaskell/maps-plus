@@ -105,6 +105,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        ) {
 
 
+	    
 	    return SplunkVisualizationBase.extend({
 	        maxResults: 0,
 	        paneZIndex: 400,
@@ -204,7 +205,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
 	        'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
 	        },
-
 
 	        initialize: function() {
 	            SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
@@ -759,7 +759,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'layerDescription',
 	                               'pathLayer',
 								   'pathWeight',
-								   'pathOpacity',
+	                               'pathOpacity',
+	                               'playback',
 	                               'layerGroup',
 	                               'layerPriority',
 	                               'layerIcon',
@@ -1054,7 +1055,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    },
 	                    "properties": {
 	                        "title" : p[0]['id'],
-	                        "path_options" : { "color" : "red" },
+	                        "prefix": p[0]['prefix'],
+	                        "icon": p[0]['icon'],
+	                        "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
 	                        "time": _.pluck(p, 'unixtime')
 	                    }
 	                }
@@ -2160,7 +2163,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    tracksLayer: false,
 	                    tickLen: playbackTickLength,
 	                    speed: playbackSpeed,
-	                    showPlayback: showPlayback
+	                    showPlayback: showPlayback,
+	                    labels: true,
+	                    marker: function(f){
+	                        return {
+	                            icon: L.VectorMarkers.icon({
+	                                icon: f.properties.icon,
+	                                markerColor: f.properties.path_options.color,
+	                                prefix: f.properties.prefix,
+	                            })
+	                        }
+	                    }
 	                }
 
 	                // Add clear playback menu item to contextmenu
@@ -2597,7 +2610,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
 	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
-	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback
+	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
+	                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
+	                            icon = _.has(d, "icon") ? d["icon"]:"play-circle"
 
 	                        if (pathIdentifier) {
 	                            var id = d[pathIdentifier]
@@ -2633,6 +2648,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'showPlayback': showPlayback,
 	                            'layerControl': layerControl,
 	                            'layerType': "path",
+	                            'icon': icon,
+	                            'prefix': prefix,
 	                            'unixtime': dt.valueOf()
 	                        }
 	                    })
@@ -70249,19 +70266,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        
 	        if(options.popups)
 	        {
-	            this.bindPopup(this.getPopupContent() + startLatLng.toString());
+	            this.bindPopup(feature.properties.title);
 	        }
 	        	
 	        if(options.labels)
 	        {
-	            if(this.bindLabel)
-	            {
-	                this.bindLabel(this.getPopupContent());
-	            }
-	            else
-	            {
-	                console.log("Label binding requires leaflet-label (https://github.com/Leaflet/Leaflet.label)");
-	            }
+	            this.bindTooltip(feature.properties.title);
+	            // if(this.bindLabel)
+	            // {
+	            //     this.bindLabel(this.getPopupContent());
+	            // }
+	            // else
+	            // {
+	            //     console.log("Label binding requires leaflet-label (https://github.com/Leaflet/Leaflet.label)");
+	            // }
 	        }
 	    },
 	    

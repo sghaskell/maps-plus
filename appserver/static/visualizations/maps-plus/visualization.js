@@ -770,6 +770,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                               'clusterGroup',
 	                               'pathColor',
 	                               'popupAnchor',
+	                               'heatmapInclude',
 	                               'heatmapLayer',
 	                               'heatmapPointIntensity',
 	                               'heatmapMinOpacity',
@@ -2285,6 +2286,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius
 	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur
 	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient
+	                    heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
 	                    
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create feature group
@@ -2310,7 +2312,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        console.warn("Feature detected - not adding to heatmap")
 	                    }
 
-	                    if(userData['latitude'] && userData['longitude']) {
+	                    if(userData['latitude'] && userData['longitude'] && heatmapInclude) {
 	                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
 	                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
 	                    }

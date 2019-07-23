@@ -1822,7 +1822,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                                                       paneZIndex: this.paneZIndex,
 	                                                       //playback: true,
 	                                                       playback: this.playback,
-	                                                       showPlayback: showPlayback,
+	                                                       showPlayback: this.isArgTrue(showPlayback),
 	                                                       context: this})
 	                }
 	                
@@ -2154,16 +2154,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    this.map.spin(true)
 	                }
 
+	                console.log(this.isArgTrue(showPlayback))
+
 	                // Init playback
 	                //if(this.isArgTrue(showPlayback)) {
-	                var playbackOptions = {
-	                    playControl: this.isArgTrue(showPlaybackPlayControl),
-	                    dateControl: this.isArgTrue(showPlaybackDateControl),
-	                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
+	                var playbackOptions = {                   
+	                    playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
+	                    dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
+	                    sliderControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackSliderControl):false,
 	                    tracksLayer: false,
 	                    tickLen: playbackTickLength,
 	                    speed: playbackSpeed,
-	                    showPlayback: showPlayback,
+	                    showPlayback: this.isArgTrue(showPlayback),
 	                    labels: true,
 	                    marker: function(f){
 	                        return {
@@ -2176,6 +2178,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                }
 
+	                console.log(playbackOptions)
 	                // Add clear playback menu item to contextmenu
 	                if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
 	                    this.map.contextmenu.insertItem({text: 'Clear Playback',
@@ -2303,8 +2306,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 
 	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
-	                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
-	                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+	                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
+	                        console.warn("Feature detected - not adding to heatmap")
+	                    }
+
+	                    if(userData['latitude'] && userData['longitude']) {
+	                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
+	                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+	                    }
+	                    
 	                    
 	                    if(this.isArgTrue(heatmapOnly)) {
 	                        return
@@ -71131,19 +71141,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	            this.setData(geoJSON);            
 	            
+	            this.playControl = new L.Playback.PlayControl(this);
+	            this.sliderControl = new L.Playback.SliderControl(this);
+	            this.dateControl = new L.Playback.DateControl(this, options);
 
-	            if (this.options.playControl) {
-	                this.playControl = new L.Playback.PlayControl(this);
+	            if (this.options.playControl) {    
 	                this.playControl.addTo(map);
 	            }
 
-	            if (this.options.sliderControl) {
-	                this.sliderControl = new L.Playback.SliderControl(this);
+	            if (this.options.sliderControl) {                
 	                this.sliderControl.addTo(map);
 	            }
 
-	            if (this.options.dateControl) {
-	                this.dateControl = new L.Playback.DateControl(this, options);
+	            if (this.options.dateControl) {                
 	                this.dateControl.addTo(map);
 	            }
 
@@ -71221,13 +71231,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            this._showPlayback = false
 
 	            if (!this.options.playControl) {
-	                this._map.removeControl(this.playControl);
+	                try {
+	                    this._map.removeControl(this.playControl);
+	                } catch(error) {
+	                    console.warn(error)
+	                }                
 	            }
 	            if (!this.options.sliderControl) {
-	                this._map.removeControl(this.sliderControl);
+	                try {
+	                    this._map.removeControl(this.sliderControl);
+	                } catch(error) {
+	                    console.warn(error)
+	                }                
 	            }
 	            if (!this.options.dateControl) {
-	                this._map.removeControl(this.dateControl);
+	                try {
+	                    this._map.removeControl(this.dateControl);
+	                }catch(error) {
+	                    console.warn(error)
+	                }                
 	            }
 	        },
 

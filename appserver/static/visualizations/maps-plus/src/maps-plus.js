@@ -1770,7 +1770,7 @@ define([
                                                        paneZIndex: this.paneZIndex,
                                                        //playback: true,
                                                        playback: this.playback,
-                                                       showPlayback: showPlayback,
+                                                       showPlayback: this.isArgTrue(showPlayback),
                                                        context: this})
                 }
                 
@@ -2102,16 +2102,18 @@ define([
                     this.map.spin(true)
                 }
 
+                console.log(this.isArgTrue(showPlayback))
+
                 // Init playback
                 //if(this.isArgTrue(showPlayback)) {
-                var playbackOptions = {
-                    playControl: this.isArgTrue(showPlaybackPlayControl),
-                    dateControl: this.isArgTrue(showPlaybackDateControl),
-                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
+                var playbackOptions = {                   
+                    playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
+                    dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
+                    sliderControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackSliderControl):false,
                     tracksLayer: false,
                     tickLen: playbackTickLength,
                     speed: playbackSpeed,
-                    showPlayback: showPlayback,
+                    showPlayback: this.isArgTrue(showPlayback),
                     labels: true,
                     marker: function(f){
                         return {
@@ -2124,6 +2126,7 @@ define([
                     }
                 }
 
+                console.log(playbackOptions)
                 // Add clear playback menu item to contextmenu
                 if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
                     this.map.contextmenu.insertItem({text: 'Clear Playback',
@@ -2251,8 +2254,15 @@ define([
                     }
 
                     var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
-                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
-                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
+                        console.warn("Feature detected - not adding to heatmap")
+                    }
+
+                    if(userData['latitude'] && userData['longitude']) {
+                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
+                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+                    }
+                    
                     
                     if(this.isArgTrue(heatmapOnly)) {
                         return

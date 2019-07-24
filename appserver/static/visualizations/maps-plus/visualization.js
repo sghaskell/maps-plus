@@ -2281,12 +2281,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap"
-	                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity
-	                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius
-	                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur
-	                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient
-	                    heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
+	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
+	                        heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
+	                        heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
+	                        heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
+	                        heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
+	                        heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
 	                    
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create feature group
@@ -2316,8 +2316,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
 	                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
 	                    }
-	                    
-	                    
+
 	                    if(this.isArgTrue(heatmapOnly)) {
 	                        return
 	                    }

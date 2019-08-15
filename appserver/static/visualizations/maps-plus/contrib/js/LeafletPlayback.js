@@ -969,19 +969,19 @@ L.Playback = L.Playback.Clock.extend({
 
             this.setData(geoJSON);            
             
+            this.playControl = new L.Playback.PlayControl(this);
+            this.sliderControl = new L.Playback.SliderControl(this);
+            this.dateControl = new L.Playback.DateControl(this, options);
 
-            if (this.options.playControl) {
-                this.playControl = new L.Playback.PlayControl(this);
+            if (this.options.playControl) {    
                 this.playControl.addTo(map);
             }
 
-            if (this.options.sliderControl) {
-                this.sliderControl = new L.Playback.SliderControl(this);
+            if (this.options.sliderControl) {                
                 this.sliderControl.addTo(map);
             }
 
-            if (this.options.dateControl) {
-                this.dateControl = new L.Playback.DateControl(this, options);
+            if (this.options.dateControl) {                
                 this.dateControl.addTo(map);
             }
 
@@ -1059,13 +1059,25 @@ L.Playback = L.Playback.Clock.extend({
             this._showPlayback = false
 
             if (!this.options.playControl) {
-                this._map.removeControl(this.playControl);
+                try {
+                    this._map.removeControl(this.playControl);
+                } catch(error) {
+                    console.warn(error)
+                }                
             }
             if (!this.options.sliderControl) {
-                this._map.removeControl(this.sliderControl);
+                try {
+                    this._map.removeControl(this.sliderControl);
+                } catch(error) {
+                    console.warn(error)
+                }                
             }
             if (!this.options.dateControl) {
-                this._map.removeControl(this.dateControl);
+                try {
+                    this._map.removeControl(this.dateControl);
+                }catch(error) {
+                    console.warn(error)
+                }                
             }
         },
 

@@ -718,6 +718,7 @@ define([
                                'clusterGroup',
                                'pathColor',
                                'popupAnchor',
+                               'heatmapInclude',
                                'heatmapLayer',
                                'heatmapPointIntensity',
                                'heatmapMinOpacity',
@@ -1770,7 +1771,7 @@ define([
                                                        paneZIndex: this.paneZIndex,
                                                        //playback: true,
                                                        playback: this.playback,
-                                                       showPlayback: showPlayback,
+                                                       showPlayback: this.isArgTrue(showPlayback),
                                                        context: this})
                 }
                 
@@ -2103,15 +2104,14 @@ define([
                 }
 
                 // Init playback
-                //if(this.isArgTrue(showPlayback)) {
-                var playbackOptions = {
-                    playControl: this.isArgTrue(showPlaybackPlayControl),
-                    dateControl: this.isArgTrue(showPlaybackDateControl),
-                    sliderControl: this.isArgTrue(showPlaybackSliderControl),
+                var playbackOptions = {                   
+                    playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
+                    dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
+                    sliderControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackSliderControl):false,
                     tracksLayer: false,
                     tickLen: playbackTickLength,
                     speed: playbackSpeed,
-                    showPlayback: showPlayback,
+                    showPlayback: this.isArgTrue(showPlayback),
                     labels: true,
                     marker: function(f){
                         return {
@@ -2225,11 +2225,12 @@ define([
 
                 // Add heatmap layer
                 if (this.isArgTrue(heatmapEnable)) {
-                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap"
-                    heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity
-                    heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius
-                    heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur
-                    heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient
+                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
+                        heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
+                        heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
+                        heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
+                        heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
+                        heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
                     
                     if(!_.has(this.heatLayers, this.heatLayer)) {
                         // Create feature group
@@ -2251,9 +2252,15 @@ define([
                     }
 
                     var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
-                    var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
-                    this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
-                    
+                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
+                        console.warn("Feature detected - not adding to heatmap")
+                    }
+
+                    if(userData['latitude'] && userData['longitude'] && heatmapInclude) {
+                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
+                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+                    }
+
                     if(this.isArgTrue(heatmapOnly)) {
                         return
                     }

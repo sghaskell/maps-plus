@@ -2103,10 +2103,7 @@ define([
                     this.map.spin(true)
                 }
 
-                console.log(this.isArgTrue(showPlayback))
-
                 // Init playback
-                //if(this.isArgTrue(showPlayback)) {
                 var playbackOptions = {                   
                     playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
                     dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
@@ -2127,7 +2124,6 @@ define([
                     }
                 }
 
-                console.log(playbackOptions)
                 // Add clear playback menu item to contextmenu
                 if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
                     this.map.contextmenu.insertItem({text: 'Clear Playback',

@@ -1143,7 +1143,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                } else {
 	                    name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
 	                }
-	                console.log(options)
+
 	                options.control.addOverlay(options.featureGroup, name)
 	                if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
 	                    options.featureGroup.remove()
@@ -1152,7 +1152,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 
 	            if(!options.layerGroup.layerExists) {
-	                console.log(options.layerGroup)
 	                // Circle Marker
 	                if(_.has(options.layerGroup.circle, "fillColor")) {
 	                    styleColor = options.layerGroup.circle.fillColor

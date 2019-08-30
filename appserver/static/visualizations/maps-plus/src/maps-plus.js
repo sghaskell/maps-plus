@@ -705,6 +705,7 @@ define([
 							   'prefix',
 							   'extraClasses',
                                'layerDescription',
+                               'layerVisibility',
                                'pathLayer',
 							   'pathWeight',
                                'pathOpacity',
@@ -941,6 +942,7 @@ define([
                 let id = p[0]['id'],
                   layerDescription = p[0]['layerDescription'],
                   layerPriority = p[0]['layerPriority'],
+                  layerVisibility = options.context.isArgTrue(p[0]['layerVisibility']),
                   layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
                   pathLayer = p[0]['pathLayer'],
                   pathFg,
@@ -966,6 +968,7 @@ define([
                     pathFg.options.layerPriority = layerPriority
                     pathFg.options.layerType = layerType
                     pathFg.options.layerDescription = layerDescription
+                    pathFg.options.layerVisibility = layerVisibility
                 }
 
                 const pathContextMenuAdd = {
@@ -1080,16 +1083,24 @@ define([
 
             // Add Heatmap layer to controls and use layer name for control label
             if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
+                // Exclude layer from layer controls
+                if(_.has(options.featureGroup.options, "layerInclude") && !options.featureGroup.options.layerInclude) { return }
+
                 if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
                     name = options.featureGroup.options.layerDescription
                 } else {
                     name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
                 }
+                console.log(options)
                 options.control.addOverlay(options.featureGroup, name)
+                if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
+                    options.featureGroup.remove()
+                }
                 return
             }
 
             if(!options.layerGroup.layerExists) {
+                console.log(options.layerGroup)
                 // Circle Marker
                 if(_.has(options.layerGroup.circle, "fillColor")) {
                     styleColor = options.layerGroup.circle.fillColor
@@ -1111,6 +1122,9 @@ define([
                 }
 
                 options.control.addOverlay(options.layerGroup.group, iconHtml)
+                if(!options.layerGroup.layerVisibility) { 
+                  options.layerGroup.group.remove()
+                } 
                 options.layerGroup.layerExists = true
             }
 
@@ -2211,6 +2225,7 @@ define([
                     circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
                     circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
                     layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+                    layerVisibility = _.has(userData, "layerVisibility") ? this.isArgTrue(userData["layerVisibility"]):true,
                     description = _.has(userData, "description") ? userData["description"]:null,
                     featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
                     featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
@@ -2248,6 +2263,8 @@ define([
                         heatFg.options.layerDescription = layerDescription
                         heatFg.options.layerType = "heat"
                         heatFg.options.layerPriority = layerPriority
+                        heatFg.options.layerInclude = heatmapInclude
+                        heatFg.options.layerVisibility = layerVisibility
                         this.heatLayers[this.heatLayer] = heatFg
                     }
 
@@ -2276,6 +2293,7 @@ define([
                         featureFg.options.name = this.featureLayer
                         featureFg.options.layerDescription = layerDescription
                         featureFg.options.layerPriority = layerPriority
+                        featureFg.options.layerVisibility = layerVisibility
                         this.featureLayers[this.featureLayer] = featureFg
                     }
 
@@ -2501,6 +2519,7 @@ define([
                     this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
                     this.layerFilter[layerGroup].layerIconColor = layerIconColor
                     this.layerFilter[layerGroup].layerIconSize = layerIconSize
+                    this.layerFilter[layerGroup].layerVisibility = layerVisibility
                 }
 
                 if (userData["markerVisibility"]) {
@@ -2564,6 +2583,7 @@ define([
                             layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                             layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
                             layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+                            layerVisibility = _.has(d, "layerVisibility") ? d["layerVisibility"]:true,
                             pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
                             playback = _.has(d, "playback") ? d["playback"]:showPlayback,
                             prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
@@ -2598,6 +2618,7 @@ define([
                             'antPathDashArray': antPathDashArray,
                             'layerDescription': layerDescription,
                             'layerPriority': layerPriority,
+                            'layerVisibility': layerVisibility,
                             'pathLayer': pathLayer,
                             'playback': playback,
                             'showPlayback': showPlayback,

@@ -55,7 +55,7 @@ Maps+ for Splunk is compatible with **Splunk 7.x**
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.
 ```
-base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerIcon | layerIconSize | layerIconColor | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
+base_search | table latitude, longitude [ description | tooltip | title | icon | customIcon | customIconShadow | markerColor | markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | layerVisibility | layerIcon | layerIconSize | layerIconColor | layerIconPrefix | pathLayer | pathWeight | pathOpacity | pathColor | antPath | antPathDelay | antPathPulseColor | antPathPaused | antPathReverse | antPathDashArray | layerGroup | layerPriority | clusterGroup | heatmapInclude | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | feature | featureDescription | featureTooltip | featureColor | featureWeight | featureOpacity | featureStroke | featureFill | featureFillColor | featureFillOpacity | featureRadius | _time]
 ```
 
 ### Required Fields
@@ -173,6 +173,9 @@ Render heatmaps with or without markers. Control heatmaps via the [format menu](
 #### Available Fields and Values
 ##### heatmapLayer
 Name of group for display using [layer controls](#layer-controls) - **Default** `heatmap`
+
+##### heatmapInclude
+Include coordinates in heatmap layer - **Default** `true`
 
 ##### heatPointIntensity
 Control the intensity of the point - **Default** ``1.0``
@@ -341,6 +344,9 @@ Color of icon in layer control legend - Any [CSS color name](https://www.vogatek
 
 ##### layerIconPrefix
 Icon prefix - **Default** `fa`
+
+##### layerVisibility
+Initial visibility of layer in layer control menu. Set to `false` to hide from map. - **Default** `true`
 
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.

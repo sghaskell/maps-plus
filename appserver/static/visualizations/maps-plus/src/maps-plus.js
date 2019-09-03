@@ -1546,16 +1546,18 @@ define([
         _addClustered: function(map, options) {
             // Process layers
             _.each(options.layerFilter, function(lg, i) {
-                // Process cluster groups
-                _.each(lg.clusterGroup, function(cg, i) {
-                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
-                    lg.group.addLayer(this.tmpFG)
-                })
+                if(!_.isEmpty(lg.clusterGroup) && !_.isEmpty(lg.clusterGroup[0].markerList)) {
+                    // Process cluster groups
+                    _.each(lg.clusterGroup, function(cg, i) {                        
+                        this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
+                        lg.group.addLayer(this.tmpFG)
+                    })
 
-                lg.group.addTo(map)
-
-                if(options.layerControl) {
-                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
+                    lg.group.addTo(map)
+                    
+                    if(options.layerControl) {
+                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
+                    }
                 }
             })
         },
@@ -1570,33 +1572,35 @@ define([
                 }                
             })
             .each(function(lg) {
-                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-                    map.createPane(options.paneZIndex.toString())
-                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
-                }
-
-                // Loop through markers and add to map
-                _.each(lg.markerList, function(m) {                    
-                    if(options.allPopups) {
-                        m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
-                    } else {
-                        m.addTo(lg.group)
+                if(!_.isEmpty(lg.markerList)) {
+                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+                        map.createPane(options.paneZIndex.toString())
+                        map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
                     }
-                })
 
-                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-                    lg.group.setStyle({pane: options.paneZIndex.toString()})
-                    options.paneZIndex += 1
-                }
+                    // Loop through markers and add to map
+                    _.each(lg.markerList, function(m) {                    
+                        if(options.allPopups) {
+                            m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
+                        } else {
+                            m.addTo(lg.group)
+                        }
+                    })
 
-                // Add layergroup to map
-                lg.group.addTo(map)
-                
-                //options.paneZIndex += 1
+                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+                        lg.group.setStyle({pane: options.paneZIndex.toString()})
+                        options.paneZIndex += 1
+                    }
 
-                // Add layer controls
-                if(options.layerControl) {
-                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
+                    // Add layergroup to map
+                    lg.group.addTo(map)
+                    
+                    //options.paneZIndex += 1
+
+                    // Add layer controls
+                    if(options.layerControl) {
+                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
+                    }
                 }
             })
         },
@@ -2196,10 +2200,20 @@ define([
             // Iterate through each row creating layer groups per icon type
             // and create markers appending to a markerList in each layerfilter object
             _.each(dataRows, function(userData, i) {
-                if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+                // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+                //     if(!this.isArgTrue(userData["markerVisibility"])) {
+                //         console.log("true -- good")
+                //     } else {
+                //         console.log("skipping")
+                //         return
+                //     }
+                    
+                //if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+                //console.log(this.isArgTrue(userData["markerVisibility"]))
+                //if (_.has(userData,"markerVisibility") && !this.isArgTrue(userData["markerVisibility"])) {
                     // Skip the marker to improve performance of rendering
-                    return
-                }
+                    
+                // }
 
                                 // Get marker and icon properties	
 				var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
@@ -2521,8 +2535,8 @@ define([
                     this.layerFilter[layerGroup].layerVisibility = layerVisibility
                 }
 
-                if (userData["markerVisibility"]) {
-                    if (userData["markerVisibility"] == "marker") {
+                if (_.has(userData, "markerVisibility")) {
+                    if (userData["markerVisibility"] == "marker" || this.isArgTrue(userData["markerVisibility"])) {
                         this._addMarker(markerOptions)
                     }
                 } else {

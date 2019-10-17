@@ -757,6 +757,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 								   'prefix',
 								   'extraClasses',
 	                               'layerDescription',
+	                               'layerVisibility',
 	                               'pathLayer',
 								   'pathWeight',
 	                               'pathOpacity',
@@ -993,6 +994,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                let id = p[0]['id'],
 	                  layerDescription = p[0]['layerDescription'],
 	                  layerPriority = p[0]['layerPriority'],
+	                  layerVisibility = options.context.isArgTrue(p[0]['layerVisibility']),
 	                  layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
 	                  pathLayer = p[0]['pathLayer'],
 	                  pathFg,
@@ -1018,6 +1020,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    pathFg.options.layerPriority = layerPriority
 	                    pathFg.options.layerType = layerType
 	                    pathFg.options.layerDescription = layerDescription
+	                    pathFg.options.layerVisibility = layerVisibility
 	                }
 
 	                const pathContextMenuAdd = {
@@ -1132,12 +1135,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	            // Add Heatmap layer to controls and use layer name for control label
 	            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
+	                // Exclude layer from layer controls
+	                if(_.has(options.featureGroup.options, "layerInclude") && !options.featureGroup.options.layerInclude) { return }
+
 	                if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
 	                    name = options.featureGroup.options.layerDescription
 	                } else {
 	                    name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
 	                }
+
 	                options.control.addOverlay(options.featureGroup, name)
+	                if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
+	                    options.featureGroup.remove()
+	                }
 	                return
 	            }
 
@@ -1163,6 +1173,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 
 	                options.control.addOverlay(options.layerGroup.group, iconHtml)
+	                if(!options.layerGroup.layerVisibility) { 
+	                  options.layerGroup.group.remove()
+	                } 
 	                options.layerGroup.layerExists = true
 	            }
 
@@ -1585,16 +1598,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        _addClustered: function(map, options) {
 	            // Process layers
 	            _.each(options.layerFilter, function(lg, i) {
-	                // Process cluster groups
-	                _.each(lg.clusterGroup, function(cg, i) {
-	                    this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
-	                    lg.group.addLayer(this.tmpFG)
-	                })
+	                if(!_.isEmpty(lg.clusterGroup) && !_.isEmpty(lg.clusterGroup[0].markerList)) {
+	                    // Process cluster groups
+	                    _.each(lg.clusterGroup, function(cg, i) {                        
+	                        this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
+	                        lg.group.addLayer(this.tmpFG)
+	                    })
 
-	                lg.group.addTo(map)
-
-	                if(options.layerControl) {
-	                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
+	                    lg.group.addTo(map)
+	                    
+	                    if(options.layerControl) {
+	                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
+	                    }
 	                }
 	            })
 	        },
@@ -1609,33 +1624,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }                
 	            })
 	            .each(function(lg) {
-	                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-	                    map.createPane(options.paneZIndex.toString())
-	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
-	                }
-
-	                // Loop through markers and add to map
-	                _.each(lg.markerList, function(m) {                    
-	                    if(options.allPopups) {
-	                        m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
-	                    } else {
-	                        m.addTo(lg.group)
+	                if(!_.isEmpty(lg.markerList)) {
+	                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+	                        map.createPane(options.paneZIndex.toString())
+	                        map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
 	                    }
-	                })
 
-	                if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-	                    lg.group.setStyle({pane: options.paneZIndex.toString()})
-	                    options.paneZIndex += 1
-	                }
+	                    // Loop through markers and add to map
+	                    _.each(lg.markerList, function(m) {                    
+	                        if(options.allPopups) {
+	                            m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
+	                        } else {
+	                            m.addTo(lg.group)
+	                        }
+	                    })
 
-	                // Add layergroup to map
-	                lg.group.addTo(map)
-	                
-	                //options.paneZIndex += 1
+	                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+	                        lg.group.setStyle({pane: options.paneZIndex.toString()})
+	                        options.paneZIndex += 1
+	                    }
 
-	                // Add layer controls
-	                if(options.layerControl) {
-	                    options.context.addLayerToControl({layerGroup: lg, control: options.control})
+	                    // Add layergroup to map
+	                    lg.group.addTo(map)
+	                    
+	                    //options.paneZIndex += 1
+
+	                    // Add layer controls
+	                    if(options.layerControl) {
+	                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
+	                    }
 	                }
 	            })
 	        },
@@ -2235,10 +2252,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            // Iterate through each row creating layer groups per icon type
 	            // and create markers appending to a markerList in each layerfilter object
 	            _.each(dataRows, function(userData, i) {
-	                if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+	                // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+	                //     if(!this.isArgTrue(userData["markerVisibility"])) {
+	                //         console.log("true -- good")
+	                //     } else {
+	                //         console.log("skipping")
+	                //         return
+	                //     }
+	                    
+	                //if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+	                //console.log(this.isArgTrue(userData["markerVisibility"]))
+	                //if (_.has(userData,"markerVisibility") && !this.isArgTrue(userData["markerVisibility"])) {
 	                    // Skip the marker to improve performance of rendering
-	                    return
-	                }
+	                    
+	                // }
 
 	                                // Get marker and icon properties	
 					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
@@ -2263,6 +2290,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
 	                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
 	                    layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+	                    layerVisibility = _.has(userData, "layerVisibility") ? this.isArgTrue(userData["layerVisibility"]):true,
 	                    description = _.has(userData, "description") ? userData["description"]:null,
 	                    featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
 	                    featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
@@ -2278,32 +2306,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
-	                        heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
-	                        heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
-	                        heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
-	                        heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
+	                        heatmapMinOpacityM = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
+	                        heatmapRadiusM = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
+	                        heatmapBlurM = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
+	                        heatmapColorGradientM = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
 	                        heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
-	                    
+
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create feature group
 	                        var heatFg = L.featureGroup()
 
 	                        // Create heat layer
-	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-	                                                        radius: heatmapRadius,
-	                                                        gradient: heatmapColorGradient,
-	                                                        blur: heatmapBlur,
+	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacityM,
+	                                                        radius: heatmapRadiusM,
+	                                                        gradient: heatmapColorGradientM,
+	                                                        blur: heatmapBlurM,
 	                                                        map: this.map})
+
 	                        // Add to feature group                                
 	                        heatFg.addLayer(heatFgLayer)
 	                        heatFg.options.name = this.heatLayer
 	                        heatFg.options.layerDescription = layerDescription
 	                        heatFg.options.layerType = "heat"
 	                        heatFg.options.layerPriority = layerPriority
+	                        heatFg.options.layerInclude = heatmapInclude
+	                        heatFg.options.layerVisibility = layerVisibility
 	                        this.heatLayers[this.heatLayer] = heatFg
 	                    }
 
 	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
+
 	                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
 	                        console.warn("Feature detected - not adding to heatmap")
 	                    }
@@ -2328,6 +2360,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                        featureFg.options.name = this.featureLayer
 	                        featureFg.options.layerDescription = layerDescription
 	                        featureFg.options.layerPriority = layerPriority
+	                        featureFg.options.layerVisibility = layerVisibility
 	                        this.featureLayers[this.featureLayer] = featureFg
 	                    }
 
@@ -2553,10 +2586,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
 	                    this.layerFilter[layerGroup].layerIconColor = layerIconColor
 	                    this.layerFilter[layerGroup].layerIconSize = layerIconSize
+	                    this.layerFilter[layerGroup].layerVisibility = layerVisibility
 	                }
 
-	                if (userData["markerVisibility"]) {
-	                    if (userData["markerVisibility"] == "marker") {
+	                if (_.has(userData, "markerVisibility")) {
+	                    if (userData["markerVisibility"] == "marker" || this.isArgTrue(userData["markerVisibility"])) {
 	                        this._addMarker(markerOptions)
 	                    }
 	                } else {
@@ -2616,6 +2650,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
 	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
 	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                            layerVisibility = _.has(d, "layerVisibility") ? d["layerVisibility"]:true,
 	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
 	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
 	                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
@@ -2650,6 +2685,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                            'antPathDashArray': antPathDashArray,
 	                            'layerDescription': layerDescription,
 	                            'layerPriority': layerPriority,
+	                            'layerVisibility': layerVisibility,
 	                            'pathLayer': pathLayer,
 	                            'playback': playback,
 	                            'showPlayback': showPlayback,

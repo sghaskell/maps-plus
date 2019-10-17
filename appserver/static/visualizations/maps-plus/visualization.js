@@ -2306,22 +2306,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                // Add heatmap layer
 	                if (this.isArgTrue(heatmapEnable)) {
 	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
-	                        heatmapMinOpacity = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
-	                        heatmapRadius = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
-	                        heatmapBlur = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
-	                        heatmapColorGradient = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
+	                        heatmapMinOpacityM = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
+	                        heatmapRadiusM = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
+	                        heatmapBlurM = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
+	                        heatmapColorGradientM = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
 	                        heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
-	                    
+
 	                    if(!_.has(this.heatLayers, this.heatLayer)) {
 	                        // Create feature group
 	                        var heatFg = L.featureGroup()
 
 	                        // Create heat layer
-	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacity,
-	                                                        radius: heatmapRadius,
-	                                                        gradient: heatmapColorGradient,
-	                                                        blur: heatmapBlur,
+	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacityM,
+	                                                        radius: heatmapRadiusM,
+	                                                        gradient: heatmapColorGradientM,
+	                                                        blur: heatmapBlurM,
 	                                                        map: this.map})
+
 	                        // Add to feature group                                
 	                        heatFg.addLayer(heatFgLayer)
 	                        heatFg.options.name = this.heatLayer
@@ -2334,6 +2335,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 
 	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
+
 	                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
 	                        console.warn("Feature detected - not adding to heatmap")
 	                    }

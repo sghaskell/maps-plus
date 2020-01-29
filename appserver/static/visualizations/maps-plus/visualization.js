@@ -257,7 +257,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        },
 
 	        reflow: function() {
-	            this.map.invalidateSize()
+	            if(this.isInitializedDom) {
+	                this.map.invalidateSize()
+	            }
 	        },
 
 	        _darkModeInit: function () {

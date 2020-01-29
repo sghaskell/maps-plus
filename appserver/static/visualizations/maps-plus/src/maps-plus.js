@@ -205,7 +205,9 @@ define([
         },
 
         reflow: function() {
-            this.map.invalidateSize()
+            if(this.isInitializedDom) {
+                this.map.invalidateSize()
+            }
         },
 
         _darkModeInit: function () {

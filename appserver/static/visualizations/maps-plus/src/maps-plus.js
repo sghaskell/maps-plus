@@ -204,6 +204,10 @@ define([
             })
         },
 
+        reflow: function() {
+            this.map.invalidateSize()
+        },
+
         _darkModeInit: function () {
             // Set dialog to black
             this.map.on('dialog:opened', function(e) {                        
@@ -1899,13 +1903,12 @@ define([
                     })
 
                     // Disable close popup on click to allow multiple popups
-                    this.mapOptions.closePopupOnClick = false
+                    $.extend(this.mapOptions, { closePopupOnClick: false })
                 }
 
                 // Create canvas render and prever canvas for paths
                 if(renderer == "canvas") {
-                    //this.mapOptions.renderer = L.canvas()
-                    this.mapOptions.preferCanvas = true
+                    $.extend(this.mapOptions, { preferCanvas: true })
                 }
 
                 // Configure context menu
@@ -1913,7 +1916,7 @@ define([
                     var contextMenuTarget = this.contextMenuTarget = undefined
                     var contextMenuEnabled = this.contextMenuEnabled = true
 
-                    this.mapOptions =  {contextmenu: true,
+                    $.extend(this.mapOptions, {contextmenu: true,
                                        contextmenuWidth: 140,
                                        minZoom: minZoom,
                                        maxZoom: maxZoom,
@@ -1939,7 +1942,7 @@ define([
                                            iconCls: 'fa fa-search-minus',
                                            context: this,
                                            callback: this.zoomOut
-                                       }]}
+                                       }]})
                 }
 
                 // Create map 

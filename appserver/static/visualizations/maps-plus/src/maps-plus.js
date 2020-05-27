@@ -142,6 +142,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
             'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
         },
@@ -1757,6 +1758,7 @@ define([
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
                 heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
+                splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
                 showProgress = parseInt(this._getEscapedProperty('showProgress', config))
 
             // Auto Fit & Zoom once we've processed all data
@@ -1837,18 +1839,20 @@ define([
                 return this
             }
 
-            // Make sure we're on Splunk 7.x+
-            if(!this.isSplunkSeven) {
-                // Render warning modal
-                this.renderModal('splunk-version-warning',
-                        "Unsupported Splunk Version",
-                        "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
-                        'Close')
+            if(this.isArgTrue(splunkVersionCheck)) {
+                // Make sure we're on Splunk 7.x+
+                if(!this.isSplunkSeven) {
+                    // Render warning modal
+                    this.renderModal('splunk-version-warning',
+                            "Unsupported Splunk Version",
+                            "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
+                            'Close')
 
-                // throw viz error
-                throw new SplunkVisualizationBase.VisualizationError(
-                    'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
-                )
+                    // throw viz error
+                    throw new SplunkVisualizationBase.VisualizationError(
+                        'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
+                    )
+                }
             }
 
             // Validate we have at least latitude and longitude fields

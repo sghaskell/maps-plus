@@ -427,7 +427,6 @@
             </div>
         </div>
     </form>
-
     <form class="splunk-formatter-section" section-label="i18n">
         <div class="control-group">
             <label class="control-label">Language</label>
@@ -846,6 +845,18 @@
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.measureCompletedColor" value="#0066ff">
                 </splunk-color-picker> 
                 <span class="help-block ">Color of measurement when drawing is complete (Default: #0066ff)</span> 
+            </div>
+        </div>
+    </form>
+    <form class="splunk-formatter-section" section-label="Experimental">
+        <div class="control-group">
+            <label class="control-label">Version Check</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.splunkVersionCheck" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input>
+                <span class="help-block ">WARNING: Only disable version Splunk version check if you're running Splunk 7.x+. Disable if you run into issues with built-in check. Adverse side effects may be seen with check disabled.</span>
             </div>
         </div>
     </form>

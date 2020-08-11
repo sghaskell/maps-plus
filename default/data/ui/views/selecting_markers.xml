@@ -1,0 +1,181 @@
+<dashboard>
+  <label>Selecting markers using polygons</label>
+  <row>
+    <panel>
+      <html>
+        <p>Enable this option in the formatter menu &gt; Markers  &gt; Selecting markers &gt; Enable </p>
+        <p>Refresh the page, and the map will now have some new drawing controls on the left side. </p>
+        <p>Drag a box around the markers you wish to select, and then the <code>$$mapmarkers$$</code> token will be set to the tokens that were selected.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Example input data</title>
+      <table>
+        <search>
+          <query>| makeresults
+      | eval raw = "
+      latitude=53.89179593 longitude=-1.62117004 description=\"marker 1\" extra_field=\"message\" ###
+      latitude=53.8747 longitude=-1.6239166 description=\"marker 2\" extra_field=\"message\" ###
+      latitude=53.88086 longitude=-1.556625 description=\"marker 3\" extra_field=\"message\" ###
+      latitude=53.863 longitude=-1.518173 description=\"marker 4\" extra_field=\"message\" ###
+      latitude=53.8707 longitude=-1.607437133 description=\"marker 5\" extra_field=\"message\" "
+      | makemv delim="###" raw
+      | mvexpand raw 
+      | rename raw  as  _raw 
+      | extract
+      | table description latitude longitude extra_field</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Map</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults
+      | eval raw = "
+      latitude=53.89179593 longitude=-1.62117004 description=\"marker 1\" extra_field=\"message\" ###
+      latitude=53.8747 longitude=-1.6239166 description=\"marker 2\" extra_field=\"message\" ###
+      latitude=53.88086 longitude=-1.556625 description=\"marker 3\" extra_field=\"message\" ###
+      latitude=53.863 longitude=-1.518173 description=\"marker 4\" extra_field=\"message\" ###
+      latitude=53.8707 longitude=-1.607437133 description=\"marker 5\" extra_field=\"message\" "
+      | makemv delim="###" raw
+      | mvexpand raw 
+      | rename raw  as  _raw 
+      | extract
+      | table description latitude longitude extra_field</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.selectingMarkers">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Example of using a token in a HTML panel</title>
+      <html>
+      Token $$mapmarkers$$ = <pre>$mapmarkers$</pre>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Example of parsing the token in a search</title>
+      <table>
+        <search>
+          <query>
+| makeresults 
+| eval raw = $mapmarkers|s$
+| eval raw = split(rtrim(ltrim(raw,"[{"),"}]"),"},{")
+| fields - _time
+| mvexpand raw
+| eval raw = "{" + raw + "}"
+| spath input=raw
+| fields - raw _time
+| rename {}.* as *</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

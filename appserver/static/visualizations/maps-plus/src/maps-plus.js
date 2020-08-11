@@ -2,6 +2,7 @@ define([
             'jquery',
             'underscore',
             'leaflet',
+            '@turf/turf',
             'togeojson',
             'jszip',
             'jszip-utils',
@@ -34,12 +35,15 @@ define([
             '../contrib/js/jquery.i18n.language',
             '../contrib/js/jquery.i18n.parser',
             '../contrib/js/jquery.i18n.emitter',
-            '../contrib/js/jquery.i18n.emitter.bidi'
+            '../contrib/js/jquery.i18n.emitter.bidi',
+            'leaflet-draw'
+            
         ],
         function(
             $,
             _,
             L,
+            turf,
             toGeoJSON,
             JSZip,
             JSZipUtils,
@@ -97,6 +101,7 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom': 19,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
+            'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
             'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyUser': "",
@@ -1672,6 +1677,7 @@ define([
 
         // Do the work of creating the viz
         updateView: function(data, config) {
+            var viz = this;
             // viz gets passed empty config until you click the 'format' dropdown
             // intialize with defaults
 			if(_.keys(config).length <= 1) {
@@ -1713,6 +1719,7 @@ define([
                 maxZoom     = parseInt(this._getEscapedProperty('maxZoom', config)),
                 permanentTooltip = parseInt(this._getEscapedProperty('permanentTooltip', config)),
                 stickyTooltip = parseInt(this._getEscapedProperty('stickyTooltip', config)),
+                selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config)),
                 googlePlacesSearch = parseInt(this._getEscapedProperty('googlePlacesSearch', config)),
                 googlePlacesApiKeyUser = this._getEscapedProperty('googlePlacesApiKeyUser', config),
                 googlePlacesApiKeyRealm = this._getEscapedProperty('googlePlacesApiKeyRealm', config),
@@ -2016,7 +2023,46 @@ define([
                         maxZoom: maxZoom
                     })
                     // Add tile layer to map
-                    this.map.addLayer(this.tileLayer)    
+                    this.map.addLayer(this.tileLayer);
+                }
+
+                // Add map controls which allow user to draw a polygon to select markers
+                if (viz.isArgTrue(selectingMarkers) && ! viz.hasOwnProperty("selectingMarkersToolbar")){
+                    viz.selectingMarkersLayer = new L.FeatureGroup();
+                    viz.selectingMarkersToolbar = new L.Control.Draw({
+                        draw: {
+                            circle: false,
+                            marker: false,
+                            polyline: false,
+                            circlemarker: false
+                        },
+                        edit: {
+                            featureGroup: viz.selectingMarkersLayer
+                        }
+                    });
+                    viz.map.addLayer(viz.selectingMarkersLayer);
+                    viz.map.addControl(viz.selectingMarkersToolbar);
+                    viz.map.on('draw:created draw:deleted draw:edited', function(e){
+                        if (e.type === 'draw:created') {
+                            viz.selectingMarkersLayer.addLayer(e.layer);
+                        }
+                        var ptsWithinbuff = turf.within(viz.allDataPoints, viz.selectingMarkersLayer.toGeoJSON());
+                        console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
+                        var selectedPoints = [];
+                        for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
+                            selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
+                        }
+                        var defaultTokenModel = splunkjs.mvc.Components.get('default');
+                        var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
+                        var selected_points = JSON.stringify(selectedPoints);
+                        console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
+                        if (defaultTokenModel) {
+                            defaultTokenModel.set("mapmarkers", selected_points);
+                        }
+                        if (submittedTokenModel) {
+                            submittedTokenModel.set("mapmarkers", selected_points);
+                        }
+                    });
                 }
 
                 this.markers = new L.MarkerClusterGroup({ 
@@ -2203,12 +2249,30 @@ define([
                 this.map.setZoom(mapCenterZoom)
             }
 
-           
-			/********* BEGIN PROCESSING DATA **********/
- 
+            // Create a feature collection that will be used to keep track of all markers
+            this.allDataPoints = {
+                "type": "FeatureCollection",
+                "features": []
+            };
+
+			/********* BEGIN PROCESSING DATA  **********/
             // Iterate through each row creating layer groups per icon type
             // and create markers appending to a markerList in each layerfilter object
             _.each(dataRows, function(userData, i) {
+                
+                // If this row has lat/long then save it for later, in case the user drags a selection box around it.
+                if (viz.isArgTrue(selectingMarkers)){
+                    if (userData.hasOwnProperty("latitude") && userData.hasOwnProperty("longitude")) {
+                        viz.allDataPoints.features.push({
+                            "type": "Feature",
+                            "properties": {row: i}, 
+                            "geometry": { 
+                                "type": "Point", 
+                                "coordinates": [ parseFloat(userData['longitude']), parseFloat(userData['latitude']) ] 
+                            } 
+                        });
+                    }
+                }
                 // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
                 //     if(!this.isArgTrue(userData["markerVisibility"])) {
                 //         console.log("true -- good")
@@ -2311,7 +2375,6 @@ define([
                 if(_.has(userData, "feature")) {
                     const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
                     let feature
-
                     if(!_.has(this.featureLayers, this.featureLayer)) {
                         let featureFg = L.featureGroup()
                         featureFg.options.name = this.featureLayer

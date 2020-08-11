@@ -3,6 +3,7 @@ define([
             'underscore',
             'leaflet',
             '@mapbox/togeojson',
+            '@turf/turf',
             'jszip',
             'jszip-utils',
             'milsymbol',
@@ -35,13 +36,16 @@ define([
             '../contrib/js/jquery.i18n.language',
             '../contrib/js/jquery.i18n.parser',
             '../contrib/js/jquery.i18n.emitter',
-            '../contrib/js/jquery.i18n.emitter.bidi'
+            '../contrib/js/jquery.i18n.emitter.bidi',
+            'leaflet-draw'
+            
         ],
         function(
             $,
             _,
             L,
             toGeoJSON,
+            turf,
             JSZip,
             JSZipUtils,
             ms,
@@ -231,7 +235,8 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoColor': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '""',
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""'
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -2007,7 +2012,8 @@ updateView: function(data, config) {
         msInfoBackground = this._stringToJSON(this._getProperty('msInfoBackground', config)),
         msInfoBackgroundFrame = this._stringToJSON(this._getProperty('msInfoBackgroundFrame', config)),
         msStandard = this._getEscapedProperty('msInfoBackgroundFrame', config),
-        msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config))
+        msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config)),
+        selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config))
 
 
     // Auto Fit & Zoom once we've processed all data
@@ -2328,6 +2334,47 @@ updateView: function(data, config) {
             this.map.addLayer(this.tileLayer)    
         }
 
+                // Add map controls which allow user to draw a polygon to select markers
+                // Add map controls for lasso marker selection
+                if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {
+                    var _viz = this;
+                    _viz.selectingMarkersLayer = new L.FeatureGroup();
+                    _viz.selectingMarkersToolbar = new L.Control.Draw({
+                        draw: {
+                            circle: false,
+                            marker: false,
+                            polyline: false,
+                            circlemarker: false
+                        },
+                        edit: {
+                            featureGroup: _viz.selectingMarkersLayer
+                        }
+                    });
+                    _viz.map.addLayer(_viz.selectingMarkersLayer);
+                    _viz.map.addControl(_viz.selectingMarkersToolbar);
+                    _viz.map.on('draw:created draw:deleted draw:edited', function(e) {
+                        if(e.type === 'draw:created') {
+                            _viz.selectingMarkersLayer.addLayer(e.layer)
+                        }
+                        var ptsWithinbuff = turf.within(viz.allDataPoints, viz.selectingMarkersLayer.toGeoJSON());
+                        console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
+                        var selectedPoints = [];
+                        for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
+                            selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
+                        }
+                        var defaultTokenModel = splunkjs.mvc.Components.get('default');
+                        var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
+                        var selected_points = JSON.stringify(selectedPoints);
+                        console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
+                        if (defaultTokenModel) {
+                            defaultTokenModel.set("mapmarkers", selected_points);
+                        }
+                        if (submittedTokenModel) {
+                            submittedTokenModel.set("mapmarkers", selected_points);
+                        }
+                    });
+                }
+
         this.markers = new L.MarkerClusterGroup({ 
             chunkedLoading: true,
             maxClusterRadius: maxClusterRadius,
@@ -2599,13 +2646,33 @@ updateView: function(data, config) {
         this.map.setZoom(mapCenterZoom)
     }
 
+    this.allDataPoints = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+
+
    
     /********* BEGIN PROCESSING DATA **********/
 
     // Iterate through each row creating layer groups per icon type
     // and create markers appending to a markerList in each layerfilter object
     _.each(dataRows, function(userData, i) {
-                        // Get marker and icon properties	
+
+        if(this.isArgTrue(selectingMarkers)) {
+            if(userData.hasOwnProperty('latitude') && userData.hasOwnProperty('longitude')) {
+                this.allDataPoints.features.push({
+                    "type": "Feature",
+                    "properties": { row: i },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [ parseFloat(userData['longitude']), parseFloat(userData['latitude']) ]
+                    }
+                })
+            }
+        }
+
+        // Get marker and icon properties	
         var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
             markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
             iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",

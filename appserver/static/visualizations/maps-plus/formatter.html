@@ -278,6 +278,16 @@
                 <span class="help-block ">Tooltip follows mouse instead of fixed position.</span> 
             </div>
         </div>
+        <div class="control-group">
+            <label class="control-label">Allow selecting markers</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.selectingMarkers" value="0">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input> 
+                <span class="help-block ">Show controls which allow selecting markers. The selected markers are set in the token $mapmarkers$</span> 
+            </div>
+        </div>        
     </form>
     <form class="splunk-formatter-section" section-label="Heatmap">
         <div class="control-group">

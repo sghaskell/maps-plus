@@ -15,20 +15,20 @@
     "webpack": "^1.12.6"
   },
   "dependencies": {
-    "jquery": "^3.3.1",
-    "underscore": "^1.8.3",
-    "leaflet": "^1.0.3",
-    "drmonty-leaflet-awesome-markers": "^2.0.2",
-    "togeojson": "^0.14.2",
-    "jszip": "^3.1.2",
-    "jszip-utils": "0.0.2",
-    "leaflet-measure": "^2.0.2",
-    "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",
+    "drmonty-leaflet-awesome-markers": "^2.0.2",
+    "jquery": "^3.6.0",
+    "jszip": "^3.9.1",
+    "jszip-utils": "0.0.2",
+    "leaflet": "^1.7.1",
+    "leaflet-bing-layer": "^3.3.0",
     "leaflet-contextmenu": "^1.2.1",
     "leaflet-dialog": "^1.0.1",
     "leaflet-google-places-autocomplete": "^0.0.8",
+    "leaflet-measure": "^2.0.2",
     "load-google-maps-api": "^1.0.0",
-    "leaflet-bing-layer": "^3.3.0"
+    "togeojson": "^0.14.2",
+    "transform-loader": "^0.2.3",
+    "underscore": "^1.13.2"
   }
 }

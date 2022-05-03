@@ -15,8 +15,8 @@
     "webpack": "^1.12.6"
   },
   "dependencies": {
-    "jquery": "^3.3.1",
-    "underscore": "^1.8.3",
+    "jquery": "^3.6.0",
+    "underscore": "^1.13.2",
     "load-google-maps-api-2": "^1.0.2"
   }
 }

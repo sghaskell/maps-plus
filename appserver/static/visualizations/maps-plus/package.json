@@ -19,7 +19,7 @@
     "underscore": "^1.13.2",
     "leaflet": "^1.9.2",
     "drmonty-leaflet-awesome-markers": "^2.0.2",
-    "togeojson": "^0.14.2",
+    "@mapbox/togeojson": "^0.16.0",
     "jszip": "^3.1.2",
     "jszip-utils": "0.0.2",
     "leaflet-measure": "sghaskell/leaflet-measure#master",

@@ -52,2716 +52,2763 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [
-	            __webpack_require__(2),
-	            __webpack_require__(3),
-	            __webpack_require__(4),
-	            __webpack_require__(5),
-	            __webpack_require__(8),
-	            __webpack_require__(91),
-	            __webpack_require__(92),
-	            __webpack_require__(93),
-	            __webpack_require__(94),
-	            __webpack_require__(95),
-	            __webpack_require__(96),
-	            __webpack_require__(234),
-	            __webpack_require__(235),
-	            __webpack_require__(236),
-	            __webpack_require__(237),
-				__webpack_require__(240),
-				__webpack_require__(241),
-	            __webpack_require__(242),
-	            __webpack_require__(243),
-	            __webpack_require__(244),
-	            __webpack_require__(245),
-	            __webpack_require__(246),
-	            __webpack_require__(247),
-	            __webpack_require__(248),
-	            __webpack_require__(249),
-				__webpack_require__(250),
-	            __webpack_require__(251),
-	            __webpack_require__(252),
-	            __webpack_require__(253),
-	            __webpack_require__(254),
-	            __webpack_require__(255),
-	            __webpack_require__(256),
-	            __webpack_require__(257),
-	            __webpack_require__(258),
-	            __webpack_require__(259),
-	            __webpack_require__(260)
-	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
-	            $,
-	            _,
-	            L,
-	            toGeoJSON,
-	            JSZip,
-	            JSZipUtils,
-	            SplunkVisualizationBase,
-	            SplunkVisualizationUtils,
-	            mvc,
-	            loadGoogleMapsAPI,
-	            moment,
-	            Modal,
-	            themeUtils
-	        ) {
+	    __webpack_require__(2),
+	    __webpack_require__(3),
+	    __webpack_require__(4),
+	    __webpack_require__(5),
+	    __webpack_require__(8),
+	    __webpack_require__(91),
+	    __webpack_require__(92),
+	    __webpack_require__(93),
+	    __webpack_require__(94),
+	    __webpack_require__(95),
+	    __webpack_require__(96),
+	    __webpack_require__(234),
+	    __webpack_require__(235),
+	    __webpack_require__(236),
+	    __webpack_require__(237),
+	    __webpack_require__(240),
+	    __webpack_require__(241),
+	    __webpack_require__(242),
+	    __webpack_require__(243),
+	    __webpack_require__(244),
+	    __webpack_require__(245),
+	    __webpack_require__(246),
+	    __webpack_require__(248),
+	    __webpack_require__(249),
+	    __webpack_require__(250),
+	    __webpack_require__(251),
+	    __webpack_require__(252),
+	    __webpack_require__(253),
+	    __webpack_require__(254),
+	    __webpack_require__(255),
+	    __webpack_require__(256),
+	    __webpack_require__(257),
+	    __webpack_require__(258),
+	    __webpack_require__(259),
+	    __webpack_require__(260),
+	    __webpack_require__(261),
+	    __webpack_require__(262)
+	], __WEBPACK_AMD_DEFINE_RESULT__ = function(
+	    $,
+	    _,
+	    L,
+	    toGeoJSON,
+	    JSZip,
+	    JSZipUtils,
+	    SplunkVisualizationBase,
+	    SplunkVisualizationUtils,
+	    mvc,
+	    loadGoogleMapsAPI,
+	    moment,
+	    Modal,
+	    themeUtils
+	) {
 
+
+
+	return SplunkVisualizationBase.extend({
+	maxResults: 0,
+	paneZIndex: 400,
+	tileLayer: null,
+	measureDialogOpen: false,
+	parentEl: null,
+	parentView: null,
+	showClearPlayback: false,
+	mapOptions: {},
+	contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
+	validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
+	isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
+	defaultConfig:  {
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.multiplePopups': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.animate': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.singleMarkerMode': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.maxClusterRadius': 80,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControlCollapsed': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldown': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldownAction': "dblclick",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight': 600,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoomDelay': 500,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom': 6,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat': 39.50,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon': -98.35,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.minZoom': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom': 19,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyUser': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyRealm': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesZoomLevel': "12",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesPosition': "topleft",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKey': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyUser': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyRealm': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.warningThreshold': 55,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor': "#F1D357",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor': "#F0C20C",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.criticalThreshold': 80,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor': "#FD9C73",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor': "#F18017",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureTool': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureIconPosition': "topright",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measurePrimaryLengthUnit': "feet",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureSecondaryLengthUnit': "miles",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measurePrimaryAreaUnit': "acres",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureSecondaryAreaUnit': "sqmiles",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureActiveColor': "#00ff00",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureCompletedColor': "#0066ff",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.measureLocalization': "en",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showPathLines': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.pathIdentifier': "",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList': "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlayback': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackSliderControl': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticProj': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.tileSize': 512,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
+	},
+	ATTRIBUTIONS: {
+	'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; OpenStreetMap contributors',
+	'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+	'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+	'http://tile.stamen.com/toner/{z}/{x}/{y}.png': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+	'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+	'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
+	},
+
+	initialize: function() {
+	    SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
+	    this.$el = $(this.el)
+	    this.isInitializedDom = false
+	    this.isSplunkSeven = false
+	    this.curPage = 0
+	    this.allDataProcessed = false
+	    this.splunkVersion = parseFloat(0.0)     
+
+	    try {
+	        // Get version from global tokens
+	        this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
+	    } catch (error) {
+	        // Detect version from REST API
+	        $.ajax({
+	            type: "GET",
+	            async: false,
+	            context: this,
+	            url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
+	            success: function(s) {                                        
+	                var xml = $(s)
+	                var that = this
+	                $(xml).find('content').children().children().each(function(i, v) {
+	                    if(/name="version"/.test(v.outerHTML)) {
+	                        that.splunkVersion = parseFloat(v.textContent)
+	                        if(that.splunkVersion >= 7.0) {
+	                            that.isSplunkSeven = true
+	                        }
+	                    } 
+	                })
+	            },
+	            error: function(e) {
+	                //console.info(e)
+	            }
+	        })
+	    }
+
+	    if(this.splunkVersion >= 7.0) {
+	        this.isSplunkSeven = true
+	    }
+	},
+
+	// Search data params
+	getInitialDataParams: function() {
+	    return ({
+	        outputMode: SplunkVisualizationBase.RAW_OUTPUT_MODE,
+	        count: this.maxResults
+	    })
+	},
+
+	reflow: function() {
+	    if(this.isInitializedDom) {
+	        this.map.invalidateSize()
+	    }
+	},
+
+	_darkModeInit: function () {
+	    // Set dialog to black
+	    this.map.on('dialog:opened', function(e) {                        
+	        $('.leaflet-control-dialog').css({'background-color': '#000000'})
+	        $('.leaflet-control-layers').css({'color': '#fff'})
+	    })
+
+	    // Change popup colors
+	    this.map.on('popupopen', function(e) {    
+	        $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
+	                                                                        'color': "#FFFFFF"})
+	    })
+	    
+	    // Change tooltip colors
+	    this.map.on('tooltipopen', function(e) {  
+	        $('.leaflet-tooltip').css({'background': '#000000',
+	                                    'color': '#FFFFFF',
+	                                    'border': '1px solid #000000'})
+	        $('.leaflet-tooltip-right').toggleClass('dark', true)
+	        $('.leaflet-tooltip-left').toggleClass('dark', true)
+	        $('.leaflet-tooltip-bottom').toggleClass('dark', true)
+	        $('.leaflet-tooltip-top').toggleClass('dark', true)
+	    })
 
 	    
-	    return SplunkVisualizationBase.extend({
-	        maxResults: 0,
-	        paneZIndex: 400,
-	        tileLayer: null,
-	        measureDialogOpen: false,
-	        parentEl: null,
-	        parentView: null,
-	        showClearPlayback: false,
-	        mapOptions: {},
-	        contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
-	        validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
-	        isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
-	        defaultConfig:  {
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.allPopups': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.multiplePopups': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.animate': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.singleMarkerMode': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoom': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.maxClusterRadius': 80,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControlCollapsed': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.scrollWheelZoom': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.fullScreen': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldown': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.drilldownAction': "dblclick",
-				'display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight': 600,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom': 1,
-				'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoomDelay': 500,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom': 6,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat': 39.50,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon': -98.35,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.minZoom': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom': 19,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.i18nLanguage': 'en',
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyUser': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyRealm': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesZoomLevel': "12",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesPosition': "topleft",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKey': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyUser': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyRealm': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.warningThreshold': 55,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoBgColor': "#F1D357",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeTwoFgColor': "#F0C20C",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.criticalThreshold': 80,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeBgColor': "#FD9C73",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeThreeFgColor': "#F18017",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureTool': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureIconPosition': "topright",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measurePrimaryLengthUnit': "feet",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureSecondaryLengthUnit': "miles",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measurePrimaryAreaUnit': "acres",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureSecondaryAreaUnit': "sqmiles",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureActiveColor': "#00ff00",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureCompletedColor': "#0066ff",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.measureLocalization': "en",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPathLines': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathIdentifier': "",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList': "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
-				'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlayback': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackSliderControl': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
-	            'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
-	        },
-	        ATTRIBUTIONS: {
-	        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; OpenStreetMap contributors',
-	        'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-	        'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-	        'http://tile.stamen.com/toner/{z}/{x}/{y}.png': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-	        'http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
-	        'http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg': 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
-	        },
+	    // Update Zoom Controls
+	    $('.leaflet-control-zoom-in').css({'background-color': '#000000',
+	                                        'color': '#FFFFFF'})
+	    $('.leaflet-control-zoom-out').css({'background-color': '#000000',
+	                                        'color': '#FFFFFF'})
+	    
+	    // context menu dark mode styles
+	    var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
+	                  '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
+	                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
+	                  '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
+	                  '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
+	                  '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
+	                  '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-	        initialize: function() {
-	            SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
-	            this.$el = $(this.el)
-	            this.isInitializedDom = false
-	            this.isSplunkSeven = false
-	            this.curPage = 0
-	            this.allDataProcessed = false
-	            this.splunkVersion = parseFloat(0.0)     
+	    var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.cssRules.length
+	    // delete styles from newest to oldest                                  
+	    for(i=length-1; i >= 0; i--) {
+	        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.deleteRule(i)
+	    }
 
-	            try {
-	                // Get version from global tokens
-	                this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
-	            } catch (error) {
-	                // Detect version from REST API
-	                $.ajax({
-	                    type: "GET",
-	                    async: false,
-	                    context: this,
-	                    url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-	                    success: function(s) {                                        
-	                        var xml = $(s)
-	                        var that = this
-	                        $(xml).find('content').children().children().each(function(i, v) {
-	                            if(/name="version"/.test(v.outerHTML)) {
-	                                that.splunkVersion = parseFloat(v.textContent)
-	                                if(that.splunkVersion >= 7.0) {
-	                                    that.isSplunkSeven = true
+	    // insert dark styles
+	    for(i=0; i < styles.length; i++) {
+	        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.insertRule(styles[i], i)
+	    }
+	},
+
+	_darkModeUpdate: function() {
+	    $('.leaflet-control-measure').css('background-color', '#000000')
+
+	    $('.leaflet-control-layers').css({'background-color': '#000',
+	    'color': '#fff'})
+
+	    // Set initial background color of control to black
+	    $('.leaflet-bar a').css('background-color', '#000000')
+
+	    // Re-set background color on collapse
+	    this.map.on('measurecollapsed', function() {
+	        $('.leaflet-bar a').css('background-color', '#000000')
+	        
+	    })
+
+	    $('.leaflet-control-layers').css({'background-color': '#000',
+	                                                  'color': '#fff'})
+	},
+
+	onConfigChange: function(configChanges, previousConfig) {
+	    const configBase = this.getPropertyNamespaceInfo().propertyNamespace
+	    let bgRgb,
+	        bgRgba,
+	        html,
+	        mapTile = this._propertyExists('mapTile', configChanges) ? this._getSafeUrlProperty('mapTile', configChanges):this._getSafeUrlProperty('mapTile', previousConfig),
+	        mapCenterZoom = this._propertyExists('mapCenterZoom', configChanges) ? parseInt(this._getEscapedProperty('mapCenterZoom', configChanges)):parseInt(this._getEscapedProperty('mapCenterZoom', previousConfig)),
+	        mapCenterLat = this._propertyExists('mapCenterLat', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLat', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLat', previousConfig)),
+	        mapCenterLon = this._propertyExists('mapCenterLon', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLon', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLon', previousConfig)),
+	        mapTileOverride = this._propertyExists('mapTileOverride', configChanges) ? this._getEscapedProperty('mapTileOverride', configChanges):this._getEscapedProperty('mapTileOverride', previousConfig),
+	        scrollWheelZoom = this._propertyExists('scrollWheelZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', previousConfig))),
+	        mapAttributionOverride = this._propertyExists('mapAttributionOverride', configChanges) ? this._getEscapedProperty('mapAttributionOverride', configChanges):this._getEscapedProperty('mapAttributionOverride', previousConfig),
+	        fullScreen = this._propertyExists('fullScreen', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', previousConfig))),
+	        defaultHeight = this._propertyExists('defaultHeight', configChanges) ? parseInt(this._getEscapedProperty('defaultHeight', configChanges)):parseInt(this._getEscapedProperty('defaultHeight', previousConfig)),
+	        contextMenu = this._propertyExists('contextMenu', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', previousConfig))),
+	        rangeOneBgColor = this._propertyExists('rangeOneBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', previousConfig)),
+	        rangeOneFgColor = this._propertyExists('rangeOneFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', previousConfig)),
+	        rangeTwoBgColor = this._propertyExists('rangeTwoBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', previousConfig)),
+	        rangeTwoFgColor = this._propertyExists('rangeTwoFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', previousConfig)),
+	        rangeThreeBgColor = this._propertyExists('rangeThreeBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', previousConfig)),
+	        rangeThreeFgColor = this._propertyExists('rangeThreeFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', previousConfig)),
+	        disableClusteringAtZoom = this._propertyExists('disableClusteringAtZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', previousConfig))),
+	        disableClusteringAtZoomLevel = this._propertyExists('disableClusteringAtZoomLevel', configChanges) ? parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', configChanges)):parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', previousConfig)),
+	        minZoom = this._propertyExists('minZoom', configChanges) ? parseInt(this._getEscapedProperty('minZoom', configChanges)):parseInt(this._getEscapedProperty('minZoom', previousConfig)),
+	        maxZoom = this._propertyExists('maxZoom', configChanges) ? parseInt(this._getEscapedProperty('maxZoom', configChanges)):parseInt(this._getEscapedProperty('maxZoom', previousConfig)),
+	        layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
+	        layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
+	        measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
+	        showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
+	        showPlaybackSliderControl = this._propertyExists('showPlaybackSliderControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', previousConfig))),
+	        showPlaybackDateControl = this._propertyExists('showPlaybackDateControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', previousConfig))),
+	        showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
+	        measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
+	        measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
+	        measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
+
+	    // Update tile layer
+	    if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
+	        this.tileLayer.setUrl(mapTile)
+	    }
+
+	    // Handle map tile override
+	    if(this._propertyExists('mapTileOverride', configChanges)) {
+	        if(mapTileOverride == "") {
+	            this.tileLayer.setUrl(mapTile)
+	        } else {
+	            this.tileLayer.setUrl(mapTileOverride)
+	        }
+	    }
+
+	    // Handle scroll wheel zoom
+	    if(this._propertyExists('scrollWheelZoom', configChanges)) {
+	        if(scrollWheelZoom) {
+	            this.map.scrollWheelZoom.enable()
+	        } else {
+	            this.map.scrollWheelZoom.disable()
+	        }
+	    }
+
+	    // Handle center zoom change
+	    if(this._propertyExists('mapCenterZoom', configChanges)) {
+	        this.map.setZoom(mapCenterZoom)
+	    }
+
+	    // Handle latitude change
+	    if(this._propertyExists('mapCenterLat', configChanges) || this._propertyExists('mapCenterLon', configChanges)) {                
+	        this.map.setZoom(mapCenterZoom)
+	        this.map.panTo([mapCenterLat, 
+	                        mapCenterLon])
+	    }
+	    
+	    // update map tile attribution
+	    if(this._propertyExists('mapAttributionOverride', configChanges)) {
+	        // Remove current and previous map tile attributions
+	        this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
+	        this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[previousConfig[configBase + 'mapTile']])
+	        this.map.attributionControl.removeAttribution(previousConfig[configBase + 'mapAttributionOverride'])
+
+	        // Add current attribution
+	        this.map.attributionControl.addAttribution(mapAttributionOverride)
+
+	        // Reset to current map tile if unset
+	        if(mapAttributionOverride == "") {
+	            this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])    
+	        }
+	    }
+
+	    // Handle full sceen mode enable/disable
+	    // if(_.has(configChanges, configBase + 'fullScreen')) {
+	    if(this._propertyExists('fullScreen', configChanges)) {
+	        if(fullScreen) {
+	            this._setFullScreenMode(this.map, {parentEl: this.parentEl})
+	        } else {
+	            this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                                              defaultHeight: this.defaultHeight})                    
+	        }
+	    }
+
+	    // Handle height re-size
+	    // if(_.has(configChanges, configBase + 'defaultHeight')) {
+	    if(this._propertyExists('defaultHeight', configChanges)) {
+	        this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                                          defaultHeight: defaultHeight})   
+	    }
+
+	    // Handle context menu enable/disable
+	    if(this._propertyExists('contextMenu', configChanges)) {
+	        if(contextMenu) {
+	            if(showPlayback) {
+	                _.each(this.pathLineLayers, function(lg) {
+	                    lg.eachLayer(function(layer) {
+	                        // Ant Path
+	                        if(_.has(layer, '_animatedPathClass')) { 
+	                            layer.eachLayer(function(p) {
+	                                if(layer.options.playback) {
+	                                    p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                } else {
+	                                    p.bindContextMenu(layer.options.pathContextMenuAdd)
 	                                }
-	                            } 
-	                        })
-	                    },
-	                    error: function(e) {
-	                        //console.info(e)
-	                    }
+	                            }, this)
+	                        }  else {
+	                            if(layer.options.playback) {
+	                                layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                            } else {
+	                                layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                            }                                
+	                        }
+	                    }) 
 	                })
 	            }
 
-	            if(this.splunkVersion >= 7.0) {
-	                this.isSplunkSeven = true
-	            }
-	        },
-	  
-	        // Search data params
-	        getInitialDataParams: function() {
-	            return ({
-	                outputMode: SplunkVisualizationBase.RAW_OUTPUT_MODE,
-	                count: this.maxResults
-	            })
-	        },
+	            this.contextMenuEnabled = true
+	            this.map.contextmenu.enable()
 
-	        reflow: function() {
-	            if(this.isInitializedDom) {
-	                this.map.invalidateSize()
-	            }
-	        },
-
-	        _darkModeInit: function () {
-	            // Set dialog to black
-	            this.map.on('dialog:opened', function(e) {                        
-	                $('.leaflet-control-dialog').css({'background-color': '#000000'})
-	                $('.leaflet-control-layers').css({'color': '#fff'})
-	            })
-
-	            // Change popup colors
-	            this.map.on('popupopen', function(e) {    
-	                $('.leaflet-popup-content-wrapper, .leaflet-popup-tip').css({'background-color': '#000000',
-	                                                                                'color': "#FFFFFF"})
-	            })
-	            
-	            // Change tooltip colors
-	            this.map.on('tooltipopen', function(e) {  
-	                $('.leaflet-tooltip').css({'background': '#000000',
-	                                            'color': '#FFFFFF',
-	                                            'border': '1px solid #000000'})
-	                $('.leaflet-tooltip-right').toggleClass('dark', true)
-	                $('.leaflet-tooltip-left').toggleClass('dark', true)
-	                $('.leaflet-tooltip-bottom').toggleClass('dark', true)
-	                $('.leaflet-tooltip-top').toggleClass('dark', true)
-	            })
-
-	            
-	            // Update Zoom Controls
-	            $('.leaflet-control-zoom-in').css({'background-color': '#000000',
-	                                                'color': '#FFFFFF'})
-	            $('.leaflet-control-zoom-out').css({'background-color': '#000000',
-	                                                'color': '#FFFFFF'})
-	            
-	            // context menu dark mode styles
-	            var styles = ['.leaflet-contextmenu{display:none;box-shadow:0 1px 7px rgba(0,0,0,.4);-webkit-border-radius:4px;border-radius:4px;padding:4px 0;background-color:#000;cursor:default;-webkit-user-select:none;-moz-user-select:none;user-select:none}',
-	                          '.leaflet-contextmenu a.leaflet-contextmenu-item{display:block;color:#fff;font-size:12px;line-height:20px;text-decoration:none;padding:0 12px;border-top:1px solid transparent;border-bottom:1px solid transparent;cursor:default;outline:0}',
-	                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled{opacity:.5}',
-	                          '.leaflet-contextmenu a.leaflet-contextmenu-item.over{background-color:#2b3033;border-top:1px solid #2b3033;border-bottom:1px solid #2b3033}',
-	                          '.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over{background-color:inherit;border-top:1px solid transparent;border-bottom:1px solid transparent}',
-	                          '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
-	                          '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
-
-	            var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.cssRules.length
-	            // delete styles from newest to oldest                                  
-	            for(i=length-1; i >= 0; i--) {
-	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.deleteRule(i)
-	            }
-
-	            // insert dark styles
-	            for(i=0; i < styles.length; i++) {
-	                $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.insertRule(styles[i], i)
-	            }
-	        },
-
-	        _darkModeUpdate: function() {
-	            $('.leaflet-control-measure').css('background-color', '#000000')
-
-	            $('.leaflet-control-layers').css({'background-color': '#000',
-	            'color': '#fff'})
-
-	            // Set initial background color of control to black
-	            $('.leaflet-bar a').css('background-color', '#000000')
-
-	            // Re-set background color on collapse
-	            this.map.on('measurecollapsed', function() {
-	                $('.leaflet-bar a').css('background-color', '#000000')
-	                
-	            })
-
-	            $('.leaflet-control-layers').css({'background-color': '#000',
-	                                                          'color': '#fff'})
-	        },
-
-	        onConfigChange: function(configChanges, previousConfig) {
-	            const configBase = this.getPropertyNamespaceInfo().propertyNamespace
-	            let bgRgb,
-	                bgRgba,
-	                html,
-	                mapTile = this._propertyExists('mapTile', configChanges) ? this._getSafeUrlProperty('mapTile', configChanges):this._getSafeUrlProperty('mapTile', previousConfig),
-	                mapCenterZoom = this._propertyExists('mapCenterZoom', configChanges) ? parseInt(this._getEscapedProperty('mapCenterZoom', configChanges)):parseInt(this._getEscapedProperty('mapCenterZoom', previousConfig)),
-	                mapCenterLat = this._propertyExists('mapCenterLat', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLat', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLat', previousConfig)),
-	                mapCenterLon = this._propertyExists('mapCenterLon', configChanges) ? parseFloat(this._getSafeUrlProperty('mapCenterLon', configChanges)):parseFloat(this._getSafeUrlProperty('mapCenterLon', previousConfig)),
-	                mapTileOverride = this._propertyExists('mapTileOverride', configChanges) ? this._getEscapedProperty('mapTileOverride', configChanges):this._getEscapedProperty('mapTileOverride', previousConfig),
-	                scrollWheelZoom = this._propertyExists('scrollWheelZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('scrollWheelZoom', previousConfig))),
-	                mapAttributionOverride = this._propertyExists('mapAttributionOverride', configChanges) ? this._getEscapedProperty('mapAttributionOverride', configChanges):this._getEscapedProperty('mapAttributionOverride', previousConfig),
-	                fullScreen = this._propertyExists('fullScreen', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('fullScreen', previousConfig))),
-	                defaultHeight = this._propertyExists('defaultHeight', configChanges) ? parseInt(this._getEscapedProperty('defaultHeight', configChanges)):parseInt(this._getEscapedProperty('defaultHeight', previousConfig)),
-	                contextMenu = this._propertyExists('contextMenu', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('contextMenu', previousConfig))),
-	                rangeOneBgColor = this._propertyExists('rangeOneBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneBgColor', previousConfig)),
-	                rangeOneFgColor = this._propertyExists('rangeOneFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeOneFgColor', previousConfig)),
-	                rangeTwoBgColor = this._propertyExists('rangeTwoBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoBgColor', previousConfig)),
-	                rangeTwoFgColor = this._propertyExists('rangeTwoFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeTwoFgColor', previousConfig)),
-	                rangeThreeBgColor = this._propertyExists('rangeThreeBgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeBgColor', previousConfig)),
-	                rangeThreeFgColor = this._propertyExists('rangeThreeFgColor', configChanges) ? this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', configChanges)):this.hexToRgb(this._getEscapedProperty('rangeThreeFgColor', previousConfig)),
-	                disableClusteringAtZoom = this._propertyExists('disableClusteringAtZoom', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('disableClusteringAtZoom', previousConfig))),
-	                disableClusteringAtZoomLevel = this._propertyExists('disableClusteringAtZoomLevel', configChanges) ? parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', configChanges)):parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', previousConfig)),
-	                minZoom = this._propertyExists('minZoom', configChanges) ? parseInt(this._getEscapedProperty('minZoom', configChanges)):parseInt(this._getEscapedProperty('minZoom', previousConfig)),
-	                maxZoom = this._propertyExists('maxZoom', configChanges) ? parseInt(this._getEscapedProperty('maxZoom', configChanges)):parseInt(this._getEscapedProperty('maxZoom', previousConfig)),
-	                layerControl = this._propertyExists('layerControl', configChanges) ? parseInt(this._getEscapedProperty('layerControl', configChanges)):parseInt(this._getEscapedProperty('layerControl', previousConfig)),
-	                layerControlCollapsed = this._propertyExists('layerControlCollapsed', configChanges) ? parseInt(this._getEscapedProperty('layerControlCollapsed', configChanges)):parseInt(this._getEscapedProperty('layerControlCollapsed', previousConfig)),
-	                measureTool = this._propertyExists('measureTool', configChanges) ? parseInt(this._getEscapedProperty('measureTool', configChanges)):parseInt(this._getEscapedProperty('measureTool', previousConfig)),
-	                showPlayback = this._propertyExists('showPlayback', configChanges) ? parseInt(this._getEscapedProperty('showPlayback', configChanges)):parseInt(this._getEscapedProperty('showPlayback', previousConfig)),
-	                showPlaybackSliderControl = this._propertyExists('showPlaybackSliderControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackSliderControl', previousConfig))),
-	                showPlaybackDateControl = this._propertyExists('showPlaybackDateControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackDateControl', previousConfig))),
-	                showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
-	                measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
-	                measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
-	                measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
-
-	            // Update tile layer
-	            if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
-	                this.tileLayer.setUrl(mapTile)
-	            }
-
-	            // Handle map tile override
-	            if(this._propertyExists('mapTileOverride', configChanges)) {
-	                if(mapTileOverride == "") {
-	                    this.tileLayer.setUrl(mapTile)
-	                } else {
-	                    this.tileLayer.setUrl(mapTileOverride)
-	                }
-	            }
-
-	            // Handle scroll wheel zoom
-	            if(this._propertyExists('scrollWheelZoom', configChanges)) {
-	                if(scrollWheelZoom) {
-	                    this.map.scrollWheelZoom.enable()
-	                } else {
-	                    this.map.scrollWheelZoom.disable()
-	                }
-	            }
-
-	            // Handle center zoom change
-	            if(this._propertyExists('mapCenterZoom', configChanges)) {
-	                this.map.setZoom(mapCenterZoom)
-	            }
-
-	            // Handle latitude change
-	            if(this._propertyExists('mapCenterLat', configChanges) || this._propertyExists('mapCenterLon', configChanges)) {                
-	                this.map.setZoom(mapCenterZoom)
-	                this.map.panTo([mapCenterLat, 
-	                                mapCenterLon])
-	            }
-	            
-	            // update map tile attribution
-	            if(this._propertyExists('mapAttributionOverride', configChanges)) {
-	                // Remove current and previous map tile attributions
-	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[mapTile])
-	                this.map.attributionControl.removeAttribution(this.ATTRIBUTIONS[previousConfig[configBase + 'mapTile']])
-	                this.map.attributionControl.removeAttribution(previousConfig[configBase + 'mapAttributionOverride'])
-
-	                // Add current attribution
-	                this.map.attributionControl.addAttribution(mapAttributionOverride)
-
-	                // Reset to current map tile if unset
-	                if(mapAttributionOverride == "") {
-	                    this.map.attributionControl.addAttribution(this.ATTRIBUTIONS[mapTile])    
-	                }
-	            }
-
-	            // Handle full sceen mode enable/disable
-	            // if(_.has(configChanges, configBase + 'fullScreen')) {
-	            if(this._propertyExists('fullScreen', configChanges)) {
-	                if(fullScreen) {
-	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
-	                } else {
-	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-	                                                      defaultHeight: this.defaultHeight})                    
-	                }
-	            }
-
-	            // Handle height re-size
-	            // if(_.has(configChanges, configBase + 'defaultHeight')) {
-	            if(this._propertyExists('defaultHeight', configChanges)) {
-	                this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-	                                                  defaultHeight: defaultHeight})   
-	            }
-
-	            // Handle context menu enable/disable
-	            if(this._propertyExists('contextMenu', configChanges)) {
-	                if(contextMenu) {
-	                    if(showPlayback) {
-	                        _.each(this.pathLineLayers, function(lg) {
-	                            lg.eachLayer(function(layer) {
-	                                // Ant Path
-	                                if(_.has(layer, '_animatedPathClass')) { 
-	                                    layer.eachLayer(function(p) {
-	                                        if(layer.options.playback) {
-	                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
-	                                        } else {
-	                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
-	                                        }
-	                                    }, this)
-	                                }  else {
-	                                    if(layer.options.playback) {
-	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
-	                                    } else {
-	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
-	                                    }                                
-	                                }
-	                            }) 
-	                        })
-	                    }
-
-	                    this.contextMenuEnabled = true
-	                    this.map.contextmenu.enable()
-
-	                } else {
-	                    if(showPlayback) {
-	                        _.each(this.pathLineLayers, function(lg) {
-	                            lg.eachLayer(function(layer) {
-	                                // Ant Path
-	                                if(_.has(layer, '_animatedPathClass')) { 
-	                                    layer.eachLayer(function(p) {
-	                                        p.unbindContextMenu()
-	                                        //layer.options.playback = false
-	                                    }, this)
-	                                }  else {
-	                                    layer.unbindContextMenu()
-	                                    //layer.options.playback = false
-	                                }
-	                            }) 
-	                        }, this)
-	                    }
-	                    
-	                    this.contextMenuEnabled = false
-	                    this.map.contextmenu.disable()
-	                }
-	            }
-
-	            // Cluster Background Range 1
-	            if(this._propertyExists('rangeOneBgColor', configChanges)) {
-	                bgRgb = rangeOneBgColor
-	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Cluster Foreground Range 1
-	            if(this._propertyExists('rangeOneFgColor', configChanges)) {
-	                fgRgb = rangeOneFgColor
-	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Cluster Background Range 2
-	            if(this._propertyExists('rangeTwoBgColor', configChanges)) {
-	                bgRgb = rangeTwoBgColor
-	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Cluster Foreground Range 2
-	            if(this._propertyExists('rangeTwoFgColor', configChanges)) {
-	                fgRgb = rangeTwoFgColor
-	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Cluster Background Range 3
-	            if(this._propertyExists('rangeThreeBgColor', configChanges)) {
-	                bgRgb = rangeThreeBgColor
-	                bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Cluster Foreground Range 3
-	            if(this._propertyExists('rangeThreeFgColor', configChanges)) {
-	                fgRgb = rangeThreeFgColor
-	                fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
-
-	                html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
-	                $("<style>")
-	                 .prop("type", "text/css")
-	                 .html(html)
-	                 .appendTo("head")
-	            }
-
-	            // Handle cluster group zoom disable/enable
-	            if(this._propertyExists('disableClusteringAtZoom', configChanges)) {
-	                _.each(this.layerFilter, function(lf) {
-	                    if(disableClusteringAtZoom) {
-	                        lf.clusterGroup[0].cg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
-	                    } else {
-	                        delete lf.clusterGroup[0].cg.options.disableClusteringAtZoom
-	                    }
-	                    let layers = lf.clusterGroup[0].cg.getLayers()
-	                    lf.clusterGroup[0].cg.clearLayers()
-	                    lf.clusterGroup[0].cg.addLayers(layers)
+	        } else {
+	            if(showPlayback) {
+	                _.each(this.pathLineLayers, function(lg) {
+	                    lg.eachLayer(function(layer) {
+	                        // Ant Path
+	                        if(_.has(layer, '_animatedPathClass')) { 
+	                            layer.eachLayer(function(p) {
+	                                p.unbindContextMenu()
+	                                //layer.options.playback = false
+	                            }, this)
+	                        }  else {
+	                            layer.unbindContextMenu()
+	                            //layer.options.playback = false
+	                        }
+	                    }) 
 	                }, this)
 	            }
-
-	            // Handle min zoom change
-	            if(this._propertyExists('minZoom', configChanges)) {
-	                this.map.setMinZoom(minZoom)
-	            }
-
-	            // Handle max zoom change
-	            if(this._propertyExists('maxZoom', configChanges)) {
-	                this.map.setMaxZoom(maxZoom)
-	            }
-
-	            // Handle layer control add/remove
-	            if(this._propertyExists('layerControl', configChanges)) {
-	                if(!layerControl) {
-	                    this.control.remove()
-	                } else {
-	                    this.control.addTo(this.map)
-	                    if(this.isDarkTheme) { this._darkModeUpdate() }
-	                } 
-	            }
-
-	            // Handle measure tool add/remove
-	            if(this._propertyExists('measureTool', configChanges)) {
-	                if(!measureTool) {
-	                    this.measureControl.remove()
-	                } else {
-	                    this.measureControl.addTo(this.map)
-	                }
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
-	            }
-
-	            if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
-	                this.playback.options.sliderControl = showPlaybackSliderControl
-	                this.updatePlaybackControls()
-	            }
-
-	            if(this._propertyExists('showPlaybackDateControl', configChanges)) {
-	                this.playback.options.dateControl = showPlaybackDateControl
-	                this.updatePlaybackControls()
-	            }
-
-	            if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
-	                this.playback.options.playControl = showPlaybackPlayControl
-	                this.updatePlaybackControls()
-	            }
-
-	            // Handle Playback
-	            if(this._propertyExists('showPlayback', configChanges)) {
-	                if(!showPlayback) {
-	                    this.playback.clearData()
-	                    this.playback.options.playControl = false
-	                    this.playback.options.dateControl = false
-	                    this.playback.options.sliderControl = false
-
-	                    this.playback.hideControls()
-	                    if(this.showClearPlayback) {
-	                        this.map.contextmenu.removeItem(0)
-	                        this.map.contextmenu.removeItem(0)
-	                        this.map.contextmenu.removeItem(0)
-	                        this.showClearPlayback = false  
-	                    }
-
-	                    _.each(this.pathLineLayers, function(lg) {
-	                        lg.eachLayer(function(layer) {
-	                            // Ant Path
-	                            if(_.has(layer, '_animatedPathClass')) { 
-	                                layer.eachLayer(function(p) {
-	                                    p.unbindContextMenu()
-	                                }, this)
-	                            }  else {
-	                                layer.unbindContextMenu()
-	                            }
-	                            layer.options.playback = false
-	                        }) 
-	                    }, this)
-	                } else {
-	                    if(contextMenu) {
-	                        this.map.contextmenu.insertItem({text: 'Clear Playback',
-	                                                        context: this,
-	                                                        callback: this.clearPlayback}, 0)
-	                        this.map.contextmenu.insertItem({text: 'Reset Playback',
-	                                                        context: this,
-	                                                        callback: this.resetPlayback}, 1)
-	                        this.map.contextmenu.insertItem({text: 'Add All To Playback',
-	                                                        context: this,
-	                                                        callback: this.addAllToPlayback}, 2)
-
-	                        _.each(this.pathLineLayers, function(lg) {
-	                            lg.eachLayer(function(layer) {
-	                                // Ant Path
-	                                if(_.has(layer, '_animatedPathClass')) { 
-	                                    layer.eachLayer(function(p) {
-	                                        if(layer.options.playback) {
-	                                            p.bindContextMenu(layer.options.pathContextMenuRemove)
-	                                        } else {
-	                                            p.bindContextMenu(layer.options.pathContextMenuAdd)
-	                                        }
-	                                    }, this)
-	                                }  else {
-	                                    if(layer.options.playback) {
-	                                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
-	                                    } else {
-	                                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
-	                                    }                                
-	                                }
-	                            }) 
-	                        })
-	                    }
-	                    
-	                    if(showPlaybackSliderControl) { this.playback.options.sliderControl = true }
-	                    if(showPlaybackPlayControl) { this.playback.options.playControl = true }
-	                    if(showPlaybackDateControl) { this.playback.options.dateControl = true }
-	                    
-	                    this.playback._showPlayback = true
-	                    this.showClearPlayback = true
-	                }
-
-	                this.updatePlaybackControls()
-	            }
-
-	            // Handle layer control expand/collapse
-	            if(this._propertyExists('layerControlCollapsed', configChanges)) {
-	                if(!layerControlCollapsed) {
-	                    this.control.expand()
-	                } else {
-	                    this.control.collapse()
-	                } 
-	            }
-
-	            // Handle measure tool icon position change
-	            if(this._propertyExists('measureIconPosition', configChanges)) {
-	                this.measureControl.remove()
-	                this.control.remove()
-	                this.measureControl.options.position = measureIconPosition
-	                this.measureControl.addTo(this.map)
-	                this.control.addTo(this.map)
-
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
-	            }
-
-	            // Handle measure tool active/completed color changes
-	            if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
-	                this.measureControl.remove()
-	                this.control.remove()
-
-	                let measureOptions = { position: measureIconPosition,
-	                    activeColor: measureActiveColor,
-	                    completedColor: measureCompletedColor,
-	                    primaryLengthUnit: this._getEscapedProperty('measurePrimaryLengthUnit', configChanges),
-	                    secondaryLengthUnit: this._getEscapedProperty('secondaryLengthUnit', configChanges),
-	                    primaryAreaUnit: this._getEscapedProperty('primaryAreaUnit', configChanges),
-	                    secondaryAreaUnit: this._getEscapedProperty('secondaryAreaUnit', configChanges),
-	                    localization: this._getEscapedProperty('localization', configChanges),
-	                    features: this.measureFeatures,
-	                    map: this.map}
-
-	                this.measureControl = new L.Control.Measure(measureOptions)
-	                this.measureControl.addTo(this.map)
-	                this.control.addTo(this.map)
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
-	                
-	            }
-	        },
-
-	        // Build object of key/value pairs for invalid fields
-	        // to be used as data for _drilldown action
-	        validateFields: function(obj) {
-	            var invalidFields = {}
-	            var validFields = ['latitude',
-								   'longitude',
-	                               'title',
-	                               'tooltip',
-								   'description',
-	                               'icon',
-	                               'customIcon',
-	                               'customIconShadow',
-								   'markerType',
-								   'markerColor',
-	                               'markerPriority',
-								   'markerSize',
-							       'markerAnchor',
-	                               'markerVisibility',
-								   'iconColor',
-							       'shadowAnchor',
-								   'shadowSize',
-								   'prefix',
-								   'extraClasses',
-	                               'layerDescription',
-	                               'layerVisibility',
-	                               'pathLayer',
-								   'pathWeight',
-	                               'pathOpacity',
-	                               'playback',
-	                               'layerGroup',
-	                               'layerPriority',
-	                               'layerIcon',
-	                               'layerIconSize',
-	                               'layerIconColor',
-	                               'layerIconPrefix',
-	                               'clusterGroup',
-	                               'pathColor',
-	                               'popupAnchor',
-	                               'heatmapInclude',
-	                               'heatmapLayer',
-	                               'heatmapPointIntensity',
-	                               'heatmapMinOpacity',
-	                               'heatmapRadius',
-	                               'heatmapBlur',
-	                               'heatmapColorGradient',
-	                               'circleStroke',
-	                               'circleRadius',
-	                               'circleColor',
-	                               'circleWeight',
-	                               'circleOpacity',
-	                               'circleFillColor',
-	                               'circleFillOpacity',
-	                               'antPath',
-	                               'antPathDelay',
-	                               'antPathPulseColor',
-	                               'antPathPaused',
-	                               'antPathReverse',
-	                               'antPathDashArray',
-	                               'feature',
-	                               'featureLayer',
-	                               'featureDescription',
-	                               'featureTooltip',
-	                               'featureColor',
-	                               'featureWeight',
-	                               'featureOpacity',
-	                               'featureStroke',
-	                               'featureFill',
-	                               'featureFillColor',
-	                               'featureFillOpacity',
-	                               'featureRadius',
-	                               '_time']
-	            $.each(obj, function(key, value) {
-	                if($.inArray(key, validFields) === -1) {
-	                    invalidFields[key] = value
-	                }
-	            })
-
-	            return(invalidFields)
-	        },
-
-	        _stringToJSON: function(value) {
-	            if(_.isUndefined(value)) {
-	                return
-	            }
 	            
-	            var cleanJSON = value.replace(/'/g, '"')
-	            return JSON.parse(cleanJSON)
-	        },
+	            this.contextMenuEnabled = false
+	            this.map.contextmenu.disable()
+	        }
+	    }
 
-	        _getProperty: function(name, config) {
-	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
-	            return propertyValue
-	        },
+	    // Cluster Background Range 1
+	    if(this._propertyExists('rangeOneBgColor', configChanges)) {
+	        bgRgb = rangeOneBgColor
+	        bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
-	        _getEscapedProperty: function(name, config) {
-	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
-	            return SplunkVisualizationUtils.escapeHtml(propertyValue)
-	        },
+	        html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
 
-	        _getSafeUrlProperty: function(name, config) {
-	            var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
-	            return SplunkVisualizationUtils.makeSafeUrl(propertyValue)
+	    // Cluster Foreground Range 1
+	    if(this._propertyExists('rangeOneFgColor', configChanges)) {
+	        fgRgb = rangeOneFgColor
+	        fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
-	        },
+	        html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
 
-	        _propertyExists: function(name, config) {
-	            return _.has(config, this.getPropertyNamespaceInfo().propertyNamespace + name)
-	        },
+	    // Cluster Background Range 2
+	    if(this._propertyExists('rangeTwoBgColor', configChanges)) {
+	        bgRgb = rangeTwoBgColor
+	        bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
-			// Custom drilldown behavior for markers
-	        _drilldown: function(drilldownFields, resource) {
-	            payload = {
-	                action: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN,
-	                data: drilldownFields
-	            }
+	        html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
 
-	            this.drilldown(payload)
-	        },
+	    // Cluster Foreground Range 2
+	    if(this._propertyExists('rangeTwoFgColor', configChanges)) {
+	        fgRgb = rangeTwoFgColor
+	        fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
-			/* 
-			/ Convert 0x|# prefixed hex values to # prefixed for consistency
-			/ Splunk's eval tostring('hex') method returns 0x prefix
-			*/
-			convertHex: function(value) {
-				// Pass markerColor prefixed with # regardless of given prefix ("#" or "0x")
-				var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i
-				if (hexRegex.test(value)) {
-					markerColor = "#" + hexRegex.exec(value)[1]
-					return(markerColor)
-				} else {
-					return(value)
-				}
-			},
+	        html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
 
-	        // Convert hex values to RGB for marker icon colors
-	        hexToRgb: function(hex) {
-	            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-	            return result ? {
-	                r: parseInt(result[1], 16),
-	                g: parseInt(result[2], 16),
-	                b: parseInt(result[3], 16)
-	            } : null
-	        },
+	    // Cluster Background Range 3
+	    if(this._propertyExists('rangeThreeBgColor', configChanges)) {
+	        bgRgb = rangeThreeBgColor
+	        bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
-	        // Convert string '1/0' or 'true/false' to boolean true/false
-	        isArgTrue: function(arg) {
-	            if(arg === 1 || arg === 'true' || arg === true) {
-	                return true
+	        html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
+
+	    // Cluster Foreground Range 3
+	    if(this._propertyExists('rangeThreeFgColor', configChanges)) {
+	        fgRgb = rangeThreeFgColor
+	        fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
+
+	        html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
+	        $("<style>")
+	         .prop("type", "text/css")
+	         .html(html)
+	         .appendTo("head")
+	    }
+
+	    // Handle cluster group zoom disable/enable
+	    if(this._propertyExists('disableClusteringAtZoom', configChanges)) {
+	        _.each(this.layerFilter, function(lf) {
+	            if(disableClusteringAtZoom) {
+	                lf.clusterGroup[0].cg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
 	            } else {
-	                return false
+	                delete lf.clusterGroup[0].cg.options.disableClusteringAtZoom
 	            }
-	        },
+	            let layers = lf.clusterGroup[0].cg.getLayers()
+	            lf.clusterGroup[0].cg.clearLayers()
+	            lf.clusterGroup[0].cg.addLayers(layers)
+	        }, this)
+	    }
 
-	        renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
-	            function anonCallback(callback=function(){}, callbackArgs=null) {
-	                if(callbackArgs) {
-	                    callback.apply(this, callbackArgs)
-	                } else {
-	                    callback()
-	                }
-	            }
+	    // Handle min zoom change
+	    if(this._propertyExists('minZoom', configChanges)) {
+	        this.map.setMinZoom(minZoom)
+	    }
 
-	            // Create the modal
-	            var myModal = new Modal(id, {
-	                        title: title,
-	                        backdrop: 'static',
-	                        keyboard: false,
-	                        destroyOnHide: true,
-	                        type: 'wide'
-	            })
+	    // Handle max zoom change
+	    if(this._propertyExists('maxZoom', configChanges)) {
+	        this.map.setMaxZoom(maxZoom)
+	    }
 
-	            // Add content
-	            myModal.body.append($(body))
-
-	            // Add cancel button for update/delete action
-	            if(id == "user-delete-confirm" || id == "update-user-form") {
-	                myModal.footer.append($('<cancel>').attr({
-	                    type: 'button',
-	                    'data-dismiss': 'modal'
-	                })
-	                .addClass('btn btn-secondary').text("Cancel")).on('click', function(){})
-	            }
-
-	            // Add footer
-	            myModal.footer.append($('<button>').attr({
-	                type: 'button',
-	                'data-dismiss': 'modal'
-	            })
-	            .addClass('btn btn-primary').text(buttonText).on('click', function () {
-	                    anonCallback(callback, callbackArgs)
-	            }))
-
-	            // Launch it!  
-	            myModal.show()
-	        },
-
-	        // Get API key from storage/passwords REST endpoint
-	        getStoredApiKey: function(options) {
-	            var deferred = $.Deferred()
-
-	            // Detect version from REST API
-	            $.ajax({
-	                type: "GET",
-	                async: true,
-	                context: this,
-	                url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.user +":",
-	                success: function(s) {                                        
-	                    var xml = $(s)
-	                    var that = this
-	                    $(xml).find('content').children().children().each(function(i, v) {
-	                        if(/name="clear_password"/.test(v.outerHTML)) {
-	                            deferred.resolve(v.textContent)
-	                        } 
-	                    })
-	                },
-	                error: function(e) {
-	                    if(_.isEmpty(options.realm)) {
-	                        var realm = "undefined"
-	                    } else {
-	                        var realm = options.realm
-	                    }
-	                    options.context.renderModal('api-key-warning',
-	                                                "API Key Failure",
-	                                                "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Failed to get API key for user: <b>" + options.user + "</b>, realm: <b>" + realm + "</b> - Verify credentials and try again.</div>",
-	                                                'Close')
-	                    console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm)
-	                }
-	            })
-
-	            return deferred.promise()
-	        },
-	      
-	        // Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
-	        createMarkerStyle: function(bgHex, fgHex, markerName) {
-	            var bgRgb = this.hexToRgb(bgHex)
-	            var fgRgb = this.hexToRgb(fgHex)
-	            var bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
-	            var fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
-
-	            var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgRgba + ';} .marker-cluster-' + markerName + ' div { background-color: ' + fgRgba + ';}'
-	            $("<style>")
-	                .prop("type", "text/css")
-	                .html(html)
-	                .appendTo("head")
-	        },
-
-	        stringToPoint: function(stringPoint) {
-	            var point = _.map(stringPoint.split(','), function(val) {
-	                return parseInt(val)
-	            })
-	            return point
-	        },
-
-	        // Draw path line
-	        drawPath: function(options) {
-	            //var paneZIndex = 400
-	           
-	            _.each(options.data, function(p) {   
-	                let id = p[0]['id'],
-	                  layerDescription = p[0]['layerDescription'],
-	                  layerPriority = p[0]['layerPriority'],
-	                  layerVisibility = options.context.isArgTrue(p[0]['layerVisibility']),
-	                  layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
-	                  pathLayer = p[0]['pathLayer'],
-	                  pathFg,
-	                  pathName
-
-	                // Check if feature group exists for current layerGroup or id
-	                // Use existing FG or create new accordingly.
-	                if(_.has(options.pathLineLayers, id)) {
-	                    pathFg = options.pathLineLayers[id]
-	                } else if(_.has(options.pathLineLayers, pathLayer)) {
-	                    pathFg = options.pathLineLayers[pathLayer]
-	                } else {
-	                    pathFg = L.featureGroup()
-	                    
-	                    // Prefer layerGroup and fallback to id
-	                    if(!_.isUndefined(pathLayer)) {
-	                        pathName = pathLayer
-	                    } else {
-	                        pathName = id                        
-	                    }
-	                    options.pathLineLayers[pathName] = pathFg
-	                    pathFg.options.name = pathName
-	                    pathFg.options.layerPriority = layerPriority
-	                    pathFg.options.layerType = layerType
-	                    pathFg.options.layerDescription = layerDescription
-	                    pathFg.options.layerVisibility = layerVisibility
-	                }
-
-	                const pathContextMenuAdd = {
-	                    contextmenu: true,
-	                    contextmenuInheritItems: true,
-	                    contextmenuItems: [{
-	                            text: 'Add To Playback',
-	                            index: 0,
-	                            context: options.context,
-	                            callback: options.context.addToPlayback
-	                        },{
-	                            index: 1,
-	                            separator: true
-	                        }]
-	                }
-
-	                const pathContextMenuRemove = {
-	                    contextmenu: true,
-	                    contextmenuInheritItems: true,
-	                    contextmenuItems: [{
-	                            text: 'Remove From Playback',
-	                            index: 0,
-	                            context: options.context,
-	                            callback: options.context.removeFromPlayback
-	                        },{
-	                            index: 1,
-	                            separator: true
-	                        }]
-	                }
-
-	                const geoJSON = {
-	                    "type": "Feature",
-	                    "geometry": {
-	                      "type": "LineString",
-	                      "coordinates":_.pluck(p, 'latlng')
-	                    },
-	                    "properties": {
-	                        "title" : p[0]['id'],
-	                        "prefix": p[0]['prefix'],
-	                        "icon": p[0]['icon'],
-	                        "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
-	                        "time": _.pluck(p, 'unixtime')
-	                    }
-	                }
-
-	                // Ant Path
-	                if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
-	                    let antPathOptions = {
-	                                                color: options.context.convertHex(p[0]['color']),
-	                                                weight: p[0]['pathWeight'],
-	                                                opacity: p[0]['pathOpacity'],
-	                                                "delay": p[0]['antPathDelay'],
-	                                                "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
-	                                                "pulseColor": p[0]['antPathPulseColor'],
-	                                                "paused": p[0]['antPathPaused'],
-	                                                "reverse": p[0]['antPathReverse']
-	                                            }
-
-	                    // Bind appropriate context menu for playback
-	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
-	                        if(options.context.isArgTrue(p[0]['playback'])) {
-	                            _.defaults(antPathOptions, pathContextMenuRemove)
-	                        } else {
-	                            _.defaults(antPathOptions, pathContextMenuAdd)
-	                        }
-	                    }
-	                    
-	                    var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
-	                } else {
-	                    let pathOptions = { 
-	                        color: options.context.convertHex(p[0]['color']),
-	                        weight: p[0]['pathWeight'],
-	                        opacity: p[0]['pathOpacity']
-	                    }
-
-	                    // Bind appropriate context menu for playback
-	                    if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
-	                        if(options.context.isArgTrue(p[0]['playback'])) {
-	                            _.defaults(pathOptions, pathContextMenuRemove)
-	                        } else {
-	                            _.defaults(pathOptions, pathContextMenuAdd)
-	                        }
-	                    }
-
-	                    // create polyline and bind popup
-	                    var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
-	                }
-
-	                // Apply tooltip to polyline
-	                if(p[0]['tooltip'] != "") {
-	                    pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
-	                                                     direction: 'auto',
-	                                                     sticky: p[0]['stickyTooltip']})
-	                }
-
-	                pl.options.geoJSON = geoJSON
-	                pl.options.playback = options.context.isArgTrue(p[0]['playback'])
-	                pl.options.pathContextMenuAdd = pathContextMenuAdd
-	                pl.options.pathContextMenuRemove = pathContextMenuRemove
-
-	                // Add polyline to feature group
-	                pathFg.addLayer(pl)
-	            })
-	        },
-
-	        // Create a control icon and description in the layer control legend
-	        addLayerToControl: function(options) {
-	            let name,
-	                iconHtml,
-	                styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined
-	                layerIconSize = _.has(options.layerGroup, 'layerIconSize') ? this.stringToPoint(options.layerGroup.layerIconSize):undefined
-
-	            // Add Heatmap layer to controls and use layer name for control label
-	            if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
-	                // Exclude layer from layer controls
-	                if(_.has(options.featureGroup.options, "layerInclude") && !options.featureGroup.options.layerInclude) { return }
-
-	                if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
-	                    name = options.featureGroup.options.layerDescription
-	                } else {
-	                    name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
-	                }
-
-	                options.control.addOverlay(options.featureGroup, name)
-	                if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
-	                    options.featureGroup.remove()
-	                }
-	                return
-	            }
-
-	            if(!options.layerGroup.layerExists) {
-	                // Circle Marker
-	                if(_.has(options.layerGroup.circle, "fillColor")) {
-	                    styleColor = options.layerGroup.circle.fillColor
-	                    iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
-	                } else {
-	                    // Custom Icon
-	                    if(_.has(options.layerGroup.icon.options, 'iconUrl')) {
-	                        iconHtml = '<img src="' + options.layerGroup.icon.options.iconUrl + '" style="height: ' + layerIconSize[0] + 'px; width: ' + layerIconSize[1] + 'px">' + options.layerGroup.layerDescription
-	                    }
-	                    
-	                    // Awesome Marker, Vector Marker or Icon only
-	                    if(options.layerGroup.icon.options.className == "awesome-marker" || options.layerGroup.icon.options.className == "vector-marker" || options.layerGroup.icon.options.className == "icon-only") {
-	                        if(options.layerGroup.layerIconPrefix == "fab") {
-	                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
-	                        } else {
-	                            iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
-	                        }
-	                    }
-	                }
-
-	                options.control.addOverlay(options.layerGroup.group, iconHtml)
-	                if(!options.layerGroup.layerVisibility) { 
-	                  options.layerGroup.group.remove()
-	                } 
-	                options.layerGroup.layerExists = true
-	            }
-
-	        },
-
-			// Show dialog box with pointer lat/lon and center lat/lon
-			// coordinates. Allow user to copy and paste center coordinates into 
-			// Center Lat and Center Lon format menu options.
-	        showCoordinates: function (e) {
-	            this.map.on('dialog:closed', function(e) { 
-	                this.coordDialog.destroy()
-	            }, this)
-
-	            var coordinates = e.latlng.toString().match(/([-\d\.]+)/g)
-	            var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g)
-	            var curZoom = this.map.getZoom()
-	            
-	            var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
-	                  "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
-	                  "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
-	                  "<br></br>Copy and paste the following values into Format menu to change <b>Center Lat</b> and <b>Center Lon</b> (visualization API does not currently support programmatically setting format menu options):<br>" +
-	                  "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
-	                  "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
-
-	            var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
-	              .setContent(content)
-	              .addTo(this.map)
-	              .open()
-	        },
-
-	        addToPlayback: function(e) {
-	            if(this.playback._showPlayback) {
-	                _.each(this.pathLineLayers, function(l, i){                   
-	                    l.eachLayer(function(layer) {
-	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
-	                            if(_.has(layer, '_animatedPathClass')) { 
-	                                layer.eachLayer(function(p) {
-	                                    p.unbindContextMenu()    
-	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
-	                                }, this)
-	                            }  else {
-	                                layer.unbindContextMenu()
-	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
-	                            }
-	                            layer.options.playback = true
-	                            this.playback.updateData(this.contextMenuTarget.options.geoJSON)
-	                        }
-	                    }, this)
-	                 }, this)
-
-	                this.updatePlaybackControls()
-	            }
-	        },
-
-	        resetPlayback: function(e) {
-	            this.playback.clearData()
-
-	            _.each(this.pathLineLayers, function(l, i){                   
-	                l.eachLayer(function(layer) {
-	                    if(layer.options.playback) {
-	                        this.playback.updateData(layer.options.geoJSON)
-	                    }
-	                }, this)
-	            }, this)
-
-	            this.updatePlaybackControls()
-	        }, 
-
-	        clearPlayback: function(e) {
-	            _.each(this.pathLineLayers, function(l, i){
-	                l.eachLayer(function(layer) {
-	                    layer.options.playback = false
-
-	                    if(_.has(layer, '_animatedPathClass')) { 
-	                        layer.eachLayer(function(p) {
-	                            p.unbindContextMenu()    
-	                            p.bindContextMenu(layer.options.pathContextMenuAdd)
-	                        }, this)
-	                    }  else {
-	                        layer.unbindContextMenu()
-	                        layer.bindContextMenu(layer.options.pathContextMenuAdd)
-	                    }
-	                }, this)
-	             }, this)
-
-	            this.playback.clearData()
-	            this.updatePlaybackControls()
-	        },
-
-	        addAllToPlayback: function(e) {
-	            this.playback.clearData()
-	            
-	            _.each(this.pathLineLayers, function(l, i){                   
-	                l.eachLayer(function(layer) {
-	                    this.playback.updateData(layer.options.geoJSON)
-	                    layer.options.playback = true
-
-	                    if(_.has(layer, '_animatedPathClass')) { 
-	                        layer.eachLayer(function(p) {
-	                            p.unbindContextMenu()    
-	                            p.bindContextMenu(layer.options.pathContextMenuRemove)
-	                        }, this)
-	                    }  else {
-	                        layer.unbindContextMenu()
-	                        layer.bindContextMenu(layer.options.pathContextMenuRemove)
-	                    }
-	                }, this)
-	            }, this)
-
-	            this.updatePlaybackControls()
-	        },
-
-	        removeFromPlayback: function(e) {
-	            if(this.playback._showPlayback) {
-	                _.each(this.pathLineLayers, function(l, i){                   
-	                    l.eachLayer(function(layer) {
-	                        if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
-	                            layer.options.playback = false
-	                            this.playback.removeData(this.contextMenuTarget)
-
-	                            if(_.has(layer, '_animatedPathClass')) { 
-	                                layer.eachLayer(function(p) {
-	                                    p.unbindContextMenu()    
-	                                    p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
-	                                }, this)
-	                            }  else {
-	                                layer.unbindContextMenu()
-	                                layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
-	                            }
-	                        }
-	                    }, this)
-	                }, this)
-	             }
-
-	            this.updatePlaybackControls()
-	         },
-
-	        updatePlaybackControls: function() {
-	            this.playback.setCursor(this.playback.getStartTime())
-	            this.playback.hideControls()
-	            this.playback.showControls()
+	    // Handle layer control add/remove
+	    if(this._propertyExists('layerControl', configChanges)) {
+	        if(!layerControl) {
+	            this.control.remove()
+	        } else {
+	            this.control.addTo(this.map)
 	            if(this.isDarkTheme) { this._darkModeUpdate() }
-	        },
+	        } 
+	    }
 
-	        centerMap: function (e) {
-	            this.map.panTo(e.latlng)
-	        },
+	    // Handle measure tool add/remove
+	    if(this._propertyExists('measureTool', configChanges)) {
+	        if(!measureTool) {
+	            this.measureControl.remove()
+	        } else {
+	            this.measureControl.addTo(this.map)
+	        }
+	        if(this.isDarkTheme) { this._darkModeUpdate() }
+	    }
 
-	        zoomIn: function (e) {
-	            this.map.zoomIn()
-	        },
+	    if(this._propertyExists('showPlaybackSliderControl', configChanges)) {
+	        this.playback.options.sliderControl = showPlaybackSliderControl
+	        this.updatePlaybackControls()
+	    }
 
-	        zoomOut: function (e) {
-	            this.map.zoomOut()
-	        },
+	    if(this._propertyExists('showPlaybackDateControl', configChanges)) {
+	        this.playback.options.dateControl = showPlaybackDateControl
+	        this.updatePlaybackControls()
+	    }
 
-	        fitLayerBounds: function (options) {
-	            var map = _.isUndefined(options.map) ? this.map:options.map
-	            var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter
-	            var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers
-	            var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers
-	            var featureLayers = _.isUndefined(options.featureLayers) ? this.featureLayers:options.featureLayers
-	            var tmpGroup = new L.featureGroup()
-	            var layers = [layerFilter, pathLineLayers, heatLayers, featureLayers]
+	    if(this._propertyExists('showPlaybackPlayControl', configChanges)) {
+	        this.playback.options.playControl = showPlaybackPlayControl
+	        this.updatePlaybackControls()
+	    }
 
-	            // loop through layers and build one big feature group to fit bounds against
-	            _.each(layers, function(l, i) {
-	                if(!_.isEmpty(l)) {
-	                    _.each(l, function(lg, i) {
-	                        // It's a normal feature group or cluster feature group
-	                        if(!_.isUndefined(lg.group)) {
-	                            tmpGroup.addLayer(lg.group)
-	                            return
+	    // Handle Playback
+	    if(this._propertyExists('showPlayback', configChanges)) {
+	        if(!showPlayback) {
+	            this.playback.clearData()
+	            this.playback.options.playControl = false
+	            this.playback.options.dateControl = false
+	            this.playback.options.sliderControl = false
+
+	            this.playback.hideControls()
+	            if(this.showClearPlayback) {
+	                this.map.contextmenu.removeItem(0)
+	                this.map.contextmenu.removeItem(0)
+	                this.map.contextmenu.removeItem(0)
+	                this.showClearPlayback = false  
+	            }
+
+	            _.each(this.pathLineLayers, function(lg) {
+	                lg.eachLayer(function(layer) {
+	                    // Ant Path
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                    }
+	                    layer.options.playback = false
+	                }) 
+	            }, this)
+	        } else {
+	            if(contextMenu) {
+	                this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                                context: this,
+	                                                callback: this.clearPlayback}, 0)
+	                this.map.contextmenu.insertItem({text: 'Reset Playback',
+	                                                context: this,
+	                                                callback: this.resetPlayback}, 1)
+	                this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                                context: this,
+	                                                callback: this.addAllToPlayback}, 2)
+
+	                _.each(this.pathLineLayers, function(lg) {
+	                    lg.eachLayer(function(layer) {
+	                        // Ant Path
+	                        if(_.has(layer, '_animatedPathClass')) { 
+	                            layer.eachLayer(function(p) {
+	                                if(layer.options.playback) {
+	                                    p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                                } else {
+	                                    p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                                }
+	                            }, this)
+	                        }  else {
+	                            if(layer.options.playback) {
+	                                layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	                            } else {
+	                                layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	                            }                                
 	                        }
-
-	                        // It's a path or heatmap
-	                        var curLayers = lg.getLayers()
-	                        _.each(curLayers, function(cl, i) {
-	                            tmpGroup.addLayer(cl)
-	                        })
-	                    })
-	                }
-	            })
+	                    }) 
+	                })
+	            }
 	            
-	            map.fitBounds(tmpGroup.getBounds())
+	            if(showPlaybackSliderControl) { this.playback.options.sliderControl = true }
+	            if(showPlaybackPlayControl) { this.playback.options.playControl = true }
+	            if(showPlaybackDateControl) { this.playback.options.dateControl = true }
+	            
+	            this.playback._showPlayback = true
+	            this.showClearPlayback = true
+	        }
+
+	        this.updatePlaybackControls()
+	    }
+
+	    // Handle layer control expand/collapse
+	    if(this._propertyExists('layerControlCollapsed', configChanges)) {
+	        if(!layerControlCollapsed) {
+	            this.control.expand()
+	        } else {
+	            this.control.collapse()
+	        } 
+	    }
+
+	    // Handle measure tool icon position change
+	    if(this._propertyExists('measureIconPosition', configChanges)) {
+	        this.measureControl.remove()
+	        this.control.remove()
+	        this.measureControl.options.position = measureIconPosition
+	        this.measureControl.addTo(this.map)
+	        this.control.addTo(this.map)
+
+	        if(this.isDarkTheme) { this._darkModeUpdate() }
+	    }
+
+	    // Handle measure tool active/completed color changes
+	    if(this._propertyExists('measureActiveColor', configChanges) || this._propertyExists('measureCompletedColor', configChanges)) {
+	        this.measureControl.remove()
+	        this.control.remove()
+
+	        let measureOptions = { position: measureIconPosition,
+	            activeColor: measureActiveColor,
+	            completedColor: measureCompletedColor,
+	            primaryLengthUnit: this._getEscapedProperty('measurePrimaryLengthUnit', configChanges),
+	            secondaryLengthUnit: this._getEscapedProperty('secondaryLengthUnit', configChanges),
+	            primaryAreaUnit: this._getEscapedProperty('primaryAreaUnit', configChanges),
+	            secondaryAreaUnit: this._getEscapedProperty('secondaryAreaUnit', configChanges),
+	            localization: this._getEscapedProperty('localization', configChanges),
+	            features: this.measureFeatures,
+	            map: this.map}
+
+	        this.measureControl = new L.Control.Measure(measureOptions)
+	        this.measureControl.addTo(this.map)
+	        this.control.addTo(this.map)
+	        if(this.isDarkTheme) { this._darkModeUpdate() }
+	        
+	    }
+	},
+
+	// Build object of key/value pairs for invalid fields
+	// to be used as data for _drilldown action
+	validateFields: function(obj) {
+	    var invalidFields = {}
+	    var validFields = ['latitude',
+	                       'longitude',
+	                       'title',
+	                       'tooltip',
+	                       'description',
+	                       'icon',
+	                       'customIcon',
+	                       'customIconShadow',
+	                       'markerType',
+	                       'markerColor',
+	                       'markerPriority',
+	                       'markerSize',
+	                       'markerAnchor',
+	                       'markerVisibility',
+	                       'iconColor',
+	                       'shadowAnchor',
+	                       'shadowSize',
+	                       'prefix',
+	                       'extraClasses',
+	                       'layerDescription',
+	                       'layerVisibility',
+	                       'pathLayer',
+	                       'pathWeight',
+	                       'pathOpacity',
+	                       'playback',
+	                       'layerGroup',
+	                       'layerPriority',
+	                       'layerIcon',
+	                       'layerIconSize',
+	                       'layerIconColor',
+	                       'layerIconPrefix',
+	                       'clusterGroup',
+	                       'pathColor',
+	                       'popupAnchor',
+	                       'heatmapInclude',
+	                       'heatmapLayer',
+	                       'heatmapPointIntensity',
+	                       'heatmapMinOpacity',
+	                       'heatmapRadius',
+	                       'heatmapBlur',
+	                       'heatmapColorGradient',
+	                       'circleStroke',
+	                       'circleRadius',
+	                       'circleColor',
+	                       'circleWeight',
+	                       'circleOpacity',
+	                       'circleFillColor',
+	                       'circleFillOpacity',
+	                       'antPath',
+	                       'antPathDelay',
+	                       'antPathPulseColor',
+	                       'antPathPaused',
+	                       'antPathReverse',
+	                       'antPathDashArray',
+	                       'feature',
+	                       'featureLayer',
+	                       'featureDescription',
+	                       'featureTooltip',
+	                       'featureColor',
+	                       'featureWeight',
+	                       'featureOpacity',
+	                       'featureStroke',
+	                       'featureFill',
+	                       'featureFillColor',
+	                       'featureFillOpacity',
+	                       'featureRadius',
+	                       '_time']
+	    $.each(obj, function(key, value) {
+	        if($.inArray(key, validFields) === -1) {
+	            invalidFields[key] = value
+	        }
+	    })
+
+	    return(invalidFields)
+	},
+
+	_stringToJSON: function(value) {
+	    if(_.isUndefined(value)) {
+	        return
+	    }
+	    
+	    var cleanJSON = value.replace(/'/g, '"')
+	    return JSON.parse(cleanJSON)
+	},
+
+	_getProperty: function(name, config) {
+	    var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+	    return propertyValue
+	},
+
+	_getEscapedProperty: function(name, config) {
+	    var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+	    return SplunkVisualizationUtils.escapeHtml(propertyValue)
+	},
+
+	_getSafeUrlProperty: function(name, config) {
+	    var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
+	    return SplunkVisualizationUtils.makeSafeUrl(propertyValue)
+
+	},
+
+	_propertyExists: function(name, config) {
+	    return _.has(config, this.getPropertyNamespaceInfo().propertyNamespace + name)
+	},
+
+	// Custom drilldown behavior for markers
+	_drilldown: function(drilldownFields, resource) {
+	    payload = {
+	        action: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN,
+	        data: drilldownFields
+	    }
+
+	    this.drilldown(payload)
+	},
+
+	/* 
+	/ Convert 0x|# prefixed hex values to # prefixed for consistency
+	/ Splunk's eval tostring('hex') method returns 0x prefix
+	*/
+	convertHex: function(value) {
+	    // Pass markerColor prefixed with # regardless of given prefix ("#" or "0x")
+	    var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i
+	    if (hexRegex.test(value)) {
+	        markerColor = "#" + hexRegex.exec(value)[1]
+	        return(markerColor)
+	    } else {
+	        return(value)
+	    }
+	},
+
+	// Convert hex values to RGB for marker icon colors
+	hexToRgb: function(hex) {
+	    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+	    return result ? {
+	        r: parseInt(result[1], 16),
+	        g: parseInt(result[2], 16),
+	        b: parseInt(result[3], 16)
+	    } : null
+	},
+
+	// Convert string '1/0' or 'true/false' to boolean true/false
+	isArgTrue: function(arg) {
+	    if(arg === 1 || arg === 'true' || arg === true) {
+	        return true
+	    } else {
+	        return false
+	    }
+	},
+
+	renderModal: function(id, title, body, buttonText, callback=function(){}, callbackArgs=null) {
+	    function anonCallback(callback=function(){}, callbackArgs=null) {
+	        if(callbackArgs) {
+	            callback.apply(this, callbackArgs)
+	        } else {
+	            callback()
+	        }
+	    }
+
+	    // Create the modal
+	    var myModal = new Modal(id, {
+	                title: title,
+	                backdrop: 'static',
+	                keyboard: false,
+	                destroyOnHide: true,
+	                type: 'wide'
+	    })
+
+	    // Add content
+	    myModal.body.append($(body))
+
+	    // Add cancel button for update/delete action
+	    if(id == "user-delete-confirm" || id == "update-user-form") {
+	        myModal.footer.append($('<cancel>').attr({
+	            type: 'button',
+	            'data-dismiss': 'modal'
+	        })
+	        .addClass('btn btn-secondary').text("Cancel")).on('click', function(){})
+	    }
+
+	    // Add footer
+	    myModal.footer.append($('<button>').attr({
+	        type: 'button',
+	        'data-dismiss': 'modal'
+	    })
+	    .addClass('btn btn-primary').text(buttonText).on('click', function () {
+	            anonCallback(callback, callbackArgs)
+	    }))
+
+	    // Launch it!  
+	    myModal.show()
+	},
+
+	// Get API key from storage/passwords REST endpoint
+	getStoredApiKey: function(options) {
+	    var deferred = $.Deferred()
+
+	    // Detect version from REST API
+	    $.ajax({
+	        type: "GET",
+	        async: true,
+	        context: this,
+	        url: "/en-US/splunkd/__raw/servicesNS/-/-/storage/passwords/" + options.realm + ":" + options.user +":",
+	        success: function(s) {                                        
+	            var xml = $(s)
+	            var that = this
+	            $(xml).find('content').children().children().each(function(i, v) {
+	                if(/name="clear_password"/.test(v.outerHTML)) {
+	                    deferred.resolve(v.textContent)
+	                } 
+	            })
 	        },
-
-	        // Fetch KMZ or KML files and add to map
-	        fetchKmlAndMap: function(url, file, map, paneZIndex) {
-	            // Test if it's a kmz file
-	            if(/.*\.kmz/.test(file)) {
-	                JSZipUtils.getBinaryContent(url, function (e, d) {
-	                    var z = new JSZip()
-
-	                    z.loadAsync(d)
-	                    .then(function(zip) {
-	                        return zip.file(/.*\.kml/)[0].async("string")
-	                    })
-	                    .then(function (text) {
-	                        var kmlText = $.parseXML(text)
-	                        var geojson = toGeoJSON.kml(kmlText)
-
-							L.geoJson(geojson.features, {
-								style: function (feature) {
-	                                return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-	                                        color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-	                                        opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-	                                        weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-	                             },
-								onEachFeature: function (feature, layer) {
-								 	// Create pane and set zIndex to render multiple KML files over each other based on
-								 	// specified precedence in overlay menu 
-	                                map.createPane(feature.properties.name)
-	                                map.getPane(feature.properties.name).style.zIndex = paneZIndex
-	                                layer.options.pane = feature.properties.name
-	                                layer.defaultOptions.pane = feature.properties.name
-	                                layer.bindPopup(feature.properties.name)
-	                                layer.bindTooltip(feature.properties.name)
-								}
-							}).addTo(map)
-	                    })
-	                })
-	            // it's a kml file
+	        error: function(e) {
+	            if(_.isEmpty(options.realm)) {
+	                var realm = "undefined"
 	            } else {
-	                $.ajax({url: url, dataType: 'xml', context: this}).done(function(kml) {
-	                    var geojson = toGeoJSON.kml(kml)
-						L.geoJson(geojson.features, {
-							style: function (feature) {
-	                            return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-	                                    color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-	                                    opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-	                                    weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-	                         },
-							 onEachFeature: function (feature, layer) {
-								 // Create pane and set zIndex to render multiple KML files over each other based on
-								 // specified precedence in overlay menu 
-	                             map.createPane(feature.properties.name)
-	                             map.getPane(feature.properties.name).style.zIndex = paneZIndex
-	                             layer.options.pane = feature.properties.name
-	                             layer.defaultOptions.pane = feature.properties.name
-								 layer.bindPopup(feature.properties.name)
-								 layer.bindTooltip(feature.properties.name)
-							}
-						}).addTo(map)
-	                })
+	                var realm = options.realm
 	            }
-	        },
+	            options.context.renderModal('api-key-warning',
+	                                        "API Key Failure",
+	                                        "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Failed to get API key for user: <b>" + options.user + "</b>, realm: <b>" + realm + "</b> - Verify credentials and try again.</div>",
+	                                        'Close')
+	            console.error("Failed to get API key for user: " + options.user + ", realm: " + options.realm)
+	        }
+	    })
 
-	        _setFullScreenMode: function(map, options) {
-	            var vh = $(window).height() - 120
-	            $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+	    return deferred.promise()
+	},
 
-	            $(window).resize(function() {
-	                var vh = $(window).height() - 120
-	                $("div[data-cid=" + options.parentEl + "]").css("height", vh)
-	            })
-	            map.invalidateSize()
-	        },
+	// Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
+	createMarkerStyle: function(bgHex, fgHex, markerName) {
+	    var bgRgb = this.hexToRgb(bgHex)
+	    var fgRgb = this.hexToRgb(fgHex)
+	    var bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
+	    var fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
-	        _setDefaultHeight: function(map, options) {
-	            $("div[data-cid=" + options.parentEl + "]").css("height", options.defaultHeight)
-	            map.invalidateSize()
-	        },
+	    var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgRgba + ';} .marker-cluster-' + markerName + ' div { background-color: ' + fgRgba + ';}'
+	    $("<style>")
+	        .prop("type", "text/css")
+	        .html(html)
+	        .appendTo("head")
+	},
 
-	        _createClusterGroup: function(disableClusteringAtZoom,
-	                                      disableClusteringAtZoomLevel,
-	                                      maxClusterRadius,
-	                                      maxSpiderfySize,
-	                                      spiderfyDistanceMultiplier,
-	                                      singleMarkerMode,
-	                                      animate,
-	                                      criticalThreshold,
-	                                      warningThreshold,
-	                                      context) {
+	stringToPoint: function(stringPoint) {
+	    var point = _.map(stringPoint.split(','), function(val) {
+	        return parseInt(val)
+	    })
+	    return point
+	},
 
-	            // Redefine spiderfy and extend it
-	            L.MarkerCluster.include({
-	                spiderfy: function () {
-	                    if (this._group._spiderfied === this || this._group._inZoomAnimation) {
-	                        return
-	                    }
-	        
-	                    var childMarkers = this.getAllChildMarkers(),
-	                        group = this._group,
-	                        map = group._map,
-	                        center = map.latLngToLayerPoint(this._latlng),
-	                        positions
-	        
-	                    // Don't spiderfy cluster groups that exeed warning size
-	                    if (childMarkers.length > this._group.options.maxSpiderfySize) {
-	                        return context.renderModal("cluster-warning",
-	                                                   $.i18n('cluster-warning'),
-	                                                   "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>" + $.i18n('cluster-message', childMarkers.length, this._group.options.maxSpiderfySize) + "</div>",
-	                                                   $.i18n('cluster-warning-close'))
-	                    }
-	                    
-	                    this._group._unspiderfy()
-	                    this._group._spiderfied = this
-	        
-	                    //TODO Maybe: childMarkers order by distance to center
-	        
-	                    if (childMarkers.length >= this._circleSpiralSwitchover) {
-	                        positions = this._generatePointsSpiral(childMarkers.length, center)
-	                    } else {
-	                        center.y += 10 // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
-	                        positions = this._generatePointsCircle(childMarkers.length, center)
-	                    }
-	        
-	                    this._animationSpiderfy(childMarkers, positions)
-	                }
-	            })
+	// Draw path line
+	drawPath: function(options) {
+	    //var paneZIndex = 400
+	   
+	    _.each(options.data, function(p) {   
+	        let id = p[0]['id'],
+	          layerDescription = p[0]['layerDescription'],
+	          layerPriority = p[0]['layerPriority'],
+	          layerVisibility = options.context.isArgTrue(p[0]['layerVisibility']),
+	          layerType = options.context.isArgTrue(p[0]['antPath']) ? "antPath":"path",
+	          pathLayer = p[0]['pathLayer'],
+	          pathFg,
+	          pathName
 
-	            var mcg = new L.MarkerClusterGroup({
-	                chunkedLoading: true,
-	                maxClusterRadius: maxClusterRadius,
-	                maxSpiderfySize: maxSpiderfySize,
-	                spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
-	                singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
-	                animate: (this.isArgTrue(animate)),
-	                iconCreateFunction: function(cluster) {
-	                    var childCount = cluster.getChildCount()
-	                    var c = ' marker-cluster-'
-	                    if (childCount >= criticalThreshold) {
-	                        c += 'three'
-	                    } else if (childCount >= warningThreshold) {
-	                        c += 'two'
-	                    } else {
-	                        c += 'one'
-	                    }
-	                    return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
-	                }
-	            })
-	           
-	            if(this.isArgTrue(disableClusteringAtZoom)) {
-	                mcg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
-	                mcg.options.spiderfyOnMaxZoom = false
-	            }
-
-	            return mcg
-	        },
-	        
-	        _addMarker: function(options) {
-	            if(options.markerType == "circle") {
-	                var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
-	                                             parseFloat(options.userData["longitude"])],
-	                                              {radius: options.radius,
-	                                               color: options.color,
-	                                               weight: options.weight,
-	                                               stroke: options.stroke,
-	                                               opacity: options.opacity,
-	                                               fillColor: options.fillColor,
-	                                               fillOpacity: options.fillOpacity,                                    
-	                                               contextmenu: true,
-	                                               contextmenuItems: [{
-	                                                    text: 'Circle item',
-	                                                    index: 0
-	                                                }, {
-	                                                    separator: true,
-	                                                    index: 1
-	                                                }]
-	                                            })
-	                if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
-	                    options.layerFilter[options.layerGroup].circle = {radius: options.radius,
-	                        color: options.color,
-	                        weight: options.weight,
-	                        stroke: options.stroke,
-	                        opacity: options.opacity,
-	                        fillColor: options.fillColor,
-	                        fillOpacity: options.fillOpacity,
-	                        layerPriority: options.layerPriority}
-	                }                                               
+	        // Check if feature group exists for current layerGroup or id
+	        // Use existing FG or create new accordingly.
+	        if(_.has(options.pathLineLayers, id)) {
+	            pathFg = options.pathLineLayers[id]
+	        } else if(_.has(options.pathLineLayers, pathLayer)) {
+	            pathFg = options.pathLineLayers[pathLayer]
+	        } else {
+	            pathFg = L.featureGroup()
+	            
+	            // Prefer layerGroup and fallback to id
+	            if(!_.isUndefined(pathLayer)) {
+	                pathName = pathLayer
 	            } else {
-	                var marker = L.marker([parseFloat(options.userData['latitude']),
-	                                       parseFloat(options.userData['longitude'])],
-	                                       {icon: options.markerIcon,
-	                                        layerDescription: options.layerDescription,
-	                                        zIndexOffset: options.markerPriority,
-	                                        contextmenu: true,
-	                                        contextmenuItems: [{
-	                                            text: 'Marker item',
+	                pathName = id                        
+	            }
+	            options.pathLineLayers[pathName] = pathFg
+	            pathFg.options.name = pathName
+	            pathFg.options.layerPriority = layerPriority
+	            pathFg.options.layerType = layerType
+	            pathFg.options.layerDescription = layerDescription
+	            pathFg.options.layerVisibility = layerVisibility
+	        }
+
+	        const pathContextMenuAdd = {
+	            contextmenu: true,
+	            contextmenuInheritItems: true,
+	            contextmenuItems: [{
+	                    text: 'Add To Playback',
+	                    index: 0,
+	                    context: options.context,
+	                    callback: options.context.addToPlayback
+	                },{
+	                    index: 1,
+	                    separator: true
+	                }]
+	        }
+
+	        const pathContextMenuRemove = {
+	            contextmenu: true,
+	            contextmenuInheritItems: true,
+	            contextmenuItems: [{
+	                    text: 'Remove From Playback',
+	                    index: 0,
+	                    context: options.context,
+	                    callback: options.context.removeFromPlayback
+	                },{
+	                    index: 1,
+	                    separator: true
+	                }]
+	        }
+
+	        const geoJSON = {
+	            "type": "Feature",
+	            "geometry": {
+	              "type": "LineString",
+	              "coordinates":_.pluck(p, 'latlng')
+	            },
+	            "properties": {
+	                "title" : p[0]['id'],
+	                "prefix": p[0]['prefix'],
+	                "icon": p[0]['icon'],
+	                "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
+	                "time": _.pluck(p, 'unixtime')
+	            }
+	        }
+
+	        // Ant Path
+	        if(!_.isNull(p[0]['antPath']) && options.context.isArgTrue(p[0]['antPath'])) {
+	            let antPathOptions = {
+	                                        color: options.context.convertHex(p[0]['color']),
+	                                        weight: p[0]['pathWeight'],
+	                                        opacity: p[0]['pathOpacity'],
+	                                        "delay": p[0]['antPathDelay'],
+	                                        "dashArray": options.context.stringToPoint(p[0]['antPathDashArray']),
+	                                        "pulseColor": p[0]['antPathPulseColor'],
+	                                        "paused": p[0]['antPathPaused'],
+	                                        "reverse": p[0]['antPathReverse']
+	                                    }
+
+	            // Bind appropriate context menu for playback
+	            if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                if(options.context.isArgTrue(p[0]['playback'])) {
+	                    _.defaults(antPathOptions, pathContextMenuRemove)
+	                } else {
+	                    _.defaults(antPathOptions, pathContextMenuAdd)
+	                }
+	            }
+	            
+	            var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
+	        } else {
+	            let pathOptions = { 
+	                color: options.context.convertHex(p[0]['color']),
+	                weight: p[0]['pathWeight'],
+	                opacity: p[0]['pathOpacity']
+	            }
+
+	            // Bind appropriate context menu for playback
+	            if(options.context.contextMenuEnabled && options.context.isArgTrue(p[0]['showPlayback'])) {  
+	                if(options.context.isArgTrue(p[0]['playback'])) {
+	                    _.defaults(pathOptions, pathContextMenuRemove)
+	                } else {
+	                    _.defaults(pathOptions, pathContextMenuAdd)
+	                }
+	            }
+
+	            // create polyline and bind popup
+	            var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
+	        }
+
+	        // Apply tooltip to polyline
+	        if(p[0]['tooltip'] != "") {
+	            pl.bindTooltip(p[0]['tooltip'], {permanent: p[0]['permanentTooltip'],
+	                                             direction: 'auto',
+	                                             sticky: p[0]['stickyTooltip']})
+	        }
+
+	        pl.options.geoJSON = geoJSON
+	        pl.options.playback = options.context.isArgTrue(p[0]['playback'])
+	        pl.options.pathContextMenuAdd = pathContextMenuAdd
+	        pl.options.pathContextMenuRemove = pathContextMenuRemove
+
+	        // Add polyline to feature group
+	        pathFg.addLayer(pl)
+	    })
+	},
+
+	// Create a control icon and description in the layer control legend
+	addLayerToControl: function(options) {
+	    let name,
+	        iconHtml,
+	        styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined
+	        layerIconSize = _.has(options.layerGroup, 'layerIconSize') ? this.stringToPoint(options.layerGroup.layerIconSize):undefined
+
+	    // Add Heatmap layer to controls and use layer name for control label
+	    if(options.layerType == "heat" || options.layerType == "path" || options.layerType == "feature") {
+	        // Exclude layer from layer controls
+	        if(_.has(options.featureGroup.options, "layerInclude") && !options.featureGroup.options.layerInclude) { return }
+
+	        if(_.has(options.featureGroup.options, "layerDescription") && options.featureGroup.options.layerDescription != "") {
+	            name = options.featureGroup.options.layerDescription
+	        } else {
+	            name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
+	        }
+
+	        options.control.addOverlay(options.featureGroup, name)
+	        if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
+	            options.featureGroup.remove()
+	        }
+	        return
+	    }
+
+	    if(!options.layerGroup.layerExists) {
+	        // Circle Marker
+	        if(_.has(options.layerGroup.circle, "fillColor")) {
+	            styleColor = options.layerGroup.circle.fillColor
+	            iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
+	        } else {
+	            // Custom Icon
+	            if(_.has(options.layerGroup.icon.options, 'iconUrl')) {
+	                iconHtml = '<img src="' + options.layerGroup.icon.options.iconUrl + '" style="height: ' + layerIconSize[0] + 'px; width: ' + layerIconSize[1] + 'px">' + options.layerGroup.layerDescription
+	            }
+	            
+	            // Awesome Marker, Vector Marker or Icon only
+	            if(options.layerGroup.icon.options.className == "awesome-marker" || options.layerGroup.icon.options.className == "vector-marker" || options.layerGroup.icon.options.className == "icon-only") {
+	                if(options.layerGroup.layerIconPrefix == "fab") {
+	                    iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+	                } else {
+	                    iconHtml = "<i class=\"legend-toggle-icon " + options.layerGroup.layerIconPrefix + " " + options.layerGroup.layerIconPrefix + "-" + options.layerGroup.layerIcon + "\" style=\"color: " + styleColor + "\"></i> " + options.layerGroup.layerDescription
+	                }
+	            }
+	        }
+
+	        options.control.addOverlay(options.layerGroup.group, iconHtml)
+	        if(!options.layerGroup.layerVisibility) { 
+	          options.layerGroup.group.remove()
+	        } 
+	        options.layerGroup.layerExists = true
+	    }
+
+	},
+
+	// Show dialog box with pointer lat/lon and center lat/lon
+	// coordinates. Allow user to copy and paste center coordinates into 
+	// Center Lat and Center Lon format menu options.
+	showCoordinates: function (e) {
+	    this.map.on('dialog:closed', function(e) { 
+	        this.coordDialog.destroy()
+	    }, this)
+
+	    var coordinates = e.latlng.toString().match(/([-\d\.]+)/g)
+	    var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g)
+	    var curZoom = this.map.getZoom()
+	    
+	    var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
+	          "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
+	          "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
+	          "<br></br>Copy and paste the following values into Format menu to change <b>Center Lat</b> and <b>Center Lon</b> (visualization API does not currently support programmatically setting format menu options):<br>" +
+	          "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
+	          "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
+
+	    var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+	      .setContent(content)
+	      .addTo(this.map)
+	      .open()
+	},
+
+	addToPlayback: function(e) {
+	    if(this.playback._showPlayback) {
+	        _.each(this.pathLineLayers, function(l, i){                   
+	            l.eachLayer(function(layer) {
+	                if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title && !this.isArgTrue(layer.options.playback)) {
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuRemove)
+	                    }
+	                    layer.options.playback = true
+	                    this.playback.updateData(this.contextMenuTarget.options.geoJSON)
+	                }
+	            }, this)
+	         }, this)
+
+	        this.updatePlaybackControls()
+	    }
+	},
+
+	resetPlayback: function(e) {
+	    this.playback.clearData()
+
+	    _.each(this.pathLineLayers, function(l, i){                   
+	        l.eachLayer(function(layer) {
+	            if(layer.options.playback) {
+	                this.playback.updateData(layer.options.geoJSON)
+	            }
+	        }, this)
+	    }, this)
+
+	    this.updatePlaybackControls()
+	}, 
+
+	clearPlayback: function(e) {
+	    _.each(this.pathLineLayers, function(l, i){
+	        l.eachLayer(function(layer) {
+	            layer.options.playback = false
+
+	            if(_.has(layer, '_animatedPathClass')) { 
+	                layer.eachLayer(function(p) {
+	                    p.unbindContextMenu()    
+	                    p.bindContextMenu(layer.options.pathContextMenuAdd)
+	                }, this)
+	            }  else {
+	                layer.unbindContextMenu()
+	                layer.bindContextMenu(layer.options.pathContextMenuAdd)
+	            }
+	        }, this)
+	     }, this)
+
+	    this.playback.clearData()
+	    this.updatePlaybackControls()
+	},
+
+	addAllToPlayback: function(e) {
+	    this.playback.clearData()
+	    
+	    _.each(this.pathLineLayers, function(l, i){                   
+	        l.eachLayer(function(layer) {
+	            this.playback.updateData(layer.options.geoJSON)
+	            layer.options.playback = true
+
+	            if(_.has(layer, '_animatedPathClass')) { 
+	                layer.eachLayer(function(p) {
+	                    p.unbindContextMenu()    
+	                    p.bindContextMenu(layer.options.pathContextMenuRemove)
+	                }, this)
+	            }  else {
+	                layer.unbindContextMenu()
+	                layer.bindContextMenu(layer.options.pathContextMenuRemove)
+	            }
+	        }, this)
+	    }, this)
+
+	    this.updatePlaybackControls()
+	},
+
+	removeFromPlayback: function(e) {
+	    if(this.playback._showPlayback) {
+	        _.each(this.pathLineLayers, function(l, i){                   
+	            l.eachLayer(function(layer) {
+	                if(layer.options.geoJSON.properties.title === this.contextMenuTarget.options.geoJSON.properties.title) {
+	                    layer.options.playback = false
+	                    this.playback.removeData(this.contextMenuTarget)
+
+	                    if(_.has(layer, '_animatedPathClass')) { 
+	                        layer.eachLayer(function(p) {
+	                            p.unbindContextMenu()    
+	                            p.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                        }, this)
+	                    }  else {
+	                        layer.unbindContextMenu()
+	                        layer.bindContextMenu(this.contextMenuTarget.options.pathContextMenuAdd)
+	                    }
+	                }
+	            }, this)
+	        }, this)
+	     }
+
+	    this.updatePlaybackControls()
+	 },
+
+	updatePlaybackControls: function() {
+	    this.playback.setCursor(this.playback.getStartTime())
+	    this.playback.hideControls()
+	    this.playback.showControls()
+	    if(this.isDarkTheme) { this._darkModeUpdate() }
+	},
+
+	centerMap: function (e) {
+	    this.map.panTo(e.latlng)
+	},
+
+	zoomIn: function (e) {
+	    this.map.zoomIn()
+	},
+
+	zoomOut: function (e) {
+	    this.map.zoomOut()
+	},
+
+	fitLayerBounds: function (options) {
+	    var map = _.isUndefined(options.map) ? this.map:options.map
+	    var layerFilter = _.isUndefined(options.layerFilter) ? this.layerFilter:options.layerFilter
+	    var pathLineLayers = _.isUndefined(options.pathLineLayers) ? this.pathLineLayers:options.pathLineLayers
+	    var heatLayers = _.isUndefined(options.heatLayers) ? this.heatLayers:options.heatLayers
+	    var featureLayers = _.isUndefined(options.featureLayers) ? this.featureLayers:options.featureLayers
+	    var tmpGroup = new L.featureGroup()
+	    var layers = [layerFilter, pathLineLayers, heatLayers, featureLayers]
+
+	    // loop through layers and build one big feature group to fit bounds against
+	    _.each(layers, function(l, i) {
+	        if(!_.isEmpty(l)) {
+	            _.each(l, function(lg, i) {
+	                // It's a normal feature group or cluster feature group
+	                if(!_.isUndefined(lg.group)) {
+	                    tmpGroup.addLayer(lg.group)
+	                    return
+	                }
+
+	                // It's a path or heatmap
+	                var curLayers = lg.getLayers()
+	                _.each(curLayers, function(cl, i) {
+	                    tmpGroup.addLayer(cl)
+	                })
+	            })
+	        }
+	    })
+	    
+	    map.fitBounds(tmpGroup.getBounds())
+	},
+
+	// Fetch KMZ or KML files and add to map
+	fetchKmlAndMap: function(url, file, map, paneZIndex) {
+	    // Test if it's a kmz file
+	    if(/.*\.kmz/.test(file)) {
+	        JSZipUtils.getBinaryContent(url, function (e, d) {
+	            var z = new JSZip()
+
+	            z.loadAsync(d)
+	            .then(function(zip) {
+	                return zip.file(/.*\.kml/)[0].async("string")
+	            })
+	            .then(function (text) {
+	                var kmlText = $.parseXML(text)
+	                var geojson = toGeoJSON.kml(kmlText)
+
+	                L.geoJson(geojson.features, {
+	                    style: function (feature) {
+	                        return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
+	                                color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
+	                                opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
+	                                weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
+	                     },
+	                    onEachFeature: function (feature, layer) {
+	                         // Create pane and set zIndex to render multiple KML files over each other based on
+	                         // specified precedence in overlay menu 
+	                        map.createPane(feature.properties.name)
+	                        map.getPane(feature.properties.name).style.zIndex = paneZIndex
+	                        layer.options.pane = feature.properties.name
+	                        layer.defaultOptions.pane = feature.properties.name
+	                        layer.bindPopup(feature.properties.name)
+	                        layer.bindTooltip(feature.properties.name)
+	                    }
+	                }).addTo(map)
+	            })
+	        })
+	    // it's a kml file
+	    } else {
+	        $.ajax({url: url, dataType: 'xml', context: this}).done(function(kml) {
+	            var geojson = toGeoJSON.kml(kml)
+	            L.geoJson(geojson.features, {
+	                style: function (feature) {
+	                    return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
+	                            color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
+	                            opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
+	                            weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
+	                 },
+	                 onEachFeature: function (feature, layer) {
+	                     // Create pane and set zIndex to render multiple KML files over each other based on
+	                     // specified precedence in overlay menu 
+	                     map.createPane(feature.properties.name)
+	                     map.getPane(feature.properties.name).style.zIndex = paneZIndex
+	                     layer.options.pane = feature.properties.name
+	                     layer.defaultOptions.pane = feature.properties.name
+	                     layer.bindPopup(feature.properties.name)
+	                     layer.bindTooltip(feature.properties.name)
+	                }
+	            }).addTo(map)
+	        })
+	    }
+	},
+
+	_setFullScreenMode: function(map, options) {
+	    var vh = $(window).height() - 120
+	    $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+
+	    $(window).resize(function() {
+	        var vh = $(window).height() - 120
+	        $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+	    })
+	    map.invalidateSize()
+	},
+
+	_setDefaultHeight: function(map, options) {
+	    $("div[data-cid=" + options.parentEl + "]").css("height", options.defaultHeight)
+	    map.invalidateSize()
+	},
+
+	_createClusterGroup: function(disableClusteringAtZoom,
+	                              disableClusteringAtZoomLevel,
+	                              maxClusterRadius,
+	                              maxSpiderfySize,
+	                              spiderfyDistanceMultiplier,
+	                              singleMarkerMode,
+	                              animate,
+	                              criticalThreshold,
+	                              warningThreshold,
+	                              antarcticProj,
+	                              context) {
+
+	    // Redefine spiderfy and extend it
+	    L.MarkerCluster.include({
+	        spiderfy: function () {
+	            if (this._group._spiderfied === this || this._group._inZoomAnimation) {
+	                return
+	            }
+
+	            var childMarkers = this.getAllChildMarkers(),
+	                group = this._group,
+	                map = group._map,
+	                center = map.latLngToLayerPoint(this._latlng),
+	                positions
+
+	            // Don't spiderfy cluster groups that exeed warning size
+	            if (childMarkers.length > this._group.options.maxSpiderfySize) {
+	                return context.renderModal("cluster-warning",
+	                                           $.i18n('cluster-warning'),
+	                                           "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>" + $.i18n('cluster-message', childMarkers.length, this._group.options.maxSpiderfySize) + "</div>",
+	                                           $.i18n('cluster-warning-close'))
+	            }
+	            
+	            this._group._unspiderfy()
+	            this._group._spiderfied = this
+
+	            //TODO Maybe: childMarkers order by distance to center
+
+	            if (childMarkers.length >= this._circleSpiralSwitchover) {
+	                positions = this._generatePointsSpiral(childMarkers.length, center)
+	            } else {
+	                center.y += 10 // Otherwise circles look wrong => hack for standard blue icon, renders differently for other icons.
+	                positions = this._generatePointsCircle(childMarkers.length, center)
+	            }
+
+	            this._animationSpiderfy(childMarkers, positions)
+	        }
+	    })
+
+	    var mcg = new L.MarkerClusterGroup({
+	        chunkedLoading: true,
+	        maxClusterRadius: maxClusterRadius,
+	        maxSpiderfySize: maxSpiderfySize,
+	        spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
+	        removeOutsideVisibleBounds:false,
+	        singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
+	        animate: (this.isArgTrue(animate)),
+	        iconCreateFunction: function(cluster) {
+	            var childCount = cluster.getChildCount()
+	            var c = ' marker-cluster-'
+	            if (childCount >= criticalThreshold) {
+	                c += 'three'
+	            } else if (childCount >= warningThreshold) {
+	                c += 'two'
+	            } else {
+	                c += 'one'
+	            }
+	            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
+	        }
+	    })
+
+	    if(this.isArgTrue(antarcticProj)) {
+	        mcg.options.removeOutsideVisibleBounds = false
+	    }
+	   
+	    if(this.isArgTrue(disableClusteringAtZoom)) {
+	        mcg.options.disableClusteringAtZoom = disableClusteringAtZoomLevel
+	        mcg.options.spiderfyOnMaxZoom = false
+	    }
+
+	    return mcg
+	},
+
+	_addMarker: function(options) {
+	    if(options.markerType == "circle") {
+	        var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
+	                                     parseFloat(options.userData["longitude"])],
+	                                      {radius: options.radius,
+	                                       color: options.color,
+	                                       weight: options.weight,
+	                                       stroke: options.stroke,
+	                                       opacity: options.opacity,
+	                                       fillColor: options.fillColor,
+	                                       fillOpacity: options.fillOpacity,                                    
+	                                       contextmenu: true,
+	                                       contextmenuItems: [{
+	                                            text: 'Circle item',
 	                                            index: 0
 	                                        }, {
 	                                            separator: true,
 	                                            index: 1
-	                                        }]})                
-	            }
+	                                        }]
+	                                    })
+	        if (!_.isUndefined(options.layerFilter[options.layerGroup])) {                
+	            options.layerFilter[options.layerGroup].circle = {radius: options.radius,
+	                color: options.color,
+	                weight: options.weight,
+	                stroke: options.stroke,
+	                opacity: options.opacity,
+	                fillColor: options.fillColor,
+	                fillOpacity: options.fillOpacity,
+	                layerPriority: options.layerPriority}
+	        }                                               
+	    } else {
+	        var marker = L.marker([parseFloat(options.userData['latitude']),
+	                               parseFloat(options.userData['longitude'])],
+	                               {icon: options.markerIcon,
+	                                layerDescription: options.layerDescription,
+	                                zIndexOffset: options.markerPriority,
+	                                contextmenu: true,
+	                                contextmenuItems: [{
+	                                    text: 'Marker item',
+	                                    index: 0
+	                                }, {
+	                                    separator: true,
+	                                    index: 1
+	                                }]})                
+	    }
 
-	            if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
-	                options.layerFilter[options.layerGroup].icon = options.markerIcon
-	            }
+	    if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
+	        options.layerFilter[options.layerGroup].icon = options.markerIcon
+	    }
 
-	            // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
-	            if(options.tooltip) {
-	                marker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
-	                                                     direction: 'auto',
-	                                                     sticky: options.stickyTooltip})
-	            } else if (options.title) {
-	                marker.bindTooltip(options.title, {permanent: options.permanentTooltip,
-	                                                   direction: 'auto',
-	                                                   sticky: options.stickyTooltip})
-	            }
+	    // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
+	    if(options.tooltip) {
+	        marker.bindTooltip(options.tooltip, {permanent: options.permanentTooltip,
+	                                             direction: 'auto',
+	                                             sticky: options.stickyTooltip})
+	    } else if (options.title) {
+	        marker.bindTooltip(options.title, {permanent: options.permanentTooltip,
+	                                           direction: 'auto',
+	                                           sticky: options.stickyTooltip})
+	    }
 
-	            if(this.isArgTrue(options.drilldown)) {
-	                var drilldownFields = this.validateFields(options.userData)
-	                marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
-	            }
+	    if(this.isArgTrue(options.drilldown)) {
+	        var drilldownFields = this.validateFields(options.userData)
+	        marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
+	    }
 
-	            // Bind description popup if description exists
-	            if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
-	                marker.bindPopup(options.userData['description'])
-	            }
+	    // Bind description popup if description exists
+	    if(_.has(options.userData, "description") && !_.isEmpty(options.userData["description"])) {
+	        marker.bindPopup(options.userData['description'])
+	    }
 
-	            if (options.cluster) {           
-	                _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(marker)
-	            } else {
-	                options.layerFilter[options.layerGroup].markerList.push(marker)
-	            }
-	        },
+	    if (options.cluster) {           
+	        _.findWhere(options.layerFilter[options.layerGroup].clusterGroup, {groupName: options.clusterGroup}).markerList.push(marker)
+	    } else {
+	        options.layerFilter[options.layerGroup].markerList.push(marker)
+	    }
+	},
 
-	        _addClustered: function(map, options) {
-	            // Process layers
-	            _.each(options.layerFilter, function(lg, i) {
-	                if(!_.isEmpty(lg.clusterGroup) && !_.isEmpty(lg.clusterGroup[0].markerList)) {
-	                    // Process cluster groups
-	                    _.each(lg.clusterGroup, function(cg, i) {                        
-	                        this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
-	                        lg.group.addLayer(this.tmpFG)
-	                    })
-
-	                    lg.group.addTo(map)
-	                    
-	                    if(options.layerControl) {
-	                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
-	                    }
-	                }
+	_addClustered: function(map, options) {
+	    // Process layers
+	    _.each(options.layerFilter, function(lg, i) {
+	        if(!_.isEmpty(lg.clusterGroup) && !_.isEmpty(lg.clusterGroup[0].markerList)) {
+	            // Process cluster groups
+	            _.each(lg.clusterGroup, function(cg, i) {                        
+	                this.tmpFG = L.featureGroup.subGroup(cg.cg, cg.markerList)
+	                lg.group.addLayer(this.tmpFG)
 	            })
-	        },
 
-	        _addUnclustered: function(map, options) {
-	            _.chain(options.layerFilter)
-	            .sortBy(function(d) {
-	                if(_.has(d.circle, "layerPriority") && !_.isUndefined(d.circle.layerPriority)){
-	                    return +d.circle.layerPriority
-	                } else {
-	                    return d
-	                }                
-	            })
-	            .each(function(lg) {
-	                if(!_.isEmpty(lg.markerList)) {
-	                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-	                        map.createPane(options.paneZIndex.toString())
-	                        map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
-	                    }
-
-	                    // Loop through markers and add to map
-	                    _.each(lg.markerList, function(m) {                    
-	                        if(options.allPopups) {
-	                            m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
-	                        } else {
-	                            m.addTo(lg.group)
-	                        }
-	                    })
-
-	                    if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
-	                        lg.group.setStyle({pane: options.paneZIndex.toString()})
-	                        options.paneZIndex += 1
-	                    }
-
-	                    // Add layergroup to map
-	                    lg.group.addTo(map)
-	                    
-	                    //options.paneZIndex += 1
-
-	                    // Add layer controls
-	                    if(options.layerControl) {
-	                        options.context.addLayerToControl({layerGroup: lg, control: options.control})
-	                    }
-	                }
-	            })
-	        },
-	        
-	        _renderLayersToMap: function(map, options) {
-	            _.chain(options.layers)
-	            .sortBy(function(d) {
-	                if(!_.isUndefined(d.options.layerPriority)){
-	                    return +d.options.layerPriority
-	                } else {
-	                    return d
-	                }
-	            })
-	            .each(function(lg) {
-	                // Create pane and set zIndex
-	                if(!_.isUndefined(lg.options.layerPriority)){
-	                    let styleOptions = {pane: options.paneZIndex.toString(), 
-	                                        renderer: L.svg({pane: options.paneZIndex.toString()})}
-
-	                    map.createPane(options.paneZIndex.toString())
-	                    map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
-	                    lg.setStyle(styleOptions)
-	                }
-
-	                lg.eachLayer(function(l) {
-	                    if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
-	                })                
-	                
-	                // Check if layer is already on the map, remove before re-adding
-	                if(map.hasLayer(lg)) {
-	                    map.removeLayer(lg)
-	                }
-	                // Add layer controls
-	                lg.addTo(map)
-
-	                // Increment zIndex
-	                if(!_.isUndefined(lg.options.layerPriority)){ options.paneZIndex += 1 }
-
-	                // Add layer to control
-	                if(options.layerControl) {
-	                    var layerOptions = {layerType: options.layerType,
-	                                        featureGroup: lg,
-	                                        control: options.control}
-	                    options.context.addLayerToControl(layerOptions)   
-	                }
-	            })
-	        },
-
-	        formatData: function(data) {
-	            if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
-	                this.allDataProcessed = true
-	                return this
-	            }
+	            lg.group.addTo(map)
 	            
-	            if(data.results.length == 0)  {
-	                return this
+	            if(options.layerControl) {
+	                options.context.addLayerToControl({layerGroup: lg, control: options.control})
 	            }
-
-	            this.allDataProcessed = false
-	            return data
-	        },
-
-	        // Do the work of creating the viz
-	        updateView: function(data, config) {
-	            // viz gets passed empty config until you click the 'format' dropdown
-	            // intialize with defaults
-				if(_.keys(config).length <= 1) {
-	                config = this.defaultConfig
-	            }
-
-	            // Populate any missing config values with defaults
-	            _.defaults(config, this.defaultConfig)
-
-	            // get configs
-	            var cluster     = parseInt(this._getEscapedProperty('cluster', config)),
-	                allPopups   = parseInt(this._getEscapedProperty('allPopups', config)),
-	                multiplePopups = parseInt(this._getEscapedProperty('multiplePopups', config)),
-	                animate     = parseInt(this._getEscapedProperty('animate', config)),
-	                singleMarkerMode = parseInt(this._getEscapedProperty('singleMarkerMode', config)),
-	                disableClusteringAtZoom = parseInt(this._getEscapedProperty('disableClusteringAtZoom', config)),
-	                disableClusteringAtZoomLevel = parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', config)),
-	                maxClusterRadius = parseInt(this._getEscapedProperty('maxClusterRadius', config)),
-	                maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
-	                spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
-	                mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
-	                i18nLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('i18nLanguage', config)),
-					mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
-	                mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
-	                layerControl = parseInt(this._getEscapedProperty('layerControl', config)),
-	                layerControlCollapsed = parseInt(this._getEscapedProperty('layerControlCollapsed', config)),
-	                scrollWheelZoom = parseInt(this._getEscapedProperty('scrollWheelZoom', config)),
-	                fullScreen = parseInt(this._getEscapedProperty('fullScreen', config)),
-	                drilldown = parseInt(this._getEscapedProperty('drilldown', config)),
-	                drilldownAction = this._getEscapedProperty('drilldownAction', config),
-					contextMenu = parseInt(this._getEscapedProperty('contextMenu', config)),
-	                defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
-					autoFitAndZoom = parseInt(this._getEscapedProperty('autoFitAndZoom', config)),
-					autoFitAndZoomDelay = parseInt(this._getEscapedProperty('autoFitAndZoomDelay', config)),
-	                mapCenterZoom = parseInt(this._getEscapedProperty('mapCenterZoom', config)),
-	                mapCenterLat = parseFloat(this._getEscapedProperty('mapCenterLat', config)),
-	                mapCenterLon = parseFloat(this._getEscapedProperty('mapCenterLon', config)),
-	                minZoom     = parseInt(this._getEscapedProperty('minZoom', config)),
-	                maxZoom     = parseInt(this._getEscapedProperty('maxZoom', config)),
-	                permanentTooltip = parseInt(this._getEscapedProperty('permanentTooltip', config)),
-	                stickyTooltip = parseInt(this._getEscapedProperty('stickyTooltip', config)),
-	                googlePlacesSearch = parseInt(this._getEscapedProperty('googlePlacesSearch', config)),
-	                googlePlacesApiKeyUser = this._getEscapedProperty('googlePlacesApiKeyUser', config),
-	                googlePlacesApiKeyRealm = this._getEscapedProperty('googlePlacesApiKeyRealm', config),
-	                googlePlacesZoomLevel = parseInt(this._getEscapedProperty('googlePlacesZoomLevel', config)),
-	                googlePlacesPosition = this._getEscapedProperty('googlePlacesPosition', config),
-	                bingMaps = parseInt(this._getEscapedProperty('bingMaps', config)),
-	                bingMapsApiKey = this._getEscapedProperty('bingMapsApiKey', config),
-	                bingMapsApiKeyUser = this._getEscapedProperty('bingMapsApiKeyUser', config),
-	                bingMapsApiKeyRealm = this._getEscapedProperty('bingMapsApiKeyRealm', config),
-	                bingMapsTileLayer = this._getEscapedProperty('bingMapsTileLayer', config),
-	                bingMapsLabelLanguage = this._getEscapedProperty('bingMapsLabelLanguage', config),
-	                kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
-	                rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
-	                rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
-	                warningThreshold = this._getEscapedProperty('warningThreshold', config),
-	                rangeTwoBgColor = this._getEscapedProperty('rangeTwoBgColor', config),
-	                rangeTwoFgColor = this._getEscapedProperty('rangeTwoFgColor', config),
-	                criticalThreshold = this._getEscapedProperty('criticalThreshold', config),
-	                rangeThreeBgColor = this._getEscapedProperty('rangeThreeBgColor', config),
-	                rangeThreeFgColor = this._getEscapedProperty('rangeThreeFgColor', config),
-	                measureTool = parseInt(this._getEscapedProperty('measureTool', config)),
-	                measureIconPosition = this._getEscapedProperty('measureIconPosition', config),
-	                measurePrimaryLengthUnit = this._getEscapedProperty('measurePrimaryLengthUnit', config),
-	                measureSecondaryLengthUnit = this._getEscapedProperty('measureSecondaryLengthUnit', config),
-	                measurePrimaryAreaUnit = this._getEscapedProperty('measurePrimaryAreaUnit', config),
-	                measureSecondaryAreaUnit = this._getEscapedProperty('measureSecondaryAreaUnit', config),
-	                measureActiveColor = this._getEscapedProperty('measureActiveColor', config),
-	                measureCompletedColor = this._getEscapedProperty('measureCompletedColor', config),
-	                measureLocalization = this._getEscapedProperty('measureLocalization', config),
-	                showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
-	                pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
-	                pathColorList = this._getEscapedProperty('pathColorList', config),
-	                showPlayback = parseInt(this._getEscapedProperty('showPlayback', config)),
-	                showPlaybackSliderControl = parseInt(this._getEscapedProperty('showPlaybackSliderControl', config)),
-	                showPlaybackDateControl = parseInt(this._getEscapedProperty('showPlaybackDateControl', config)),
-	                showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
-	                playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
-	                playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
-	                refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
-	                heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
-	                heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
-	                heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
-	                heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
-	                heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
-	                heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
-	                splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
-	                showProgress = parseInt(this._getEscapedProperty('showProgress', config))
-
-	            // Auto Fit & Zoom once we've processed all data
-	            if(this.allDataProcessed) {
-	                // this._updateMap(this.map, {
-	                //   showProgress: showProgress,
-	                //   heatmapEnable: heatmapEnable,
-	                //   heatLayers: this.heatLayers,
-	                //   control: this.control,
-	                //   layerControl: layerControl,
-	                // })
-
-	                if(this.isArgTrue(showProgress)) {
-	                    if(!_.isUndefined(this.map)) {
-	                        this.map.spin(false)
-	                    }
-	                }
-	                
-	                // Render hetmap layer on map
-	                if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
-	                    this._renderLayersToMap(this.map, {layers: this.heatLayers,
-	                                                      control: this.control,
-	                                                      layerControl: this.isArgTrue(layerControl),
-	                                                      layerType: "heat",
-	                                                      paneZIndex: this.paneZIndex,
-	                                                      context: this})
-	                }
-
-	                // Render paths to map
-	                if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
-	                    this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
-	                                                       control: this.control,
-	                                                       layerControl: this.isArgTrue(layerControl),
-	                                                       layerType: "path",
-	                                                       paneZIndex: this.paneZIndex,
-	                                                       //playback: true,
-	                                                       playback: this.playback,
-	                                                       showPlayback: this.isArgTrue(showPlayback),
-	                                                       context: this})
-	                }
-	                
-	                if(!_.isEmpty(this.featureLayers)) {
-	                    this._renderLayersToMap(this.map, {layers: this.featureLayers,
-	                        control: this.control,
-	                        layerControl: this.isArgTrue(layerControl),
-	                        layerType: "feature",
-	                        paneZIndex: this.paneZIndex,
-	                        context: this})    
-	                }
-
-	                if(this.isArgTrue(autoFitAndZoom)) {
-	                    setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
-	                                                                          layerFilter: this.layerFilter,
-	                                                                          heatLayers: this.heatLayers,
-	                                                                          pathLineLayers: this.pathLineLayers,
-	                                                                          featureLayers: this.featureLayers,
-	                                                                          context: this})
-	                }
-
-	                // Dashboard refresh
-	                if(refreshInterval > 0) {
-	                    setTimeout(function() {
-	                        location.reload()
-	                    }, refreshInterval)
-	                }
-	            } 
-	            
-	            // Check for data and retrun if we don't have any
-	            if(!_.has(data, "results")) {
-	                return this
-	            }
-
-	            // get data
-	            var dataRows = data.results
-
-	            // check for data
-	            if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-	                return this
-	            }
-
-	            if(this.isArgTrue(splunkVersionCheck)) {
-	                // Make sure we're on Splunk 7.x+
-	                if(!this.isSplunkSeven) {
-	                    // Render warning modal
-	                    this.renderModal('splunk-version-warning',
-	                            "Unsupported Splunk Version",
-	                            "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
-	                            'Close')
-
-	                    // throw viz error
-	                    throw new SplunkVisualizationBase.VisualizationError(
-	                        'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
-	                    )
-	                }
-	            }
-
-	            // Validate we have at least latitude and longitude fields
-	            if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-	                if( !("feature" in dataRows[0])){
-	                    throw new SplunkVisualizationBase.VisualizationError(
-	                        'Incorrect Fields Detected - latitude & longitude fields required'
-	                    )
-	                }
-	            }
-
-	            pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
-	            renderer = this._getEscapedProperty('renderer', config),
-	            pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
-
-	            this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile
-	            this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile]
-
-	            // Initialize the DOM
-	            if (!this.isInitializedDom) {
-	                // Set defaul icon image path
-	                L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/'
-
-	                // Create layer filter object
-	                var layerFilter = this.layerFilter = {}
-
-	                // Create clusterGroups
-	                var clusterGroups = this.clusterGroups = {}
-
-	                // Setup cluster marker CSS
-	                this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
-	                this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
-	                this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
-
-	                // Enable all or multiple popups
-	                if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
-	                    L.Map = L.Map.extend({
-	                        openPopup: function (popup, latlng, options) {
-	                            if (!(popup instanceof L.Popup)) {
-	                                popup = new L.Popup(options).setContent(popup)
-	                            }
-
-	                            if (latlng) {
-	                                popup.setLatLng(latlng)
-	                            }
-
-	                            if (this.hasLayer(popup)) {
-	                                return this
-	                            }
-
-	                            this._popup = popup
-	                            return this.addLayer(popup)
-	                        }
-	                    })
-
-	                    // Disable close popup on click to allow multiple popups
-	                    $.extend(this.mapOptions, { closePopupOnClick: false })
-	                }
-
-	                // Create canvas render and prever canvas for paths
-	                if(renderer == "canvas") {
-	                    $.extend(this.mapOptions, { preferCanvas: true })
-	                }
-
-	                // Configure context menu
-	                if(this.isArgTrue(contextMenu)) {
-	                    var contextMenuTarget = this.contextMenuTarget = undefined
-	                    var contextMenuEnabled = this.contextMenuEnabled = true
-
-	                    $.extend(this.mapOptions, {contextmenu: true,
-	                                       contextmenuWidth: 140,
-	                                       minZoom: minZoom,
-	                                       maxZoom: maxZoom,
-	                                       contextmenuItems: [{
-	                                           text: 'Show details',
-	                                           context: this,
-	                                           callback: this.showCoordinates
-	                                       }, {
-	                                           text: 'Center map here',
-	                                           context: this,
-	                                           callback: this.centerMap
-	                                       }, '-', {
-	                                               text: 'Auto Fit & Zoom',
-	                                               context: this,
-	                                               callback: this.fitLayerBounds
-	                                       }, {
-	                                           text: 'Zoom in',
-	                                           iconCls: 'fa fa-search-plus',
-	                                           context: this,
-	                                           callback: this.zoomIn
-	                                       }, {
-	                                           text: 'Zoom out',
-	                                           iconCls: 'fa fa-search-minus',
-	                                           context: this,
-	                                           callback: this.zoomOut
-	                                       }]})
-	                }
-
-	                // Create map 
-	                var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
-
-	                // Dark Mode Support
-	                if(this.isDarkTheme) { this._darkModeInit() }
-
-					// Load Google Places Search Control
-	                if(this.isArgTrue(googlePlacesSearch)) {
-	                    this.getStoredApiKey({user: googlePlacesApiKeyUser,
-	                                          realm: googlePlacesApiKeyRealm,
-	                                          context: this})
-	                    .then($.proxy(function(googlePlacesApiKey) {
-	                        loadGoogleMapsAPI({key: googlePlacesApiKey,
-	                                           libraries: ['places']}).then(function(google) {
-	                            new L.Control.GPlaceAutocomplete({
-	                                position: googlePlacesPosition,
-	                                callback: function(l){
-	                                    var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng())
-	                                    map.flyTo(latlng, googlePlacesZoomLevel)
-	                                }
-	                            }).addTo(map)
-	                        }).catch(function(err) {
-	                            //console.error(err)
-	                            console.err("Failed to initialize Google Places search control")
-	                        })
-	                    }, this))
-	                }
-
-	                // Create Bing Map
-	                if(this.isArgTrue(bingMaps)) {
-	                    if(!_.isEmpty(bingMapsApiKeyUser)) {
-	                        this.getStoredApiKey({user: bingMapsApiKeyUser,
-	                                              realm: bingMapsApiKeyRealm,
-	                                              context: this})
-	                        .then($.proxy(function(bingMapsApiKey) {
-	                            var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
-	                                                                  imagerySet: bingMapsTileLayer,
-	                                                                  culture: bingMapsLabelLanguage,
-	                                                                  minZoom: minZoom,
-	                                                                  maxZoom: maxZoom}
-
-	                            this.tileLayer = L.tileLayer.bing(this.bingOptions)
-	                        }, this))
-	                        .done($.proxy(function() {
-	                            // Add tile layer to map
-	                            this.map.addLayer(this.tileLayer)
-	                        }, this))
-	                    } else {
-	                        var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
-	                                                              imagerySet: bingMapsTileLayer,
-	                                                              culture: bingMapsLabelLanguage,
-	                                                              minZoom: minZoom,
-	                                                              maxZoom: maxZoom}
-	                        this.tileLayer = L.tileLayer.bing(this.bingOptions)
-	                        // Add tile layer to map
-	                        this.map.addLayer(this.tileLayer)
-	                    }
-	                } else {
-	                    // Setup the tile layer with map tile, zoom and attribution
-	                    this.tileLayer = L.tileLayer(this.activeTile, {
-	                        attribution: this.attribution,
-	                        minZoom: minZoom,
-	                        maxZoom: maxZoom
-	                    })
-	                    // Add tile layer to map
-	                    this.map.addLayer(this.tileLayer)    
-	                }
-
-	                this.markers = new L.MarkerClusterGroup({ 
-	                    chunkedLoading: true,
-	                    maxClusterRadius: maxClusterRadius,
-	                    removeOutsideVisibleBounds: true,
-	                    maxSpiderfySize: maxSpiderfySize,
-	                    spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
-	                    singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
-	                    animate: (this.isArgTrue(animate)),
-	                    iconCreateFunction: function(cluster) {
-	                        var childCount = cluster.getChildCount()
-	                        var c = ' marker-cluster-'
-	                        if (childCount >= criticalThreshold) {
-	                            c += 'three'
-	                        } else if (childCount >= warningThreshold) {
-	                            c += 'two'
-	                        } else {
-	                            c += 'one'
-	                        }
-	                        return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
-	                    }
-	                })
-
-	                // Create layer control
-	                var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
-
-	                let measureControl = this.measureControl
-
-	                var measureFeatures = this.measureFeatures = L.layerGroup()
-					
-					// Get map size
-					var mapSize = this.mapSize = this.map.getSize()
-
-	                // Get parent element of div to resize 
-	                // Nesting of Div's is different, try 7.x first
-	                this.parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
-	                this.parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
-
-	                // Default to 6.x view
-	                if(this.parentView != 'views/shared/ReportVisualizer') {
-	                    this.parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
-	                    this.parentView = $(this.el).parent().parent().closest("div").attr("data-view")
-	                }
-	 
-	                // Map Full Screen Mode
-	                if (this.isArgTrue(fullScreen)) {
-	                    this._setFullScreenMode(this.map, {parentEl: this.parentEl})
-	                } else {
-	                    this._setDefaultHeight(this.map, {parentEl: this.parentEl,
-	                                                      defaultHeight: defaultHeight})
-	                }
-
-	                // Enable measure tool plugin and add to map
-	                if(this.isArgTrue(measureTool)) {
-	                    var measureOptions = { position: measureIconPosition,
-	                                           activeColor: measureActiveColor,
-	                                           completedColor: measureCompletedColor,
-	                                           primaryLengthUnit: measurePrimaryLengthUnit,
-	                                           secondaryLengthUnit: measureSecondaryLengthUnit,
-	                                           primaryAreaUnit: measurePrimaryAreaUnit,
-	                                           secondaryAreaUnit: measureSecondaryAreaUnit,
-	                                           localization: measureLocalization,
-	                                           features: this.measureFeatures,
-	                                           map: this.map}
-
-	                    // var measureControl = new L.Control.Measure(measureOptions)
-	                    this.measureControl = new L.Control.Measure(measureOptions)
-	                    this.measureControl.addTo(this.map)
-
-	                    if(this.isDarkTheme) { this._darkModeUpdate() }                    
-	                }
-
-	                // Iterate through KML files and load overlays into layers on map 
-	                if(kmlOverlay) {
-	                    // Create array of kml/kmz files
-	                    var kmlFiles = kmlOverlay.split(/\s*,\s*/)
-						// Pane zIndex used to facilitate layering of multiple KML/KMZ files
-	                    var paneZIndex = this.paneZIndex = 400
-
-	                    // Loop through each file and load it onto the map
-	                    _.each(kmlFiles.reverse(), function(file, i) {
-	                        var url = location.origin + this.contribUri + '/kml/' + file
-	                        this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
-	                        this.paneZIndex = this.paneZIndex - (i+1)
-	                    }, this)
-	                }
-	                
-	                //var pathLineLayer = this.pathLineLayer = L.layerGroup()
-	                var pathLineLayers = this.pathLineLayers = {}
-	                
-	                // Store heatmap layers
-	                var heatLayers = this.heatLayers = {}
-
-	                // Polygon layers
-	                var featureLayers = this.featureLayers = {}
-	               
-	                // Init defaults
-	                this.chunk = 50000
-	                this.offset = 0
-					this.isInitializedDom = true         
-	                this.allDataProcessed = false
-
-	                // Load localization file and init locale
-	                var i18n = $.i18n()
-	                i18n.locale = i18nLanguage
-	                i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
-	                
-	                if(this.isArgTrue(showProgress)) {
-	                    this.map.spin(true)
-	                }
-
-	                // Init playback
-	                var playbackOptions = {                   
-	                    playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
-	                    dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
-	                    sliderControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackSliderControl):false,
-	                    tracksLayer: false,
-	                    tickLen: playbackTickLength,
-	                    speed: playbackSpeed,
-	                    showPlayback: this.isArgTrue(showPlayback),
-	                    labels: true,
-	                    marker: function(f){
-	                        return {
-	                            icon: L.VectorMarkers.icon({
-	                                icon: f.properties.icon,
-	                                markerColor: f.properties.path_options.color,
-	                                prefix: f.properties.prefix,
-	                            })
-	                        }
-	                    }
-	                }
-
-	                // Add clear playback menu item to contextmenu
-	                if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
-	                    this.map.contextmenu.insertItem({text: 'Clear Playback',
-	                                                     context: this,
-	                                                     callback: this.clearPlayback}, 0)
-	                    this.map.contextmenu.insertItem({text: 'Reset Playback',
-	                                                     context: this,
-	                                                     callback: this.resetPlayback}, 1)                                                     
-	                    this.map.contextmenu.insertItem({text: 'Add All To Playback',
-	                                                     context: this,
-	                                                     callback: this.addAllToPlayback}, 2)
-	                    // Flag that we're showing menu item                                                        
-	                    this.showClearPlayback = true                                                    
-	                }                        
-	                    // Initialize playback
-	                var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
-
-	                // Save context menu target to use with add/remove playback on paths
-	                if(this.isArgTrue(contextMenu)) {
-	                    L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
-	                        if(_.has(e, 'relatedTarget')) {
-	                            this.contextMenuTarget = e.relatedTarget
-	                        }                        
-	                    }, this)
-	                }       
-	            } 
-
-	            // Map Scroll
-	            (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
-
-	            if(!this.isArgTrue(bingMaps)) {
-	                // Reset Tile If Changed
-	                if(this.tileLayer._url != this.activeTile) {
-	                    this.tileLayer.setUrl(this.activeTile)
-	                }
-	            }   
-
-	            // Reset tile zoom levels if changed
-	            if(!_.isNull(this.tileLayer)) {
-	                if (this.tileLayer.options.maxZoom != maxZoom) {
-	                    this.tileLayer.options.maxZoom = maxZoom
-	                }
-	                
-	                if (this.tileLayer.options.minZoom != minZoom) {
-	                    this.tileLayer.options.minZoom = minZoom
-	                }
-	            }
-
-	            // Reset map zoom
-	            if (this.map.getZoom() != mapCenterZoom) {
-	                this.map.setZoom(mapCenterZoom)
-	            }
-
-	           
-				/********* BEGIN PROCESSING DATA **********/
-	 
-	            // Iterate through each row creating layer groups per icon type
-	            // and create markers appending to a markerList in each layerfilter object
-	            _.each(dataRows, function(userData, i) {
-	                // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
-	                //     if(!this.isArgTrue(userData["markerVisibility"])) {
-	                //         console.log("true -- good")
-	                //     } else {
-	                //         console.log("skipping")
-	                //         return
-	                //     }
-	                    
-	                //if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
-	                //console.log(this.isArgTrue(userData["markerVisibility"]))
-	                //if (_.has(userData,"markerVisibility") && !this.isArgTrue(userData["markerVisibility"])) {
-	                    // Skip the marker to improve performance of rendering
-	                    
-	                // }
-
-	                                // Get marker and icon properties	
-					var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
-	                    markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
-	                    iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
-	                    customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
-	                    markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
-	                    markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
-	                    shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
-	                    shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
-	                    markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
-	                    layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):undefined,
-	                    title = _.has(userData, "title") ? userData["title"]:null,
-	                    tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
-	                    prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
-	                    extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
-	                    circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
-	                    circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,
-	                    circleColor = _.has(userData, "circleColor") ? this.convertHex(userData["circleColor"]):this.convertHex("#3388ff"),
-	                    circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
-	                    circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
-	                    circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
-	                    circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
-	                    layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
-	                    layerVisibility = _.has(userData, "layerVisibility") ? this.isArgTrue(userData["layerVisibility"]):true,
-	                    description = _.has(userData, "description") ? userData["description"]:null,
-	                    featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
-	                    featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
-	                    featureColor = _.has(userData, "featureColor") ? this.convertHex(userData["featureColor"]):this.convertHex("#3388ff"),
-	                    featureWeight = _.has(userData, "featureWeight") ? userData["featureWeight"]:3,
-	                    featureOpacity = _.has(userData, "featureOpacity") ? userData["featureOpacity"]:1.0,
-	                    featureStroke = _.has(userData, "featureStroke") ? this.isArgTrue(userData["featureStroke"]):true,
-	                    featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
-	                    featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
-	                    featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
-	                    featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10                    
-
-	                // Add heatmap layer
-	                if (this.isArgTrue(heatmapEnable)) {
-	                    var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
-	                        heatmapMinOpacityM = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
-	                        heatmapRadiusM = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
-	                        heatmapBlurM = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
-	                        heatmapColorGradientM = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
-	                        heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
-
-	                    if(!_.has(this.heatLayers, this.heatLayer)) {
-	                        // Create feature group
-	                        var heatFg = L.featureGroup()
-
-	                        // Create heat layer
-	                        var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacityM,
-	                                                        radius: heatmapRadiusM,
-	                                                        gradient: heatmapColorGradientM,
-	                                                        blur: heatmapBlurM,
-	                                                        map: this.map})
-
-	                        // Add to feature group                                
-	                        heatFg.addLayer(heatFgLayer)
-	                        heatFg.options.name = this.heatLayer
-	                        heatFg.options.layerDescription = layerDescription
-	                        heatFg.options.layerType = "heat"
-	                        heatFg.options.layerPriority = layerPriority
-	                        heatFg.options.layerInclude = heatmapInclude
-	                        heatFg.options.layerVisibility = layerVisibility
-	                        this.heatLayers[this.heatLayer] = heatFg
-	                    }
-
-	                    var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
-
-	                    if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
-	                        console.warn("Feature detected - not adding to heatmap")
-	                    }
-
-	                    if(userData['latitude'] && userData['longitude'] && heatmapInclude) {
-	                        var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
-	                        this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
-	                    }
-
-	                    if(this.isArgTrue(heatmapOnly)) {
-	                        return
-	                    }
-	                }
-
-	                // Feature Layer implemented as polygon, but could be point, line or polygon
-	                if(_.has(userData, "feature")) {
-	                    const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
-	                    let feature
-
-	                    if(!_.has(this.featureLayers, this.featureLayer)) {
-	                        let featureFg = L.featureGroup()
-	                        featureFg.options.name = this.featureLayer
-	                        featureFg.options.layerDescription = layerDescription
-	                        featureFg.options.layerPriority = layerPriority
-	                        featureFg.options.layerVisibility = layerVisibility
-	                        this.featureLayers[this.featureLayer] = featureFg
-	                    }
-
-	                    let latlngs = _.map(userData["feature"].split(';'), function(coordinates) {
-	                        let latlngarr = coordinates.split(',')
-	                        return L.latLng({lat: parseFloat(latlngarr[0]),
-	                                         lng: parseFloat(latlngarr[1])})
-	                    })
-
-	                    if(latlngs.length === 1) {
-	                        feature = L.circleMarker(latlngs[0], {color: featureColor,
-	                            weight: featureWeight,
-	                            radius: featureRadius,
-	                            opacity: featureOpacity,
-	                            stroke: featureStroke,
-	                            fill: featureFill,
-	                            fillOpacity: featureFillOpacity,
-	                            fillColor: featureFillColor})
-	                    } else {
-	                        feature = L.polygon(latlngs, {color: featureColor,
-	                            weight: featureWeight,
-	                            opacity: featureOpacity,
-	                            stroke: featureStroke,
-	                            fill: featureFill,
-	                            fillOpacity: featureFillOpacity,
-	                            fillColor: featureFillColor})
-	                    }
-
-	                    if(!_.isNull(featureDescription)) {
-	                        feature.bindPopup(featureDescription)
-	                    }
-
-	                    if(!_.isNull(featureTooltip)) {
-	                        feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
-	                                                             direction: 'auto',
-	                                                             sticky: this.isArgTrue(stickyTooltip)})
-	                    }
-	                    this.featureLayers[this.featureLayer].addLayer(feature)
-
-	                    // No latitude or longitude fields
-	                    if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
-	                        return
-	                    }
-	                }
-
-	                // Set icon options
-	                var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
-	                var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
-	                var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
-	                var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
-	                var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
-	                var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
-	                var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
-
-	                // When using ionicons use material design by default unless explicitly set
-	                if(prefix == "ion") { 
-	                    if(!/^(md|ios|logo)-/.test(icon)) {
-	                        prefix += "-md"
-	                        layerIconPrefix += "-md"
-	                    }
-	                }
-	            
-	                // Set icon class
-	                if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
-	                    var className = ""
-	                    var popupAnchor = [-3, -35]
-	                } else {
-	                    var className = "awesome-marker"
-	                    var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35]
-	                }
-
-					// SVG and PNG based markers both support hex iconColor do conversion outside
-					iconColor = this.convertHex(iconColor)	
-
-	                markerType = _.isNull(customIcon) ? markerType:"custom"
-
-	                // Create marker
-	                if(markerType == "custom") {
-	                    var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
-	                    
-	                    var markerIcon = L.icon({
-	                        iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
-	                        shadowUrl: customIconShadow,
-	                        iconSize: markerSize,
-	                        iconAnchor: markerAnchor,
-	                        shadowAnchor: shadowAnchor,
-	                        popupAnchor: popupAnchor
-	                    })
-	                }
-
-	                if (markerType == "svg") {
-						// Update marker to shade of Awesome Marker blue
-						if(markerColor == "blue") { markerColor = "#38AADD" }
-	                    markerColor = this.convertHex(markerColor)
-	                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
-	                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
-
-	                    var markerIcon = L.VectorMarkers.icon({
-	                        icon: icon,
-	                        iconColor: iconColor,
-	                        markerColor: markerColor,
-	                        shadowSize: shadowSize,
-	                        shadowAnchor: shadowAnchor,
-	                        extraIconClasses: extraClasses,
-	                        prefix: prefix,
-	                        popupAnchor: popupAnchor,
-	                        iconSize: markerSize,
-	                        iconAnchor: markerAnchor,
-	                    })
-	                } 
-	                
-	                if(markerType == "png") {
-	                    // Create markerIcon
-	                    layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
-	                    if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
-	                    var markerIcon = L.AwesomeMarkers.icon({
-	                        icon: icon,
-	                        markerColor: markerColor,
-	                        iconColor: iconColor,
-	                        prefix: prefix,
-	                        className: className,
-	                        extraClasses: extraClasses,
-	                        popupAnchor: popupAnchor,
-	                        description: description,
-	                        iconAnchor: markerAnchor
-	                    })
-	                }
-
-	                if(markerType == "icon") {
-	                    popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
-	                    className = "icon-only"
-	                    var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
-	                    var markerIcon = L.divIcon({
-	                        html: divIconHtml,
-	                        className: className,
-	                        icon: icon,
-	                        markerColor: iconColor,
-	                        iconColor: iconColor,
-	                        prefix: prefix,
-	                        extraClasses: extraClasses,
-	                        popupAnchor: popupAnchor,
-	                        description: description,
-	                        iconAnchor: markerAnchor
-	                    })
-	                }
-
-	                if(!this.validMarkerTypes.includes(markerType)) {
-	                    // throw viz error
-	                    throw new SplunkVisualizationBase.VisualizationError(
-	                        'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle'
-	                    )
-	                }
-
-	                var markerOptions = {markerType: markerType,
-	                    radius: circleRadius,
-	                    stroke: circleStroke,
-	                    color: circleColor,
-	                    weight: circleWeight,
-	                    opacity: circleOpacity,
-	                    fillColor: circleFillColor,
-	                    fillOpacity: circleFillOpacity,
-	                    userData: userData,
-	                    markerIcon: markerIcon,
-	                    layerDescription: layerDescription,
-	                    markerPriority: markerPriority,
-	                    layerPriority: layerPriority,
-	                    permanentTooltip: this.isArgTrue(permanentTooltip),
-	                    stickyTooltip: this.isArgTrue(stickyTooltip),
-	                    cluster: this.isArgTrue(cluster),
-	                    layerFilter: this.layerFilter,
-	                    layerGroup: layerGroup,
-	                    clusterGroup: clusterGroup,
-	                    tooltip: tooltip,
-	                    title: title,
-	                    drilldown: drilldown,
-	                    drilldownAction: drilldownAction}
-
-	                // Create Cluster Group
-	                if(_.isUndefined(this.clusterGroups[clusterGroup])) {
-	                    var cg = this._createClusterGroup(disableClusteringAtZoom,
-	                                                        disableClusteringAtZoomLevel,
-	                                                        maxClusterRadius,
-	                                                        maxSpiderfySize,
-	                                                        spiderfyDistanceMultiplier,
-	                                                        singleMarkerMode,
-	                                                        animate,
-	                                                        criticalThreshold,
-	                                                        warningThreshold,
-	                                                        this)
-
-	                    this.clusterGroups[clusterGroup] = cg
-	                    cg.addTo(this.map)
-	                }
-
-	                // Create Clustered featuregroup subgroup layer
-	                if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
-	                    this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
-	                                                    'iconStyle' : icon,
-	                                                    'layerExists' : false,
-	                                                    'clusterGroup': []
-	                                                    }
-	                // Create regular feature group
-	                } else if (_.isUndefined(this.layerFilter[layerGroup])) {
-	                    this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
-	                                                    'markerList' : [],
-	                                                    'iconStyle' : icon,
-	                                                    'layerExists' : false
-	                                                    }
-	                }
-
-	                // Add clusterGroup to layerGroup
-	                if(this.isArgTrue(cluster)
-	                    && clusterGroup != ""
-	                    && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
-	                    this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
-	                                                                    'cg': this.clusterGroups[clusterGroup],
-	                                                                    'markerList': []})
-	                }
-
-	                if (!_.isUndefined(this.layerFilter[layerGroup])) {
-	                    this.layerFilter[layerGroup].layerDescription = layerDescription
-	                    this.layerFilter[layerGroup].layerIcon = layerIcon
-	                    this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
-	                    this.layerFilter[layerGroup].layerIconColor = layerIconColor
-	                    this.layerFilter[layerGroup].layerIconSize = layerIconSize
-	                    this.layerFilter[layerGroup].layerVisibility = layerVisibility
-	                }
-
-	                if (_.has(userData, "markerVisibility")) {
-	                    if (userData["markerVisibility"] == "marker" || this.isArgTrue(userData["markerVisibility"])) {
-	                        this._addMarker(markerOptions)
-	                    }
-	                } else {
-	                    this._addMarker(markerOptions)
-	                }
-	            }, this)
-	            
-	            // Enable layer controls and toggle collapse 
-	            if (this.isArgTrue(layerControl)) {           
-	                this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
-	                this.control.addTo(this.map)                
-	                if(this.isDarkTheme) { this._darkModeUpdate() }
-	            } 
-
-	            // Clustered
-	            if (this.isArgTrue(cluster)) {
-	                this._addClustered(this.map, {layerFilter: this.layerFilter,
-	                                              layerControl: this.isArgTrue(layerControl),
-	                                              control: this.control,
-	                                              context: this})
-	            // Single value or Circle Marker
-	            } else {
-	                this._addUnclustered(this.map, {layerFilter: this.layerFilter,
-	                                                layerControl: this.isArgTrue(layerControl),
-	                                                allPopups: this.isArgTrue(allPopups),
-	                                                paneZIndex: this.paneZIndex,
-	                                                control: this.control,
-	                                                context: this})
-	            }
-
-	            // Draw path lines
-	            if (this.isArgTrue(showPathLines)) {
-	                var activePaths = []
-	                var colors = _.map(pathColorList.split(','), function(color) {
-	                    return this.convertHex(color)
-	                }, this)
-
-	                var pathData = this.pathData = []
-	                var interval = pathSplitInterval * 1000
-	                var intervalCounter = 0
-	                var previousTime = new Date()
-
-	                var paths = _.chain(dataRows)
-	                    .map(function (d) {            
-	                        var colorIndex = 0
-	                            pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5
-	                            pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5
-							    dt = _.has(d, "_time") ? moment(d["_time"]):""
-	                            tooltip = _.has(d, "tooltip") ? d["tooltip"]:""
-	                            description = _.has(d, "description") ? d["description"]:""
-	                            antPath = _.has(d, "antPath") ? d["antPath"]:null
-	                            antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000
-	                            antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF"
-	                            antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false
-	                            antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
-	                            antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
-	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
-	                            layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
-	                            layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
-	                            layerVisibility = _.has(d, "layerVisibility") ? d["layerVisibility"]:true,
-	                            pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
-	                            playback = _.has(d, "playback") ? d["playback"]:showPlayback,
-	                            prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
-	                            icon = _.has(d, "icon") ? d["icon"]:"play-circle"
-
-	                        if (pathIdentifier) {
-	                            var id = d[pathIdentifier]
-	                            var colorIndex = activePaths.indexOf(id)
-	                            if (colorIndex < 0) {
-	                                colorIndex = activePaths.push(id) - 1
-	                            }
-	                        }
-	                        var color = (_.has(d, "pathColor")) ? d["pathColor"] : colors[colorIndex % colors.length]
-	                        return {
-	                            'time': dt,
-	                            'id': id,
-	                            'coordinates': L.latLng(d['latitude'], d['longitude']),
-	                            'latlng': [parseFloat(d['longitude']),parseFloat(d['latitude'])],
-	                            'colorIndex': colorIndex,
-	                            'pathWeight': pathWeight,
-	                            'pathOpacity': pathOpacity,
-	                            'tooltip': tooltip,
-	                            'description': description,
-	                            'permanentTooltip': permanentTooltip,
-	                            'stickyTooltip': stickyTooltip,
-	                            'color': color,
-	                            'antPath': antPath,
-	                            'antPathDelay': antPathDelay,
-	                            'antPathPulseColor': antPathPulseColor,
-	                            'antPathPaused': antPathPaused,
-	                            'antPathReverse': antPathReverse,
-	                            'antPathDashArray': antPathDashArray,
-	                            'layerDescription': layerDescription,
-	                            'layerPriority': layerPriority,
-	                            'layerVisibility': layerVisibility,
-	                            'pathLayer': pathLayer,
-	                            'playback': playback,
-	                            'showPlayback': showPlayback,
-	                            'layerControl': layerControl,
-	                            'layerType': "path",
-	                            'icon': icon,
-	                            'prefix': prefix,
-	                            'unixtime': dt.valueOf()
-	                        }
-	                    })
-	                    .each(function(d) {
-	                        var dt = d.time
-	                        if (interval && Math.abs(previousTime - dt) > interval) {
-	                            intervalCounter++
-	                        }
-	                        d.interval = 'interval' + intervalCounter
-
-	                        previousTime = dt
-	                    })
-	                    .groupBy(function(d) {
-	                        return d.id
-	                    })
-	                    .values()
-	                    .value()
-
-	                if(this.isArgTrue(pathSplits)) {
-	                    _.each(paths, function(path, i) {
-	                        this.pathData = _.chain(path)
-	                            .groupBy(function(d) {
-	                                return d.interval
-	                        })
-	                        .values()
-	                        .value()
-	                        this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
-	                    }, this)
-	                } else {
-	                    this.pathData = paths
-	                    this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
-	                }
-	            }
-
-
-	 			/*
-	             * Fix for hidden divs using tokens in Splunk
-	             * https://github.com/Leaflet/Leaflet/issues/2738
-	             */
-	            if(this.mapSize.x == 0 && this.mapSize.y == 0) {
-	                var intervalId = this.intervalId = setInterval(function(that) {
-	                    curSize = that.curSize = that.map.getSize()
-	                    that.map.invalidateSize()
-	                    if(that.curSize.x > 0 && that.curSize.y > 0) {
-	                        clearInterval(that.intervalId)
-	                    }
-	                }, 500, this)
-	            }
-
-	            // Update offset and fetch next chunk of data
-	            // if(this.isSplunkSeven) {
-	            this.offset += dataRows.length
-
-	            setTimeout(function(that) {
-	                that.updateDataParams({count: that.chunk, offset: that.offset})
-	            }, 100, this)
-
-	            return this
 	        }
 	    })
+	},
+
+	_addUnclustered: function(map, options) {
+	    _.chain(options.layerFilter)
+	    .sortBy(function(d) {
+	        if(_.has(d.circle, "layerPriority") && !_.isUndefined(d.circle.layerPriority)){
+	            return +d.circle.layerPriority
+	        } else {
+	            return d
+	        }                
+	    })
+	    .each(function(lg) {
+	        if(!_.isEmpty(lg.markerList)) {
+	            if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+	                map.createPane(options.paneZIndex.toString())
+	                map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndexs
+	            }
+
+	            // Loop through markers and add to map
+	            _.each(lg.markerList, function(m) {                    
+	                if(options.allPopups) {
+	                    m.addTo(lg.group).bindPopup(m.options.icon.options.description).openPopup()
+	                } else {
+	                    m.addTo(lg.group)
+	                }
+	            })
+
+	            if(_.has(lg.circle, "layerPriority") && !_.isUndefined(lg.circle.layerPriority)){
+	                lg.group.setStyle({pane: options.paneZIndex.toString()})
+	                options.paneZIndex += 1
+	            }
+
+	            // Add layergroup to map
+	            lg.group.addTo(map)
+	            
+	            //options.paneZIndex += 1
+
+	            // Add layer controls
+	            if(options.layerControl) {
+	                options.context.addLayerToControl({layerGroup: lg, control: options.control})
+	            }
+	        }
+	    })
+	},
+
+	_renderLayersToMap: function(map, options) {
+	    _.chain(options.layers)
+	    .sortBy(function(d) {
+	        if(!_.isUndefined(d.options.layerPriority)){
+	            return +d.options.layerPriority
+	        } else {
+	            return d
+	        }
+	    })
+	    .each(function(lg) {
+	        // Create pane and set zIndex
+	        if(!_.isUndefined(lg.options.layerPriority)){
+	            let styleOptions = {pane: options.paneZIndex.toString(), 
+	                                renderer: L.svg({pane: options.paneZIndex.toString()})}
+
+	            map.createPane(options.paneZIndex.toString())
+	            map.getPane(options.paneZIndex.toString()).style.zIndex = options.paneZIndex
+	            lg.setStyle(styleOptions)
+	        }
+
+	        lg.eachLayer(function(l) {
+	            if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
+	        })                
+	        
+	        // Check if layer is already on the map, remove before re-adding
+	        if(map.hasLayer(lg)) {
+	            map.removeLayer(lg)
+	        }
+	        // Add layer controls
+	        lg.addTo(map)
+
+	        // Increment zIndex
+	        if(!_.isUndefined(lg.options.layerPriority)){ options.paneZIndex += 1 }
+
+	        // Add layer to control
+	        if(options.layerControl) {
+	            var layerOptions = {layerType: options.layerType,
+	                                featureGroup: lg,
+	                                control: options.control}
+	            options.context.addLayerToControl(layerOptions)   
+	        }
+	    })
+	},
+
+	formatData: function(data) {
+	    if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
+	        this.allDataProcessed = true
+	        return this
+	    }
+	    
+	    if(data.results.length == 0)  {
+	        return this
+	    }
+
+	    this.allDataProcessed = false
+	    return data
+	},
+
+	// Do the work of creating the viz
+	updateView: function(data, config) {
+	    // viz gets passed empty config until you click the 'format' dropdown
+	    // intialize with defaults
+	    if(_.keys(config).length <= 1) {
+	        config = this.defaultConfig
+	    }
+
+	    // Populate any missing config values with defaults
+	    _.defaults(config, this.defaultConfig)
+
+	    // get configs
+	    var cluster     = parseInt(this._getEscapedProperty('cluster', config)),
+	        allPopups   = parseInt(this._getEscapedProperty('allPopups', config)),
+	        multiplePopups = parseInt(this._getEscapedProperty('multiplePopups', config)),
+	        animate     = parseInt(this._getEscapedProperty('animate', config)),
+	        singleMarkerMode = parseInt(this._getEscapedProperty('singleMarkerMode', config)),
+	        disableClusteringAtZoom = parseInt(this._getEscapedProperty('disableClusteringAtZoom', config)),
+	        disableClusteringAtZoomLevel = parseInt(this._getEscapedProperty('disableClusteringAtZoomLevel', config)),
+	        maxClusterRadius = parseInt(this._getEscapedProperty('maxClusterRadius', config)),
+	        maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
+	        spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
+	        mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
+	        i18nLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('i18nLanguage', config)),
+	        mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
+	        mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
+	        layerControl = parseInt(this._getEscapedProperty('layerControl', config)),
+	        layerControlCollapsed = parseInt(this._getEscapedProperty('layerControlCollapsed', config)),
+	        scrollWheelZoom = parseInt(this._getEscapedProperty('scrollWheelZoom', config)),
+	        fullScreen = parseInt(this._getEscapedProperty('fullScreen', config)),
+	        drilldown = parseInt(this._getEscapedProperty('drilldown', config)),
+	        drilldownAction = this._getEscapedProperty('drilldownAction', config),
+	        contextMenu = parseInt(this._getEscapedProperty('contextMenu', config)),
+	        defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
+	        autoFitAndZoom = parseInt(this._getEscapedProperty('autoFitAndZoom', config)),
+	        autoFitAndZoomDelay = parseInt(this._getEscapedProperty('autoFitAndZoomDelay', config)),
+	        mapCenterZoom = parseInt(this._getEscapedProperty('mapCenterZoom', config)),
+	        mapCenterLat = parseFloat(this._getEscapedProperty('mapCenterLat', config)),
+	        mapCenterLon = parseFloat(this._getEscapedProperty('mapCenterLon', config)),
+	        minZoom     = parseInt(this._getEscapedProperty('minZoom', config)),
+	        maxZoom     = parseInt(this._getEscapedProperty('maxZoom', config)),
+	        permanentTooltip = parseInt(this._getEscapedProperty('permanentTooltip', config)),
+	        stickyTooltip = parseInt(this._getEscapedProperty('stickyTooltip', config)),
+	        googlePlacesSearch = parseInt(this._getEscapedProperty('googlePlacesSearch', config)),
+	        googlePlacesApiKeyUser = this._getEscapedProperty('googlePlacesApiKeyUser', config),
+	        googlePlacesApiKeyRealm = this._getEscapedProperty('googlePlacesApiKeyRealm', config),
+	        googlePlacesZoomLevel = parseInt(this._getEscapedProperty('googlePlacesZoomLevel', config)),
+	        googlePlacesPosition = this._getEscapedProperty('googlePlacesPosition', config),
+	        bingMaps = parseInt(this._getEscapedProperty('bingMaps', config)),
+	        bingMapsApiKey = this._getEscapedProperty('bingMapsApiKey', config),
+	        bingMapsApiKeyUser = this._getEscapedProperty('bingMapsApiKeyUser', config),
+	        bingMapsApiKeyRealm = this._getEscapedProperty('bingMapsApiKeyRealm', config),
+	        bingMapsTileLayer = this._getEscapedProperty('bingMapsTileLayer', config),
+	        bingMapsLabelLanguage = this._getEscapedProperty('bingMapsLabelLanguage', config),
+	        kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
+	        rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
+	        rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
+	        warningThreshold = this._getEscapedProperty('warningThreshold', config),
+	        rangeTwoBgColor = this._getEscapedProperty('rangeTwoBgColor', config),
+	        rangeTwoFgColor = this._getEscapedProperty('rangeTwoFgColor', config),
+	        criticalThreshold = this._getEscapedProperty('criticalThreshold', config),
+	        rangeThreeBgColor = this._getEscapedProperty('rangeThreeBgColor', config),
+	        rangeThreeFgColor = this._getEscapedProperty('rangeThreeFgColor', config),
+	        measureTool = parseInt(this._getEscapedProperty('measureTool', config)),
+	        measureIconPosition = this._getEscapedProperty('measureIconPosition', config),
+	        measurePrimaryLengthUnit = this._getEscapedProperty('measurePrimaryLengthUnit', config),
+	        measureSecondaryLengthUnit = this._getEscapedProperty('measureSecondaryLengthUnit', config),
+	        measurePrimaryAreaUnit = this._getEscapedProperty('measurePrimaryAreaUnit', config),
+	        measureSecondaryAreaUnit = this._getEscapedProperty('measureSecondaryAreaUnit', config),
+	        measureActiveColor = this._getEscapedProperty('measureActiveColor', config),
+	        measureCompletedColor = this._getEscapedProperty('measureCompletedColor', config),
+	        measureLocalization = this._getEscapedProperty('measureLocalization', config),
+	        showPathLines = parseInt(this._getEscapedProperty('showPathLines', config)),
+	        pathIdentifier = this._getEscapedProperty('pathIdentifier', config),
+	        pathColorList = this._getEscapedProperty('pathColorList', config),
+	        showPlayback = parseInt(this._getEscapedProperty('showPlayback', config)),
+	        showPlaybackSliderControl = parseInt(this._getEscapedProperty('showPlaybackSliderControl', config)),
+	        showPlaybackDateControl = parseInt(this._getEscapedProperty('showPlaybackDateControl', config)),
+	        showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
+	        playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
+	        playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
+	        refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
+	        heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
+	        heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
+	        heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
+	        heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
+	        heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
+	        heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
+	        splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
+	        antarcticProj = parseInt(this._getEscapedProperty('antarcticProj', config)),
+	        tileSize = parseInt(this._getEscapedProperty('tileSize', config)),
+	        showProgress = parseInt(this._getEscapedProperty('showProgress', config))
+
+	    // Auto Fit & Zoom once we've processed all data
+	    if(this.allDataProcessed) {
+	        // this._updateMap(this.map, {
+	        //   showProgress: showProgress,
+	        //   heatmapEnable: heatmapEnable,
+	        //   heatLayers: this.heatLayers,
+	        //   control: this.control,
+	        //   layerControl: layerControl,
+	        // })
+
+	        if(this.isArgTrue(showProgress)) {
+	            if(!_.isUndefined(this.map)) {
+	                this.map.spin(false)
+	            }
+	        }
+	        
+	        // Render hetmap layer on map
+	        if(this.isArgTrue(heatmapEnable) && !_.isEmpty(this.heatLayers)) {
+	            this._renderLayersToMap(this.map, {layers: this.heatLayers,
+	                                              control: this.control,
+	                                              layerControl: this.isArgTrue(layerControl),
+	                                              layerType: "heat",
+	                                              paneZIndex: this.paneZIndex,
+	                                              context: this})
+	        }
+
+	        // Render paths to map
+	        if(this.isArgTrue(showPathLines) && !_.isEmpty(this.pathLineLayers)) {
+	            this._renderLayersToMap(this.map, {layers: this.pathLineLayers,
+	                                               control: this.control,
+	                                               layerControl: this.isArgTrue(layerControl),
+	                                               layerType: "path",
+	                                               paneZIndex: this.paneZIndex,
+	                                               //playback: true,
+	                                               playback: this.playback,
+	                                               showPlayback: this.isArgTrue(showPlayback),
+	                                               context: this})
+	        }
+	        
+	        if(!_.isEmpty(this.featureLayers)) {
+	            this._renderLayersToMap(this.map, {layers: this.featureLayers,
+	                control: this.control,
+	                layerControl: this.isArgTrue(layerControl),
+	                layerType: "feature",
+	                paneZIndex: this.paneZIndex,
+	                context: this})    
+	        }
+
+	        if(this.isArgTrue(autoFitAndZoom)) {
+	            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+	                                                                  layerFilter: this.layerFilter,
+	                                                                  heatLayers: this.heatLayers,
+	                                                                  pathLineLayers: this.pathLineLayers,
+	                                                                  featureLayers: this.featureLayers,
+	                                                                  context: this})
+	        }
+
+	        // Dashboard refresh
+	        if(refreshInterval > 0) {
+	            setTimeout(function() {
+	                location.reload()
+	            }, refreshInterval)
+	        }
+	    } 
+	    
+	    // Check for data and retrun if we don't have any
+	    if(!_.has(data, "results")) {
+	        return this
+	    }
+
+	    // get data
+	    var dataRows = data.results
+
+	    // check for data
+	    if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
+	        return this
+	    }
+
+	    if(this.isArgTrue(splunkVersionCheck)) {
+	        // Make sure we're on Splunk 7.x+
+	        if(!this.isSplunkSeven) {
+	            // Render warning modal
+	            this.renderModal('splunk-version-warning',
+	                    "Unsupported Splunk Version",
+	                    "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
+	                    'Close')
+
+	            // throw viz error
+	            throw new SplunkVisualizationBase.VisualizationError(
+	                'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
+	            )
+	        }
+	    }
+
+	    // Validate we have at least latitude and longitude fields
+	    if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
+	        if( !("feature" in dataRows[0])){
+	            throw new SplunkVisualizationBase.VisualizationError(
+	                'Incorrect Fields Detected - latitude & longitude fields required'
+	            )
+	        }
+	    }
+
+	    pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
+	    renderer = this._getEscapedProperty('renderer', config),
+	    pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
+
+	    this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile
+	    this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile]
+
+	    // Initialize the DOM
+	    if (!this.isInitializedDom) {
+	        // Set defaul icon image path
+	        L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/'
+
+	        // Create layer filter object
+	        var layerFilter = this.layerFilter = {}
+
+	        // Create clusterGroups
+	        var clusterGroups = this.clusterGroups = {}
+
+	        // Setup cluster marker CSS
+	        this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
+	        this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
+	        this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
+
+	        // Enable all or multiple popups
+	        if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
+	            L.Map = L.Map.extend({
+	                openPopup: function (popup, latlng, options) {
+	                    if (!(popup instanceof L.Popup)) {
+	                        popup = new L.Popup(options).setContent(popup)
+	                    }
+
+	                    if (latlng) {
+	                        popup.setLatLng(latlng)
+	                    }
+
+	                    if (this.hasLayer(popup)) {
+	                        return this
+	                    }
+
+	                    this._popup = popup
+	                    return this.addLayer(popup)
+	                }
+	            })
+
+	            // Disable close popup on click to allow multiple popups
+	            $.extend(this.mapOptions, { closePopupOnClick: false })
+	        }
+
+	        // Create canvas render and prever canvas for paths
+	        if(renderer == "canvas") {
+	            $.extend(this.mapOptions, { preferCanvas: true })
+	        }
+
+	        // Configure context menu
+	        if(this.isArgTrue(contextMenu)) {
+	            var contextMenuTarget = this.contextMenuTarget = undefined
+	            var contextMenuEnabled = this.contextMenuEnabled = true
+
+	            $.extend(this.mapOptions, {contextmenu: true,
+	                               contextmenuWidth: 140,
+	                               minZoom: minZoom,
+	                               maxZoom: maxZoom,
+	                               contextmenuItems: [{
+	                                   text: 'Show details',
+	                                   context: this,
+	                                   callback: this.showCoordinates
+	                               }, {
+	                                   text: 'Center map here',
+	                                   context: this,
+	                                   callback: this.centerMap
+	                               }, '-', {
+	                                       text: 'Auto Fit & Zoom',
+	                                       context: this,
+	                                       callback: this.fitLayerBounds
+	                               }, {
+	                                   text: 'Zoom in',
+	                                   iconCls: 'fa fa-search-plus',
+	                                   context: this,
+	                                   callback: this.zoomIn
+	                               }, {
+	                                   text: 'Zoom out',
+	                                   iconCls: 'fa fa-search-minus',
+	                                   context: this,
+	                                   callback: this.zoomOut
+	                               }]})
+	        }
+
+
+	        if(this.isArgTrue(antarcticProj)) {
+	            this.activeTile = "https://tile.gbif.org/3031/omt/{z}/{x}/{y}@1x.png?gbif-geyser"
+	            this.pixel_ratio = parseInt(window.devicePixelRatio) || 1;
+	    
+	            this.extent = 12367396.2185; // To the Equator
+	            this.resolutions = Array(maxZoom + 1)
+	                .fill()
+	                .map((_, i) => this.extent / tileSize / Math.pow(2, i - 1));
+	    
+	            var crsA = this.crsA = new L.Proj.CRS(
+	                "EPSG:3031",
+	                "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+	                {
+	                  origin: [-this.extent, this.extent],
+	                  projectedBounds: L.bounds(
+	                    L.point(-this.extent, this.extent),
+	                    L.point(this.extent, -this.extent)
+	                  ),
+	                  resolutions: this.resolutions
+	                }
+	              );
+	    
+	            $.extend(this.mapOptions, {
+	              crs: this.crsA,
+	              //worldCopyJump: true
+	            })
+	        }
+	        
+
+	        // Create map 
+	        var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+
+	        // Dark Mode Support
+	        if(this.isDarkTheme) { this._darkModeInit() }
+
+	        // Load Google Places Search Control
+	        if(this.isArgTrue(googlePlacesSearch)) {
+	            this.getStoredApiKey({user: googlePlacesApiKeyUser,
+	                                  realm: googlePlacesApiKeyRealm,
+	                                  context: this})
+	            .then($.proxy(function(googlePlacesApiKey) {
+	                loadGoogleMapsAPI({key: googlePlacesApiKey,
+	                                   libraries: ['places']}).then(function(google) {
+	                    new L.Control.GPlaceAutocomplete({
+	                        position: googlePlacesPosition,
+	                        callback: function(l){
+	                            var latlng = L.latLng(l.geometry.location.lat(), l.geometry.location.lng())
+	                            map.flyTo(latlng, googlePlacesZoomLevel)
+	                        }
+	                    }).addTo(map)
+	                }).catch(function(err) {
+	                    //console.error(err)
+	                    console.err("Failed to initialize Google Places search control")
+	                })
+	            }, this))
+	        }
+
+	        // Create Bing Map
+	        if(this.isArgTrue(bingMaps)) {
+	            if(!_.isEmpty(bingMapsApiKeyUser)) {
+	                this.getStoredApiKey({user: bingMapsApiKeyUser,
+	                                      realm: bingMapsApiKeyRealm,
+	                                      context: this})
+	                .then($.proxy(function(bingMapsApiKey) {
+	                    var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
+	                                                          imagerySet: bingMapsTileLayer,
+	                                                          culture: bingMapsLabelLanguage,
+	                                                          minZoom: minZoom,
+	                                                          maxZoom: maxZoom}
+
+	                    this.tileLayer = L.tileLayer.bing(this.bingOptions)
+	                }, this))
+	                .done($.proxy(function() {
+	                    // Add tile layer to map
+	                    this.map.addLayer(this.tileLayer)
+	                }, this))
+	            } else {
+	                var bingOptions = this.bingOptions = {bingMapsKey: bingMapsApiKey,
+	                                                      imagerySet: bingMapsTileLayer,
+	                                                      culture: bingMapsLabelLanguage,
+	                                                      minZoom: minZoom,
+	                                                      maxZoom: maxZoom}
+	                this.tileLayer = L.tileLayer.bing(this.bingOptions)
+	                // Add tile layer to map
+	                this.map.addLayer(this.tileLayer)
+	            }
+	        } else {
+	            this.tileOptions = {attribution: this.attribution,
+	                minZoom: minZoom,
+	                maxZoom: maxZoom
+	            }
+	            if(this.isArgTrue(antarcticProj)) {
+	                $.extend(this.tileOptions, {tileSize: tileSize})
+	            }
+
+	            // Setup the tile layer with map tile, zoom and attribution
+	            this.tileLayer = L.tileLayer(this.activeTile, this.tileOptions)
+
+	            // Add tile layer to map
+	            this.map.addLayer(this.tileLayer)    
+	        }
+
+	        this.markers = new L.MarkerClusterGroup({ 
+	            chunkedLoading: true,
+	            maxClusterRadius: maxClusterRadius,
+	            removeOutsideVisibleBounds: true,
+	            maxSpiderfySize: maxSpiderfySize,
+	            spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
+	            singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
+	            animate: (this.isArgTrue(animate)),
+	            iconCreateFunction: function(cluster) {
+	                var childCount = cluster.getChildCount()
+	                var c = ' marker-cluster-'
+	                if (childCount >= criticalThreshold) {
+	                    c += 'three'
+	                } else if (childCount >= warningThreshold) {
+	                    c += 'two'
+	                } else {
+	                    c += 'one'
+	                }
+	                return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
+	            }
+	        })
+
+	        // Create layer control
+	        var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
+
+	        let measureControl = this.measureControl
+
+	        var measureFeatures = this.measureFeatures = L.layerGroup()
+	        
+	        // Get map size
+	        var mapSize = this.mapSize = this.map.getSize()
+
+	        // Get parent element of div to resize 
+	        // Nesting of Div's is different, try 7.x first
+	        this.parentEl = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-cid")
+	        this.parentView = $(this.el).parent().parent().parent().parent().parent().closest("div").attr("data-view")
+
+	        // Default to 6.x view
+	        if(this.parentView != 'views/shared/ReportVisualizer') {
+	            this.parentEl = $(this.el).parent().parent().closest("div").attr("data-cid")
+	            this.parentView = $(this.el).parent().parent().closest("div").attr("data-view")
+	        }
+
+	        // Map Full Screen Mode
+	        if (this.isArgTrue(fullScreen)) {
+	            this._setFullScreenMode(this.map, {parentEl: this.parentEl})
+	        } else {
+	            this._setDefaultHeight(this.map, {parentEl: this.parentEl,
+	                                              defaultHeight: defaultHeight})
+	        }
+
+	        // Enable measure tool plugin and add to map
+	        if(this.isArgTrue(measureTool)) {
+	            var measureOptions = { position: measureIconPosition,
+	                                   activeColor: measureActiveColor,
+	                                   completedColor: measureCompletedColor,
+	                                   primaryLengthUnit: measurePrimaryLengthUnit,
+	                                   secondaryLengthUnit: measureSecondaryLengthUnit,
+	                                   primaryAreaUnit: measurePrimaryAreaUnit,
+	                                   secondaryAreaUnit: measureSecondaryAreaUnit,
+	                                   localization: measureLocalization,
+	                                   features: this.measureFeatures,
+	                                   map: this.map}
+
+	            // var measureControl = new L.Control.Measure(measureOptions)
+	            this.measureControl = new L.Control.Measure(measureOptions)
+	            this.measureControl.addTo(this.map)
+
+	            if(this.isDarkTheme) { this._darkModeUpdate() }                    
+	        }
+
+	        // Iterate through KML files and load overlays into layers on map 
+	        if(kmlOverlay) {
+	            // Create array of kml/kmz files
+	            var kmlFiles = kmlOverlay.split(/\s*,\s*/)
+	            // Pane zIndex used to facilitate layering of multiple KML/KMZ files
+	            var paneZIndex = this.paneZIndex = 400
+
+	            // Loop through each file and load it onto the map
+	            _.each(kmlFiles.reverse(), function(file, i) {
+	                var url = location.origin + this.contribUri + '/kml/' + file
+	                this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
+	                this.paneZIndex = this.paneZIndex - (i+1)
+	            }, this)
+	        }
+	        
+	        //var pathLineLayer = this.pathLineLayer = L.layerGroup()
+	        var pathLineLayers = this.pathLineLayers = {}
+	        
+	        // Store heatmap layers
+	        var heatLayers = this.heatLayers = {}
+
+	        // Polygon layers
+	        var featureLayers = this.featureLayers = {}
+	       
+	        // Init defaults
+	        this.chunk = 50000
+	        this.offset = 0
+	        this.isInitializedDom = true         
+	        this.allDataProcessed = false
+
+	        // Load localization file and init locale
+	        var i18n = $.i18n()
+	        i18n.locale = i18nLanguage
+	        i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
+	        
+	        if(this.isArgTrue(showProgress)) {
+	            this.map.spin(true)
+	        }
+
+	        // Init playback
+	        var playbackOptions = {                   
+	            playControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackPlayControl):false,
+	            dateControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackDateControl): false,
+	            sliderControl: this.isArgTrue(showPlayback) ? this.isArgTrue(showPlaybackSliderControl):false,
+	            tracksLayer: false,
+	            tickLen: playbackTickLength,
+	            speed: playbackSpeed,
+	            showPlayback: this.isArgTrue(showPlayback),
+	            labels: true,
+	            marker: function(f){
+	                return {
+	                    icon: L.VectorMarkers.icon({
+	                        icon: f.properties.icon,
+	                        markerColor: f.properties.path_options.color,
+	                        prefix: f.properties.prefix,
+	                    })
+	                }
+	            }
+	        }
+
+	        // Add clear playback menu item to contextmenu
+	        if(this.isArgTrue(showPlayback) && !this.showClearPlayback && this.isArgTrue(contextMenu)) {
+	            this.map.contextmenu.insertItem({text: 'Clear Playback',
+	                                             context: this,
+	                                             callback: this.clearPlayback}, 0)
+	            this.map.contextmenu.insertItem({text: 'Reset Playback',
+	                                             context: this,
+	                                             callback: this.resetPlayback}, 1)                                                     
+	            this.map.contextmenu.insertItem({text: 'Add All To Playback',
+	                                             context: this,
+	                                             callback: this.addAllToPlayback}, 2)
+	            // Flag that we're showing menu item                                                        
+	            this.showClearPlayback = true                                                    
+	        }                        
+	            // Initialize playback
+	        var playback = this.playback = new L.Playback(this.map, null, null, playbackOptions)
+
+	        // Save context menu target to use with add/remove playback on paths
+	        if(this.isArgTrue(contextMenu)) {
+	            L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
+	                if(_.has(e, 'relatedTarget')) {
+	                    this.contextMenuTarget = e.relatedTarget
+	                }                        
+	            }, this)
+	        }       
+	    } 
+
+	    // Map Scroll
+	    (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
+
+	    if(!this.isArgTrue(bingMaps)) {
+	        // Reset Tile If Changed
+	        if(this.tileLayer._url != this.activeTile) {
+	            this.tileLayer.setUrl(this.activeTile)
+	        }
+	    }   
+
+	    // Reset tile zoom levels if changed
+	    if(!_.isNull(this.tileLayer)) {
+	        if (this.tileLayer.options.maxZoom != maxZoom) {
+	            this.tileLayer.options.maxZoom = maxZoom
+	        }
+	        
+	        if (this.tileLayer.options.minZoom != minZoom) {
+	            this.tileLayer.options.minZoom = minZoom
+	        }
+	    }
+
+	    // Reset map zoom
+	    if (this.map.getZoom() != mapCenterZoom) {
+	        this.map.setZoom(mapCenterZoom)
+	    }
+
+	   
+	    /********* BEGIN PROCESSING DATA **********/
+
+	    // Iterate through each row creating layer groups per icon type
+	    // and create markers appending to a markerList in each layerfilter object
+	    _.each(dataRows, function(userData, i) {
+	        // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+	        //     if(!this.isArgTrue(userData["markerVisibility"])) {
+	        //         console.log("true -- good")
+	        //     } else {
+	        //         console.log("skipping")
+	        //         return
+	        //     }
+	            
+	        //if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
+	        //console.log(this.isArgTrue(userData["markerVisibility"]))
+	        //if (_.has(userData,"markerVisibility") && !this.isArgTrue(userData["markerVisibility"])) {
+	            // Skip the marker to improve performance of rendering
+	            
+	        // }
+
+	                        // Get marker and icon properties	
+	        var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
+	            markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
+	            iconColor = _.has(userData, "iconColor") ? userData["iconColor"]:"white",
+	            customIcon = _.has(userData, "customIcon") ? userData["customIcon"]:null,
+	            markerSize = _.has(userData, "markerSize") ? this.stringToPoint(userData["markerSize"]):[35,45],
+	            markerAnchor = _.has(userData, "markerAnchor") ? this.stringToPoint(userData["markerAnchor"]):[15,50],
+	            shadowSize = _.has(userData, "shadowSize") ? this.stringToPoint(userData["shadowSize"]):[30,46],
+	            shadowAnchor = _.has(userData, "shadowAnchor") ? this.stringToPoint(userData["shadowAnchor"]):[30,30],
+	            markerPriority = _.has(userData, "markerPriority") ? parseInt(userData["markerPriority"]):0,
+	            layerPriority = _.has(userData, "layerPriority") ? parseInt(userData["layerPriority"]):undefined,
+	            title = _.has(userData, "title") ? userData["title"]:null,
+	            tooltip = _.has(userData, "tooltip") ? userData["tooltip"]:null,
+	            prefix = _.has(userData, "prefix") ? userData["prefix"]:"fa",
+	            extraClasses = _.has(userData, "extraClasses") ? userData["extraClasses"]:"fa-lg",
+	            circleStroke = _.has(userData, "circleStroke") ? this.isArgTrue(userData["circleStroke"]):true,
+	            circleRadius = _.has(userData, "circleRadius") ? parseInt(userData["circleRadius"]):10,
+	            circleColor = _.has(userData, "circleColor") ? this.convertHex(userData["circleColor"]):this.convertHex("#3388ff"),
+	            circleWeight = _.has(userData, "circleWeight") ? parseInt(userData["circleWeight"]):3,
+	            circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
+	            circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
+	            circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
+	            layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+	            layerVisibility = _.has(userData, "layerVisibility") ? this.isArgTrue(userData["layerVisibility"]):true,
+	            description = _.has(userData, "description") ? userData["description"]:null,
+	            featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
+	            featureTooltip = _.has(userData, "featureTooltip") ? userData["featureTooltip"]:null,
+	            featureColor = _.has(userData, "featureColor") ? this.convertHex(userData["featureColor"]):this.convertHex("#3388ff"),
+	            featureWeight = _.has(userData, "featureWeight") ? userData["featureWeight"]:3,
+	            featureOpacity = _.has(userData, "featureOpacity") ? userData["featureOpacity"]:1.0,
+	            featureStroke = _.has(userData, "featureStroke") ? this.isArgTrue(userData["featureStroke"]):true,
+	            featureFill = _.has(userData, "featureFill") ? this.isArgTrue(userData["featureFill"]):true,
+	            featureFillColor = _.has(userData, "featureFillColor") ? this.convertHex(userData["featureFillColor"]):featureColor,
+	            featureFillOpacity = _.has(userData, "featureFillOpacity") ? userData["featureFillOpacity"]:0.2,
+	            featureRadius = _.has(userData, "featureRadius") ? userData["featureRadius"]:10                    
+
+	        // Add heatmap layer
+	        if (this.isArgTrue(heatmapEnable)) {
+	            var heatLayer = this.heatLayer = _.has(userData, "heatmapLayer") ? userData["heatmapLayer"]:"heatmap",
+	                heatmapMinOpacityM = _.has(userData, "heatmapMinOpacity") ? parseFloat(userData["heatmapMinOpacity"]):heatmapMinOpacity,
+	                heatmapRadiusM = _.has(userData, "heatmapRadius") ? parseFloat(userData["heatmapRadius"]):heatmapRadius,
+	                heatmapBlurM = _.has(userData, "heatmapBlur") ? parseFloat(userData["heatmapBlur"]):heatmapBlur,
+	                heatmapColorGradientM = _.has(userData, "heatmapColorGradient") ? this._stringToJSON(userData["heatmapColorGradient"]):heatmapColorGradient,
+	                heatmapInclude = _.has(userData, "heatmapInclude") ? this.isArgTrue(userData["heatmapInclude"]):true
+
+	            if(!_.has(this.heatLayers, this.heatLayer)) {
+	                // Create feature group
+	                var heatFg = L.featureGroup()
+
+	                // Create heat layer
+	                var heatFgLayer = L.heatLayer([], {minOpacity: heatmapMinOpacityM,
+	                                                radius: heatmapRadiusM,
+	                                                gradient: heatmapColorGradientM,
+	                                                blur: heatmapBlurM,
+	                                                map: this.map})
+
+	                // Add to feature group                                
+	                heatFg.addLayer(heatFgLayer)
+	                heatFg.options.name = this.heatLayer
+	                heatFg.options.layerDescription = layerDescription
+	                heatFg.options.layerType = "heat"
+	                heatFg.options.layerPriority = layerPriority
+	                heatFg.options.layerInclude = heatmapInclude
+	                heatFg.options.layerVisibility = layerVisibility
+	                this.heatLayers[this.heatLayer] = heatFg
+	            }
+
+	            var pointIntensity = this.pointIntensity = _.has(userData, "heatmapPointIntensity") ? userData["heatmapPointIntensity"]:1.0
+
+	            if(_.has(userData, "feature") && (!userData['latitude'] || !userData['longitude'])) {
+	                console.warn("Feature detected - not adding to heatmap")
+	            }
+
+	            if(userData['latitude'] && userData['longitude'] && heatmapInclude) {
+	                var heatLatLng = this.heatLatLng = L.latLng(parseFloat(userData['latitude']), parseFloat(userData['longitude']), parseFloat(this.pointIntensity))
+	                this.heatLayers[this.heatLayer].getLayers()[0].addLatLng(this.heatLatLng)
+	            }
+
+	            if(this.isArgTrue(heatmapOnly)) {
+	                return
+	            }
+	        }
+
+	        // Feature Layer implemented as polygon, but could be point, line or polygon
+	        if(_.has(userData, "feature")) {
+	            const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
+	            let feature
+
+	            if(!_.has(this.featureLayers, this.featureLayer)) {
+	                let featureFg = L.featureGroup()
+	                featureFg.options.name = this.featureLayer
+	                featureFg.options.layerDescription = layerDescription
+	                featureFg.options.layerPriority = layerPriority
+	                featureFg.options.layerVisibility = layerVisibility
+	                this.featureLayers[this.featureLayer] = featureFg
+	            }
+
+	            let latlngs = _.map(userData["feature"].split(';'), function(coordinates) {
+	                let latlngarr = coordinates.split(',')
+	                return L.latLng({lat: parseFloat(latlngarr[0]),
+	                                 lng: parseFloat(latlngarr[1])})
+	            })
+
+	            if(latlngs.length === 1) {
+	                feature = L.circleMarker(latlngs[0], {color: featureColor,
+	                    weight: featureWeight,
+	                    radius: featureRadius,
+	                    opacity: featureOpacity,
+	                    stroke: featureStroke,
+	                    fill: featureFill,
+	                    fillOpacity: featureFillOpacity,
+	                    fillColor: featureFillColor})
+	            } else {
+	                feature = L.polygon(latlngs, {color: featureColor,
+	                    weight: featureWeight,
+	                    opacity: featureOpacity,
+	                    stroke: featureStroke,
+	                    fill: featureFill,
+	                    fillOpacity: featureFillOpacity,
+	                    fillColor: featureFillColor})
+	            }
+
+	            if(!_.isNull(featureDescription)) {
+	                feature.bindPopup(featureDescription)
+	            }
+
+	            if(!_.isNull(featureTooltip)) {
+	                feature.bindTooltip(featureTooltip, {permanent: this.isArgTrue(permanentTooltip),
+	                                                     direction: 'auto',
+	                                                     sticky: this.isArgTrue(stickyTooltip)})
+	            }
+	            this.featureLayers[this.featureLayer].addLayer(feature)
+
+	            // No latitude or longitude fields
+	            if(!_.has(userData, "latitude") || !_.has(userData, "longitude")) {
+	                return
+	            }
+	        }
+
+	        // Set icon options
+	        var icon = _.has(userData, "icon") ? userData["icon"]:"circle"
+	        var layerIcon = _.has(userData, "layerIcon") ? userData["layerIcon"]:icon
+	        var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
+	        var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
+	        var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
+	        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
+	        var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+
+	        // When using ionicons use material design by default unless explicitly set
+	        if(prefix == "ion") { 
+	            if(!/^(md|ios|logo)-/.test(icon)) {
+	                prefix += "-md"
+	                layerIconPrefix += "-md"
+	            }
+	        }
+	    
+	        // Set icon class
+	        if(/^(fa-)?map-marker/.test(icon) || /^(fa-)?map-pin/.test(icon)) {
+	            var className = ""
+	            var popupAnchor = [-3, -35]
+	        } else {
+	            var className = "awesome-marker"
+	            var popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[1,-35]
+	        }
+
+	        // SVG and PNG based markers both support hex iconColor do conversion outside
+	        iconColor = this.convertHex(iconColor)	
+
+	        markerType = _.isNull(customIcon) ? markerType:"custom"
+
+	        // Create marker
+	        if(markerType == "custom") {
+	            var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+	            
+	            var markerIcon = L.icon({
+	                iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+	                shadowUrl: customIconShadow,
+	                iconSize: markerSize,
+	                iconAnchor: markerAnchor,
+	                shadowAnchor: shadowAnchor,
+	                popupAnchor: popupAnchor
+	            })
+	        }
+
+	        if (markerType == "svg") {
+	            // Update marker to shade of Awesome Marker blue
+	            if(markerColor == "blue") { markerColor = "#38AADD" }
+	            markerColor = this.convertHex(markerColor)
+	            layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
+	            popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
+
+	            var markerIcon = L.VectorMarkers.icon({
+	                icon: icon,
+	                iconColor: iconColor,
+	                markerColor: markerColor,
+	                shadowSize: shadowSize,
+	                shadowAnchor: shadowAnchor,
+	                extraIconClasses: extraClasses,
+	                prefix: prefix,
+	                popupAnchor: popupAnchor,
+	                iconSize: markerSize,
+	                iconAnchor: markerAnchor,
+	            })
+	        } 
+	        
+	        if(markerType == "png") {
+	            // Create markerIcon
+	            layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
+	            if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
+	            var markerIcon = L.AwesomeMarkers.icon({
+	                icon: icon,
+	                markerColor: markerColor,
+	                iconColor: iconColor,
+	                prefix: prefix,
+	                className: className,
+	                extraClasses: extraClasses,
+	                popupAnchor: popupAnchor,
+	                description: description,
+	                iconAnchor: markerAnchor
+	            })
+	        }
+
+	        if(markerType == "icon") {
+	            popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
+	            className = "icon-only"
+	            var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
+	            var markerIcon = L.divIcon({
+	                html: divIconHtml,
+	                className: className,
+	                icon: icon,
+	                markerColor: iconColor,
+	                iconColor: iconColor,
+	                prefix: prefix,
+	                extraClasses: extraClasses,
+	                popupAnchor: popupAnchor,
+	                description: description,
+	                iconAnchor: markerAnchor
+	            })
+	        }
+
+	        if(!this.validMarkerTypes.includes(markerType)) {
+	            // throw viz error
+	            throw new SplunkVisualizationBase.VisualizationError(
+	                'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle'
+	            )
+	        }
+
+	        var markerOptions = {markerType: markerType,
+	            radius: circleRadius,
+	            stroke: circleStroke,
+	            color: circleColor,
+	            weight: circleWeight,
+	            opacity: circleOpacity,
+	            fillColor: circleFillColor,
+	            fillOpacity: circleFillOpacity,
+	            userData: userData,
+	            markerIcon: markerIcon,
+	            layerDescription: layerDescription,
+	            markerPriority: markerPriority,
+	            layerPriority: layerPriority,
+	            permanentTooltip: this.isArgTrue(permanentTooltip),
+	            stickyTooltip: this.isArgTrue(stickyTooltip),
+	            cluster: this.isArgTrue(cluster),
+	            layerFilter: this.layerFilter,
+	            layerGroup: layerGroup,
+	            clusterGroup: clusterGroup,
+	            tooltip: tooltip,
+	            title: title,
+	            drilldown: drilldown,
+	            drilldownAction: drilldownAction}
+
+	        // Create Cluster Group
+	        if(_.isUndefined(this.clusterGroups[clusterGroup])) {
+	            var cg = this._createClusterGroup(disableClusteringAtZoom,
+	                                                disableClusteringAtZoomLevel,
+	                                                maxClusterRadius,
+	                                                maxSpiderfySize,
+	                                                spiderfyDistanceMultiplier,
+	                                                singleMarkerMode,
+	                                                animate,
+	                                                criticalThreshold,
+	                                                warningThreshold,
+	                                                antarcticProj,
+	                                                this)
+
+	            this.clusterGroups[clusterGroup] = cg
+	            cg.addTo(this.map)
+	        }
+
+	        // Create Clustered featuregroup subgroup layer
+	        if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
+	            this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+	                                            'iconStyle' : icon,
+	                                            'layerExists' : false,
+	                                            'clusterGroup': []
+	                                            }
+	        // Create regular feature group
+	        } else if (_.isUndefined(this.layerFilter[layerGroup])) {
+	            this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+	                                            'markerList' : [],
+	                                            'iconStyle' : icon,
+	                                            'layerExists' : false
+	                                            }
+	        }
+
+	        // Add clusterGroup to layerGroup
+	        if(this.isArgTrue(cluster)
+	            && clusterGroup != ""
+	            && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
+	            this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
+	                                                            'cg': this.clusterGroups[clusterGroup],
+	                                                            'markerList': []})
+	        }
+
+	        if (!_.isUndefined(this.layerFilter[layerGroup])) {
+	            this.layerFilter[layerGroup].layerDescription = layerDescription
+	            this.layerFilter[layerGroup].layerIcon = layerIcon
+	            this.layerFilter[layerGroup].layerIconPrefix = layerIconPrefix
+	            this.layerFilter[layerGroup].layerIconColor = layerIconColor
+	            this.layerFilter[layerGroup].layerIconSize = layerIconSize
+	            this.layerFilter[layerGroup].layerVisibility = layerVisibility
+	        }
+
+	        if (_.has(userData, "markerVisibility")) {
+	            if (userData["markerVisibility"] == "marker" || this.isArgTrue(userData["markerVisibility"])) {
+	                this._addMarker(markerOptions)
+	            }
+	        } else {
+	            this._addMarker(markerOptions)
+	        }
+	    }, this)
+	    
+	    // Enable layer controls and toggle collapse 
+	    if (this.isArgTrue(layerControl)) {           
+	        this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
+	        this.control.addTo(this.map)                
+	        if(this.isDarkTheme) { this._darkModeUpdate() }
+	    } 
+
+	    // Clustered
+	    if (this.isArgTrue(cluster)) {
+	        this._addClustered(this.map, {layerFilter: this.layerFilter,
+	                                      layerControl: this.isArgTrue(layerControl),
+	                                      control: this.control,
+	                                      context: this})
+	    // Single value or Circle Marker
+	    } else {
+	        this._addUnclustered(this.map, {layerFilter: this.layerFilter,
+	                                        layerControl: this.isArgTrue(layerControl),
+	                                        allPopups: this.isArgTrue(allPopups),
+	                                        paneZIndex: this.paneZIndex,
+	                                        control: this.control,
+	                                        context: this})
+	    }
+
+	    // Draw path lines
+	    if (this.isArgTrue(showPathLines)) {
+	        var activePaths = []
+	        var colors = _.map(pathColorList.split(','), function(color) {
+	            return this.convertHex(color)
+	        }, this)
+
+	        var pathData = this.pathData = []
+	        var interval = pathSplitInterval * 1000
+	        var intervalCounter = 0
+	        var previousTime = new Date()
+
+	        var paths = _.chain(dataRows)
+	            .map(function (d) {            
+	                var colorIndex = 0
+	                    pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5
+	                    pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5
+	                    dt = _.has(d, "_time") ? moment(d["_time"]):""
+	                    tooltip = _.has(d, "tooltip") ? d["tooltip"]:""
+	                    description = _.has(d, "description") ? d["description"]:""
+	                    antPath = _.has(d, "antPath") ? d["antPath"]:null
+	                    antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000
+	                    antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF"
+	                    antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false
+	                    antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
+	                    antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
+	                    layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                    layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
+	                    layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
+	                    layerVisibility = _.has(d, "layerVisibility") ? d["layerVisibility"]:true,
+	                    pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
+	                    playback = _.has(d, "playback") ? d["playback"]:showPlayback,
+	                    prefix = _.has(d, "prefix") ? d["prefix"]:"fa",
+	                    icon = _.has(d, "icon") ? d["icon"]:"play-circle"
+
+	                if (pathIdentifier) {
+	                    var id = d[pathIdentifier]
+	                    var colorIndex = activePaths.indexOf(id)
+	                    if (colorIndex < 0) {
+	                        colorIndex = activePaths.push(id) - 1
+	                    }
+	                }
+	                var color = (_.has(d, "pathColor")) ? d["pathColor"] : colors[colorIndex % colors.length]
+	                return {
+	                    'time': dt,
+	                    'id': id,
+	                    'coordinates': L.latLng(d['latitude'], d['longitude']),
+	                    'latlng': [parseFloat(d['longitude']),parseFloat(d['latitude'])],
+	                    'colorIndex': colorIndex,
+	                    'pathWeight': pathWeight,
+	                    'pathOpacity': pathOpacity,
+	                    'tooltip': tooltip,
+	                    'description': description,
+	                    'permanentTooltip': permanentTooltip,
+	                    'stickyTooltip': stickyTooltip,
+	                    'color': color,
+	                    'antPath': antPath,
+	                    'antPathDelay': antPathDelay,
+	                    'antPathPulseColor': antPathPulseColor,
+	                    'antPathPaused': antPathPaused,
+	                    'antPathReverse': antPathReverse,
+	                    'antPathDashArray': antPathDashArray,
+	                    'layerDescription': layerDescription,
+	                    'layerPriority': layerPriority,
+	                    'layerVisibility': layerVisibility,
+	                    'pathLayer': pathLayer,
+	                    'playback': playback,
+	                    'showPlayback': showPlayback,
+	                    'layerControl': layerControl,
+	                    'layerType': "path",
+	                    'icon': icon,
+	                    'prefix': prefix,
+	                    'unixtime': dt.valueOf()
+	                }
+	            })
+	            .each(function(d) {
+	                var dt = d.time
+	                if (interval && Math.abs(previousTime - dt) > interval) {
+	                    intervalCounter++
+	                }
+	                d.interval = 'interval' + intervalCounter
+
+	                previousTime = dt
+	            })
+	            .groupBy(function(d) {
+	                return d.id
+	            })
+	            .values()
+	            .value()
+
+	        if(this.isArgTrue(pathSplits)) {
+	            _.each(paths, function(path, i) {
+	                this.pathData = _.chain(path)
+	                    .groupBy(function(d) {
+	                        return d.interval
+	                })
+	                .values()
+	                .value()
+	                this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
+	            }, this)
+	        } else {
+	            this.pathData = paths
+	            this.drawPath({data: this.pathData, pathLineLayers: this.pathLineLayers, context: this})
+	        }
+	    }
+
+
+	     /*
+	     * Fix for hidden divs using tokens in Splunk
+	     * https://github.com/Leaflet/Leaflet/issues/2738
+	     */
+	    if(this.mapSize.x == 0 && this.mapSize.y == 0) {
+	        var intervalId = this.intervalId = setInterval(function(that) {
+	            curSize = that.curSize = that.map.getSize()
+	            that.map.invalidateSize()
+	            if(that.curSize.x > 0 && that.curSize.y > 0) {
+	                clearInterval(that.intervalId)
+	            }
+	        }, 500, this)
+	    }
+
+	    // Update offset and fetch next chunk of data
+	    // if(this.isSplunkSeven) {
+	    this.offset += dataRows.length
+
+	    setTimeout(function(that) {
+	        that.updateDataParams({count: that.chunk, offset: that.offset})
+	    }, 100, this)
+
+	    return this
+	}
+	})
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
 
 
@@ -15706,17 +15753,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* @preserve
-	 * Leaflet 1.7.1, a JS library for interactive maps. http://leafletjs.com
-	 * (c) 2010-2019 Vladimir Agafonkin, (c) 2010-2011 CloudMade
+	 * Leaflet 1.9.2, a JS library for interactive maps. https://leafletjs.com
+	 * (c) 2010-2022 Vladimir Agafonkin, (c) 2010-2011 CloudMade
 	 */
 
 	(function (global, factory) {
 	   true ? factory(exports) :
 	  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	  (factory((global.L = {})));
-	}(this, (function (exports) { 'use strict';
+	  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.leaflet = {}));
+	})(this, (function (exports) { 'use strict';
 
-	  var version = "1.7.1";
+	  var version = "1.9.2";
 
 	  /*
 	   * @namespace Util
@@ -15740,7 +15787,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @function create(proto: Object, properties?: Object): Object
 	  // Compatibility polyfill for [Object.create](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
-	  var create = Object.create || (function () {
+	  var create$2 = Object.create || (function () {
 	  	function F() {}
 	  	return function (proto) {
 	  		F.prototype = proto;
@@ -15772,10 +15819,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @function stamp(obj: Object): Number
 	  // Returns the unique ID of an object, assigning it one if it doesn't have it.
 	  function stamp(obj) {
-	  	/*eslint-disable */
-	  	obj._leaflet_id = obj._leaflet_id || ++lastId;
+	  	if (!('_leaflet_id' in obj)) {
+	  		obj['_leaflet_id'] = ++lastId;
+	  	}
 	  	return obj._leaflet_id;
-	  	/* eslint-enable */
 	  }
 
 	  // @function throttle(fn: Function, time: Number, context: Object): Function
@@ -15828,10 +15875,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // Returns a function which always returns `false`.
 	  function falseFn() { return false; }
 
-	  // @function formatNum(num: Number, digits?: Number): Number
-	  // Returns the number `num` rounded to `digits` decimals, or to 6 decimals by default.
-	  function formatNum(num, digits) {
-	  	var pow = Math.pow(10, (digits === undefined ? 6 : digits));
+	  // @function formatNum(num: Number, precision?: Number|false): Number
+	  // Returns the number `num` rounded with specified `precision`.
+	  // The default `precision` value is 6 decimal places.
+	  // `false` can be passed to skip any processing (can be useful to avoid round-off errors).
+	  function formatNum(num, precision) {
+	  	if (precision === false) { return num; }
+	  	var pow = Math.pow(10, precision === undefined ? 6 : precision);
 	  	return Math.round(num * pow) / pow;
 	  }
 
@@ -15851,7 +15901,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // Merges the given properties to the `options` of the `obj` object, returning the resulting options. See `Class options`. Has an `L.setOptions` shortcut.
 	  function setOptions(obj, options) {
 	  	if (!Object.prototype.hasOwnProperty.call(obj, 'options')) {
-	  		obj.options = obj.options ? create(obj.options) : {};
+	  		obj.options = obj.options ? create$2(obj.options) : {};
 	  	}
 	  	for (var i in options) {
 	  		obj.options[i] = options[i];
@@ -15872,7 +15922,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return ((!existingUrl || existingUrl.indexOf('?') === -1) ? '?' : '&') + params.join('&');
 	  }
 
-	  var templateRe = /\{ *([\w_-]+) *\}/g;
+	  var templateRe = /\{ *([\w_ -]+) *\}/g;
 
 	  // @function template(str: String, data: Object): String
 	  // Simple templating facility, accepts a template string of the form `'Hello {a}, {b}'`
@@ -15914,7 +15964,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // mobile devices (by setting image `src` to this string).
 	  var emptyImageUrl = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
-	  // inspired by http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+	  // inspired by https://paulirish.com/2011/requestanimationframe-for-smart-animating/
 
 	  function getPrefixed(name) {
 	  	return window['webkit' + name] || window['moz' + name] || window['ms' + name];
@@ -15957,11 +16007,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	}
 	  }
 
-	  var Util = ({
+	  var Util = {
+	    __proto__: null,
 	    extend: extend,
-	    create: create,
+	    create: create$2,
 	    bind: bind,
-	    lastId: lastId,
+	    get lastId () { return lastId; },
 	    stamp: stamp,
 	    throttle: throttle,
 	    wrapNum: wrapNum,
@@ -15979,7 +16030,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    cancelFn: cancelFn,
 	    requestAnimFrame: requestAnimFrame,
 	    cancelAnimFrame: cancelAnimFrame
-	  });
+	  };
 
 	  // @class Class
 	  // @aka L.Class
@@ -15998,6 +16049,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// Returns a Javascript function that is a class constructor (to be called with `new`).
 	  	var NewClass = function () {
 
+	  		setOptions(this);
+
 	  		// call the constructor
 	  		if (this.initialize) {
 	  			this.initialize.apply(this, arguments);
@@ -16009,7 +16062,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	var parentProto = NewClass.__super__ = this.prototype;
 
-	  	var proto = create(parentProto);
+	  	var proto = create$2(parentProto);
 	  	proto.constructor = NewClass;
 
 	  	NewClass.prototype = proto;
@@ -16024,23 +16077,24 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// mix static properties into the class
 	  	if (props.statics) {
 	  		extend(NewClass, props.statics);
-	  		delete props.statics;
 	  	}
 
 	  	// mix includes into the prototype
 	  	if (props.includes) {
 	  		checkDeprecatedMixinEvents(props.includes);
 	  		extend.apply(null, [proto].concat(props.includes));
-	  		delete props.includes;
-	  	}
-
-	  	// merge options
-	  	if (proto.options) {
-	  		props.options = extend(create(proto.options), props.options);
 	  	}
 
 	  	// mix given properties into the prototype
 	  	extend(proto, props);
+	  	delete proto.statics;
+	  	delete proto.includes;
+
+	  	// merge options
+	  	if (proto.options) {
+	  		proto.options = parentProto.options ? create$2(parentProto.options) : {};
+	  		extend(proto.options, props.options);
+	  	}
 
 	  	proto._initHooks = [];
 
@@ -16067,7 +16121,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @function include(properties: Object): this
 	  // [Includes a mixin](#class-includes) into the current class.
 	  Class.include = function (props) {
+	  	var parentOptions = this.prototype.options;
 	  	extend(this.prototype, props);
+	  	if (props.options) {
+	  		this.prototype.options = parentOptions;
+	  		this.mergeOptions(props.options);
+	  	}
 	  	return this;
 	  };
 
@@ -16174,7 +16233,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	 */
 	  	off: function (types, fn, context) {
 
-	  		if (!types) {
+	  		if (!arguments.length) {
 	  			// clear all listeners if called without arguments
 	  			delete this._events;
 
@@ -16186,8 +16245,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		} else {
 	  			types = splitWords(types);
 
+	  			var removeAll = arguments.length === 1;
 	  			for (var i = 0, len = types.length; i < len; i++) {
-	  				this._off(types[i], fn, context);
+	  				if (removeAll) {
+	  					this._off(types[i]);
+	  				} else {
+	  					this._off(types[i], fn, context);
+	  				}
 	  			}
 	  		}
 
@@ -16195,31 +16259,30 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// attach listener (without syntactic sugar now)
-	  	_on: function (type, fn, context) {
-	  		this._events = this._events || {};
+	  	_on: function (type, fn, context, _once) {
+	  		if (typeof fn !== 'function') {
+	  			console.warn('wrong listener type: ' + typeof fn);
+	  			return;
+	  		}
 
-	  		/* get/init listeners for type */
-	  		var typeListeners = this._events[type];
-	  		if (!typeListeners) {
-	  			typeListeners = [];
-	  			this._events[type] = typeListeners;
+	  		// check if fn already there
+	  		if (this._listens(type, fn, context) !== false) {
+	  			return;
 	  		}
 
 	  		if (context === this) {
 	  			// Less memory footprint.
 	  			context = undefined;
 	  		}
-	  		var newListener = {fn: fn, ctx: context},
-	  		    listeners = typeListeners;
 
-	  		// check if fn already there
-	  		for (var i = 0, len = listeners.length; i < len; i++) {
-	  			if (listeners[i].fn === fn && listeners[i].ctx === context) {
-	  				return;
-	  			}
+	  		var newListener = {fn: fn, ctx: context};
+	  		if (_once) {
+	  			newListener.once = true;
 	  		}
 
-	  		listeners.push(newListener);
+	  		this._events = this._events || {};
+	  		this._events[type] = this._events[type] || [];
+	  		this._events[type].push(newListener);
 	  	},
 
 	  	_off: function (type, fn, context) {
@@ -16227,53 +16290,50 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		    i,
 	  		    len;
 
-	  		if (!this._events) { return; }
+	  		if (!this._events) {
+	  			return;
+	  		}
 
 	  		listeners = this._events[type];
-
 	  		if (!listeners) {
 	  			return;
 	  		}
 
-	  		if (!fn) {
-	  			// Set all removed listeners to noop so they are not called if remove happens in fire
-	  			for (i = 0, len = listeners.length; i < len; i++) {
-	  				listeners[i].fn = falseFn;
+	  		if (arguments.length === 1) { // remove all
+	  			if (this._firingCount) {
+	  				// Set all removed listeners to noop
+	  				// so they are not called if remove happens in fire
+	  				for (i = 0, len = listeners.length; i < len; i++) {
+	  					listeners[i].fn = falseFn;
+	  				}
 	  			}
 	  			// clear all listeners for a type if function isn't specified
 	  			delete this._events[type];
 	  			return;
 	  		}
 
-	  		if (context === this) {
-	  			context = undefined;
+	  		if (typeof fn !== 'function') {
+	  			console.warn('wrong listener type: ' + typeof fn);
+	  			return;
 	  		}
 
-	  		if (listeners) {
+	  		// find fn and remove it
+	  		var index = this._listens(type, fn, context);
+	  		if (index !== false) {
+	  			var listener = listeners[index];
+	  			if (this._firingCount) {
+	  				// set the removed listener to noop so that's not called if remove happens in fire
+	  				listener.fn = falseFn;
 
-	  			// find fn and remove it
-	  			for (i = 0, len = listeners.length; i < len; i++) {
-	  				var l = listeners[i];
-	  				if (l.ctx !== context) { continue; }
-	  				if (l.fn === fn) {
-
-	  					// set the removed listener to noop so that's not called if remove happens in fire
-	  					l.fn = falseFn;
-
-	  					if (this._firingCount) {
-	  						/* copy array in case events are being fired */
-	  						this._events[type] = listeners = listeners.slice();
-	  					}
-	  					listeners.splice(i, 1);
-
-	  					return;
-	  				}
+	  				/* copy array in case events are being fired */
+	  				this._events[type] = listeners = listeners.slice();
 	  			}
+	  			listeners.splice(index, 1);
 	  		}
 	  	},
 
 	  	// @method fire(type: String, data?: Object, propagate?: Boolean): this
-	  	// Fires an event of the specified type. You can optionally provide an data
+	  	// Fires an event of the specified type. You can optionally provide a data
 	  	// object — the first argument of the listener function will contain its
 	  	// properties. The event can optionally be propagated to event parents.
 	  	fire: function (type, data, propagate) {
@@ -16287,12 +16347,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		if (this._events) {
 	  			var listeners = this._events[type];
-
 	  			if (listeners) {
 	  				this._firingCount = (this._firingCount + 1) || 1;
 	  				for (var i = 0, len = listeners.length; i < len; i++) {
 	  					var l = listeners[i];
-	  					l.fn.call(l.ctx || this, event);
+	  					// off overwrites l.fn, so we need to copy fn to a var
+	  					var fn = l.fn;
+	  					if (l.once) {
+	  						this.off(type, fn, l.ctx);
+	  					}
+	  					fn.call(l.ctx || this, event);
 	  				}
 
 	  				this._firingCount--;
@@ -16307,42 +16371,86 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this;
 	  	},
 
-	  	// @method listens(type: String): Boolean
+	  	// @method listens(type: String, propagate?: Boolean): Boolean
+	  	// @method listens(type: String, fn: Function, context?: Object, propagate?: Boolean): Boolean
 	  	// Returns `true` if a particular event type has any listeners attached to it.
-	  	listens: function (type, propagate) {
+	  	// The verification can optionally be propagated, it will return `true` if parents have the listener attached to it.
+	  	listens: function (type, fn, context, propagate) {
+	  		if (typeof type !== 'string') {
+	  			console.warn('"string" type argument expected');
+	  		}
+
+	  		// we don't overwrite the input `fn` value, because we need to use it for propagation
+	  		var _fn = fn;
+	  		if (typeof fn !== 'function') {
+	  			propagate = !!fn;
+	  			_fn = undefined;
+	  			context = undefined;
+	  		}
+
 	  		var listeners = this._events && this._events[type];
-	  		if (listeners && listeners.length) { return true; }
+	  		if (listeners && listeners.length) {
+	  			if (this._listens(type, _fn, context) !== false) {
+	  				return true;
+	  			}
+	  		}
 
 	  		if (propagate) {
 	  			// also check parents for listeners if event propagates
 	  			for (var id in this._eventParents) {
-	  				if (this._eventParents[id].listens(type, propagate)) { return true; }
+	  				if (this._eventParents[id].listens(type, fn, context, propagate)) { return true; }
 	  			}
 	  		}
 	  		return false;
+	  	},
+
+	  	// returns the index (number) or false
+	  	_listens: function (type, fn, context) {
+	  		if (!this._events) {
+	  			return false;
+	  		}
+
+	  		var listeners = this._events[type] || [];
+	  		if (!fn) {
+	  			return !!listeners.length;
+	  		}
+
+	  		if (context === this) {
+	  			// Less memory footprint.
+	  			context = undefined;
+	  		}
+
+	  		for (var i = 0, len = listeners.length; i < len; i++) {
+	  			if (listeners[i].fn === fn && listeners[i].ctx === context) {
+	  				return i;
+	  			}
+	  		}
+	  		return false;
+
 	  	},
 
 	  	// @method once(…): this
 	  	// Behaves as [`on(…)`](#evented-on), except the listener will only get fired once and then removed.
 	  	once: function (types, fn, context) {
 
+	  		// types can be a map of types/handlers
 	  		if (typeof types === 'object') {
 	  			for (var type in types) {
-	  				this.once(type, types[type], fn);
+	  				// we don't process space-separated events here for performance;
+	  				// it's a hot path since Layer uses the on(obj) syntax
+	  				this._on(type, types[type], fn, true);
 	  			}
-	  			return this;
+
+	  		} else {
+	  			// types can be a string of space-separated words
+	  			types = splitWords(types);
+
+	  			for (var i = 0, len = types.length; i < len; i++) {
+	  				this._on(types[i], fn, context, true);
+	  			}
 	  		}
 
-	  		var handler = bind(function () {
-	  			this
-	  			    .off(types, fn, context)
-	  			    .off(types, handler, context);
-	  		}, this);
-
-	  		// add a listener that's executed once and removed after that
-	  		return this
-	  		    .on(types, fn, context)
-	  		    .on(types, handler, context);
+	  		return this;
 	  	},
 
 	  	// @method addEventParent(obj: Evented): this
@@ -16658,21 +16766,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  Bounds.prototype = {
 	  	// @method extend(point: Point): this
 	  	// Extends the bounds to contain the given point.
-	  	extend: function (point) { // (Point)
-	  		point = toPoint(point);
+
+	  	// @alternative
+	  	// @method extend(otherBounds: Bounds): this
+	  	// Extend the bounds to contain the given bounds
+	  	extend: function (obj) {
+	  		var min2, max2;
+	  		if (!obj) { return this; }
+
+	  		if (obj instanceof Point || typeof obj[0] === 'number' || 'x' in obj) {
+	  			min2 = max2 = toPoint(obj);
+	  		} else {
+	  			obj = toBounds(obj);
+	  			min2 = obj.min;
+	  			max2 = obj.max;
+
+	  			if (!min2 || !max2) { return this; }
+	  		}
 
 	  		// @property min: Point
 	  		// The top left corner of the rectangle.
 	  		// @property max: Point
 	  		// The bottom right corner of the rectangle.
 	  		if (!this.min && !this.max) {
-	  			this.min = point.clone();
-	  			this.max = point.clone();
+	  			this.min = min2.clone();
+	  			this.max = max2.clone();
 	  		} else {
-	  			this.min.x = Math.min(point.x, this.min.x);
-	  			this.max.x = Math.max(point.x, this.max.x);
-	  			this.min.y = Math.min(point.y, this.min.y);
-	  			this.max.y = Math.max(point.y, this.max.y);
+	  			this.min.x = Math.min(min2.x, this.min.x);
+	  			this.max.x = Math.max(max2.x, this.max.x);
+	  			this.min.y = Math.min(min2.y, this.min.y);
+	  			this.max.y = Math.max(max2.y, this.max.y);
 	  		}
 	  		return this;
 	  	},
@@ -16680,7 +16803,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method getCenter(round?: Boolean): Point
 	  	// Returns the center point of the bounds.
 	  	getCenter: function (round) {
-	  		return new Point(
+	  		return toPoint(
 	  		        (this.min.x + this.max.x) / 2,
 	  		        (this.min.y + this.max.y) / 2, round);
 	  	},
@@ -16688,13 +16811,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method getBottomLeft(): Point
 	  	// Returns the bottom-left point of the bounds.
 	  	getBottomLeft: function () {
-	  		return new Point(this.min.x, this.max.y);
+	  		return toPoint(this.min.x, this.max.y);
 	  	},
 
 	  	// @method getTopRight(): Point
 	  	// Returns the top-right point of the bounds.
 	  	getTopRight: function () { // -> Point
-	  		return new Point(this.max.x, this.min.y);
+	  		return toPoint(this.max.x, this.min.y);
 	  	},
 
 	  	// @method getTopLeft(): Point
@@ -16774,9 +16897,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return xOverlaps && yOverlaps;
 	  	},
 
+	  	// @method isValid(): Boolean
+	  	// Returns `true` if the bounds are properly initialized.
 	  	isValid: function () {
 	  		return !!(this.min && this.max);
-	  	}
+	  	},
+
+
+	  	// @method pad(bufferRatio: Number): Bounds
+	  	// Returns bounds created by extending or retracting the current bounds by a given ratio in each direction.
+	  	// For example, a ratio of 0.5 extends the bounds by 50% in each direction.
+	  	// Negative values will retract the bounds.
+	  	pad: function (bufferRatio) {
+	  		var min = this.min,
+	  		max = this.max,
+	  		heightBuffer = Math.abs(min.x - max.x) * bufferRatio,
+	  		widthBuffer = Math.abs(min.y - max.y) * bufferRatio;
+
+
+	  		return toBounds(
+	  			toPoint(min.x - heightBuffer, min.y - widthBuffer),
+	  			toPoint(max.x + heightBuffer, max.y + widthBuffer));
+	  	},
+
+
+	  	// @method equals(otherBounds: Bounds): Boolean
+	  	// Returns `true` if the rectangle is equivalent to the given bounds.
+	  	equals: function (bounds) {
+	  		if (!bounds) { return false; }
+
+	  		bounds = toBounds(bounds);
+
+	  		return this.min.equals(bounds.getTopLeft()) &&
+	  			this.max.equals(bounds.getBottomRight());
+	  	},
 	  };
 
 
@@ -17182,7 +17336,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * Object that defines coordinate reference systems for projecting
 	   * geographical points into pixel (screen) coordinates and back (and to
 	   * coordinates in other units for [WMS](https://en.wikipedia.org/wiki/Web_Map_Service) services). See
-	   * [spatial reference system](http://en.wikipedia.org/wiki/Coordinate_reference_system).
+	   * [spatial reference system](https://en.wikipedia.org/wiki/Spatial_reference_system).
 	   *
 	   * Leaflet defines the most usual CRSs by default. If you want to use a
 	   * CRS not defined by default, take a look at the
@@ -17325,7 +17479,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	// Mean Earth Radius, as recommended for use by
 	  	// the International Union of Geodesy and Geophysics,
-	  	// see http://rosettacode.org/wiki/Haversine_formula
+	  	// see https://rosettacode.org/wiki/Haversine_formula
 	  	R: 6371000,
 
 	  	// distance between two geographical points using spherical law of cosines approximation
@@ -17509,7 +17663,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		}
 
 	  		// closes the ring for polygons; "x" is VML syntax
-	  		str += closed ? (svg ? 'z' : 'x') : '';
+	  		str += closed ? (Browser.svg ? 'z' : 'x') : '';
 	  	}
 
 	  	// SVG complains about empty path strings
@@ -17531,7 +17685,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * ```
 	   */
 
-	  var style$1 = document.documentElement.style;
+	  var style = document.documentElement.style;
 
 	  // @property ie: Boolean; `true` for all Internet Explorer versions (not Edge).
 	  var ie = 'ActiveXObject' in window;
@@ -17547,15 +17701,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  var webkit = userAgentContains('webkit');
 
 	  // @property android: Boolean
-	  // `true` for any browser running on an Android platform.
+	  // **Deprecated.** `true` for any browser running on an Android platform.
 	  var android = userAgentContains('android');
 
-	  // @property android23: Boolean; `true` for browsers running on Android 2 or Android 3.
+	  // @property android23: Boolean; **Deprecated.** `true` for browsers running on Android 2 or Android 3.
 	  var android23 = userAgentContains('android 2') || userAgentContains('android 3');
 
 	  /* See https://stackoverflow.com/a/17961266 for details on detecting stock Android */
 	  var webkitVer = parseInt(/WebKit\/([0-9]+)|$/.exec(navigator.userAgent)[1], 10); // also matches AppleWebKit
-	  // @property androidStock: Boolean; `true` for the Android stock browser (i.e. not Chrome)
+	  // @property androidStock: Boolean; **Deprecated.** `true` for the Android stock browser (i.e. not Chrome)
 	  var androidStock = android && userAgentContains('Google') && webkitVer < 537 && !('AudioNode' in window);
 
 	  // @property opera: Boolean; `true` for the Opera browser
@@ -17574,19 +17728,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @property opera12: Boolean
 	  // `true` for the Opera browser supporting CSS transforms (version 12 or later).
-	  var opera12 = 'OTransition' in style$1;
+	  var opera12 = 'OTransition' in style;
 
 	  // @property win: Boolean; `true` when the browser is running in a Windows platform
 	  var win = navigator.platform.indexOf('Win') === 0;
 
 	  // @property ie3d: Boolean; `true` for all Internet Explorer versions supporting CSS transforms.
-	  var ie3d = ie && ('transition' in style$1);
+	  var ie3d = ie && ('transition' in style);
 
 	  // @property webkit3d: Boolean; `true` for webkit-based browsers supporting CSS transforms.
 	  var webkit3d = ('WebKitCSSMatrix' in window) && ('m11' in new window.WebKitCSSMatrix()) && !android23;
 
 	  // @property gecko3d: Boolean; `true` for gecko-based browsers supporting CSS transforms.
-	  var gecko3d = 'MozPerspective' in style$1;
+	  var gecko3d = 'MozPerspective' in style;
 
 	  // @property any3d: Boolean
 	  // `true` for all browsers supporting CSS transforms.
@@ -17610,13 +17764,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // `true` for all browsers supporting [pointer events](https://msdn.microsoft.com/en-us/library/dn433244%28v=vs.85%29.aspx).
 	  var pointer = !!(window.PointerEvent || msPointer);
 
-	  // @property touch: Boolean
+	  // @property touchNative: Boolean
 	  // `true` for all browsers supporting [touch events](https://developer.mozilla.org/docs/Web/API/Touch_events).
-	  // This does not necessarily mean that the browser is running in a computer with
+	  // **This does not necessarily mean** that the browser is running in a computer with
 	  // a touchscreen, it only means that the browser is capable of understanding
 	  // touch events.
-	  var touch = !window.L_NO_TOUCH && (pointer || 'ontouchstart' in window ||
-	  		(window.DocumentTouch && document instanceof window.DocumentTouch));
+	  var touchNative = 'ontouchstart' in window || !!window.TouchEvent;
+
+	  // @property touch: Boolean
+	  // `true` for all browsers supporting either [touch](#browser-touch) or [pointer](#browser-pointer) events.
+	  // Note: pointer events will be preferred (if available), and processed for all `touch*` listeners.
+	  var touch = !window.L_NO_TOUCH && (touchNative || pointer);
 
 	  // @property mobileOpera: Boolean; `true` for the Opera browser in a mobile device.
 	  var mobileOpera = mobile && opera;
@@ -17649,17 +17807,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @property canvas: Boolean
 	  // `true` when the browser supports [`<canvas>`](https://developer.mozilla.org/docs/Web/API/Canvas_API).
-	  var canvas = (function () {
+	  var canvas$1 = (function () {
 	  	return !!document.createElement('canvas').getContext;
 	  }());
 
 	  // @property svg: Boolean
 	  // `true` when the browser supports [SVG](https://developer.mozilla.org/docs/Web/SVG).
-	  var svg = !!(document.createElementNS && svgCreate('svg').createSVGRect);
+	  var svg$1 = !!(document.createElementNS && svgCreate('svg').createSVGRect);
+
+	  var inlineSvg = !!svg$1 && (function () {
+	  	var div = document.createElement('div');
+	  	div.innerHTML = '<svg/>';
+	  	return (div.firstChild && div.firstChild.namespaceURI) === 'http://www.w3.org/2000/svg';
+	  })();
 
 	  // @property vml: Boolean
 	  // `true` if the browser supports [VML](https://en.wikipedia.org/wiki/Vector_Markup_Language).
-	  var vml = !svg && (function () {
+	  var vml = !svg$1 && (function () {
 	  	try {
 	  		var div = document.createElement('div');
 	  		div.innerHTML = '<v:shape adj="1"/>';
@@ -17675,114 +17839,100 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  }());
 
 
+	  // @property mac: Boolean; `true` when the browser is running in a Mac platform
+	  var mac = navigator.platform.indexOf('Mac') === 0;
+
+	  // @property mac: Boolean; `true` when the browser is running in a Linux platform
+	  var linux = navigator.platform.indexOf('Linux') === 0;
+
 	  function userAgentContains(str) {
 	  	return navigator.userAgent.toLowerCase().indexOf(str) >= 0;
 	  }
 
-	  var Browser = ({
-	    ie: ie,
-	    ielt9: ielt9,
-	    edge: edge,
-	    webkit: webkit,
-	    android: android,
-	    android23: android23,
-	    androidStock: androidStock,
-	    opera: opera,
-	    chrome: chrome,
-	    gecko: gecko,
-	    safari: safari,
-	    phantom: phantom,
-	    opera12: opera12,
-	    win: win,
-	    ie3d: ie3d,
-	    webkit3d: webkit3d,
-	    gecko3d: gecko3d,
-	    any3d: any3d,
-	    mobile: mobile,
-	    mobileWebkit: mobileWebkit,
-	    mobileWebkit3d: mobileWebkit3d,
-	    msPointer: msPointer,
-	    pointer: pointer,
-	    touch: touch,
-	    mobileOpera: mobileOpera,
-	    mobileGecko: mobileGecko,
-	    retina: retina,
-	    passiveEvents: passiveEvents,
-	    canvas: canvas,
-	    svg: svg,
-	    vml: vml
-	  });
+
+	  var Browser = {
+	  	ie: ie,
+	  	ielt9: ielt9,
+	  	edge: edge,
+	  	webkit: webkit,
+	  	android: android,
+	  	android23: android23,
+	  	androidStock: androidStock,
+	  	opera: opera,
+	  	chrome: chrome,
+	  	gecko: gecko,
+	  	safari: safari,
+	  	phantom: phantom,
+	  	opera12: opera12,
+	  	win: win,
+	  	ie3d: ie3d,
+	  	webkit3d: webkit3d,
+	  	gecko3d: gecko3d,
+	  	any3d: any3d,
+	  	mobile: mobile,
+	  	mobileWebkit: mobileWebkit,
+	  	mobileWebkit3d: mobileWebkit3d,
+	  	msPointer: msPointer,
+	  	pointer: pointer,
+	  	touch: touch,
+	  	touchNative: touchNative,
+	  	mobileOpera: mobileOpera,
+	  	mobileGecko: mobileGecko,
+	  	retina: retina,
+	  	passiveEvents: passiveEvents,
+	  	canvas: canvas$1,
+	  	svg: svg$1,
+	  	vml: vml,
+	  	inlineSvg: inlineSvg,
+	  	mac: mac,
+	  	linux: linux
+	  };
 
 	  /*
 	   * Extends L.DomEvent to provide touch support for Internet Explorer and Windows-based devices.
 	   */
 
-
-	  var POINTER_DOWN =   msPointer ? 'MSPointerDown'   : 'pointerdown';
-	  var POINTER_MOVE =   msPointer ? 'MSPointerMove'   : 'pointermove';
-	  var POINTER_UP =     msPointer ? 'MSPointerUp'     : 'pointerup';
-	  var POINTER_CANCEL = msPointer ? 'MSPointerCancel' : 'pointercancel';
-
+	  var POINTER_DOWN =   Browser.msPointer ? 'MSPointerDown'   : 'pointerdown';
+	  var POINTER_MOVE =   Browser.msPointer ? 'MSPointerMove'   : 'pointermove';
+	  var POINTER_UP =     Browser.msPointer ? 'MSPointerUp'     : 'pointerup';
+	  var POINTER_CANCEL = Browser.msPointer ? 'MSPointerCancel' : 'pointercancel';
+	  var pEvent = {
+	  	touchstart  : POINTER_DOWN,
+	  	touchmove   : POINTER_MOVE,
+	  	touchend    : POINTER_UP,
+	  	touchcancel : POINTER_CANCEL
+	  };
+	  var handle = {
+	  	touchstart  : _onPointerStart,
+	  	touchmove   : _handlePointer,
+	  	touchend    : _handlePointer,
+	  	touchcancel : _handlePointer
+	  };
 	  var _pointers = {};
 	  var _pointerDocListener = false;
 
 	  // Provides a touch events wrapper for (ms)pointer events.
-	  // ref http://www.w3.org/TR/pointerevents/ https://www.w3.org/Bugs/Public/show_bug.cgi?id=22890
+	  // ref https://www.w3.org/TR/pointerevents/ https://www.w3.org/Bugs/Public/show_bug.cgi?id=22890
 
-	  function addPointerListener(obj, type, handler, id) {
+	  function addPointerListener(obj, type, handler) {
 	  	if (type === 'touchstart') {
-	  		_addPointerStart(obj, handler, id);
-
-	  	} else if (type === 'touchmove') {
-	  		_addPointerMove(obj, handler, id);
-
-	  	} else if (type === 'touchend') {
-	  		_addPointerEnd(obj, handler, id);
+	  		_addPointerDocListener();
 	  	}
-
-	  	return this;
+	  	if (!handle[type]) {
+	  		console.warn('wrong event specified:', type);
+	  		return L.Util.falseFn;
+	  	}
+	  	handler = handle[type].bind(this, handler);
+	  	obj.addEventListener(pEvent[type], handler, false);
+	  	return handler;
 	  }
 
-	  function removePointerListener(obj, type, id) {
-	  	var handler = obj['_leaflet_' + type + id];
-
-	  	if (type === 'touchstart') {
-	  		obj.removeEventListener(POINTER_DOWN, handler, false);
-
-	  	} else if (type === 'touchmove') {
-	  		obj.removeEventListener(POINTER_MOVE, handler, false);
-
-	  	} else if (type === 'touchend') {
-	  		obj.removeEventListener(POINTER_UP, handler, false);
-	  		obj.removeEventListener(POINTER_CANCEL, handler, false);
+	  function removePointerListener(obj, type, handler) {
+	  	if (!pEvent[type]) {
+	  		console.warn('wrong event specified:', type);
+	  		return;
 	  	}
-
-	  	return this;
-	  }
-
-	  function _addPointerStart(obj, handler, id) {
-	  	var onDown = bind(function (e) {
-	  		// IE10 specific: MsTouch needs preventDefault. See #2000
-	  		if (e.MSPOINTER_TYPE_TOUCH && e.pointerType === e.MSPOINTER_TYPE_TOUCH) {
-	  			preventDefault(e);
-	  		}
-
-	  		_handlePointer(e, handler);
-	  	});
-
-	  	obj['_leaflet_touchstart' + id] = onDown;
-	  	obj.addEventListener(POINTER_DOWN, onDown, false);
-
-	  	// need to keep track of what pointers and how many are active to provide e.touches emulation
-	  	if (!_pointerDocListener) {
-	  		// we listen document as any drags that end by moving the touch off the screen get fired there
-	  		document.addEventListener(POINTER_DOWN, _globalPointerDown, true);
-	  		document.addEventListener(POINTER_MOVE, _globalPointerMove, true);
-	  		document.addEventListener(POINTER_UP, _globalPointerUp, true);
-	  		document.addEventListener(POINTER_CANCEL, _globalPointerUp, true);
-
-	  		_pointerDocListener = true;
-	  	}
+	  	obj.removeEventListener(pEvent[type], handler, false);
 	  }
 
 	  function _globalPointerDown(e) {
@@ -17799,7 +17949,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	delete _pointers[e.pointerId];
 	  }
 
-	  function _handlePointer(e, handler) {
+	  function _addPointerDocListener() {
+	  	// need to keep track of what pointers and how many are active to provide e.touches emulation
+	  	if (!_pointerDocListener) {
+	  		// we listen document as any drags that end by moving the touch off the screen get fired there
+	  		document.addEventListener(POINTER_DOWN, _globalPointerDown, true);
+	  		document.addEventListener(POINTER_MOVE, _globalPointerMove, true);
+	  		document.addEventListener(POINTER_UP, _globalPointerUp, true);
+	  		document.addEventListener(POINTER_CANCEL, _globalPointerUp, true);
+
+	  		_pointerDocListener = true;
+	  	}
+	  }
+
+	  function _handlePointer(handler, e) {
+	  	if (e.pointerType === (e.MSPOINTER_TYPE_MOUSE || 'mouse')) { return; }
+
 	  	e.touches = [];
 	  	for (var i in _pointers) {
 	  		e.touches.push(_pointers[i]);
@@ -17809,108 +17974,102 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	handler(e);
 	  }
 
-	  function _addPointerMove(obj, handler, id) {
-	  	var onMove = function (e) {
-	  		// don't fire touch moves when mouse isn't down
-	  		if ((e.pointerType === (e.MSPOINTER_TYPE_MOUSE || 'mouse')) && e.buttons === 0) {
-	  			return;
-	  		}
-
-	  		_handlePointer(e, handler);
-	  	};
-
-	  	obj['_leaflet_touchmove' + id] = onMove;
-	  	obj.addEventListener(POINTER_MOVE, onMove, false);
-	  }
-
-	  function _addPointerEnd(obj, handler, id) {
-	  	var onUp = function (e) {
-	  		_handlePointer(e, handler);
-	  	};
-
-	  	obj['_leaflet_touchend' + id] = onUp;
-	  	obj.addEventListener(POINTER_UP, onUp, false);
-	  	obj.addEventListener(POINTER_CANCEL, onUp, false);
+	  function _onPointerStart(handler, e) {
+	  	// IE10 specific: MsTouch needs preventDefault. See #2000
+	  	if (e.MSPOINTER_TYPE_TOUCH && e.pointerType === e.MSPOINTER_TYPE_TOUCH) {
+	  		preventDefault(e);
+	  	}
+	  	_handlePointer(handler, e);
 	  }
 
 	  /*
 	   * Extends the event handling code with double tap support for mobile browsers.
+	   *
+	   * Note: currently most browsers fire native dblclick, with only a few exceptions
+	   * (see https://github.com/Leaflet/Leaflet/issues/7012#issuecomment-595087386)
 	   */
 
-	  var _touchstart = msPointer ? 'MSPointerDown' : pointer ? 'pointerdown' : 'touchstart';
-	  var _touchend = msPointer ? 'MSPointerUp' : pointer ? 'pointerup' : 'touchend';
-	  var _pre = '_leaflet_';
+	  function makeDblclick(event) {
+	  	// in modern browsers `type` cannot be just overridden:
+	  	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Getter_only
+	  	var newEvent = {},
+	  	    prop, i;
+	  	for (i in event) {
+	  		prop = event[i];
+	  		newEvent[i] = prop && prop.bind ? prop.bind(event) : prop;
+	  	}
+	  	event = newEvent;
+	  	newEvent.type = 'dblclick';
+	  	newEvent.detail = 2;
+	  	newEvent.isTrusted = false;
+	  	newEvent._simulated = true; // for debug purposes
+	  	return newEvent;
+	  }
 
-	  // inspired by Zepto touch code by Thomas Fuchs
-	  function addDoubleTapListener(obj, handler, id) {
-	  	var last, touch$$1,
-	  	    doubleTap = false,
-	  	    delay = 250;
+	  var delay = 200;
+	  function addDoubleTapListener(obj, handler) {
+	  	// Most browsers handle double tap natively
+	  	obj.addEventListener('dblclick', handler);
 
-	  	function onTouchStart(e) {
-
-	  		if (pointer) {
-	  			if (!e.isPrimary) { return; }
-	  			if (e.pointerType === 'mouse') { return; } // mouse fires native dblclick
-	  		} else if (e.touches.length > 1) {
+	  	// On some platforms the browser doesn't fire native dblclicks for touch events.
+	  	// It seems that in all such cases `detail` property of `click` event is always `1`.
+	  	// So here we rely on that fact to avoid excessive 'dblclick' simulation when not needed.
+	  	var last = 0,
+	  	    detail;
+	  	function simDblclick(e) {
+	  		if (e.detail !== 1) {
+	  			detail = e.detail; // keep in sync to avoid false dblclick in some cases
 	  			return;
 	  		}
 
-	  		var now = Date.now(),
-	  		    delta = now - (last || now);
+	  		if (e.pointerType === 'mouse' ||
+	  			(e.sourceCapabilities && !e.sourceCapabilities.firesTouchEvents)) {
 
-	  		touch$$1 = e.touches ? e.touches[0] : e;
-	  		doubleTap = (delta > 0 && delta <= delay);
+	  			return;
+	  		}
+
+	  		// When clicking on an <input>, the browser generates a click on its
+	  		// <label> (and vice versa) triggering two clicks in quick succession.
+	  		// This ignores clicks on elements which are a label with a 'for'
+	  		// attribute (or children of such a label), but not children of
+	  		// a <input>.
+	  		var path = getPropagationPath(e);
+	  		if (path.some(function (el) {
+	  			return el instanceof HTMLLabelElement && el.attributes.for;
+	  		}) &&
+	  			!path.some(function (el) {
+	  				return (
+	  					el instanceof HTMLInputElement ||
+	  					el instanceof HTMLSelectElement
+	  				);
+	  			})
+	  		) {
+	  			return;
+	  		}
+
+	  		var now = Date.now();
+	  		if (now - last <= delay) {
+	  			detail++;
+	  			if (detail === 2) {
+	  				handler(makeDblclick(e));
+	  			}
+	  		} else {
+	  			detail = 1;
+	  		}
 	  		last = now;
 	  	}
 
-	  	function onTouchEnd(e) {
-	  		if (doubleTap && !touch$$1.cancelBubble) {
-	  			if (pointer) {
-	  				if (e.pointerType === 'mouse') { return; }
-	  				// work around .type being readonly with MSPointer* events
-	  				var newTouch = {},
-	  				    prop, i;
+	  	obj.addEventListener('click', simDblclick);
 
-	  				for (i in touch$$1) {
-	  					prop = touch$$1[i];
-	  					newTouch[i] = prop && prop.bind ? prop.bind(touch$$1) : prop;
-	  				}
-	  				touch$$1 = newTouch;
-	  			}
-	  			touch$$1.type = 'dblclick';
-	  			touch$$1.button = 0;
-	  			handler(touch$$1);
-	  			last = null;
-	  		}
-	  	}
-
-	  	obj[_pre + _touchstart + id] = onTouchStart;
-	  	obj[_pre + _touchend + id] = onTouchEnd;
-	  	obj[_pre + 'dblclick' + id] = handler;
-
-	  	obj.addEventListener(_touchstart, onTouchStart, passiveEvents ? {passive: false} : false);
-	  	obj.addEventListener(_touchend, onTouchEnd, passiveEvents ? {passive: false} : false);
-
-	  	// On some platforms (notably, chrome<55 on win10 + touchscreen + mouse),
-	  	// the browser doesn't fire touchend/pointerup events but does fire
-	  	// native dblclicks. See #4127.
-	  	// Edge 14 also fires native dblclicks, but only for pointerType mouse, see #5180.
-	  	obj.addEventListener('dblclick', handler, false);
-
-	  	return this;
+	  	return {
+	  		dblclick: handler,
+	  		simDblclick: simDblclick
+	  	};
 	  }
 
-	  function removeDoubleTapListener(obj, id) {
-	  	var touchstart = obj[_pre + _touchstart + id],
-	  	    touchend = obj[_pre + _touchend + id],
-	  	    dblclick = obj[_pre + 'dblclick' + id];
-
-	  	obj.removeEventListener(_touchstart, touchstart, passiveEvents ? {passive: false} : false);
-	  	obj.removeEventListener(_touchend, touchend, passiveEvents ? {passive: false} : false);
-	  	obj.removeEventListener('dblclick', dblclick, false);
-
-	  	return this;
+	  function removeDoubleTapListener(obj, handlers) {
+	  	obj.removeEventListener('dblclick', handlers.dblclick);
+	  	obj.removeEventListener('click', handlers.simDblclick);
 	  }
 
 	  /*
@@ -18124,7 +18283,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	var pos = offset || new Point(0, 0);
 
 	  	el.style[TRANSFORM] =
-	  		(ie3d ?
+	  		(Browser.ie3d ?
 	  			'translate(' + pos.x + 'px,' + pos.y + 'px)' :
 	  			'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') +
 	  		(scale ? ' scale(' + scale + ')' : '');
@@ -18140,7 +18299,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	el._leaflet_pos = point;
 	  	/* eslint-enable */
 
-	  	if (any3d) {
+	  	if (Browser.any3d) {
 	  		setTransform(el, point);
 	  	} else {
 	  		el.style.left = point.x + 'px';
@@ -18258,7 +18417,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	};
 	  }
 
-	  var DomUtil = ({
+	  var DomUtil = {
+	    __proto__: null,
 	    TRANSFORM: TRANSFORM,
 	    TRANSITION: TRANSITION,
 	    TRANSITION_END: TRANSITION_END,
@@ -18279,15 +18439,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    setTransform: setTransform,
 	    setPosition: setPosition,
 	    getPosition: getPosition,
-	    disableTextSelection: disableTextSelection,
-	    enableTextSelection: enableTextSelection,
+	    get disableTextSelection () { return disableTextSelection; },
+	    get enableTextSelection () { return enableTextSelection; },
 	    disableImageDrag: disableImageDrag,
 	    enableImageDrag: enableImageDrag,
 	    preventOutline: preventOutline,
 	    restoreOutline: restoreOutline,
 	    getSizedParentNode: getSizedParentNode,
 	    getScale: getScale
-	  });
+	  };
 
 	  /*
 	   * @namespace DomEvent
@@ -18307,7 +18467,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // Adds a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
 	  function on(obj, types, fn, context) {
 
-	  	if (typeof types === 'object') {
+	  	if (types && typeof types === 'object') {
 	  		for (var type in types) {
 	  			addOne(obj, type, types[type], fn);
 	  		}
@@ -18332,32 +18492,48 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @alternative
 	  // @function off(el: HTMLElement, eventMap: Object, context?: Object): this
 	  // Removes a set of type/listener pairs, e.g. `{click: onClick, mousemove: onMouseMove}`
+
+	  // @alternative
+	  // @function off(el: HTMLElement, types: String): this
+	  // Removes all previously added listeners of given types.
+
+	  // @alternative
+	  // @function off(el: HTMLElement): this
+	  // Removes all previously added listeners from given HTMLElement
 	  function off(obj, types, fn, context) {
 
-	  	if (typeof types === 'object') {
+	  	if (arguments.length === 1) {
+	  		batchRemove(obj);
+	  		delete obj[eventsKey];
+
+	  	} else if (types && typeof types === 'object') {
 	  		for (var type in types) {
 	  			removeOne(obj, type, types[type], fn);
 	  		}
-	  	} else if (types) {
+
+	  	} else {
 	  		types = splitWords(types);
 
-	  		for (var i = 0, len = types.length; i < len; i++) {
-	  			removeOne(obj, types[i], fn, context);
+	  		if (arguments.length === 2) {
+	  			batchRemove(obj, function (type) {
+	  				return indexOf(types, type) !== -1;
+	  			});
+	  		} else {
+	  			for (var i = 0, len = types.length; i < len; i++) {
+	  				removeOne(obj, types[i], fn, context);
+	  			}
 	  		}
-	  	} else {
-	  		for (var j in obj[eventsKey]) {
-	  			removeOne(obj, j, obj[eventsKey][j]);
-	  		}
-	  		delete obj[eventsKey];
 	  	}
 
 	  	return this;
 	  }
 
-	  function browserFiresNativeDblClick() {
-	  	// See https://github.com/w3c/pointerevents/issues/171
-	  	if (pointer) {
-	  		return !(edge || safari);
+	  function batchRemove(obj, filterFn) {
+	  	for (var id in obj[eventsKey]) {
+	  		var type = id.split(/\d/)[0];
+	  		if (!filterFn || filterFn(type)) {
+	  			removeOne(obj, type, null, null, id);
+	  		}
 	  	}
 	  }
 
@@ -18378,17 +18554,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	var originalHandler = handler;
 
-	  	if (pointer && type.indexOf('touch') === 0) {
+	  	if (!Browser.touchNative && Browser.pointer && type.indexOf('touch') === 0) {
 	  		// Needs DomEvent.Pointer.js
-	  		addPointerListener(obj, type, handler, id);
+	  		handler = addPointerListener(obj, type, handler);
 
-	  	} else if (touch && (type === 'dblclick') && !browserFiresNativeDblClick()) {
-	  		addDoubleTapListener(obj, handler, id);
+	  	} else if (Browser.touch && (type === 'dblclick')) {
+	  		handler = addDoubleTapListener(obj, handler);
 
 	  	} else if ('addEventListener' in obj) {
 
 	  		if (type === 'touchstart' || type === 'touchmove' || type === 'wheel' ||  type === 'mousewheel') {
-	  			obj.addEventListener(mouseSubst[type] || type, handler, passiveEvents ? {passive: false} : false);
+	  			obj.addEventListener(mouseSubst[type] || type, handler, Browser.passiveEvents ? {passive: false} : false);
 
 	  		} else if (type === 'mouseenter' || type === 'mouseleave') {
 	  			handler = function (e) {
@@ -18403,7 +18579,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			obj.addEventListener(type, originalHandler, false);
 	  		}
 
-	  	} else if ('attachEvent' in obj) {
+	  	} else {
 	  		obj.attachEvent('on' + type, handler);
 	  	}
 
@@ -18411,24 +18587,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	obj[eventsKey][id] = handler;
 	  }
 
-	  function removeOne(obj, type, fn, context) {
-
-	  	var id = type + stamp(fn) + (context ? '_' + stamp(context) : ''),
-	  	    handler = obj[eventsKey] && obj[eventsKey][id];
+	  function removeOne(obj, type, fn, context, id) {
+	  	id = id || type + stamp(fn) + (context ? '_' + stamp(context) : '');
+	  	var handler = obj[eventsKey] && obj[eventsKey][id];
 
 	  	if (!handler) { return this; }
 
-	  	if (pointer && type.indexOf('touch') === 0) {
-	  		removePointerListener(obj, type, id);
+	  	if (!Browser.touchNative && Browser.pointer && type.indexOf('touch') === 0) {
+	  		removePointerListener(obj, type, handler);
 
-	  	} else if (touch && (type === 'dblclick') && !browserFiresNativeDblClick()) {
-	  		removeDoubleTapListener(obj, id);
+	  	} else if (Browser.touch && (type === 'dblclick')) {
+	  		removeDoubleTapListener(obj, handler);
 
 	  	} else if ('removeEventListener' in obj) {
 
 	  		obj.removeEventListener(mouseSubst[type] || type, handler, false);
 
-	  	} else if ('detachEvent' in obj) {
+	  	} else {
 	  		obj.detachEvent('on' + type, handler);
 	  	}
 
@@ -18451,7 +18626,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	} else {
 	  		e.cancelBubble = true;
 	  	}
-	  	skipped(e);
 
 	  	return this;
 	  }
@@ -18464,11 +18638,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  }
 
 	  // @function disableClickPropagation(el: HTMLElement): this
-	  // Adds `stopPropagation` to the element's `'click'`, `'doubleclick'`,
+	  // Adds `stopPropagation` to the element's `'click'`, `'dblclick'`, `'contextmenu'`,
 	  // `'mousedown'` and `'touchstart'` events (plus browser variants).
 	  function disableClickPropagation(el) {
-	  	on(el, 'mousedown touchstart dblclick', stopPropagation);
-	  	addOne(el, 'click', fakeStop);
+	  	on(el, 'mousedown touchstart dblclick contextmenu', stopPropagation);
+	  	el['_leaflet_disable_click'] = true;
 	  	return this;
 	  }
 
@@ -18494,6 +18668,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return this;
 	  }
 
+	  // @function getPropagationPath(ev: DOMEvent): Array
+	  // Compatibility polyfill for [`Event.composedPath()`](https://developer.mozilla.org/en-US/docs/Web/API/Event/composedPath).
+	  // Returns an array containing the `HTMLElement`s that the given DOM event
+	  // should propagate to (if not stopped).
+	  function getPropagationPath(ev) {
+	  	if (ev.composedPath) {
+	  		return ev.composedPath();
+	  	}
+
+	  	var path = [];
+	  	var el = ev.target;
+
+	  	while (el) {
+	  		path.push(el);
+	  		el = el.parentNode;
+	  	}
+	  	return path;
+	  }
+
+
 	  // @function getMousePosition(ev: DOMEvent, container?: HTMLElement): Point
 	  // Gets normalized mouse position from a DOM event relative to the
 	  // `container` (border excluded) or to the whole page if not specified.
@@ -18513,19 +18707,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	);
 	  }
 
-	  // Chrome on Win scrolls double the pixels as in other platforms (see #4538),
-	  // and Firefox scrolls device pixels, not CSS pixels
-	  var wheelPxFactor =
-	  	(win && chrome) ? 2 * window.devicePixelRatio :
-	  	gecko ? window.devicePixelRatio : 1;
 
+	  //  except , Safari and
+	  // We need double the scroll pixels (see #7403 and #4538) for all Browsers
+	  // except OSX (Mac) -> 3x, Chrome running on Linux 1x
+
+	  var wheelPxFactor =
+	  	(Browser.linux && Browser.chrome) ? window.devicePixelRatio :
+	  	Browser.mac ? window.devicePixelRatio * 3 :
+	  	window.devicePixelRatio > 0 ? 2 * window.devicePixelRatio : 1;
 	  // @function getWheelDelta(ev: DOMEvent): Number
 	  // Gets normalized wheel delta from a wheel DOM event, in vertical
 	  // pixels scrolled (negative if scrolling down).
 	  // Events from pointing devices without precise scrolling are mapped to
 	  // a best guess of 60 pixels.
 	  function getWheelDelta(e) {
-	  	return (edge) ? e.wheelDeltaY / 2 : // Don't trust window-geometry-based delta
+	  	return (Browser.edge) ? e.wheelDeltaY / 2 : // Don't trust window-geometry-based delta
 	  	       (e.deltaY && e.deltaMode === 0) ? -e.deltaY / wheelPxFactor : // Pixels
 	  	       (e.deltaY && e.deltaMode === 1) ? -e.deltaY * 20 : // Lines
 	  	       (e.deltaY && e.deltaMode === 2) ? -e.deltaY * 60 : // Pages
@@ -18534,20 +18731,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	       (e.detail && Math.abs(e.detail) < 32765) ? -e.detail * 20 : // Legacy Moz lines
 	  	       e.detail ? e.detail / -32765 * 60 : // Legacy Moz pages
 	  	       0;
-	  }
-
-	  var skipEvents = {};
-
-	  function fakeStop(e) {
-	  	// fakes stopPropagation by setting a special event flag, checked/reset with skipped(e)
-	  	skipEvents[e.type] = true;
-	  }
-
-	  function skipped(e) {
-	  	var events = skipEvents[e.type];
-	  	// reset when checking, as it's only used in map container and propagates outside of the map
-	  	skipEvents[e.type] = false;
-	  	return events;
 	  }
 
 	  // check if element really left/entered the event target (for mouseenter/mouseleave)
@@ -18567,7 +18750,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return (related !== el);
 	  }
 
-	  var DomEvent = ({
+	  var DomEvent = {
+	    __proto__: null,
 	    on: on,
 	    off: off,
 	    stopPropagation: stopPropagation,
@@ -18575,14 +18759,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    disableClickPropagation: disableClickPropagation,
 	    preventDefault: preventDefault,
 	    stop: stop,
+	    getPropagationPath: getPropagationPath,
 	    getMousePosition: getMousePosition,
 	    getWheelDelta: getWheelDelta,
-	    fakeStop: fakeStop,
-	    skipped: skipped,
 	    isExternalTarget: isExternalTarget,
 	    addListener: on,
 	    removeListener: off
-	  });
+	  };
 
 	  /*
 	   * @class PosAnimation
@@ -18592,8 +18775,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   *
 	   * @example
 	   * ```js
-	   * var fx = new L.PosAnimation();
-	   * fx.run(el, [300, 500], 0.5);
+	   * var myPositionMarker = L.marker([48.864716, 2.294694]).addTo(map);
+	   *
+	   * myPositionMarker.on("click", function() {
+	   * 	var pos = map.latLngToLayerPoint(myPositionMarker.getLatLng());
+	   * 	pos.y -= 25;
+	   * 	var fx = new L.PosAnimation();
+	   *
+	   * 	fx.once('end',function() {
+	   * 		pos.y += 25;
+	   * 		fx.run(myPositionMarker._icon, pos, 0.8);
+	   * 	});
+	   *
+	   * 	fx.run(myPositionMarker._icon, pos, 0.3);
+	   * });
+	   *
 	   * ```
 	   *
 	   * @constructor L.PosAnimation()
@@ -18606,7 +18802,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method run(el: HTMLElement, newPos: Point, duration?: Number, easeLinearity?: Number)
 	  	// Run an animation of a given element to a new position, optionally setting
 	  	// duration in seconds (`0.25` by default) and easing linearity factor (3rd
-	  	// argument of the [cubic bezier curve](http://cubic-bezier.com/#0,0,.5,1),
+	  	// argument of the [cubic bezier curve](https://cubic-bezier.com/#0,0,.5,1),
 	  	// `0.5` by default).
 	  	run: function (el, newPos, duration, easeLinearity) {
 	  		this.stop();
@@ -18826,7 +19022,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this.callInitHooks();
 
 	  		// don't animate on browsers without hardware-accelerated transitions or old Android/Opera
-	  		this._zoomAnimated = TRANSITION && any3d && !mobileOpera &&
+	  		this._zoomAnimated = TRANSITION && Browser.any3d && !Browser.mobileOpera &&
 	  				this.options.zoomAnimation;
 
 	  		// zoom transitions run with the same duration for all layers, so if one of transitionend events
@@ -18873,7 +19069,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		}
 
 	  		// animation didn't start, just reset the map view
-	  		this._resetView(center, zoom);
+	  		this._resetView(center, zoom, options.pan && options.pan.noMoveStart);
 
 	  		return this;
 	  	},
@@ -18891,14 +19087,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method zoomIn(delta?: Number, options?: Zoom options): this
 	  	// Increases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
 	  	zoomIn: function (delta, options) {
-	  		delta = delta || (any3d ? this.options.zoomDelta : 1);
+	  		delta = delta || (Browser.any3d ? this.options.zoomDelta : 1);
 	  		return this.setZoom(this._zoom + delta, options);
 	  	},
 
 	  	// @method zoomOut(delta?: Number, options?: Zoom options): this
 	  	// Decreases the zoom of the map by `delta` ([`zoomDelta`](#map-zoomdelta) by default).
 	  	zoomOut: function (delta, options) {
-	  		delta = delta || (any3d ? this.options.zoomDelta : 1);
+	  		delta = delta || (Browser.any3d ? this.options.zoomDelta : 1);
 	  		return this.setZoom(this._zoom - delta, options);
 	  	},
 
@@ -19028,7 +19224,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	flyTo: function (targetCenter, targetZoom, options) {
 
 	  		options = options || {};
-	  		if (options.animate === false || !any3d) {
+	  		if (options.animate === false || !Browser.any3d) {
 	  			return this.setView(targetCenter, targetZoom, options);
 	  		}
 
@@ -19116,11 +19312,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	setMaxBounds: function (bounds) {
 	  		bounds = toLatLngBounds(bounds);
 
+	  		if (this.listens('moveend', this._panInsideMaxBounds)) {
+	  			this.off('moveend', this._panInsideMaxBounds);
+	  		}
+
 	  		if (!bounds.isValid()) {
 	  			this.options.maxBounds = null;
-	  			return this.off('moveend', this._panInsideMaxBounds);
-	  		} else if (this.options.maxBounds) {
-	  			this.off('moveend', this._panInsideMaxBounds);
+	  			return this;
 	  		}
 
 	  		this.options.maxBounds = bounds;
@@ -19181,10 +19379,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this;
 	  	},
 
-	  	// @method panInside(latlng: LatLng, options?: options): this
+	  	// @method panInside(latlng: LatLng, options?: padding options): this
 	  	// Pans the map the minimum amount to make the `latlng` visible. Use
-	  	// `padding`, `paddingTopLeft` and `paddingTopRight` options to fit
-	  	// the display to more restricted bounds, like [`fitBounds`](#map-fitbounds).
+	  	// padding options to fit the display to more restricted bounds.
 	  	// If `latlng` is already within the (optionally padded) display bounds,
 	  	// the map will not be panned.
 	  	panInside: function (latlng, options) {
@@ -19192,35 +19389,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		var paddingTL = toPoint(options.paddingTopLeft || options.padding || [0, 0]),
 	  		    paddingBR = toPoint(options.paddingBottomRight || options.padding || [0, 0]),
-	  		    center = this.getCenter(),
-	  		    pixelCenter = this.project(center),
+	  		    pixelCenter = this.project(this.getCenter()),
 	  		    pixelPoint = this.project(latlng),
 	  		    pixelBounds = this.getPixelBounds(),
-	  		    halfPixelBounds = pixelBounds.getSize().divideBy(2),
-	  		    paddedBounds = toBounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]);
+	  		    paddedBounds = toBounds([pixelBounds.min.add(paddingTL), pixelBounds.max.subtract(paddingBR)]),
+	  		    paddedSize = paddedBounds.getSize();
 
 	  		if (!paddedBounds.contains(pixelPoint)) {
 	  			this._enforcingBounds = true;
-	  			var diff = pixelCenter.subtract(pixelPoint),
-	  			    newCenter = toPoint(pixelPoint.x + diff.x, pixelPoint.y + diff.y);
-
-	  			if (pixelPoint.x < paddedBounds.min.x || pixelPoint.x > paddedBounds.max.x) {
-	  				newCenter.x = pixelCenter.x - diff.x;
-	  				if (diff.x > 0) {
-	  					newCenter.x += halfPixelBounds.x - paddingTL.x;
-	  				} else {
-	  					newCenter.x -= halfPixelBounds.x - paddingBR.x;
-	  				}
-	  			}
-	  			if (pixelPoint.y < paddedBounds.min.y || pixelPoint.y > paddedBounds.max.y) {
-	  				newCenter.y = pixelCenter.y - diff.y;
-	  				if (diff.y > 0) {
-	  					newCenter.y += halfPixelBounds.y - paddingTL.y;
-	  				} else {
-	  					newCenter.y -= halfPixelBounds.y - paddingBR.y;
-	  				}
-	  			}
-	  			this.panTo(this.unproject(newCenter), options);
+	  			var centerOffset = pixelPoint.subtract(paddedBounds.getCenter());
+	  			var offset = paddedBounds.extend(pixelPoint).getSize().subtract(paddedSize);
+	  			pixelCenter.x += centerOffset.x < 0 ? -offset.x : offset.x;
+	  			pixelCenter.y += centerOffset.y < 0 ? -offset.y : offset.y;
+	  			this.panTo(this.unproject(pixelCenter), options);
 	  			this._enforcingBounds = false;
 	  		}
 	  		return this;
@@ -19351,6 +19532,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_handleGeolocationError: function (error) {
+	  		if (!this._container._leaflet_id) { return; }
+
 	  		var c = error.code,
 	  		    message = error.message ||
 	  		            (c === 1 ? 'permission denied' :
@@ -19370,6 +19553,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_handleGeolocationResponse: function (pos) {
+	  		if (!this._container._leaflet_id) { return; }
+
 	  		var lat = pos.coords.latitude,
 	  		    lng = pos.coords.longitude,
 	  		    latlng = new LatLng(lat, lng),
@@ -19422,7 +19607,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	remove: function () {
 
 	  		this._initEvents(true);
-	  		this.off('moveend', this._panInsideMaxBounds);
+	  		if (this.options.maxBounds) { this.off('moveend', this._panInsideMaxBounds); }
 
 	  		if (this._containerId !== this._container._leaflet_id) {
 	  			throw new Error('Map container is being reused by another instance');
@@ -19503,7 +19688,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this._checkIfLoaded();
 
 	  		if (this._lastCenter && !this._moved()) {
-	  			return this._lastCenter;
+	  			return this._lastCenter.clone();
 	  		}
 	  		return this.layerPointToLatLng(this._getCenterLayerPoint());
 	  	},
@@ -19554,7 +19739,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		    se = bounds.getSouthEast(),
 	  		    size = this.getSize().subtract(padding),
 	  		    boundsSize = toBounds(this.project(se, zoom), this.project(nw, zoom)).getSize(),
-	  		    snap = any3d ? this.options.zoomSnap : 1,
+	  		    snap = Browser.any3d ? this.options.zoomSnap : 1,
 	  		    scalex = size.x / boundsSize.x,
 	  		    scaley = size.y / boundsSize.y,
 	  		    scale = inside ? Math.max(scalex, scaley) : Math.min(scalex, scaley);
@@ -19782,13 +19967,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	_initLayout: function () {
 	  		var container = this._container;
 
-	  		this._fadeAnimated = this.options.fadeAnimation && any3d;
+	  		this._fadeAnimated = this.options.fadeAnimation && Browser.any3d;
 
 	  		addClass(container, 'leaflet-container' +
-	  			(touch ? ' leaflet-touch' : '') +
-	  			(retina ? ' leaflet-retina' : '') +
-	  			(ielt9 ? ' leaflet-oldie' : '') +
-	  			(safari ? ' leaflet-safari' : '') +
+	  			(Browser.touch ? ' leaflet-touch' : '') +
+	  			(Browser.retina ? ' leaflet-retina' : '') +
+	  			(Browser.ielt9 ? ' leaflet-oldie' : '') +
+	  			(Browser.safari ? ' leaflet-safari' : '') +
 	  			(this._fadeAnimated ? ' leaflet-fade-anim' : ''));
 
 	  		var position = getStyle(container, 'position');
@@ -19827,11 +20012,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// Pane for `GridLayer`s and `TileLayer`s
 	  		this.createPane('tilePane');
 	  		// @pane overlayPane: HTMLElement = 400
-	  		// Pane for overlay shadows (e.g. `Marker` shadows)
-	  		this.createPane('shadowPane');
-	  		// @pane shadowPane: HTMLElement = 500
 	  		// Pane for vectors (`Path`s, like `Polyline`s and `Polygon`s), `ImageOverlay`s and `VideoOverlay`s
 	  		this.createPane('overlayPane');
+	  		// @pane shadowPane: HTMLElement = 500
+	  		// Pane for overlay shadows (e.g. `Marker` shadows)
+	  		this.createPane('shadowPane');
 	  		// @pane markerPane: HTMLElement = 600
 	  		// Pane for `Icon`s of `Marker`s
 	  		this.createPane('markerPane');
@@ -19852,7 +20037,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// private methods that modify map state
 
 	  	// @section Map state change events
-	  	_resetView: function (center, zoom) {
+	  	_resetView: function (center, zoom, noMoveStart) {
 	  		setPosition(this._mapPane, new Point(0, 0));
 
 	  		var loading = !this._loaded;
@@ -19863,7 +20048,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		var zoomChanged = this._zoom !== zoom;
 	  		this
-	  			._moveStart(zoomChanged, false)
+	  			._moveStart(zoomChanged, noMoveStart)
 	  			._move(center, zoom)
 	  			._moveEnd(zoomChanged);
 
@@ -19894,7 +20079,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this;
 	  	},
 
-	  	_move: function (center, zoom, data) {
+	  	_move: function (center, zoom, data, supressEvent) {
 	  		if (zoom === undefined) {
 	  			zoom = this._zoom;
 	  		}
@@ -19904,29 +20089,34 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this._lastCenter = center;
 	  		this._pixelOrigin = this._getNewPixelOrigin(center);
 
-	  		// @event zoom: Event
-	  		// Fired repeatedly during any change in zoom level, including zoom
-	  		// and fly animations.
-	  		if (zoomChanged || (data && data.pinch)) {	// Always fire 'zoom' if pinching because #3530
+	  		if (!supressEvent) {
+	  			// @event zoom: Event
+	  			// Fired repeatedly during any change in zoom level,
+	  			// including zoom and fly animations.
+	  			if (zoomChanged || (data && data.pinch)) {	// Always fire 'zoom' if pinching because #3530
+	  				this.fire('zoom', data);
+	  			}
+
+	  			// @event move: Event
+	  			// Fired repeatedly during any movement of the map,
+	  			// including pan and fly animations.
+	  			this.fire('move', data);
+	  		} else if (data && data.pinch) {	// Always fire 'zoom' if pinching because #3530
 	  			this.fire('zoom', data);
 	  		}
-
-	  		// @event move: Event
-	  		// Fired repeatedly during any movement of the map, including pan and
-	  		// fly animations.
-	  		return this.fire('move', data);
+	  		return this;
 	  	},
 
 	  	_moveEnd: function (zoomChanged) {
 	  		// @event zoomend: Event
-	  		// Fired when the map has changed, after any animations.
+	  		// Fired when the map zoom changed, after any animations.
 	  		if (zoomChanged) {
 	  			this.fire('zoomend');
 	  		}
 
 	  		// @event moveend: Event
-	  		// Fired when the center of the map stops changing (e.g. user stopped
-	  		// dragging the map).
+	  		// Fired when the center of the map stops changing
+	  		// (e.g. user stopped dragging the map or after non-centered zoom).
 	  		return this.fire('moveend');
 	  	},
 
@@ -19961,11 +20151,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// DOM event handling
 
 	  	// @section Interaction events
-	  	_initEvents: function (remove$$1) {
+	  	_initEvents: function (remove) {
 	  		this._targets = {};
 	  		this._targets[stamp(this._container)] = this;
 
-	  		var onOff = remove$$1 ? off : on;
+	  		var onOff = remove ? off : on;
 
 	  		// @event click: MouseEvent
 	  		// Fired when the user clicks (or taps) the map.
@@ -20001,8 +20191,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			onOff(window, 'resize', this._onResize, this);
 	  		}
 
-	  		if (any3d && this.options.transform3DLimit) {
-	  			(remove$$1 ? this.off : this.on).call(this, 'moveend', this._onMoveEnd);
+	  		if (Browser.any3d && this.options.transform3DLimit) {
+	  			(remove ? this.off : this.on).call(this, 'moveend', this._onMoveEnd);
 	  		}
 	  	},
 
@@ -20021,7 +20211,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		var pos = this._getMapPanePos();
 	  		if (Math.max(Math.abs(pos.x), Math.abs(pos.y)) >= this.options.transform3DLimit) {
 	  			// https://bugzilla.mozilla.org/show_bug.cgi?id=1203873 but Webkit also have
-	  			// a pixel offset on very high values, see: http://jsfiddle.net/dg6r5hhb/
+	  			// a pixel offset on very high values, see: https://jsfiddle.net/dg6r5hhb/
 	  			this._resetView(this.getCenter(), this.getZoom());
 	  		}
 	  	},
@@ -20035,7 +20225,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		while (src) {
 	  			target = this._targets[stamp(src)];
-	  			if (target && (type === 'click' || type === 'preclick') && !e._simulated && this._draggableMoved(target)) {
+	  			if (target && (type === 'click' || type === 'preclick') && this._draggableMoved(target)) {
 	  				// Prevent firing click after you just dragged an object.
 	  				dragging = true;
 	  				break;
@@ -20048,20 +20238,30 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			if (src === this._container) { break; }
 	  			src = src.parentNode;
 	  		}
-	  		if (!targets.length && !dragging && !isHover && isExternalTarget(src, e)) {
+	  		if (!targets.length && !dragging && !isHover && this.listens(type, true)) {
 	  			targets = [this];
 	  		}
 	  		return targets;
 	  	},
 
+	  	_isClickDisabled: function (el) {
+	  		while (el && el !== this._container) {
+	  			if (el['_leaflet_disable_click']) { return true; }
+	  			el = el.parentNode;
+	  		}
+	  	},
+
 	  	_handleDOMEvent: function (e) {
-	  		if (!this._loaded || skipped(e)) { return; }
+	  		var el = (e.target || e.srcElement);
+	  		if (!this._loaded || el['_leaflet_disable_events'] || e.type === 'click' && this._isClickDisabled(el)) {
+	  			return;
+	  		}
 
 	  		var type = e.type;
 
-	  		if (type === 'mousedown' || type === 'keypress' || type === 'keyup' || type === 'keydown') {
+	  		if (type === 'mousedown') {
 	  			// prevents outline when clicking on keyboard-focusable element
-	  			preventOutline(e.target || e.srcElement);
+	  			preventOutline(el);
 	  		}
 
 	  		this._fireDOMEvent(e, type);
@@ -20069,7 +20269,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	_mouseEvents: ['click', 'dblclick', 'mouseover', 'mouseout', 'contextmenu'],
 
-	  	_fireDOMEvent: function (e, type, targets) {
+	  	_fireDOMEvent: function (e, type, canvasTargets) {
 
 	  		if (e.type === 'click') {
 	  			// Fire a synthetic 'preclick' event which propagates up (mainly for closing popups).
@@ -20079,21 +20279,29 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			// handlers start running).
 	  			var synth = extend({}, e);
 	  			synth.type = 'preclick';
-	  			this._fireDOMEvent(synth, synth.type, targets);
+	  			this._fireDOMEvent(synth, synth.type, canvasTargets);
 	  		}
 
-	  		if (e._stopped) { return; }
-
 	  		// Find the layer the event is propagating from and its parents.
-	  		targets = (targets || []).concat(this._findEventTargets(e, type));
+	  		var targets = this._findEventTargets(e, type);
+
+	  		if (canvasTargets) {
+	  			var filtered = []; // pick only targets with listeners
+	  			for (var i = 0; i < canvasTargets.length; i++) {
+	  				if (canvasTargets[i].listens(type, true)) {
+	  					filtered.push(canvasTargets[i]);
+	  				}
+	  			}
+	  			targets = filtered.concat(targets);
+	  		}
 
 	  		if (!targets.length) { return; }
 
-	  		var target = targets[0];
-	  		if (type === 'contextmenu' && target.listens(type, true)) {
+	  		if (type === 'contextmenu') {
 	  			preventDefault(e);
 	  		}
 
+	  		var target = targets[0];
 	  		var data = {
 	  			originalEvent: e
 	  		};
@@ -20106,7 +20314,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			data.latlng = isMarker ? target.getLatLng() : this.layerPointToLatLng(data.layerPoint);
 	  		}
 
-	  		for (var i = 0; i < targets.length; i++) {
+	  		for (i = 0; i < targets.length; i++) {
 	  			targets[i].fire(type, data, true);
 	  			if (data.originalEvent._stopped ||
 	  				(targets[i].options.bubblingMouseEvents === false && indexOf(this._mouseEvents, type) !== -1)) { return; }
@@ -20242,7 +20450,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	_limitZoom: function (zoom) {
 	  		var min = this.getMinZoom(),
 	  		    max = this.getMaxZoom(),
-	  		    snap = any3d ? this.options.zoomSnap : 1;
+	  		    snap = Browser.any3d ? this.options.zoomSnap : 1;
 	  		if (snap) {
 	  			zoom = Math.round(zoom / snap) * snap;
 	  		}
@@ -20362,6 +20570,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			noUpdate: noUpdate
 	  		});
 
+	  		if (!this._tempFireZoomEvent) {
+	  			this._tempFireZoomEvent = this._zoom !== this._animateToZoom;
+	  		}
+
+	  		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
+
 	  		// Work around webkit not firing 'transitionend', see https://github.com/Leaflet/Leaflet/issues/3689, 2693
 	  		setTimeout(bind(this._onZoomTransitionEnd, this), 250);
 	  	},
@@ -20375,12 +20589,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		this._animatingZoom = false;
 
-	  		this._move(this._animateToCenter, this._animateToZoom);
+	  		this._move(this._animateToCenter, this._animateToZoom, undefined, true);
 
-	  		// This anim frame should prevent an obscure iOS webkit tile loading race condition.
-	  		requestAnimFrame(function () {
-	  			this._moveEnd(true);
-	  		}, this);
+	  		if (this._tempFireZoomEvent) {
+	  			this.fire('zoom');
+	  		}
+	  		delete this._tempFireZoomEvent;
+
+	  		this.fire('move');
+
+	  		this._moveEnd(true);
 	  	}
 	  });
 
@@ -20409,7 +20627,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  var Control = Class.extend({
 	  	// @section
-	  	// @aka Control options
+	  	// @aka Control Options
 	  	options: {
 	  		// @option position: String = 'topright'
 	  		// The position of the control (one of the map corners). Possible values are `'topleft'`,
@@ -20572,7 +20790,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * @aka L.Control.Layers
 	   * @inherits Control
 	   *
-	   * The layers control gives users the ability to switch between different base layers and switch overlays on/off (check out the [detailed example](http://leafletjs.com/examples/layers-control/)). Extends `Control`.
+	   * The layers control gives users the ability to switch between different base layers and switch overlays on/off (check out the [detailed example](https://leafletjs.com/examples/layers-control/)). Extends `Control`.
 	   *
 	   * @example
 	   *
@@ -20611,7 +20829,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @aka Control.Layers options
 	  	options: {
 	  		// @option collapsed: Boolean = true
-	  		// If `true`, the control will be collapsed into an icon and expanded on mouse hover or touch.
+	  		// If `true`, the control will be collapsed into an icon and expanded on mouse hover, touch, or keyboard activation.
 	  		collapsed: true,
 	  		position: 'topright',
 
@@ -20749,24 +20967,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		if (collapsed) {
 	  			this._map.on('click', this.collapse, this);
 
-	  			if (!android) {
-	  				on(container, {
-	  					mouseenter: this.expand,
-	  					mouseleave: this.collapse
-	  				}, this);
-	  			}
+	  			on(container, {
+	  				mouseenter: function () {
+	  					on(section, 'click', preventDefault);
+	  					this.expand();
+	  					setTimeout(function () {
+	  						off(section, 'click', preventDefault);
+	  					});
+	  				},
+	  				mouseleave: this.collapse
+	  			}, this);
 	  		}
 
 	  		var link = this._layersLink = create$1('a', className + '-toggle', container);
 	  		link.href = '#';
 	  		link.title = 'Layers';
+	  		link.setAttribute('role', 'button');
 
-	  		if (touch) {
-	  			on(link, 'click', stop);
-	  			on(link, 'click', this.expand, this);
-	  		} else {
-	  			on(link, 'focus', this.expand, this);
-	  		}
+	  		on(link, 'click', preventDefault); // prevent link function
+	  		on(link, 'focus', this.expand, this);
 
 	  		if (!collapsed) {
 	  			this.expand();
@@ -20866,7 +21085,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		}
 	  	},
 
-	  	// IE7 bugs out if you create a radio dynamically, so you have to do it this hacky way (see http://bit.ly/PqYLBe)
+	  	// IE7 bugs out if you create a radio dynamically, so you have to do it this hacky way (see https://stackoverflow.com/a/119079)
 	  	_createRadioElement: function (name, checked) {
 
 	  		var radioHtml = '<input type="radio" class="leaflet-control-layers-selector" name="' +
@@ -20902,7 +21121,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		// Helps from preventing layer control flicker when checkboxes are disabled
 	  		// https://github.com/Leaflet/Leaflet/issues/2771
-	  		var holder = document.createElement('div');
+	  		var holder = document.createElement('span');
 
 	  		label.appendChild(holder);
 	  		holder.appendChild(input);
@@ -20971,16 +21190,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			this.expand();
 	  		}
 	  		return this;
-	  	},
-
-	  	_expand: function () {
-	  		// Backward compatibility, remove me in 1.1.
-	  		return this.expand();
-	  	},
-
-	  	_collapse: function () {
-	  		// Backward compatibility, remove me in 1.1.
-	  		return this.collapse();
 	  	}
 
 	  });
@@ -21006,17 +21215,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	options: {
 	  		position: 'topleft',
 
-	  		// @option zoomInText: String = '+'
+	  		// @option zoomInText: String = '<span aria-hidden="true">+</span>'
 	  		// The text set on the 'zoom in' button.
-	  		zoomInText: '+',
+	  		zoomInText: '<span aria-hidden="true">+</span>',
 
 	  		// @option zoomInTitle: String = 'Zoom in'
 	  		// The title set on the 'zoom in' button.
 	  		zoomInTitle: 'Zoom in',
 
-	  		// @option zoomOutText: String = '&#x2212;'
+	  		// @option zoomOutText: String = '<span aria-hidden="true">&#x2212;</span>'
 	  		// The text set on the 'zoom out' button.
-	  		zoomOutText: '&#x2212;',
+	  		zoomOutText: '<span aria-hidden="true">&#x2212;</span>',
 
 	  		// @option zoomOutTitle: String = 'Zoom out'
 	  		// The title set on the 'zoom out' button.
@@ -21093,12 +21302,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		removeClass(this._zoomInButton, className);
 	  		removeClass(this._zoomOutButton, className);
+	  		this._zoomInButton.setAttribute('aria-disabled', 'false');
+	  		this._zoomOutButton.setAttribute('aria-disabled', 'false');
 
 	  		if (this._disabled || map._zoom === map.getMinZoom()) {
 	  			addClass(this._zoomOutButton, className);
+	  			this._zoomOutButton.setAttribute('aria-disabled', 'true');
 	  		}
 	  		if (this._disabled || map._zoom === map.getMaxZoom()) {
 	  			addClass(this._zoomInButton, className);
+	  			this._zoomInButton.setAttribute('aria-disabled', 'true');
 	  		}
 	  	}
 	  });
@@ -21258,6 +21471,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return new Scale(options);
 	  };
 
+	  var ukrainianFlag = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"/><path fill="#FFD500" d="M0 4h12v3H0z"/><path fill="#E0BC00" d="M0 7h12v1H0z"/></svg>';
+
+
 	  /*
 	   * @class Control.Attribution
 	   * @aka L.Control.Attribution
@@ -21272,9 +21488,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	options: {
 	  		position: 'bottomright',
 
-	  		// @option prefix: String = 'Leaflet'
+	  		// @option prefix: String|false = 'Leaflet'
 	  		// The HTML text shown before the attributions. Pass `false` to disable.
-	  		prefix: '<a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>'
+	  		prefix: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">' + (Browser.inlineSvg ? ukrainianFlag + ' ' : '') + 'Leaflet</a>'
 	  	},
 
 	  	initialize: function (options) {
@@ -21297,11 +21513,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		this._update();
 
+	  		map.on('layeradd', this._addAttribution, this);
+
 	  		return this._container;
 	  	},
 
-	  	// @method setPrefix(prefix: String): this
-	  	// Sets the text before the attributions.
+	  	onRemove: function (map) {
+	  		map.off('layeradd', this._addAttribution, this);
+	  	},
+
+	  	_addAttribution: function (ev) {
+	  		if (ev.layer.getAttribution) {
+	  			this.addAttribution(ev.layer.getAttribution());
+	  			ev.layer.once('remove', function () {
+	  				this.removeAttribution(ev.layer.getAttribution());
+	  			}, this);
+	  		}
+	  	},
+
+	  	// @method setPrefix(prefix: String|false): this
+	  	// The HTML text shown before the attributions. Pass `false` to disable.
 	  	setPrefix: function (prefix) {
 	  		this.options.prefix = prefix;
 	  		this._update();
@@ -21309,7 +21540,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method addAttribution(text: String): this
-	  	// Adds an attribution text (e.g. `'Vector data &copy; Mapbox'`).
+	  	// Adds an attribution text (e.g. `'&copy; OpenStreetMap contributors'`).
 	  	addAttribution: function (text) {
 	  		if (!text) { return this; }
 
@@ -21356,7 +21587,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			prefixAndAttribs.push(attribs.join(', '));
 	  		}
 
-	  		this._container.innerHTML = prefixAndAttribs.join(' | ');
+	  		this._container.innerHTML = prefixAndAttribs.join(' <span aria-hidden="true">|</span> ');
 	  	}
 	  });
 
@@ -21465,20 +21696,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * ```
 	   */
 
-	  var START = touch ? 'touchstart mousedown' : 'mousedown';
-	  var END = {
-	  	mousedown: 'mouseup',
-	  	touchstart: 'touchend',
-	  	pointerdown: 'touchend',
-	  	MSPointerDown: 'touchend'
-	  };
-	  var MOVE = {
-	  	mousedown: 'mousemove',
-	  	touchstart: 'touchmove',
-	  	pointerdown: 'touchmove',
-	  	MSPointerDown: 'touchmove'
-	  };
-
+	  var START = Browser.touch ? 'touchstart mousedown' : 'mousedown';
 
 	  var Draggable = Evented.extend({
 
@@ -21493,12 +21711,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	// @constructor L.Draggable(el: HTMLElement, dragHandle?: HTMLElement, preventOutline?: Boolean, options?: Draggable options)
 	  	// Creates a `Draggable` object for moving `el` when you start dragging the `dragHandle` element (equals `el` itself by default).
-	  	initialize: function (element, dragStartTarget, preventOutline$$1, options) {
+	  	initialize: function (element, dragStartTarget, preventOutline, options) {
 	  		setOptions(this, options);
 
 	  		this._element = element;
 	  		this._dragStartTarget = dragStartTarget || element;
-	  		this._preventOutline = preventOutline$$1;
+	  		this._preventOutline = preventOutline;
 	  	},
 
 	  	// @method enable()
@@ -21519,7 +21737,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// If we're currently dragging this draggable,
 	  		// disabling it counts as first ending the drag.
 	  		if (Draggable._dragging === this) {
-	  			this.finishDrag();
+	  			this.finishDrag(true);
 	  		}
 
 	  		off(this._dragStartTarget, START, this._onDown, this);
@@ -21529,16 +21747,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_onDown: function (e) {
-	  		// Ignore simulated events, since we handle both touch and
-	  		// mouse explicitly; otherwise we risk getting duplicates of
-	  		// touch events, see #4315.
-	  		// Also ignore the event if disabled; this happens in IE11
+	  		// Ignore the event if disabled; this happens in IE11
 	  		// under some circumstances, see #3666.
-	  		if (e._simulated || !this._enabled) { return; }
+	  		if (!this._enabled) { return; }
 
 	  		this._moved = false;
 
 	  		if (hasClass(this._element, 'leaflet-zoom-anim')) { return; }
+
+	  		if (e.touches && e.touches.length !== 1) {
+	  			// Finish dragging to avoid conflict with touchZoom
+	  			if (Draggable._dragging === this) {
+	  				this.finishDrag();
+	  			}
+	  			return;
+	  		}
 
 	  		if (Draggable._dragging || e.shiftKey || ((e.which !== 1) && (e.button !== 1) && !e.touches)) { return; }
 	  		Draggable._dragging = this;  // Prevent dragging multiple objects at once.
@@ -21560,21 +21783,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		    sizedParent = getSizedParentNode(this._element);
 
 	  		this._startPoint = new Point(first.clientX, first.clientY);
+	  		this._startPos = getPosition(this._element);
 
 	  		// Cache the scale, so that we can continuously compensate for it during drag (_onMove).
 	  		this._parentScale = getScale(sizedParent);
 
-	  		on(document, MOVE[e.type], this._onMove, this);
-	  		on(document, END[e.type], this._onUp, this);
+	  		var mouseevent = e.type === 'mousedown';
+	  		on(document, mouseevent ? 'mousemove' : 'touchmove', this._onMove, this);
+	  		on(document, mouseevent ? 'mouseup' : 'touchend touchcancel', this._onUp, this);
 	  	},
 
 	  	_onMove: function (e) {
-	  		// Ignore simulated events, since we handle both touch and
-	  		// mouse explicitly; otherwise we risk getting duplicates of
-	  		// touch events, see #4315.
-	  		// Also ignore the event if disabled; this happens in IE11
+	  		// Ignore the event if disabled; this happens in IE11
 	  		// under some circumstances, see #3666.
-	  		if (e._simulated || !this._enabled) { return; }
+	  		if (!this._enabled) { return; }
 
 	  		if (e.touches && e.touches.length > 1) {
 	  			this._moved = true;
@@ -21601,7 +21823,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			this.fire('dragstart');
 
 	  			this._moved = true;
-	  			this._startPos = getPosition(this._element).subtract(offset);
 
 	  			addClass(document.body, 'leaflet-dragging');
 
@@ -21617,9 +21838,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this._newPos = this._startPos.add(offset);
 	  		this._moving = true;
 
-	  		cancelAnimFrame(this._animRequest);
 	  		this._lastEvent = e;
-	  		this._animRequest = requestAnimFrame(this._updatePosition, this, true);
+	  		this._updatePosition();
 	  	},
 
 	  	_updatePosition: function () {
@@ -21636,17 +21856,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this.fire('drag', e);
 	  	},
 
-	  	_onUp: function (e) {
-	  		// Ignore simulated events, since we handle both touch and
-	  		// mouse explicitly; otherwise we risk getting duplicates of
-	  		// touch events, see #4315.
-	  		// Also ignore the event if disabled; this happens in IE11
+	  	_onUp: function () {
+	  		// Ignore the event if disabled; this happens in IE11
 	  		// under some circumstances, see #3666.
-	  		if (e._simulated || !this._enabled) { return; }
+	  		if (!this._enabled) { return; }
 	  		this.finishDrag();
 	  	},
 
-	  	finishDrag: function () {
+	  	finishDrag: function (noInertia) {
 	  		removeClass(document.body, 'leaflet-dragging');
 
 	  		if (this._lastTarget) {
@@ -21654,21 +21871,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			this._lastTarget = null;
 	  		}
 
-	  		for (var i in MOVE) {
-	  			off(document, MOVE[i], this._onMove, this);
-	  			off(document, END[i], this._onUp, this);
-	  		}
+	  		off(document, 'mousemove touchmove', this._onMove, this);
+	  		off(document, 'mouseup touchend touchcancel', this._onUp, this);
 
 	  		enableImageDrag();
 	  		enableTextSelection();
 
 	  		if (this._moved && this._moving) {
-	  			// ensure drag is not fired after dragend
-	  			cancelAnimFrame(this._animRequest);
 
 	  			// @event dragend: DragEndEvent
 	  			// Fired when the drag ends.
 	  			this.fire('dragend', {
+	  				noInertia: noInertia,
 	  				distance: this._newPos.distanceTo(this._startPos)
 	  			});
 	  		}
@@ -21691,11 +21905,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @function simplify(points: Point[], tolerance: Number): Point[]
 	  // Dramatically reduces the number of points in a polyline while retaining
 	  // its shape and returns a new array of simplified points, using the
-	  // [Douglas-Peucker algorithm](http://en.wikipedia.org/wiki/Douglas-Peucker_algorithm).
+	  // [Ramer-Douglas-Peucker algorithm](https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm).
 	  // Used for a huge performance boost when processing/displaying Leaflet polylines for
 	  // each zoom level and also reducing visual noise. tolerance affects the amount of
 	  // simplification (lesser value means higher quality but slower and with more points).
-	  // Also released as a separated micro-library [Simplify.js](http://mourner.github.com/simplify-js/).
+	  // Also released as a separated micro-library [Simplify.js](https://mourner.github.io/simplify-js/).
 	  function simplify(points, tolerance) {
 	  	if (!tolerance || !points.length) {
 	  		return points.slice();
@@ -21724,7 +21938,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return _sqClosestPointOnSegment(p, p1, p2);
 	  }
 
-	  // Douglas-Peucker simplification, see http://en.wikipedia.org/wiki/Douglas-Peucker_algorithm
+	  // Ramer-Douglas-Peucker simplification, see https://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
 	  function _simplifyDP(points, sqTolerance) {
 
 	  	var len = points.length,
@@ -21918,7 +22132,57 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return isFlat(latlngs);
 	  }
 
-	  var LineUtil = ({
+	  /* @function polylineCenter(latlngs: LatLng[], crs: CRS): LatLng
+	   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polyline.
+	   */
+	  function polylineCenter(latlngs, crs) {
+	  	var i, halfDist, segDist, dist, p1, p2, ratio, center;
+
+	  	if (!latlngs || latlngs.length === 0) {
+	  		throw new Error('latlngs not passed');
+	  	}
+
+	  	if (!isFlat(latlngs)) {
+	  		console.warn('latlngs are not flat! Only the first ring will be used');
+	  		latlngs = latlngs[0];
+	  	}
+
+	  	var points = [];
+	  	for (var j in latlngs) {
+	  		points.push(crs.project(toLatLng(latlngs[j])));
+	  	}
+
+	  	var len = points.length;
+
+	  	for (i = 0, halfDist = 0; i < len - 1; i++) {
+	  		halfDist += points[i].distanceTo(points[i + 1]) / 2;
+	  	}
+
+	  	// The line is so small in the current view that all points are on the same pixel.
+	  	if (halfDist === 0) {
+	  		center = points[0];
+	  	} else {
+	  		for (i = 0, dist = 0; i < len - 1; i++) {
+	  			p1 = points[i];
+	  			p2 = points[i + 1];
+	  			segDist = p1.distanceTo(p2);
+	  			dist += segDist;
+
+	  			if (dist > halfDist) {
+	  				ratio = (dist - halfDist) / segDist;
+	  				center = [
+	  					p2.x - ratio * (p2.x - p1.x),
+	  					p2.y - ratio * (p2.y - p1.y)
+	  				];
+	  				break;
+	  			}
+	  		}
+	  	}
+	  	return crs.unproject(toPoint(center));
+	  }
+
+	  var LineUtil = {
+	    __proto__: null,
 	    simplify: simplify,
 	    pointToSegmentDistance: pointToSegmentDistance,
 	    closestPointOnSegment: closestPointOnSegment,
@@ -21927,8 +22191,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    _getBitCode: _getBitCode,
 	    _sqClosestPointOnSegment: _sqClosestPointOnSegment,
 	    isFlat: isFlat,
-	    _flat: _flat
-	  });
+	    _flat: _flat,
+	    polylineCenter: polylineCenter
+	  };
 
 	  /*
 	   * @namespace PolyUtil
@@ -21984,9 +22249,54 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return points;
 	  }
 
-	  var PolyUtil = ({
-	    clipPolygon: clipPolygon
-	  });
+	  /* @function polygonCenter(latlngs: LatLng[] crs: CRS): LatLng
+	   * Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the passed LatLngs (first ring) from a polygon.
+	   */
+	  function polygonCenter(latlngs, crs) {
+	  	var i, j, p1, p2, f, area, x, y, center;
+
+	  	if (!latlngs || latlngs.length === 0) {
+	  		throw new Error('latlngs not passed');
+	  	}
+
+	  	if (!isFlat(latlngs)) {
+	  		console.warn('latlngs are not flat! Only the first ring will be used');
+	  		latlngs = latlngs[0];
+	  	}
+
+	  	var points = [];
+	  	for (var k in latlngs) {
+	  		points.push(crs.project(toLatLng(latlngs[k])));
+	  	}
+
+	  	var len = points.length;
+	  	area = x = y = 0;
+
+	  	// polygon centroid algorithm;
+	  	for (i = 0, j = len - 1; i < len; j = i++) {
+	  		p1 = points[i];
+	  		p2 = points[j];
+
+	  		f = p1.y * p2.x - p2.y * p1.x;
+	  		x += (p1.x + p2.x) * f;
+	  		y += (p1.y + p2.y) * f;
+	  		area += f * 3;
+	  	}
+
+	  	if (area === 0) {
+	  		// Polygon is so small that all points are on same pixel.
+	  		center = points[0];
+	  	} else {
+	  		center = [x / area, y / area];
+	  	}
+	  	return crs.unproject(toPoint(center));
+	  }
+
+	  var PolyUtil = {
+	    __proto__: null,
+	    clipPolygon: clipPolygon,
+	    polygonCenter: polygonCenter
+	  };
 
 	  /*
 	   * @namespace Projection
@@ -22063,7 +22373,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * @class Projection
 
 	   * An object with methods for projecting geographical coordinates of the world onto
-	   * a flat surface (and back). See [Map projection](http://en.wikipedia.org/wiki/Map_projection).
+	   * a flat surface (and back). See [Map projection](https://en.wikipedia.org/wiki/Map_projection).
 
 	   * @property bounds: Bounds
 	   * The bounds (specified in CRS units) where the projection is valid
@@ -22082,11 +22392,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	   */
 
-	  var index = ({
+	  var index = {
+	    __proto__: null,
 	    LonLat: LonLat,
 	    Mercator: Mercator,
 	    SphericalMercator: SphericalMercator
-	  });
+	  };
 
 	  /*
 	   * @namespace CRS
@@ -22273,10 +22584,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		this.onAdd(map);
 
-	  		if (this.getAttribution && map.attributionControl) {
-	  			map.attributionControl.addAttribution(this.getAttribution());
-	  		}
-
 	  		this.fire('add');
 	  		map.fire('layeradd', {layer: this});
 	  	}
@@ -22349,10 +22656,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			layer.onRemove(this);
 	  		}
 
-	  		if (layer.getAttribution && this.attributionControl) {
-	  			this.attributionControl.removeAttribution(layer.getAttribution());
-	  		}
-
 	  		delete this._layers[id];
 
 	  		if (this._loaded) {
@@ -22368,7 +22671,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method hasLayer(layer: Layer): Boolean
 	  	// Returns `true` if the given layer is currently added to the map
 	  	hasLayer: function (layer) {
-	  		return !!layer && (stamp(layer) in this._layers);
+	  		return stamp(layer) in this._layers;
 	  	},
 
 	  	/* @method eachLayer(fn: Function, context?: Object): this
@@ -22395,7 +22698,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_addZoomLimit: function (layer) {
-	  		if (isNaN(layer.options.maxZoom) || !isNaN(layer.options.minZoom)) {
+	  		if (!isNaN(layer.options.maxZoom) || !isNaN(layer.options.minZoom)) {
 	  			this._zoomBoundLayers[stamp(layer)] = layer;
 	  			this._updateZoomLevels();
 	  		}
@@ -22445,7 +22748,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  /*
 	   * @class LayerGroup
 	   * @aka L.LayerGroup
-	   * @inherits Layer
+	   * @inherits Interactive layer
 	   *
 	   * Used to group several layers and handle them as one. If you add it to the map,
 	   * any layers added or removed from the group will be added/removed on the map as
@@ -22513,7 +22816,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method hasLayer(id: Number): Boolean
 	  	// Returns `true` if the given internal ID is currently added to the group.
 	  	hasLayer: function (layer) {
-	  		if (!layer) { return false; }
 	  		var layerId = typeof layer === 'number' ? layer : this.getLayerId(layer);
 	  		return layerId in this._layers;
 	  	},
@@ -22763,7 +23065,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	options: {
 	  		popupAnchor: [0, 0],
-	  		tooltipAnchor: [0, 0]
+	  		tooltipAnchor: [0, 0],
+
+	  		// @option crossOrigin: Boolean|String = false
+	  		// Whether the crossOrigin attribute will be added to the tiles.
+	  		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
+	  		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
+	  		crossOrigin: false
 	  	},
 
 	  	initialize: function (options) {
@@ -22795,6 +23103,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		var img = this._createImg(src, oldIcon && oldIcon.tagName === 'IMG' ? oldIcon : null);
 	  		this._setIconStyles(img, name);
+
+	  		if (this.options.crossOrigin || this.options.crossOrigin === '') {
+	  			img.crossOrigin = this.options.crossOrigin === true ? '' : this.options.crossOrigin;
+	  		}
 
 	  		return img;
 	  	},
@@ -22831,7 +23143,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_getIconUrl: function (name) {
-	  		return retina && this.options[name + 'RetinaUrl'] || this.options[name + 'Url'];
+	  		return Browser.retina && this.options[name + 'RetinaUrl'] || this.options[name + 'Url'];
 	  	}
 	  });
 
@@ -22872,7 +23184,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_getIconUrl: function (name) {
-	  		if (!IconDefault.imagePath) {	// Deprecated, backwards-compatibility only
+	  		if (typeof IconDefault.imagePath !== 'string') {	// Deprecated, backwards-compatibility only
 	  			IconDefault.imagePath = this._detectIconPath();
 	  		}
 
@@ -22883,20 +23195,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return (this.options.imagePath || IconDefault.imagePath) + Icon.prototype._getIconUrl.call(this, name);
 	  	},
 
+	  	_stripUrl: function (path) {	// separate function to use in tests
+	  		var strip = function (str, re, idx) {
+	  			var match = re.exec(str);
+	  			return match && match[idx];
+	  		};
+	  		path = strip(path, /^url\((['"])?(.+)\1\)$/, 2);
+	  		return path && strip(path, /^(.*)marker-icon\.png$/, 1);
+	  	},
+
 	  	_detectIconPath: function () {
 	  		var el = create$1('div',  'leaflet-default-icon-path', document.body);
 	  		var path = getStyle(el, 'background-image') ||
 	  		           getStyle(el, 'backgroundImage');	// IE8
 
 	  		document.body.removeChild(el);
-
-	  		if (path === null || path.indexOf('url') !== 0) {
-	  			path = '';
-	  		} else {
-	  			path = path.replace(/^url\(["']?/, '').replace(/marker-icon\.png["']?\)$/, '');
-	  		}
-
-	  		return path;
+	  		path = this._stripUrl(path);
+	  		if (path) { return path; }
+	  		var link = document.querySelector('link[href$="leaflet.css"]');
+	  		if (!link) { return ''; }
+	  		return link.href.substring(0, link.href.length - 'leaflet.css'.length - 1);
 	  	}
 	  });
 
@@ -23088,11 +23406,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		// @option title: String = ''
 	  		// Text for the browser tooltip that appear on marker hover (no tooltip by default).
+	  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
 	  		title: '',
 
-	  		// @option alt: String = ''
-	  		// Text for the `alt` attribute of the icon image (useful for accessibility).
-	  		alt: '',
+	  		// @option alt: String = 'Marker'
+	  		// Text for the `alt` attribute of the icon image.
+	  		// [Useful for accessibility](https://leafletjs.com/examples/accessibility/#markers-must-be-labelled).
+	  		alt: 'Marker',
 
 	  		// @option zIndexOffset: Number = 0
 	  		// By default, marker images zIndex is set automatically based on its latitude. Use this option if you want to put the marker on top of all others (or below), specifying a high value like `1000` (or high negative value, respectively).
@@ -23122,6 +23442,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// When `true`, a mouse event on this marker will trigger the same event on the map
 	  		// (unless [`L.DomEvent.stopPropagation`](#domevent-stoppropagation) is used).
 	  		bubblingMouseEvents: false,
+
+	  		// @option autoPanOnFocus: Boolean = true
+	  		// When `true`, the map will pan whenever the marker is focused (via
+	  		// e.g. pressing `tab` on the keyboard) to ensure the marker is
+	  		// visible within the map's bounds
+	  		autoPanOnFocus: true,
 
 	  		// @section Draggable marker options
 	  		// @option draggable: Boolean = false
@@ -23275,6 +23601,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		if (options.keyboard) {
 	  			icon.tabIndex = '0';
+	  			icon.setAttribute('role', 'button');
 	  		}
 
 	  		this._icon = icon;
@@ -23284,6 +23611,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  				mouseover: this._bringToFront,
 	  				mouseout: this._resetZIndex
 	  			});
+	  		}
+
+	  		if (this.options.autoPanOnFocus) {
+	  			on(icon, 'focus', this._panOnFocus, this);
 	  		}
 
 	  		var newShadow = options.icon.createShadow(this._shadow),
@@ -23321,6 +23652,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  				mouseover: this._bringToFront,
 	  				mouseout: this._resetZIndex
 	  			});
+	  		}
+
+	  		if (this.options.autoPanOnFocus) {
+	  			off(this._icon, 'focus', this._panOnFocus, this);
 	  		}
 
 	  		remove(this._icon);
@@ -23415,6 +23750,20 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	_resetZIndex: function () {
 	  		this._updateZIndex(0);
+	  	},
+
+	  	_panOnFocus: function () {
+	  		var map = this._map;
+	  		if (!map) { return; }
+
+	  		var iconOpts = this.options.icon.options;
+	  		var size = iconOpts.iconSize ? toPoint(iconOpts.iconSize) : toPoint(0, 0);
+	  		var anchor = iconOpts.iconAnchor ? toPoint(iconOpts.iconAnchor) : toPoint(0, 0);
+
+	  		map.panInside(this._latlng, {
+	  			paddingTopLeft: anchor,
+	  			paddingBottomRight: size.subtract(anchor)
+	  		});
 	  	},
 
 	  	_getPopupAnchor: function () {
@@ -23576,7 +23925,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	_clickTolerance: function () {
 	  		// used when doing hit detection for Canvas layers
-	  		return (this.options.stroke ? this.options.weight / 2 : 0) + this._renderer.options.tolerance;
+	  		return (this.options.stroke ? this.options.weight / 2 : 0) +
+	  		  (this._renderer.options.tolerance || 0);
 	  	}
 	  });
 
@@ -23898,44 +24248,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method getCenter(): LatLng
-	  	// Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the polyline.
+	  	// Returns the center ([centroid](https://en.wikipedia.org/wiki/Centroid)) of the polyline.
 	  	getCenter: function () {
 	  		// throws error when not yet added to map as this center calculation requires projected coordinates
 	  		if (!this._map) {
 	  			throw new Error('Must add layer to map before using getCenter()');
 	  		}
-
-	  		var i, halfDist, segDist, dist, p1, p2, ratio,
-	  		    points = this._rings[0],
-	  		    len = points.length;
-
-	  		if (!len) { return null; }
-
-	  		// polyline centroid algorithm; only uses the first ring if there are multiple
-
-	  		for (i = 0, halfDist = 0; i < len - 1; i++) {
-	  			halfDist += points[i].distanceTo(points[i + 1]) / 2;
-	  		}
-
-	  		// The line is so small in the current view that all points are on the same pixel.
-	  		if (halfDist === 0) {
-	  			return this._map.layerPointToLatLng(points[0]);
-	  		}
-
-	  		for (i = 0, dist = 0; i < len - 1; i++) {
-	  			p1 = points[i];
-	  			p2 = points[i + 1];
-	  			segDist = p1.distanceTo(p2);
-	  			dist += segDist;
-
-	  			if (dist > halfDist) {
-	  				ratio = (dist - halfDist) / segDist;
-	  				return this._map.layerPointToLatLng([
-	  					p2.x - ratio * (p2.x - p1.x),
-	  					p2.y - ratio * (p2.y - p1.y)
-	  				]);
-	  			}
-	  		}
+	  		return polylineCenter(this._defaultShape(), this._map.options.crs);
 	  	},
 
 	  	// @method getBounds(): LatLngBounds
@@ -23996,6 +24315,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	_updateBounds: function () {
 	  		var w = this._clickTolerance(),
 	  		    p = new Point(w, w);
+
+	  		if (!this._rawPxBounds) {
+	  			return;
+	  		}
+
 	  		this._pxBounds = new Bounds([
 	  			this._rawPxBounds.min.subtract(p),
 	  			this._rawPxBounds.max.add(p)
@@ -24172,39 +24496,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return !this._latlngs.length || !this._latlngs[0].length;
 	  	},
 
+	  	// @method getCenter(): LatLng
+	  	// Returns the center ([centroid](http://en.wikipedia.org/wiki/Centroid)) of the Polygon.
 	  	getCenter: function () {
 	  		// throws error when not yet added to map as this center calculation requires projected coordinates
 	  		if (!this._map) {
 	  			throw new Error('Must add layer to map before using getCenter()');
 	  		}
-
-	  		var i, j, p1, p2, f, area, x, y, center,
-	  		    points = this._rings[0],
-	  		    len = points.length;
-
-	  		if (!len) { return null; }
-
-	  		// polygon centroid algorithm; only uses the first ring if there are multiple
-
-	  		area = x = y = 0;
-
-	  		for (i = 0, j = len - 1; i < len; j = i++) {
-	  			p1 = points[i];
-	  			p2 = points[j];
-
-	  			f = p1.y * p2.x - p2.y * p1.x;
-	  			x += (p1.x + p2.x) * f;
-	  			y += (p1.y + p2.y) * f;
-	  			area += f * 3;
-	  		}
-
-	  		if (area === 0) {
-	  			// Polygon is so small that all points are on same pixel.
-	  			center = points[0];
-	  		} else {
-	  			center = [x / area, y / area];
-	  		}
-	  		return this._map.layerPointToLatLng(center);
+	  		return polygonCenter(this._defaultShape(), this._map.options.crs);
 	  	},
 
 	  	_convertLatLngs: function (latlngs) {
@@ -24489,14 +24788,24 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	case 'GeometryCollection':
 	  		for (i = 0, len = geometry.geometries.length; i < len; i++) {
-	  			var layer = geometryToLayer({
+	  			var geoLayer = geometryToLayer({
 	  				geometry: geometry.geometries[i],
 	  				type: 'Feature',
 	  				properties: geojson.properties
 	  			}, options);
 
-	  			if (layer) {
-	  				layers.push(layer);
+	  			if (geoLayer) {
+	  				layers.push(geoLayer);
+	  			}
+	  		}
+	  		return new FeatureGroup(layers);
+
+	  	case 'FeatureCollection':
+	  		for (i = 0, len = geometry.features.length; i < len; i++) {
+	  			var featureLayer = geometryToLayer(geometry.features[i], options);
+
+	  			if (featureLayer) {
+	  				layers.push(featureLayer);
 	  			}
 	  		}
 	  		return new FeatureGroup(layers);
@@ -24537,24 +24846,27 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return latlngs;
 	  }
 
-	  // @function latLngToCoords(latlng: LatLng, precision?: Number): Array
+	  // @function latLngToCoords(latlng: LatLng, precision?: Number|false): Array
 	  // Reverse of [`coordsToLatLng`](#geojson-coordstolatlng)
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
 	  function latLngToCoords(latlng, precision) {
-	  	precision = typeof precision === 'number' ? precision : 6;
+	  	latlng = toLatLng(latlng);
 	  	return latlng.alt !== undefined ?
 	  		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision), formatNum(latlng.alt, precision)] :
 	  		[formatNum(latlng.lng, precision), formatNum(latlng.lat, precision)];
 	  }
 
-	  // @function latLngsToCoords(latlngs: Array, levelsDeep?: Number, closed?: Boolean): Array
+	  // @function latLngsToCoords(latlngs: Array, levelsDeep?: Number, closed?: Boolean, precision?: Number|false): Array
 	  // Reverse of [`coordsToLatLngs`](#geojson-coordstolatlngs)
 	  // `closed` determines whether the first point should be appended to the end of the array to close the feature, only used when `levelsDeep` is 0. False by default.
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function.
 	  function latLngsToCoords(latlngs, levelsDeep, closed, precision) {
 	  	var coords = [];
 
 	  	for (var i = 0, len = latlngs.length; i < len; i++) {
+	  		// Check for flat arrays required to ensure unbalanced arrays are correctly converted in recursion
 	  		coords.push(levelsDeep ?
-	  			latLngsToCoords(latlngs[i], levelsDeep - 1, closed, precision) :
+	  			latLngsToCoords(latlngs[i], isFlat(latlngs[i]) ? 0 : levelsDeep - 1, closed, precision) :
 	  			latLngToCoords(latlngs[i], precision));
 	  	}
 
@@ -24596,26 +24908,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @namespace Marker
 	  // @section Other methods
-	  // @method toGeoJSON(precision?: Number): Object
-	  // `precision` is the number of decimal places for coordinates.
-	  // The default value is 6 places.
-	  // Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the marker (as a GeoJSON `Point` Feature).
+	  // @method toGeoJSON(precision?: Number|false): Object
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+	  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the marker (as a GeoJSON `Point` Feature).
 	  Marker.include(PointToGeoJSON);
 
 	  // @namespace CircleMarker
-	  // @method toGeoJSON(precision?: Number): Object
-	  // `precision` is the number of decimal places for coordinates.
-	  // The default value is 6 places.
-	  // Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the circle marker (as a GeoJSON `Point` Feature).
+	  // @method toGeoJSON(precision?: Number|false): Object
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+	  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the circle marker (as a GeoJSON `Point` Feature).
 	  Circle.include(PointToGeoJSON);
 	  CircleMarker.include(PointToGeoJSON);
 
 
 	  // @namespace Polyline
-	  // @method toGeoJSON(precision?: Number): Object
-	  // `precision` is the number of decimal places for coordinates.
-	  // The default value is 6 places.
-	  // Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the polyline (as a GeoJSON `LineString` or `MultiLineString` Feature).
+	  // @method toGeoJSON(precision?: Number|false): Object
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+	  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the polyline (as a GeoJSON `LineString` or `MultiLineString` Feature).
 	  Polyline.include({
 	  	toGeoJSON: function (precision) {
 	  		var multi = !isFlat(this._latlngs);
@@ -24630,10 +24939,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  });
 
 	  // @namespace Polygon
-	  // @method toGeoJSON(precision?: Number): Object
-	  // `precision` is the number of decimal places for coordinates.
-	  // The default value is 6 places.
-	  // Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the polygon (as a GeoJSON `Polygon` or `MultiPolygon` Feature).
+	  // @method toGeoJSON(precision?: Number|false): Object
+	  // Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+	  // Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the polygon (as a GeoJSON `Polygon` or `MultiPolygon` Feature).
 	  Polygon.include({
 	  	toGeoJSON: function (precision) {
 	  		var holes = !isFlat(this._latlngs),
@@ -24668,10 +24976,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		});
 	  	},
 
-	  	// @method toGeoJSON(precision?: Number): Object
-	  	// `precision` is the number of decimal places for coordinates.
-	  	// The default value is 6 places.
-	  	// Returns a [`GeoJSON`](http://en.wikipedia.org/wiki/GeoJSON) representation of the layer group (as a GeoJSON `FeatureCollection`, `GeometryCollection`, or `MultiPoint`).
+	  	// @method toGeoJSON(precision?: Number|false): Object
+	  	// Coordinates values are rounded with [`formatNum`](#util-formatnum) function with given `precision`.
+	  	// Returns a [`GeoJSON`](https://en.wikipedia.org/wiki/GeoJSON) representation of the layer group (as a GeoJSON `FeatureCollection`, `GeometryCollection`, or `MultiPoint`).
 	  	toGeoJSON: function (precision) {
 
 	  		var type = this.feature && this.feature.geometry && this.feature.geometry.type;
@@ -24736,7 +25043,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * @example
 	   *
 	   * ```js
-	   * var imageUrl = 'http://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
+	   * var imageUrl = 'https://maps.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
 	   * 	imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
 	   * L.imageOverlay(imageUrl, imageBounds).addTo(map);
 	   * ```
@@ -24975,6 +25282,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			this._url = errorUrl;
 	  			this._image.src = errorUrl;
 	  		}
+	  	},
+
+	  	// @method getCenter(): LatLng
+	  	// Returns the center of the ImageOverlay.
+	  	getCenter: function () {
+	  		return this._bounds.getCenter();
 	  	}
 	  });
 
@@ -25011,6 +25324,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	options: {
 	  		// @option autoplay: Boolean = true
 	  		// Whether the video starts playing automatically when loaded.
+	  		// On some browsers autoplay will only work with `muted: true`
 	  		autoplay: true,
 
 	  		// @option loop: Boolean = true
@@ -25019,12 +25333,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		// @option keepAspectRatio: Boolean = true
 	  		// Whether the video will save aspect ratio after the projection.
-	  		// Relevant for supported browsers. Browser compatibility- https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit
+	  		// Relevant for supported browsers. See [browser compatibility](https://developer.mozilla.org/en-US/docs/Web/CSS/object-fit)
 	  		keepAspectRatio: true,
 
 	  		// @option muted: Boolean = false
 	  		// Whether the video starts on mute when loaded.
-	  		muted: false
+	  		muted: false,
+
+	  		// @option playsInline: Boolean = true
+	  		// Mobile browsers will play the video right where it is instead of open it up in fullscreen mode.
+	  		playsInline: true
 	  	},
 
 	  	_initImage: function () {
@@ -25061,6 +25379,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		vid.autoplay = !!this.options.autoplay;
 	  		vid.loop = !!this.options.loop;
 	  		vid.muted = !!this.options.muted;
+	  		vid.playsInline = !!this.options.playsInline;
 	  		for (var i = 0; i < this._url.length; i++) {
 	  			var source = create$1('source');
 	  			source.src = this._url[i];
@@ -25131,9 +25450,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  /*
 	   * @class DivOverlay
-	   * @inherits Layer
+	   * @inherits Interactive layer
 	   * @aka L.DivOverlay
-	   * Base model for L.Popup and L.Tooltip. Inherit from it for custom popup like plugins.
+	   * Base model for L.Popup and L.Tooltip. Inherit from it for custom overlays like plugins.
 	   */
 
 	  // @namespace DivOverlay
@@ -25142,24 +25461,82 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @section
 	  	// @aka DivOverlay options
 	  	options: {
-	  		// @option offset: Point = Point(0, 7)
-	  		// The offset of the popup position. Useful to control the anchor
-	  		// of the popup when opening it on some overlays.
-	  		offset: [0, 7],
+	  		// @option interactive: Boolean = false
+	  		// If true, the popup/tooltip will listen to the mouse events.
+	  		interactive: false,
+
+	  		// @option offset: Point = Point(0, 0)
+	  		// The offset of the overlay position.
+	  		offset: [0, 0],
 
 	  		// @option className: String = ''
-	  		// A custom CSS class name to assign to the popup.
+	  		// A custom CSS class name to assign to the overlay.
 	  		className: '',
 
-	  		// @option pane: String = 'popupPane'
-	  		// `Map pane` where the popup will be added.
-	  		pane: 'popupPane'
+	  		// @option pane: String = undefined
+	  		// `Map pane` where the overlay will be added.
+	  		pane: undefined,
+
+	  		// @option content: String|HTMLElement|Function = ''
+	  		// Sets the HTML content of the overlay while initializing. If a function is passed the source layer will be
+	  		// passed to the function. The function should return a `String` or `HTMLElement` to be used in the overlay.
+	  		content: ''
 	  	},
 
 	  	initialize: function (options, source) {
-	  		setOptions(this, options);
+	  		if (options && (options instanceof L.LatLng || isArray(options))) {
+	  			this._latlng = toLatLng(options);
+	  			setOptions(this, source);
+	  		} else {
+	  			setOptions(this, options);
+	  			this._source = source;
+	  		}
+	  		if (this.options.content) {
+	  			this._content = this.options.content;
+	  		}
+	  	},
 
-	  		this._source = source;
+	  	// @method openOn(map: Map): this
+	  	// Adds the overlay to the map.
+	  	// Alternative to `map.openPopup(popup)`/`.openTooltip(tooltip)`.
+	  	openOn: function (map) {
+	  		map = arguments.length ? map : this._source._map; // experimental, not the part of public api
+	  		if (!map.hasLayer(this)) {
+	  			map.addLayer(this);
+	  		}
+	  		return this;
+	  	},
+
+	  	// @method close(): this
+	  	// Closes the overlay.
+	  	// Alternative to `map.closePopup(popup)`/`.closeTooltip(tooltip)`
+	  	// and `layer.closePopup()`/`.closeTooltip()`.
+	  	close: function () {
+	  		if (this._map) {
+	  			this._map.removeLayer(this);
+	  		}
+	  		return this;
+	  	},
+
+	  	// @method toggle(layer?: Layer): this
+	  	// Opens or closes the overlay bound to layer depending on its current state.
+	  	// Argument may be omitted only for overlay bound to layer.
+	  	// Alternative to `layer.togglePopup()`/`.toggleTooltip()`.
+	  	toggle: function (layer) {
+	  		if (this._map) {
+	  			this.close();
+	  		} else {
+	  			if (arguments.length) {
+	  				this._source = layer;
+	  			} else {
+	  				layer = this._source;
+	  			}
+	  			this._prepareOpen();
+
+	  			// open the overlay on the map
+	  			this.openOn(layer._map);
+	  		}
+	  		return this;
 	  	},
 
 	  	onAdd: function (map) {
@@ -25182,6 +25559,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		}
 
 	  		this.bringToFront();
+
+	  		if (this.options.interactive) {
+	  			addClass(this._container, 'leaflet-interactive');
+	  			this.addInteractiveTarget(this._container);
+	  		}
 	  	},
 
 	  	onRemove: function (map) {
@@ -25191,17 +25573,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		} else {
 	  			remove(this._container);
 	  		}
+
+	  		if (this.options.interactive) {
+	  			removeClass(this._container, 'leaflet-interactive');
+	  			this.removeInteractiveTarget(this._container);
+	  		}
 	  	},
 
-	  	// @namespace Popup
+	  	// @namespace DivOverlay
 	  	// @method getLatLng: LatLng
-	  	// Returns the geographical point of popup.
+	  	// Returns the geographical point of the overlay.
 	  	getLatLng: function () {
 	  		return this._latlng;
 	  	},
 
 	  	// @method setLatLng(latlng: LatLng): this
-	  	// Sets the geographical point where the popup will open.
+	  	// Sets the geographical point where the overlay will open.
 	  	setLatLng: function (latlng) {
 	  		this._latlng = toLatLng(latlng);
 	  		if (this._map) {
@@ -25212,13 +25599,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method getContent: String|HTMLElement
-	  	// Returns the content of the popup.
+	  	// Returns the content of the overlay.
 	  	getContent: function () {
 	  		return this._content;
 	  	},
 
 	  	// @method setContent(htmlContent: String|HTMLElement|Function): this
-	  	// Sets the HTML content of the popup. If a function is passed the source layer will be passed to the function. The function should return a `String` or `HTMLElement` to be used in the popup.
+	  	// Sets the HTML content of the overlay. If a function is passed the source layer will be passed to the function.
+	  	// The function should return a `String` or `HTMLElement` to be used in the overlay.
 	  	setContent: function (content) {
 	  		this._content = content;
 	  		this.update();
@@ -25226,13 +25614,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method getElement: String|HTMLElement
-	  	// Returns the HTML container of the popup.
+	  	// Returns the HTML container of the overlay.
 	  	getElement: function () {
 	  		return this._container;
 	  	},
 
 	  	// @method update: null
-	  	// Updates the popup content, layout and position. Useful for updating the popup after something inside changed, e.g. image loaded.
+	  	// Updates the overlay content, layout and position. Useful for updating the overlay after something inside changed, e.g. image loaded.
 	  	update: function () {
 	  		if (!this._map) { return; }
 
@@ -25260,13 +25648,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method isOpen: Boolean
-	  	// Returns `true` when the popup is visible on the map.
+	  	// Returns `true` when the overlay is visible on the map.
 	  	isOpen: function () {
 	  		return !!this._map && this._map.hasLayer(this);
 	  	},
 
 	  	// @method bringToFront: this
-	  	// Brings this popup in front of other popups (in the same map pane).
+	  	// Brings this overlay in front of other overlays (in the same map pane).
 	  	bringToFront: function () {
 	  		if (this._map) {
 	  			toFront(this._container);
@@ -25275,7 +25663,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	// @method bringToBack: this
-	  	// Brings this popup to the back of other popups (in the same map pane).
+	  	// Brings this overlay to the back of other overlays (in the same map pane).
 	  	bringToBack: function () {
 	  		if (this._map) {
 	  			toBack(this._container);
@@ -25283,36 +25671,45 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this;
 	  	},
 
-	  	_prepareOpen: function (parent, layer, latlng) {
-	  		if (!(layer instanceof Layer)) {
-	  			latlng = layer;
-	  			layer = parent;
-	  		}
+	  	// prepare bound overlay to open: update latlng pos / content source (for FeatureGroup)
+	  	_prepareOpen: function (latlng) {
+	  		var source = this._source;
+	  		if (!source._map) { return false; }
 
-	  		if (layer instanceof FeatureGroup) {
-	  			for (var id in parent._layers) {
-	  				layer = parent._layers[id];
-	  				break;
+	  		if (source instanceof FeatureGroup) {
+	  			source = null;
+	  			var layers = this._source._layers;
+	  			for (var id in layers) {
+	  				if (layers[id]._map) {
+	  					source = layers[id];
+	  					break;
+	  				}
 	  			}
+	  			if (!source) { return false; } // Unable to get source layer.
+
+	  			// set overlay source to this layer
+	  			this._source = source;
 	  		}
 
 	  		if (!latlng) {
-	  			if (layer.getCenter) {
-	  				latlng = layer.getCenter();
-	  			} else if (layer.getLatLng) {
-	  				latlng = layer.getLatLng();
+	  			if (source.getCenter) {
+	  				latlng = source.getCenter();
+	  			} else if (source.getLatLng) {
+	  				latlng = source.getLatLng();
+	  			} else if (source.getBounds) {
+	  				latlng = source.getBounds().getCenter();
 	  			} else {
 	  				throw new Error('Unable to get source layer LatLng.');
 	  			}
 	  		}
+	  		this.setLatLng(latlng);
 
-	  		// set overlay source to this layer
-	  		this._source = layer;
+	  		if (this._map) {
+	  			// update the overlay (content, layout, etc...)
+	  			this.update();
+	  		}
 
-	  		// update the overlay (content, layout, ect...)
-	  		this.update();
-
-	  		return latlng;
+	  		return true;
 	  	},
 
 	  	_updateContent: function () {
@@ -25329,6 +25726,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			}
 	  			node.appendChild(content);
 	  		}
+
+	  		// @namespace DivOverlay
+	  		// @section DivOverlay events
+	  		// @event contentupdate: Event
+	  		// Fired when the content of the overlay is updated
 	  		this.fire('contentupdate');
 	  	},
 
@@ -25348,7 +25750,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		var bottom = this._containerBottom = -offset.y,
 	  		    left = this._containerLeft = -Math.round(this._containerWidth / 2) + offset.x;
 
-	  		// bottom position the popup in case the height of the popup changes (images loading etc)
+	  		// bottom position the overlay in case the height of the overlay changes (images loading etc)
 	  		this._container.style.bottom = bottom + 'px';
 	  		this._container.style.left = left + 'px';
 	  	},
@@ -25357,6 +25759,34 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return [0, 0];
 	  	}
 
+	  });
+
+	  Map.include({
+	  	_initOverlay: function (OverlayClass, content, latlng, options) {
+	  		var overlay = content;
+	  		if (!(overlay instanceof OverlayClass)) {
+	  			overlay = new OverlayClass(options).setContent(content);
+	  		}
+	  		if (latlng) {
+	  			overlay.setLatLng(latlng);
+	  		}
+	  		return overlay;
+	  	}
+	  });
+
+
+	  Layer.include({
+	  	_initOverlay: function (OverlayClass, old, content, options) {
+	  		var overlay = content;
+	  		if (overlay instanceof OverlayClass) {
+	  			setOptions(overlay, options);
+	  			overlay._source = this;
+	  		} else {
+	  			overlay = (old && !options) ? old : new OverlayClass(options, this);
+	  			overlay.setContent(content);
+	  		}
+	  		return overlay;
+	  	}
 	  });
 
 	  /*
@@ -25375,12 +25805,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * marker.bindPopup(popupContent).openPopup();
 	   * ```
 	   * Path overlays like polylines also have a `bindPopup` method.
-	   * Here's a more complicated way to open a popup on a map:
+	   *
+	   * A popup can be also standalone:
 	   *
 	   * ```js
 	   * var popup = L.popup()
 	   * 	.setLatLng(latlng)
 	   * 	.setContent('<p>Hello world!<br />This is a nice popup.</p>')
+	   * 	.openOn(map);
+	   * ```
+	   * or
+	   * ```js
+	   * var popup = L.popup(latlng, {content: '<p>Hello world!<br />This is a nice popup.</p>')
 	   * 	.openOn(map);
 	   * ```
 	   */
@@ -25392,6 +25828,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @section
 	  	// @aka Popup options
 	  	options: {
+	  		// @option pane: String = 'popupPane'
+	  		// `Map pane` where the popup will be added.
+	  		pane: 'popupPane',
+
+	  		// @option offset: Point = Point(0, 7)
+	  		// The offset of the popup position.
+	  		offset: [0, 7],
+
 	  		// @option maxWidth: Number = 300
 	  		// Max width of the popup, in pixels.
 	  		maxWidth: 300,
@@ -25403,6 +25847,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// @option maxHeight: Number = null
 	  		// If set, creates a scrollable container of the given height
 	  		// inside a popup if its content exceeds it.
+	  		// The scrollable container can be styled using the
+	  		// `leaflet-popup-scrolled` CSS class selector.
 	  		maxHeight: null,
 
 	  		// @option autoPan: Boolean = true
@@ -25454,10 +25900,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	// @namespace Popup
 	  	// @method openOn(map: Map): this
-	  	// Adds the popup to the map and closes the previous one. The same as `map.openPopup(popup)`.
+	  	// Alternative to `map.openPopup(popup)`.
+	  	// Adds the popup to the map and closes the previous one.
 	  	openOn: function (map) {
-	  		map.openPopup(this);
-	  		return this;
+	  		map = arguments.length ? map : this._source._map; // experimental, not the part of public api
+
+	  		if (!map.hasLayer(this) && map._popup && map._popup.options.autoClose) {
+	  			map.removeLayer(map._popup);
+	  		}
+	  		map._popup = this;
+
+	  		return DivOverlay.prototype.openOn.call(this, map);
 	  	},
 
 	  	onAdd: function (map) {
@@ -25508,7 +25961,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		var events = DivOverlay.prototype.getEvents.call(this);
 
 	  		if (this.options.closeOnClick !== undefined ? this.options.closeOnClick : this._map.options.closePopupOnClick) {
-	  			events.preclick = this._close;
+	  			events.preclick = this.close;
 	  		}
 
 	  		if (this.options.keepInView) {
@@ -25516,12 +25969,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		}
 
 	  		return events;
-	  	},
-
-	  	_close: function () {
-	  		if (this._map) {
-	  			this._map.closePopup(this);
-	  		}
 	  	},
 
 	  	_initLayout: function () {
@@ -25542,10 +25989,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		if (this.options.closeButton) {
 	  			var closeButton = this._closeButton = create$1('a', prefix + '-close-button', container);
+	  			closeButton.setAttribute('role', 'button'); // overrides the implicit role=link of <a> elements #7399
+	  			closeButton.setAttribute('aria-label', 'Close popup');
 	  			closeButton.href = '#close';
-	  			closeButton.innerHTML = '&#215;';
+	  			closeButton.innerHTML = '<span aria-hidden="true">&#215;</span>';
 
-	  			on(closeButton, 'click', this._onCloseButtonClick, this);
+	  			on(closeButton, 'click', function (ev) {
+	  				preventDefault(ev);
+	  				this.close();
+	  			}, this);
 	  		}
 	  	},
 
@@ -25585,7 +26037,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		setPosition(this._container, pos.add(anchor));
 	  	},
 
-	  	_adjustPan: function () {
+	  	_adjustPan: function (e) {
 	  		if (!this.options.autoPan) { return; }
 	  		if (this._map._panAnim) { this._map._panAnim.stop(); }
 
@@ -25625,13 +26077,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		if (dx || dy) {
 	  			map
 	  			    .fire('autopanstart')
-	  			    .panBy([dx, dy]);
+	  			    .panBy([dx, dy], {animate: e && e.type === 'moveend'});
 	  		}
-	  	},
-
-	  	_onCloseButtonClick: function (e) {
-	  		this._close();
-	  		stop(e);
 	  	},
 
 	  	_getAnchor: function () {
@@ -25644,6 +26091,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @namespace Popup
 	  // @factory L.popup(options?: Popup options, source?: Layer)
 	  // Instantiates a `Popup` object given an optional `options` object that describes its appearance and location and an optional `source` object that is used to tag the popup with a reference to the Layer to which it refers.
+	  // @alternative
+	  // @factory L.popup(latlng: LatLng, options?: Popup options)
+	  // Instantiates a `Popup` object given `latlng` where the popup will open and an optional `options` object that describes its appearance and location.
 	  var popup = function (options, source) {
 	  	return new Popup(options, source);
 	  };
@@ -25668,35 +26118,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method openPopup(content: String|HTMLElement, latlng: LatLng, options?: Popup options): this
 	  	// Creates a popup with the specified content and options and opens it in the given point on a map.
 	  	openPopup: function (popup, latlng, options) {
-	  		if (!(popup instanceof Popup)) {
-	  			popup = new Popup(options).setContent(popup);
-	  		}
+	  		this._initOverlay(Popup, popup, latlng, options)
+	  		  .openOn(this);
 
-	  		if (latlng) {
-	  			popup.setLatLng(latlng);
-	  		}
-
-	  		if (this.hasLayer(popup)) {
-	  			return this;
-	  		}
-
-	  		if (this._popup && this._popup.options.autoClose) {
-	  			this.closePopup();
-	  		}
-
-	  		this._popup = popup;
-	  		return this.addLayer(popup);
+	  		return this;
 	  	},
 
 	  	// @method closePopup(popup?: Popup): this
 	  	// Closes the popup previously opened with [openPopup](#map-openpopup) (or the given one).
 	  	closePopup: function (popup) {
-	  		if (!popup || popup === this._popup) {
-	  			popup = this._popup;
-	  			this._popup = null;
-	  		}
+	  		popup = arguments.length ? popup : this._popup;
 	  		if (popup) {
-	  			this.removeLayer(popup);
+	  			popup.close();
 	  		}
 	  		return this;
 	  	}
@@ -25725,18 +26158,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// necessary event listeners. If a `Function` is passed it will receive
 	  	// the layer as the first argument and should return a `String` or `HTMLElement`.
 	  	bindPopup: function (content, options) {
-
-	  		if (content instanceof Popup) {
-	  			setOptions(content, options);
-	  			this._popup = content;
-	  			content._source = this;
-	  		} else {
-	  			if (!this._popup || options) {
-	  				this._popup = new Popup(options, this);
-	  			}
-	  			this._popup.setContent(content);
-	  		}
-
+	  		this._popup = this._initOverlay(Popup, this._popup, content, options);
 	  		if (!this._popupHandlersAdded) {
 	  			this.on({
 	  				click: this._openPopup,
@@ -25768,14 +26190,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	// @method openPopup(latlng?: LatLng): this
 	  	// Opens the bound popup at the specified `latlng` or at the default popup anchor if no `latlng` is passed.
-	  	openPopup: function (layer, latlng) {
-	  		if (this._popup && this._map) {
-	  			latlng = this._popup._prepareOpen(this, layer, latlng);
+	  	openPopup: function (latlng) {
+	  		if (this._popup && this._popup._prepareOpen(latlng || this._latlng)) {
 
 	  			// open the popup on the map
-	  			this._map.openPopup(this._popup, latlng);
+	  			this._popup.openOn(this._map);
 	  		}
-
 	  		return this;
 	  	},
 
@@ -25783,20 +26203,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// Closes the popup bound to this layer if it is open.
 	  	closePopup: function () {
 	  		if (this._popup) {
-	  			this._popup._close();
+	  			this._popup.close();
 	  		}
 	  		return this;
 	  	},
 
 	  	// @method togglePopup(): this
 	  	// Opens or closes the popup bound to this layer depending on its current state.
-	  	togglePopup: function (target) {
+	  	togglePopup: function () {
 	  		if (this._popup) {
-	  			if (this._popup._map) {
-	  				this.closePopup();
-	  			} else {
-	  				this.openPopup(target);
-	  			}
+	  			this._popup.toggle(this);
 	  		}
 	  		return this;
 	  	},
@@ -25823,33 +26239,25 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_openPopup: function (e) {
-	  		var layer = e.layer || e.target;
-
-	  		if (!this._popup) {
+	  		if (!this._popup || !this._map) {
 	  			return;
 	  		}
-
-	  		if (!this._map) {
-	  			return;
-	  		}
-
 	  		// prevent map click
 	  		stop(e);
 
-	  		// if this inherits from Path its a vector and we can just
-	  		// open the popup at the new location
-	  		if (layer instanceof Path) {
-	  			this.openPopup(e.layer || e.target, e.latlng);
+	  		var target = e.layer || e.target;
+	  		if (this._popup._source === target && !(target instanceof Path)) {
+	  			// treat it like a marker and figure out
+	  			// if we should toggle it open/closed
+	  			if (this._map.hasLayer(this._popup)) {
+	  				this.closePopup();
+	  			} else {
+	  				this.openPopup(e.latlng);
+	  			}
 	  			return;
 	  		}
-
-	  		// otherwise treat it like a marker and figure out
-	  		// if we should toggle it open/closed
-	  		if (this._map.hasLayer(this._popup) && this._popup._source === layer) {
-	  			this.closePopup();
-	  		} else {
-	  			this.openPopup(layer, e.latlng);
-	  		}
+	  		this._popup._source = target;
+	  		this.openPopup(e.latlng);
 	  	},
 
 	  	_movePopup: function (e) {
@@ -25870,10 +26278,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * Used to display small texts on top of map layers.
 	   *
 	   * @example
+	   * If you want to just bind a tooltip to marker:
 	   *
 	   * ```js
 	   * marker.bindTooltip("my tooltip text").openTooltip();
 	   * ```
+	   * Path overlays like polylines also have a `bindTooltip` method.
+	   *
+	   * A tooltip can be also standalone:
+	   *
+	   * ```js
+	   * var tooltip = L.tooltip()
+	   * 	.setLatLng(latlng)
+	   * 	.setContent('Hello world!<br />This is a nice tooltip.')
+	   * 	.addTo(map);
+	   * ```
+	   * or
+	   * ```js
+	   * var tooltip = L.tooltip(latlng, {content: 'Hello world!<br />This is a nice tooltip.'})
+	   * 	.addTo(map);
+	   * ```
+	   *
+	   *
 	   * Note about tooltip offset. Leaflet takes two options in consideration
 	   * for computing tooltip offsetting:
 	   * - the `offset` Tooltip option: it defaults to [0, 0], and it's specific to one tooltip.
@@ -25913,10 +26339,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// If true, the tooltip will follow the mouse instead of being fixed at the feature center.
 	  		sticky: false,
 
-	  		// @option interactive: Boolean = false
-	  		// If true, the tooltip will listen to the feature events.
-	  		interactive: false,
-
 	  		// @option opacity: Number = 0.9
 	  		// Tooltip container opacity.
 	  		opacity: 0.9
@@ -25933,6 +26355,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		map.fire('tooltipopen', {tooltip: this});
 
 	  		if (this._source) {
+	  			this.addEventParent(this._source);
+
 	  			// @namespace Layer
 	  			// @section Tooltip events
 	  			// @event tooltipopen: TooltipEvent
@@ -25951,6 +26375,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		map.fire('tooltipclose', {tooltip: this});
 
 	  		if (this._source) {
+	  			this.removeEventParent(this._source);
+
 	  			// @namespace Layer
 	  			// @section Tooltip events
 	  			// @event tooltipclose: TooltipEvent
@@ -25962,17 +26388,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	getEvents: function () {
 	  		var events = DivOverlay.prototype.getEvents.call(this);
 
-	  		if (touch && !this.options.permanent) {
-	  			events.preclick = this._close;
+	  		if (!this.options.permanent) {
+	  			events.preclick = this.close;
 	  		}
 
 	  		return events;
-	  	},
-
-	  	_close: function () {
-	  		if (this._map) {
-	  			this._map.closeTooltip(this);
-	  		}
 	  	},
 
 	  	_initLayout: function () {
@@ -25980,6 +26400,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		    className = prefix + ' ' + (this.options.className || '') + ' leaflet-zoom-' + (this._zoomAnimated ? 'animated' : 'hide');
 
 	  		this._contentNode = this._container = create$1('div', className);
+
+	  		this._container.setAttribute('role', 'tooltip');
+	  		this._container.setAttribute('id', 'leaflet-tooltip-' + stamp(this));
 	  	},
 
 	  	_updateLayout: function () {},
@@ -26060,7 +26483,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @namespace Tooltip
 	  // @factory L.tooltip(options?: Tooltip options, source?: Layer)
-	  // Instantiates a Tooltip object given an optional `options` object that describes its appearance and location and an optional `source` object that is used to tag the tooltip with a reference to the Layer to which it refers.
+	  // Instantiates a `Tooltip` object given an optional `options` object that describes its appearance and location and an optional `source` object that is used to tag the tooltip with a reference to the Layer to which it refers.
+	  // @alternative
+	  // @factory L.tooltip(latlng: LatLng, options?: Tooltip options)
+	  // Instantiates a `Tooltip` object given `latlng` where the tooltip will open and an optional `options` object that describes its appearance and location.
 	  var tooltip = function (options, source) {
 	  	return new Tooltip(options, source);
 	  };
@@ -26075,27 +26501,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @method openTooltip(content: String|HTMLElement, latlng: LatLng, options?: Tooltip options): this
 	  	// Creates a tooltip with the specified content and options and open it.
 	  	openTooltip: function (tooltip, latlng, options) {
-	  		if (!(tooltip instanceof Tooltip)) {
-	  			tooltip = new Tooltip(options).setContent(tooltip);
-	  		}
+	  		this._initOverlay(Tooltip, tooltip, latlng, options)
+	  		  .openOn(this);
 
-	  		if (latlng) {
-	  			tooltip.setLatLng(latlng);
-	  		}
-
-	  		if (this.hasLayer(tooltip)) {
-	  			return this;
-	  		}
-
-	  		return this.addLayer(tooltip);
+	  		return this;
 	  	},
 
-	  	// @method closeTooltip(tooltip?: Tooltip): this
+	  	// @method closeTooltip(tooltip: Tooltip): this
 	  	// Closes the tooltip given as parameter.
 	  	closeTooltip: function (tooltip) {
-	  		if (tooltip) {
-	  			this.removeLayer(tooltip);
-	  		}
+	  		tooltip.close();
 	  		return this;
 	  	}
 
@@ -26123,18 +26538,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// the layer as the first argument and should return a `String` or `HTMLElement`.
 	  	bindTooltip: function (content, options) {
 
-	  		if (content instanceof Tooltip) {
-	  			setOptions(content, options);
-	  			this._tooltip = content;
-	  			content._source = this;
-	  		} else {
-	  			if (!this._tooltip || options) {
-	  				this._tooltip = new Tooltip(options, this);
-	  			}
-	  			this._tooltip.setContent(content);
-
+	  		if (this._tooltip && this.isTooltipOpen()) {
+	  			this.unbindTooltip();
 	  		}
 
+	  		this._tooltip = this._initOverlay(Tooltip, this._tooltip, content, options);
 	  		this._initTooltipInteractions();
 
 	  		if (this._tooltip.options.permanent && this._map && this._map.hasLayer(this)) {
@@ -26155,9 +26563,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this;
 	  	},
 
-	  	_initTooltipInteractions: function (remove$$1) {
-	  		if (!remove$$1 && this._tooltipHandlersAdded) { return; }
-	  		var onOff = remove$$1 ? 'off' : 'on',
+	  	_initTooltipInteractions: function (remove) {
+	  		if (!remove && this._tooltipHandlersAdded) { return; }
+	  		var onOff = remove ? 'off' : 'on',
 	  		    events = {
 	  			remove: this.closeTooltip,
 	  			move: this._moveTooltip
@@ -26165,36 +26573,35 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		if (!this._tooltip.options.permanent) {
 	  			events.mouseover = this._openTooltip;
 	  			events.mouseout = this.closeTooltip;
-	  			if (this._tooltip.options.sticky) {
-	  				events.mousemove = this._moveTooltip;
-	  			}
-	  			if (touch) {
-	  				events.click = this._openTooltip;
+	  			events.click = this._openTooltip;
+	  			if (this._map) {
+	  				this._addFocusListeners();
+	  			} else {
+	  				events.add = this._addFocusListeners;
 	  			}
 	  		} else {
 	  			events.add = this._openTooltip;
 	  		}
+	  		if (this._tooltip.options.sticky) {
+	  			events.mousemove = this._moveTooltip;
+	  		}
 	  		this[onOff](events);
-	  		this._tooltipHandlersAdded = !remove$$1;
+	  		this._tooltipHandlersAdded = !remove;
 	  	},
 
 	  	// @method openTooltip(latlng?: LatLng): this
 	  	// Opens the bound tooltip at the specified `latlng` or at the default tooltip anchor if no `latlng` is passed.
-	  	openTooltip: function (layer, latlng) {
-	  		if (this._tooltip && this._map) {
-	  			latlng = this._tooltip._prepareOpen(this, layer, latlng);
-
+	  	openTooltip: function (latlng) {
+	  		if (this._tooltip && this._tooltip._prepareOpen(latlng)) {
 	  			// open the tooltip on the map
-	  			this._map.openTooltip(this._tooltip, latlng);
+	  			this._tooltip.openOn(this._map);
 
-	  			// Tooltip container may not be defined if not permanent and never
-	  			// opened.
-	  			if (this._tooltip.options.interactive && this._tooltip._container) {
-	  				addClass(this._tooltip._container, 'leaflet-clickable');
-	  				this.addInteractiveTarget(this._tooltip._container);
+	  			if (this.getElement) {
+	  				this._setAriaDescribedByOnLayer(this);
+	  			} else if (this.eachLayer) {
+	  				this.eachLayer(this._setAriaDescribedByOnLayer, this);
 	  			}
 	  		}
-
 	  		return this;
 	  	},
 
@@ -26202,24 +26609,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// Closes the tooltip bound to this layer if it is open.
 	  	closeTooltip: function () {
 	  		if (this._tooltip) {
-	  			this._tooltip._close();
-	  			if (this._tooltip.options.interactive && this._tooltip._container) {
-	  				removeClass(this._tooltip._container, 'leaflet-clickable');
-	  				this.removeInteractiveTarget(this._tooltip._container);
-	  			}
+	  			return this._tooltip.close();
 	  		}
-	  		return this;
 	  	},
 
 	  	// @method toggleTooltip(): this
 	  	// Opens or closes the tooltip bound to this layer depending on its current state.
-	  	toggleTooltip: function (target) {
+	  	toggleTooltip: function () {
 	  		if (this._tooltip) {
-	  			if (this._tooltip._map) {
-	  				this.closeTooltip();
-	  			} else {
-	  				this.openTooltip(target);
-	  			}
+	  			this._tooltip.toggle(this);
 	  		}
 	  		return this;
 	  	},
@@ -26245,13 +26643,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		return this._tooltip;
 	  	},
 
-	  	_openTooltip: function (e) {
-	  		var layer = e.layer || e.target;
+	  	_addFocusListeners: function () {
+	  		if (this.getElement) {
+	  			this._addFocusListenersOnLayer(this);
+	  		} else if (this.eachLayer) {
+	  			this.eachLayer(this._addFocusListenersOnLayer, this);
+	  		}
+	  	},
 
-	  		if (!this._tooltip || !this._map) {
+	  	_addFocusListenersOnLayer: function (layer) {
+	  		var el = layer.getElement();
+	  		if (el) {
+	  			on(el, 'focus', function () {
+	  				this._tooltip._source = layer;
+	  				this.openTooltip();
+	  			}, this);
+	  			on(el, 'blur', this.closeTooltip, this);
+	  		}
+	  	},
+
+	  	_setAriaDescribedByOnLayer: function (layer) {
+	  		var el = layer.getElement();
+	  		if (el) {
+	  			el.setAttribute('aria-describedby', this._tooltip._container.id);
+	  		}
+	  	},
+
+
+	  	_openTooltip: function (e) {
+	  		if (!this._tooltip || !this._map || (this._map.dragging && this._map.dragging.moving())) {
 	  			return;
 	  		}
-	  		this.openTooltip(layer, this._tooltip.options.sticky ? e.latlng : undefined);
+	  		this._tooltip._source = e.layer || e.target;
+
+	  		this.openTooltip(this._tooltip.options.sticky ? e.latlng : undefined);
 	  	},
 
 	  	_moveTooltip: function (e) {
@@ -26422,7 +26847,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// `true` by default on mobile browsers, in order to avoid too many requests and keep smooth navigation.
 	  		// `false` otherwise in order to display new tiles _during_ panning, since it is easy to pan outside the
 	  		// [`keepBuffer`](#gridlayer-keepbuffer) option in desktop browsers.
-	  		updateWhenIdle: mobile,
+	  		updateWhenIdle: Browser.mobile,
 
 	  		// @option updateWhenZooming: Boolean = true
 	  		// By default, a smooth zoom animation (during a [touch zoom](#map-touchzoom) or a [`flyTo()`](#map-flyto)) will update grid layers every integer zoom level. Setting this option to `false` will update the grid layer only when the smooth animation ends.
@@ -26491,8 +26916,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		this._levels = {};
 	  		this._tiles = {};
 
-	  		this._resetView();
-	  		this._update();
+	  		this._resetView(); // implicit _update() call
 	  	},
 
 	  	beforeAdd: function (map) {
@@ -26561,6 +26985,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	redraw: function () {
 	  		if (this._map) {
 	  			this._removeAllTiles();
+	  			var tileZoom = this._clampZoom(this._map.getZoom());
+	  			if (tileZoom !== this._tileZoom) {
+	  				this._tileZoom = tileZoom;
+	  				this._updateLevels();
+	  			}
 	  			this._update();
 	  		}
 	  		return this;
@@ -26639,7 +27068,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		if (!this._map) { return; }
 
 	  		// IE doesn't inherit filter opacity properly, so we're forced to set it on tiles
-	  		if (ielt9) { return; }
+	  		if (Browser.ielt9) { return; }
 
 	  		setOpacity(this._container, this.options.opacity);
 
@@ -26925,7 +27354,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		    translate = level.origin.multiplyBy(scale)
 	  		        .subtract(this._map._getNewPixelOrigin(center, zoom)).round();
 
-	  		if (any3d) {
+	  		if (Browser.any3d) {
 	  			setTransform(level.el, translate, scale);
 	  		} else {
 	  			setPosition(level.el, translate);
@@ -27126,14 +27555,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		tile.onmousemove = falseFn;
 
 	  		// update opacity on tiles in IE7-8 because of filter inheritance problems
-	  		if (ielt9 && this.options.opacity < 1) {
+	  		if (Browser.ielt9 && this.options.opacity < 1) {
 	  			setOpacity(tile, this.options.opacity);
-	  		}
-
-	  		// without this hack, tiles disappear after zoom on Chrome for Android
-	  		// https://github.com/Leaflet/Leaflet/issues/2078
-	  		if (android && !android23) {
-	  			tile.style.WebkitBackfaceVisibility = 'hidden';
 	  		}
 	  	},
 
@@ -27213,7 +27636,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			// Fired when the grid layer loaded all visible tiles.
 	  			this.fire('load');
 
-	  			if (ielt9 || !this._map._fadeAnimated) {
+	  			if (Browser.ielt9 || !this._map._fadeAnimated) {
 	  				requestAnimFrame(this._pruneTiles, this);
 	  			} else {
 	  				// Wait a bit more than 0.2 secs (the duration of the tile fade-in)
@@ -27265,7 +27688,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * @example
 	   *
 	   * ```js
-	   * L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'}).addTo(map);
+	   * L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
 	   * ```
 	   *
 	   * @section URL template
@@ -27274,7 +27697,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * A string of the following form:
 	   *
 	   * ```
-	   * 'http://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png'
+	   * 'https://{s}.somedomain.com/blabla/{z}/{x}/{y}{r}.png'
 	   * ```
 	   *
 	   * `{s}` means one of the available subdomains (used sequentially to help with browser parallel requests per domain limitation; subdomain values are specified in options; `a`, `b` or `c` by default, can be omitted), `{z}` — zoom level, `{x}` and `{y}` — tile coordinates. `{r}` can be used to add "&commat;2x" to the URL to load retina tiles.
@@ -27282,7 +27705,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * You can use custom keys in the template, which will be [evaluated](#util-template) from TileLayer options, like this:
 	   *
 	   * ```
-	   * L.tileLayer('http://{s}.somedomain.com/{foo}/{z}/{x}/{y}.png', {foo: 'bar'});
+	   * L.tileLayer('https://{s}.somedomain.com/{foo}/{z}/{x}/{y}.png', {foo: 'bar'});
 	   * ```
 	   */
 
@@ -27328,7 +27751,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// Whether the crossOrigin attribute will be added to the tiles.
 	  		// If a String is provided, all tiles will have their crossOrigin attribute set to the String provided. This is needed if you want to access tile pixel data.
 	  		// Refer to [CORS Settings](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes) for valid String values.
-	  		crossOrigin: false
+	  		crossOrigin: false,
+
+	  		// @option referrerPolicy: Boolean|String = false
+	  		// Whether the referrerPolicy attribute will be added to the tiles.
+	  		// If a String is provided, all tiles will have their referrerPolicy attribute set to the String provided.
+	  		// This may be needed if your map's rendering context has a strict default but your tile provider expects a valid referrer
+	  		// (e.g. to validate an API token).
+	  		// Refer to [HTMLImageElement.referrerPolicy](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/referrerPolicy) for valid String values.
+	  		referrerPolicy: false
 	  	},
 
 	  	initialize: function (url, options) {
@@ -27338,29 +27769,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		options = setOptions(this, options);
 
 	  		// detecting retina displays, adjusting tileSize and zoom levels
-	  		if (options.detectRetina && retina && options.maxZoom > 0) {
+	  		if (options.detectRetina && Browser.retina && options.maxZoom > 0) {
 
 	  			options.tileSize = Math.floor(options.tileSize / 2);
 
 	  			if (!options.zoomReverse) {
 	  				options.zoomOffset++;
-	  				options.maxZoom--;
+	  				options.maxZoom = Math.max(options.minZoom, options.maxZoom - 1);
 	  			} else {
 	  				options.zoomOffset--;
-	  				options.minZoom++;
+	  				options.minZoom = Math.min(options.maxZoom, options.minZoom + 1);
 	  			}
 
 	  			options.minZoom = Math.max(0, options.minZoom);
+	  		} else if (!options.zoomReverse) {
+	  			// make sure maxZoom is gte minZoom
+	  			options.maxZoom = Math.max(options.minZoom, options.maxZoom);
+	  		} else {
+	  			// make sure minZoom is lte maxZoom
+	  			options.minZoom = Math.min(options.maxZoom, options.minZoom);
 	  		}
 
 	  		if (typeof options.subdomains === 'string') {
 	  			options.subdomains = options.subdomains.split('');
 	  		}
 
-	  		// for https://github.com/Leaflet/Leaflet/issues/137
-	  		if (!android) {
-	  			this.on('tileunload', this._onTileRemove);
-	  		}
+	  		this.on('tileunload', this._onTileRemove);
 	  	},
 
 	  	// @method setUrl(url: String, noRedraw?: Boolean): this
@@ -27394,17 +27828,17 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			tile.crossOrigin = this.options.crossOrigin === true ? '' : this.options.crossOrigin;
 	  		}
 
-	  		/*
-	  		 Alt tag is set to empty string to keep screen readers from reading URL and for compliance reasons
-	  		 http://www.w3.org/TR/WCAG20-TECHS/H67
-	  		*/
-	  		tile.alt = '';
+	  		// for this new option we follow the documented behavior
+	  		// more closely by only setting the property when string
+	  		if (typeof this.options.referrerPolicy === 'string') {
+	  			tile.referrerPolicy = this.options.referrerPolicy;
+	  		}
 
-	  		/*
-	  		 Set role="presentation" to force screen readers to ignore this
-	  		 https://www.w3.org/TR/wai-aria/roles#textalternativecomputation
-	  		*/
-	  		tile.setAttribute('role', 'presentation');
+	  		// The alt attribute is set to the empty string,
+	  		// allowing screen readers to ignore the decorative image tiles.
+	  		// https://www.w3.org/WAI/tutorials/images/decorative/
+	  		// https://www.w3.org/TR/html-aria/#el-img-empty-alt
+	  		tile.alt = '';
 
 	  		tile.src = this.getTileUrl(coords);
 
@@ -27419,7 +27853,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// Classes extending `TileLayer` can override this function to provide custom tile URL naming schemes.
 	  	getTileUrl: function (coords) {
 	  		var data = {
-	  			r: retina ? '@2x' : '',
+	  			r: Browser.retina ? '@2x' : '',
 	  			s: this._getSubdomain(coords),
 	  			x: coords.x,
 	  			y: coords.y,
@@ -27438,7 +27872,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	_tileOnLoad: function (done, tile) {
 	  		// For https://github.com/Leaflet/Leaflet/issues/3332
-	  		if (ielt9) {
+	  		if (Browser.ielt9) {
 	  			setTimeout(bind(done, this, null, tile), 0);
 	  		} else {
 	  			done(null, tile);
@@ -27487,8 +27921,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  				if (!tile.complete) {
 	  					tile.src = emptyImageUrl;
+	  					var coords = this._tiles[i].coords;
 	  					remove(tile);
 	  					delete this._tiles[i];
+	  					// @event tileabort: TileEvent
+	  					// Fired when a tile was loading but is now not wanted.
+	  					this.fire('tileabort', {
+	  						tile: tile,
+	  						coords: coords
+	  					});
 	  				}
 	  			}
 	  		}
@@ -27499,11 +27940,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		if (!tile) { return; }
 
 	  		// Cancels any pending http requests associated with the tile
-	  		// unless we're on Android's stock browser,
-	  		// see https://github.com/Leaflet/Leaflet/issues/137
-	  		if (!androidStock) {
-	  			tile.el.setAttribute('src', emptyImageUrl);
-	  		}
+	  		tile.el.setAttribute('src', emptyImageUrl);
 
 	  		return GridLayer.prototype._removeTile.call(this, key);
 	  	},
@@ -27549,7 +27986,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// @aka TileLayer.WMS options
 	  	// If any custom options not documented here are used, they will be sent to the
 	  	// WMS server as extra parameters in each request URL. This can be useful for
-	  	// [non-standard vendor WMS parameters](http://docs.geoserver.org/stable/en/user/services/wms/vendor.html).
+	  	// [non-standard vendor WMS parameters](https://docs.geoserver.org/stable/en/user/services/wms/vendor.html).
 	  	defaultWmsParams: {
 	  		service: 'WMS',
 	  		request: 'GetMap',
@@ -27601,7 +28038,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		options = setOptions(this, options);
 
-	  		var realRetina = options.detectRetina && retina ? 2 : 1;
+	  		var realRetina = options.detectRetina && Browser.retina ? 2 : 1;
 	  		var tileSize = this.getTileSize();
 	  		wmsParams.width = tileSize.x * realRetina;
 	  		wmsParams.height = tileSize.y * realRetina;
@@ -27688,11 +28125,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// @option padding: Number = 0.1
 	  		// How much to extend the clip area around the map view (relative to its size)
 	  		// e.g. 0.1 would be 10% of map view in each direction
-	  		padding: 0.1,
-
-	  		// @option tolerance: Number = 0
-	  		// How much to extend click tolerance round a path/object on the map
-	  		tolerance : 0
+	  		padding: 0.1
 	  	},
 
 	  	initialize: function (options) {
@@ -27743,15 +28176,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  	_updateTransform: function (center, zoom) {
 	  		var scale = this._map.getZoomScale(zoom, this._zoom),
-	  		    position = getPosition(this._container),
 	  		    viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
 	  		    currentCenterPoint = this._map.project(this._center, zoom),
-	  		    destCenterPoint = this._map.project(center, zoom),
-	  		    centerOffset = destCenterPoint.subtract(currentCenterPoint),
 
-	  		    topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
+	  		    topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
+	  				  .subtract(this._map._getNewPixelOrigin(center, zoom));
 
-	  		if (any3d) {
+	  		if (Browser.any3d) {
 	  			setTransform(this._container, topLeftOffset, scale);
 	  		} else {
 	  			setPosition(this._container, topLeftOffset);
@@ -27801,7 +28232,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * Allows vector layers to be displayed with [`<canvas>`](https://developer.mozilla.org/docs/Web/API/Canvas_API).
 	   * Inherits `Renderer`.
 	   *
-	   * Due to [technical limitations](http://caniuse.com/#search=canvas), Canvas is not
+	   * Due to [technical limitations](https://caniuse.com/canvas), Canvas is not
 	   * available in all web browsers, notably IE8, and overlapping geometries might
 	   * not display properly in some edge cases.
 	   *
@@ -27826,6 +28257,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   */
 
 	  var Canvas = Renderer.extend({
+
+	  	// @section
+	  	// @aka Canvas options
+	  	options: {
+	  		// @option tolerance: Number = 0
+	  		// How much to extend the click tolerance around a path/object on the map.
+	  		tolerance: 0
+	  	},
+
 	  	getEvents: function () {
 	  		var events = Renderer.prototype.getEvents.call(this);
 	  		events.viewprereset = this._onViewPreReset;
@@ -27851,6 +28291,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		on(container, 'mousemove', this._onMouseMove, this);
 	  		on(container, 'click dblclick mousedown mouseup contextmenu', this._onClick, this);
 	  		on(container, 'mouseout', this._handleMouseOut, this);
+	  		container['_leaflet_disable_events'] = true;
 
 	  		this._ctx = container.getContext('2d');
 	  	},
@@ -27883,7 +28324,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		var b = this._bounds,
 	  		    container = this._container,
 	  		    size = b.getSize(),
-	  		    m = retina ? 2 : 1;
+	  		    m = Browser.retina ? 2 : 1;
 
 	  		setPosition(container, b.min);
 
@@ -27893,7 +28334,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		container.style.width = size.x + 'px';
 	  		container.style.height = size.y + 'px';
 
-	  		if (retina) {
+	  		if (Browser.retina) {
 	  			this._ctx.scale(2, 2);
 	  		}
 
@@ -28137,15 +28578,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		for (var order = this._drawFirst; order; order = order.next) {
 	  			layer = order.layer;
 	  			if (layer.options.interactive && layer._containsPoint(point)) {
-	  				if (!(e.type === 'click' || e.type !== 'preclick') || !this._map._draggableMoved(layer)) {
+	  				if (!(e.type === 'click' || e.type === 'preclick') || !this._map._draggableMoved(layer)) {
 	  					clickedLayer = layer;
 	  				}
 	  			}
 	  		}
-	  		if (clickedLayer)  {
-	  			fakeStop(e);
-	  			this._fireEvent([clickedLayer], e);
-	  		}
+	  		this._fireEvent(clickedLayer ? [clickedLayer] : false, e);
 	  	},
 
 	  	_onMouseMove: function (e) {
@@ -28191,9 +28629,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			}
 	  		}
 
-	  		if (this._hoveredLayer) {
-	  			this._fireEvent([this._hoveredLayer], e);
-	  		}
+	  		this._fireEvent(this._hoveredLayer ? [this._hoveredLayer] : false, e);
 
 	  		this._mouseHoverThrottled = true;
 	  		setTimeout(bind(function () {
@@ -28270,8 +28706,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  // @factory L.canvas(options?: Renderer options)
 	  // Creates a Canvas renderer with the given options.
-	  function canvas$1(options) {
-	  	return canvas ? new Canvas(options) : null;
+	  function canvas(options) {
+	  	return Browser.canvas ? new Canvas(options) : null;
 	  }
 
 	  /*
@@ -28286,10 +28722,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  			return document.createElement('<lvml:' + name + ' class="lvml">');
 	  		};
 	  	} catch (e) {
-	  		return function (name) {
-	  			return document.createElement('<' + name + ' xmlns="urn:schemas-microsoft.com:vml" class="lvml">');
-	  		};
+	  		// Do not return fn from catch block so `e` can be garbage collected
+	  		// See https://github.com/Leaflet/Leaflet/pull/7279
 	  	}
+	  	return function (name) {
+	  		return document.createElement('<' + name + ' xmlns="urn:schemas-microsoft.com:vml" class="lvml">');
+	  	};
 	  })();
 
 
@@ -28413,7 +28851,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	}
 	  };
 
-	  var create$2 = vml ? vmlCreate : svgCreate;
+	  var create = Browser.vml ? vmlCreate : svgCreate;
 
 	  /*
 	   * @class SVG
@@ -28423,7 +28861,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	   * Allows vector layers to be displayed with [SVG](https://developer.mozilla.org/docs/Web/SVG).
 	   * Inherits `Renderer`.
 	   *
-	   * Due to [technical limitations](http://caniuse.com/#search=svg), SVG is not
+	   * Due to [technical limitations](https://caniuse.com/svg), SVG is not
 	   * available in all web browsers, notably Android 2.x and 3.x.
 	   *
 	   * Although SVG is not available on IE7 and IE8, these browsers support
@@ -28453,19 +28891,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  var SVG = Renderer.extend({
 
-	  	getEvents: function () {
-	  		var events = Renderer.prototype.getEvents.call(this);
-	  		events.zoomstart = this._onZoomStart;
-	  		return events;
-	  	},
-
 	  	_initContainer: function () {
-	  		this._container = create$2('svg');
+	  		this._container = create('svg');
 
 	  		// makes it possible to click through svg root; we'll reset it back in individual paths
 	  		this._container.setAttribute('pointer-events', 'none');
 
-	  		this._rootGroup = create$2('g');
+	  		this._rootGroup = create('g');
 	  		this._container.appendChild(this._rootGroup);
 	  	},
 
@@ -28475,13 +28907,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		delete this._container;
 	  		delete this._rootGroup;
 	  		delete this._svgSize;
-	  	},
-
-	  	_onZoomStart: function () {
-	  		// Drag-then-pinch interactions might mess up the center and zoom.
-	  		// In this case, the easiest way to prevent this is re-do the renderer
-	  		//   bounds and padding when the zooming starts.
-	  		this._update();
 	  	},
 
 	  	_update: function () {
@@ -28510,7 +28935,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// methods below are called by vector layers implementations
 
 	  	_initPath: function (layer) {
-	  		var path = layer._path = create$2('path');
+	  		var path = layer._path = create('path');
 
 	  		// @namespace Path
 	  		// @option className: String = null
@@ -28614,15 +29039,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	}
 	  });
 
-	  if (vml) {
+	  if (Browser.vml) {
 	  	SVG.include(vmlMixin);
 	  }
 
 	  // @namespace SVG
 	  // @factory L.svg(options?: Renderer options)
 	  // Creates a SVG renderer with the given options.
-	  function svg$1(options) {
-	  	return svg || vml ? new SVG(options) : null;
+	  function svg(options) {
+	  	return Browser.svg || Browser.vml ? new SVG(options) : null;
 	  }
 
 	  Map.include({
@@ -28663,7 +29088,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		// @namespace Map; @option preferCanvas: Boolean = false
 	  		// Whether `Path`s should be rendered on a `Canvas` renderer.
 	  		// By default, all `Path`s are rendered in a `SVG` renderer.
-	  		return (this.options.preferCanvas && canvas$1(options)) || svg$1(options);
+	  		return (this.options.preferCanvas && canvas(options)) || svg(options);
 	  	}
 	  });
 
@@ -28722,7 +29147,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	return new Rectangle(latLngBounds, options);
 	  }
 
-	  SVG.create = create$2;
+	  SVG.create = create;
 	  SVG.pointsToPath = pointsToPath;
 
 	  GeoJSON.geometryToLayer = geometryToLayer;
@@ -28867,6 +29292,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	_onKeyDown: function (e) {
 	  		if (e.keyCode === 27) {
 	  			this._finish();
+	  			this._clearDeferredResetState();
+	  			this._resetState();
 	  		}
 	  	}
 	  });
@@ -28937,7 +29364,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  // @section Interaction Options
 	  Map.mergeOptions({
 	  	// @option dragging: Boolean = true
-	  	// Whether the map be draggable with mouse/touch or not.
+	  	// Whether the map is draggable with mouse/touch or not.
 	  	dragging: true,
 
 	  	// @section Panning Inertia Options
@@ -28945,8 +29372,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// If enabled, panning of the map will have an inertia effect where
 	  	// the map builds momentum while dragging and continues moving in
 	  	// the same direction for some time. Feels especially nice on touch
-	  	// devices. Enabled by default unless running on old Android devices.
-	  	inertia: !android23,
+	  	// devices. Enabled by default.
+	  	inertia: true,
 
 	  	// @option inertiaDeceleration: Number = 3000
 	  	// The rate with which the inertial movement slows down, in pixels/second².
@@ -29110,7 +29537,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		var map = this._map,
 	  		    options = map.options,
 
-	  		    noInertia = !options.inertia || this._times.length < 2;
+	  		    noInertia = !options.inertia || e.noInertia || this._times.length < 2;
 
 	  		map.fire('dragend', e);
 
@@ -29418,17 +29845,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  Map.addInitHook('addHandler', 'scrollWheelZoom', ScrollWheelZoom);
 
 	  /*
-	   * L.Map.Tap is used to enable mobile hacks like quick taps and long hold.
+	   * L.Map.TapHold is used to simulate `contextmenu` event on long hold,
+	   * which otherwise is not fired by mobile Safari.
 	   */
+
+	  var tapHoldDelay = 600;
 
 	  // @namespace Map
 	  // @section Interaction Options
 	  Map.mergeOptions({
 	  	// @section Touch interaction options
-	  	// @option tap: Boolean = true
-	  	// Enables mobile hacks for supporting instant taps (fixing 200ms click
-	  	// delay on iOS/Android) and touch holds (fired as `contextmenu` events).
-	  	tap: true,
+	  	// @option tapHold: Boolean
+	  	// Enables simulation of `contextmenu` event, default is `true` for mobile Safari.
+	  	tapHold: Browser.touchNative && Browser.safari && Browser.mobile,
 
 	  	// @option tapTolerance: Number = 15
 	  	// The max number of pixels a user can shift his finger during touch
@@ -29436,7 +29865,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	tapTolerance: 15
 	  });
 
-	  var Tap = Handler.extend({
+	  var TapHold = Handler.extend({
 	  	addHooks: function () {
 	  		on(this._map._container, 'touchstart', this._onDown, this);
 	  	},
@@ -29446,104 +29875,70 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	},
 
 	  	_onDown: function (e) {
-	  		if (!e.touches) { return; }
+	  		clearTimeout(this._holdTimeout);
+	  		if (e.touches.length !== 1) { return; }
 
-	  		preventDefault(e);
-
-	  		this._fireClick = true;
-
-	  		// don't simulate click or track longpress if more than 1 touch
-	  		if (e.touches.length > 1) {
-	  			this._fireClick = false;
-	  			clearTimeout(this._holdTimeout);
-	  			return;
-	  		}
-
-	  		var first = e.touches[0],
-	  		    el = first.target;
-
+	  		var first = e.touches[0];
 	  		this._startPos = this._newPos = new Point(first.clientX, first.clientY);
 
-	  		// if touching a link, highlight it
-	  		if (el.tagName && el.tagName.toLowerCase() === 'a') {
-	  			addClass(el, 'leaflet-active');
-	  		}
-
-	  		// simulate long hold but setting a timeout
 	  		this._holdTimeout = setTimeout(bind(function () {
-	  			if (this._isTapValid()) {
-	  				this._fireClick = false;
-	  				this._onUp();
-	  				this._simulateEvent('contextmenu', first);
-	  			}
-	  		}, this), 1000);
+	  			this._cancel();
+	  			if (!this._isTapValid()) { return; }
 
-	  		this._simulateEvent('mousedown', first);
+	  			// prevent simulated mouse events https://w3c.github.io/touch-events/#mouse-events
+	  			on(document, 'touchend', preventDefault);
+	  			on(document, 'touchend touchcancel', this._cancelClickPrevent);
+	  			this._simulateEvent('contextmenu', first);
+	  		}, this), tapHoldDelay);
 
-	  		on(document, {
-	  			touchmove: this._onMove,
-	  			touchend: this._onUp
-	  		}, this);
+	  		on(document, 'touchend touchcancel contextmenu', this._cancel, this);
+	  		on(document, 'touchmove', this._onMove, this);
 	  	},
 
-	  	_onUp: function (e) {
+	  	_cancelClickPrevent: function cancelClickPrevent() {
+	  		off(document, 'touchend', preventDefault);
+	  		off(document, 'touchend touchcancel', cancelClickPrevent);
+	  	},
+
+	  	_cancel: function () {
 	  		clearTimeout(this._holdTimeout);
+	  		off(document, 'touchend touchcancel contextmenu', this._cancel, this);
+	  		off(document, 'touchmove', this._onMove, this);
+	  	},
 
-	  		off(document, {
-	  			touchmove: this._onMove,
-	  			touchend: this._onUp
-	  		}, this);
-
-	  		if (this._fireClick && e && e.changedTouches) {
-
-	  			var first = e.changedTouches[0],
-	  			    el = first.target;
-
-	  			if (el && el.tagName && el.tagName.toLowerCase() === 'a') {
-	  				removeClass(el, 'leaflet-active');
-	  			}
-
-	  			this._simulateEvent('mouseup', first);
-
-	  			// simulate click if the touch didn't move too much
-	  			if (this._isTapValid()) {
-	  				this._simulateEvent('click', first);
-	  			}
-	  		}
+	  	_onMove: function (e) {
+	  		var first = e.touches[0];
+	  		this._newPos = new Point(first.clientX, first.clientY);
 	  	},
 
 	  	_isTapValid: function () {
 	  		return this._newPos.distanceTo(this._startPos) <= this._map.options.tapTolerance;
 	  	},
 
-	  	_onMove: function (e) {
-	  		var first = e.touches[0];
-	  		this._newPos = new Point(first.clientX, first.clientY);
-	  		this._simulateEvent('mousemove', first);
-	  	},
-
 	  	_simulateEvent: function (type, e) {
-	  		var simulatedEvent = document.createEvent('MouseEvents');
+	  		var simulatedEvent = new MouseEvent(type, {
+	  			bubbles: true,
+	  			cancelable: true,
+	  			view: window,
+	  			// detail: 1,
+	  			screenX: e.screenX,
+	  			screenY: e.screenY,
+	  			clientX: e.clientX,
+	  			clientY: e.clientY,
+	  			// button: 2,
+	  			// buttons: 2
+	  		});
 
 	  		simulatedEvent._simulated = true;
-	  		e.target._simulatedClick = true;
-
-	  		simulatedEvent.initMouseEvent(
-	  		        type, true, true, window, 1,
-	  		        e.screenX, e.screenY,
-	  		        e.clientX, e.clientY,
-	  		        false, false, false, false, 0, null);
 
 	  		e.target.dispatchEvent(simulatedEvent);
 	  	}
 	  });
 
 	  // @section Handlers
-	  // @property tap: Handler
-	  // Mobile touch hacks (quick tap and touch hold) handler.
-	  if (touch && (!pointer || safari)) {
-	  	Map.addInitHook('addHandler', 'tap', Tap);
-	  }
+	  // @property tapHold: Handler
+	  // Long tap handler to simulate `contextmenu` event (useful in mobile Safari).
+	  Map.addInitHook('addHandler', 'tapHold', TapHold);
 
 	  /*
 	   * L.Handler.TouchZoom is used by L.Map to add pinch zoom on supported mobile browsers.
@@ -29557,8 +29952,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  	// Whether the map can be zoomed by touch-dragging with two fingers. If
 	  	// passed `'center'`, it will zoom to the center of the view regardless of
 	  	// where the touch events (fingers) were. Enabled for touch-capable web
-	  	// browsers except for old Androids.
-	  	touchZoom: touch && !android23,
+	  	// browsers.
+	  	touchZoom: Browser.touch,
 
 	  	// @option bounceAtZoomLimits: Boolean = true
 	  	// Set it to false if you don't want the map to zoom beyond min/max zoom
@@ -29599,7 +29994,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		map._stop();
 
 	  		on(document, 'touchmove', this._onTouchMove, this);
-	  		on(document, 'touchend', this._onTouchEnd, this);
+	  		on(document, 'touchend touchcancel', this._onTouchEnd, this);
 
 	  		preventDefault(e);
 	  	},
@@ -29637,7 +30032,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	  		cancelAnimFrame(this._animRequest);
 
-	  		var moveFn = bind(map._move, map, this._center, this._zoom, {pinch: true, round: false});
+	  		var moveFn = bind(map._move, map, this._center, this._zoom, {pinch: true, round: false}, undefined);
 	  		this._animRequest = requestAnimFrame(moveFn, this, true);
 
 	  		preventDefault(e);
@@ -29653,7 +30048,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  		cancelAnimFrame(this._animRequest);
 
 	  		off(document, 'touchmove', this._onTouchMove, this);
-	  		off(document, 'touchend', this._onTouchEnd, this);
+	  		off(document, 'touchend touchcancel', this._onTouchEnd, this);
 
 	  		// Pinch updates GridLayers' levels only when zoomSnap is off, so zoomSnap becomes noUpdate.
 	  		if (this._map.options.zoomAnimation) {
@@ -29674,98 +30069,97 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	  Map.Drag = Drag;
 	  Map.Keyboard = Keyboard;
 	  Map.ScrollWheelZoom = ScrollWheelZoom;
-	  Map.Tap = Tap;
+	  Map.TapHold = TapHold;
 	  Map.TouchZoom = TouchZoom;
 
-	  exports.version = version;
-	  exports.Control = Control;
-	  exports.control = control;
+	  exports.Bounds = Bounds;
 	  exports.Browser = Browser;
-	  exports.Evented = Evented;
-	  exports.Mixin = Mixin;
-	  exports.Util = Util;
+	  exports.CRS = CRS;
+	  exports.Canvas = Canvas;
+	  exports.Circle = Circle;
+	  exports.CircleMarker = CircleMarker;
 	  exports.Class = Class;
-	  exports.Handler = Handler;
-	  exports.extend = extend;
-	  exports.bind = bind;
-	  exports.stamp = stamp;
-	  exports.setOptions = setOptions;
+	  exports.Control = Control;
+	  exports.DivIcon = DivIcon;
+	  exports.DivOverlay = DivOverlay;
 	  exports.DomEvent = DomEvent;
 	  exports.DomUtil = DomUtil;
-	  exports.PosAnimation = PosAnimation;
 	  exports.Draggable = Draggable;
-	  exports.LineUtil = LineUtil;
-	  exports.PolyUtil = PolyUtil;
-	  exports.Point = Point;
-	  exports.point = toPoint;
-	  exports.Bounds = Bounds;
-	  exports.bounds = toBounds;
-	  exports.Transformation = Transformation;
-	  exports.transformation = toTransformation;
-	  exports.Projection = index;
-	  exports.LatLng = LatLng;
-	  exports.latLng = toLatLng;
-	  exports.LatLngBounds = LatLngBounds;
-	  exports.latLngBounds = toLatLngBounds;
-	  exports.CRS = CRS;
+	  exports.Evented = Evented;
+	  exports.FeatureGroup = FeatureGroup;
 	  exports.GeoJSON = GeoJSON;
-	  exports.geoJSON = geoJSON;
-	  exports.geoJson = geoJson;
+	  exports.GridLayer = GridLayer;
+	  exports.Handler = Handler;
+	  exports.Icon = Icon;
+	  exports.ImageOverlay = ImageOverlay;
+	  exports.LatLng = LatLng;
+	  exports.LatLngBounds = LatLngBounds;
 	  exports.Layer = Layer;
 	  exports.LayerGroup = LayerGroup;
-	  exports.layerGroup = layerGroup;
-	  exports.FeatureGroup = FeatureGroup;
-	  exports.featureGroup = featureGroup;
-	  exports.ImageOverlay = ImageOverlay;
-	  exports.imageOverlay = imageOverlay;
-	  exports.VideoOverlay = VideoOverlay;
-	  exports.videoOverlay = videoOverlay;
-	  exports.SVGOverlay = SVGOverlay;
-	  exports.svgOverlay = svgOverlay;
-	  exports.DivOverlay = DivOverlay;
-	  exports.Popup = Popup;
-	  exports.popup = popup;
-	  exports.Tooltip = Tooltip;
-	  exports.tooltip = tooltip;
-	  exports.Icon = Icon;
-	  exports.icon = icon;
-	  exports.DivIcon = DivIcon;
-	  exports.divIcon = divIcon;
-	  exports.Marker = Marker;
-	  exports.marker = marker;
-	  exports.TileLayer = TileLayer;
-	  exports.tileLayer = tileLayer;
-	  exports.GridLayer = GridLayer;
-	  exports.gridLayer = gridLayer;
-	  exports.SVG = SVG;
-	  exports.svg = svg$1;
-	  exports.Renderer = Renderer;
-	  exports.Canvas = Canvas;
-	  exports.canvas = canvas$1;
-	  exports.Path = Path;
-	  exports.CircleMarker = CircleMarker;
-	  exports.circleMarker = circleMarker;
-	  exports.Circle = Circle;
-	  exports.circle = circle;
-	  exports.Polyline = Polyline;
-	  exports.polyline = polyline;
-	  exports.Polygon = Polygon;
-	  exports.polygon = polygon;
-	  exports.Rectangle = Rectangle;
-	  exports.rectangle = rectangle;
+	  exports.LineUtil = LineUtil;
 	  exports.Map = Map;
+	  exports.Marker = Marker;
+	  exports.Mixin = Mixin;
+	  exports.Path = Path;
+	  exports.Point = Point;
+	  exports.PolyUtil = PolyUtil;
+	  exports.Polygon = Polygon;
+	  exports.Polyline = Polyline;
+	  exports.Popup = Popup;
+	  exports.PosAnimation = PosAnimation;
+	  exports.Projection = index;
+	  exports.Rectangle = Rectangle;
+	  exports.Renderer = Renderer;
+	  exports.SVG = SVG;
+	  exports.SVGOverlay = SVGOverlay;
+	  exports.TileLayer = TileLayer;
+	  exports.Tooltip = Tooltip;
+	  exports.Transformation = Transformation;
+	  exports.Util = Util;
+	  exports.VideoOverlay = VideoOverlay;
+	  exports.bind = bind;
+	  exports.bounds = toBounds;
+	  exports.canvas = canvas;
+	  exports.circle = circle;
+	  exports.circleMarker = circleMarker;
+	  exports.control = control;
+	  exports.divIcon = divIcon;
+	  exports.extend = extend;
+	  exports.featureGroup = featureGroup;
+	  exports.geoJSON = geoJSON;
+	  exports.geoJson = geoJson;
+	  exports.gridLayer = gridLayer;
+	  exports.icon = icon;
+	  exports.imageOverlay = imageOverlay;
+	  exports.latLng = toLatLng;
+	  exports.latLngBounds = toLatLngBounds;
+	  exports.layerGroup = layerGroup;
 	  exports.map = createMap;
+	  exports.marker = marker;
+	  exports.point = toPoint;
+	  exports.polygon = polygon;
+	  exports.polyline = polyline;
+	  exports.popup = popup;
+	  exports.rectangle = rectangle;
+	  exports.setOptions = setOptions;
+	  exports.stamp = stamp;
+	  exports.svg = svg;
+	  exports.svgOverlay = svgOverlay;
+	  exports.tileLayer = tileLayer;
+	  exports.tooltip = tooltip;
+	  exports.transformation = toTransformation;
+	  exports.version = version;
+	  exports.videoOverlay = videoOverlay;
 
 	  var oldL = window.L;
 	  exports.noConflict = function() {
 	  	window.L = oldL;
 	  	return this;
 	  }
-
 	  // Always export us to window global (see #2364)
 	  window.L = exports;
 
-	})));
+	}));
 	//# sourceMappingURL=leaflet-src.js.map
 
 
@@ -29799,16 +30193,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        for (var j = 0, o = []; j < x.length; j++) { o[j] = parseFloat(x[j]); }
 	        return o;
 	    }
-	    function clean(x) {
-	        var o = {};
-	        for (var i in x) { if (x[i]) { o[i] = x[i]; } }
-	        return o;
-	    }
 	    // get the content of a text node, if any
 	    function nodeVal(x) {
 	        if (x) { norm(x); }
 	        return (x && x.textContent) || '';
 	    }
+	    // get the contents of multiple text nodes, if present
+	    function getMulti(x, ys) {
+	        var o = {}, n, k;
+	        for (k = 0; k < ys.length; k++) {
+	            n = get1(x, ys[k]);
+	            if (n) o[ys[k]] = nodeVal(n);
+	        }
+	        return o;
+	    }
+	    // add properties of Y to X, overwriting if present in both
+	    function extend(x, y) { for (var k in y) x[k] = y[k]; }
 	    // get one coordinate from a coordinate array, if any
 	    function coord1(v) { return numarray(v.replace(removeSpace, '').split(',')); }
 	    // get all coordinates from a coordinate array as [[],[]]
@@ -29973,6 +30373,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            function getPlacemark(root) {
 	                var geomsAndTimes = getGeometry(root), i, properties = {},
 	                    name = nodeVal(get1(root, 'name')),
+	                    address = nodeVal(get1(root, 'address')),
 	                    styleUrl = nodeVal(get1(root, 'styleUrl')),
 	                    description = nodeVal(get1(root, 'description')),
 	                    timeSpan = get1(root, 'TimeSpan'),
@@ -29984,6 +30385,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                if (!geomsAndTimes.geoms.length) return [];
 	                if (name) properties.name = name;
+	                if (address) properties.address = address;
 	                if (styleUrl) {
 	                    if (styleUrl[0] !== '#') {
 	                        styleUrl = '#' + styleUrl;
@@ -30118,6 +30520,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                }
 	                if (track.length === 0) return;
 	                var properties = getProperties(node);
+	                extend(properties, getLineStyle(get1(node, 'extensions')));
 	                if (times.length) properties.coordTimes = track.length === 1 ? times[0] : times;
 	                if (heartRates.length) properties.heartRates = track.length === 1 ? heartRates[0] : heartRates;
 	                return {
@@ -30132,9 +30535,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            function getRoute(node) {
 	                var line = getPoints(node, 'rtept');
 	                if (!line.line) return;
+	                var prop = getProperties(node);
+	                extend(prop, getLineStyle(get1(node, 'extensions')));
 	                var routeObj = {
 	                    type: 'Feature',
-	                    properties: getProperties(node),
+	                    properties: prop,
 	                    geometry: {
 	                        type: 'LineString',
 	                        coordinates: line.line
@@ -30144,7 +30549,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            }
 	            function getPoint(node) {
 	                var prop = getProperties(node);
-	                prop.sym = nodeVal(get1(node, 'sym'));
+	                extend(prop, getMulti(node, ['sym']));
 	                return {
 	                    type: 'Feature',
 	                    properties: prop,
@@ -30154,15 +30559,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                    }
 	                };
 	            }
-	            function getProperties(node) {
-	                var meta = ['name', 'desc', 'author', 'copyright', 'link',
-	                            'time', 'keywords'],
-	                    prop = {},
-	                    k;
-	                for (k = 0; k < meta.length; k++) {
-	                    prop[meta[k]] = nodeVal(get1(node, meta[k]));
+	            function getLineStyle(extensions) {
+	                var style = {};
+	                if (extensions) {
+	                    var lineStyle = get1(extensions, 'line');
+	                    if (lineStyle) {
+	                        var color = nodeVal(get1(lineStyle, 'color')),
+	                            opacity = parseFloat(nodeVal(get1(lineStyle, 'opacity'))),
+	                            width = parseFloat(nodeVal(get1(lineStyle, 'width')));
+	                        if (color) style.stroke = color;
+	                        if (!isNaN(opacity)) style['stroke-opacity'] = opacity;
+	                        // GPX width is in mm, convert to px with 96 px per inch
+	                        if (!isNaN(width)) style['stroke-width'] = width * 96 / 25.4;
+	                    }
 	                }
-	                return clean(prop);
+	                return style;
+	            }
+	            function getProperties(node) {
+	                var prop = getMulti(node, ['name', 'cmt', 'desc', 'type', 'time', 'keywords']),
+	                    links = get(node, 'link');
+	                if (links.length) prop.links = [];
+	                for (var i = 0, link; i < links.length; i++) {
+	                    link = { href: attr(links[i], 'href') };
+	                    extend(link, getMulti(links[i], ['text', 'type']));
+	                    prop.links.push(link);
+	                }
+	                return prop;
 	            }
 	            return gj;
 	        }
@@ -30171,7 +30593,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	})();
 
 	if (true) module.exports = toGeoJSON;
-
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
 
 /***/ }),
@@ -73898,6 +74319,7624 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 /* 246 */
 /***/ (function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (factory) {
+		var L, proj4;
+		if (true) {
+			// AMD
+			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(247)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		} else if (typeof module === 'object' && typeof module.exports === "object") {
+			// Node/CommonJS
+			L = require('leaflet');
+			proj4 = require('proj4');
+			module.exports = factory(L, proj4);
+		} else {
+			// Browser globals
+			if (typeof window.L === 'undefined' || typeof window.proj4 === 'undefined')
+				throw 'Leaflet and proj4 must be loaded first';
+			factory(window.L, window.proj4);
+		}
+	}(function (L, proj4) {
+		if (proj4.__esModule && proj4.default) {
+			// If proj4 was bundled as an ES6 module, unwrap it to get
+			// to the actual main proj4 object.
+			// See discussion in https://github.com/kartena/Proj4Leaflet/pull/147
+			proj4 = proj4.default;
+		}
+	 
+		L.Proj = {};
+
+		L.Proj._isProj4Obj = function(a) {
+			return (typeof a.inverse !== 'undefined' &&
+				typeof a.forward !== 'undefined');
+		};
+
+		L.Proj.Projection = L.Class.extend({
+			initialize: function(code, def, bounds) {
+				var isP4 = L.Proj._isProj4Obj(code);
+				this._proj = isP4 ? code : this._projFromCodeDef(code, def);
+				this.bounds = isP4 ? def : bounds;
+			},
+
+			project: function (latlng) {
+				var point = this._proj.forward([latlng.lng, latlng.lat]);
+				return new L.Point(point[0], point[1]);
+			},
+
+			unproject: function (point, unbounded) {
+				var point2 = this._proj.inverse([point.x, point.y]);
+				return new L.LatLng(point2[1], point2[0], unbounded);
+			},
+
+			_projFromCodeDef: function(code, def) {
+				if (def) {
+					proj4.defs(code, def);
+				} else if (proj4.defs[code] === undefined) {
+					var urn = code.split(':');
+					if (urn.length > 3) {
+						code = urn[urn.length - 3] + ':' + urn[urn.length - 1];
+					}
+					if (proj4.defs[code] === undefined) {
+						throw 'No projection definition for code ' + code;
+					}
+				}
+
+				return proj4(code);
+			}
+		});
+
+		L.Proj.CRS = L.Class.extend({
+			includes: L.CRS,
+
+			options: {
+				transformation: new L.Transformation(1, 0, -1, 0)
+			},
+
+			initialize: function(a, b, c) {
+				var code,
+				    proj,
+				    def,
+				    options;
+
+				if (L.Proj._isProj4Obj(a)) {
+					proj = a;
+					code = proj.srsCode;
+					options = b || {};
+
+					this.projection = new L.Proj.Projection(proj, options.bounds);
+				} else {
+					code = a;
+					def = b;
+					options = c || {};
+					this.projection = new L.Proj.Projection(code, def, options.bounds);
+				}
+
+				L.Util.setOptions(this, options);
+				this.code = code;
+				this.transformation = this.options.transformation;
+
+				if (this.options.origin) {
+					this.transformation =
+						new L.Transformation(1, -this.options.origin[0],
+							-1, this.options.origin[1]);
+				}
+
+				if (this.options.scales) {
+					this._scales = this.options.scales;
+				} else if (this.options.resolutions) {
+					this._scales = [];
+					for (var i = this.options.resolutions.length - 1; i >= 0; i--) {
+						if (this.options.resolutions[i]) {
+							this._scales[i] = 1 / this.options.resolutions[i];
+						}
+					}
+				}
+
+				this.infinite = !this.options.bounds;
+
+			},
+
+			scale: function(zoom) {
+				var iZoom = Math.floor(zoom),
+					baseScale,
+					nextScale,
+					scaleDiff,
+					zDiff;
+				if (zoom === iZoom) {
+					return this._scales[zoom];
+				} else {
+					// Non-integer zoom, interpolate
+					baseScale = this._scales[iZoom];
+					nextScale = this._scales[iZoom + 1];
+					scaleDiff = nextScale - baseScale;
+					zDiff = (zoom - iZoom);
+					return baseScale + scaleDiff * zDiff;
+				}
+			},
+
+			zoom: function(scale) {
+				// Find closest number in this._scales, down
+				var downScale = this._closestElement(this._scales, scale),
+					downZoom = this._scales.indexOf(downScale),
+					nextScale,
+					nextZoom,
+					scaleDiff;
+				// Check if scale is downScale => return array index
+				if (scale === downScale) {
+					return downZoom;
+				}
+				if (downScale === undefined) {
+					return -Infinity;
+				}
+				// Interpolate
+				nextZoom = downZoom + 1;
+				nextScale = this._scales[nextZoom];
+				if (nextScale === undefined) {
+					return Infinity;
+				}
+				scaleDiff = nextScale - downScale;
+				return (scale - downScale) / scaleDiff + downZoom;
+			},
+
+			distance: L.CRS.Earth.distance,
+
+			R: L.CRS.Earth.R,
+
+			/* Get the closest lowest element in an array */
+			_closestElement: function(array, element) {
+				var low;
+				for (var i = array.length; i--;) {
+					if (array[i] <= element && (low === undefined || low < array[i])) {
+						low = array[i];
+					}
+				}
+				return low;
+			}
+		});
+
+		L.Proj.GeoJSON = L.GeoJSON.extend({
+			initialize: function(geojson, options) {
+				this._callLevel = 0;
+				L.GeoJSON.prototype.initialize.call(this, geojson, options);
+			},
+
+			addData: function(geojson) {
+				var crs;
+
+				if (geojson) {
+					if (geojson.crs && geojson.crs.type === 'name') {
+						crs = new L.Proj.CRS(geojson.crs.properties.name);
+					} else if (geojson.crs && geojson.crs.type) {
+						crs = new L.Proj.CRS(geojson.crs.type + ':' + geojson.crs.properties.code);
+					}
+
+					if (crs !== undefined) {
+						this.options.coordsToLatLng = function(coords) {
+							var point = L.point(coords[0], coords[1]);
+							return crs.projection.unproject(point);
+						};
+					}
+				}
+
+				// Base class' addData might call us recursively, but
+				// CRS shouldn't be cleared in that case, since CRS applies
+				// to the whole GeoJSON, inluding sub-features.
+				this._callLevel++;
+				try {
+					L.GeoJSON.prototype.addData.call(this, geojson);
+				} finally {
+					this._callLevel--;
+					if (this._callLevel === 0) {
+						delete this.options.coordsToLatLng;
+					}
+				}
+			}
+		});
+
+		L.Proj.geoJson = function(geojson, options) {
+			return new L.Proj.GeoJSON(geojson, options);
+		};
+
+		L.Proj.ImageOverlay = L.ImageOverlay.extend({
+			initialize: function (url, bounds, options) {
+				L.ImageOverlay.prototype.initialize.call(this, url, null, options);
+				this._projectedBounds = bounds;
+			},
+
+			// Danger ahead: Overriding internal methods in Leaflet.
+			// Decided to do this rather than making a copy of L.ImageOverlay
+			// and doing very tiny modifications to it.
+			// Future will tell if this was wise or not.
+			_animateZoom: function (event) {
+				var scale = this._map.getZoomScale(event.zoom);
+				var northWest = L.point(this._projectedBounds.min.x, this._projectedBounds.max.y);
+				var offset = this._projectedToNewLayerPoint(northWest, event.zoom, event.center);
+
+				L.DomUtil.setTransform(this._image, offset, scale);
+			},
+
+			_reset: function () {
+				var zoom = this._map.getZoom();
+				var pixelOrigin = this._map.getPixelOrigin();
+				var bounds = L.bounds(
+					this._transform(this._projectedBounds.min, zoom)._subtract(pixelOrigin),
+					this._transform(this._projectedBounds.max, zoom)._subtract(pixelOrigin)
+				);
+				var size = bounds.getSize();
+
+				L.DomUtil.setPosition(this._image, bounds.min);
+				this._image.style.width = size.x + 'px';
+				this._image.style.height = size.y + 'px';
+			},
+
+			_projectedToNewLayerPoint: function (point, zoom, center) {
+				var viewHalf = this._map.getSize()._divideBy(2);
+				var newTopLeft = this._map.project(center, zoom)._subtract(viewHalf)._round();
+				var topLeft = newTopLeft.add(this._map._getMapPanePos());
+
+				return this._transform(point, zoom)._subtract(topLeft);
+			},
+
+			_transform: function (point, zoom) {
+				var crs = this._map.options.crs;
+				var transformation = crs.transformation;
+				var scale = crs.scale(zoom);
+
+				return transformation.transform(point, scale);
+			}
+		});
+
+		L.Proj.imageOverlay = function (url, bounds, options) {
+			return new L.Proj.ImageOverlay(url, bounds, options);
+		};
+
+		return L.Proj;
+	}));
+
+
+/***/ }),
+/* 247 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	(function (global, factory) {
+	     true ? module.exports = factory() :
+	    typeof define === 'function' && define.amd ? define(factory) :
+	    (global.proj4 = factory());
+	}(this, (function () { 'use strict';
+
+	    var globals = function(defs) {
+	      defs('EPSG:4326', "+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees");
+	      defs('EPSG:4269', "+title=NAD83 (long/lat) +proj=longlat +a=6378137.0 +b=6356752.31414036 +ellps=GRS80 +datum=NAD83 +units=degrees");
+	      defs('EPSG:3857', "+title=WGS 84 / Pseudo-Mercator +proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs");
+
+	      defs.WGS84 = defs['EPSG:4326'];
+	      defs['EPSG:3785'] = defs['EPSG:3857']; // maintain backward compat, official code is 3857
+	      defs.GOOGLE = defs['EPSG:3857'];
+	      defs['EPSG:900913'] = defs['EPSG:3857'];
+	      defs['EPSG:102113'] = defs['EPSG:3857'];
+	    };
+
+	    var PJD_3PARAM = 1;
+	    var PJD_7PARAM = 2;
+	    var PJD_GRIDSHIFT = 3;
+	    var PJD_WGS84 = 4; // WGS84 or equivalent
+	    var PJD_NODATUM = 5; // WGS84 or equivalent
+	    var SRS_WGS84_SEMIMAJOR = 6378137.0;  // only used in grid shift transforms
+	    var SRS_WGS84_SEMIMINOR = 6356752.314;  // only used in grid shift transforms
+	    var SRS_WGS84_ESQUARED = 0.0066943799901413165; // only used in grid shift transforms
+	    var SEC_TO_RAD = 4.84813681109535993589914102357e-6;
+	    var HALF_PI = Math.PI/2;
+	    // ellipoid pj_set_ell.c
+	    var SIXTH = 0.1666666666666666667;
+	    /* 1/6 */
+	    var RA4 = 0.04722222222222222222;
+	    /* 17/360 */
+	    var RA6 = 0.02215608465608465608;
+	    var EPSLN = 1.0e-10;
+	    // you'd think you could use Number.EPSILON above but that makes
+	    // Mollweide get into an infinate loop.
+
+	    var D2R = 0.01745329251994329577;
+	    var R2D = 57.29577951308232088;
+	    var FORTPI = Math.PI/4;
+	    var TWO_PI = Math.PI * 2;
+	    // SPI is slightly greater than Math.PI, so values that exceed the -180..180
+	    // degree range by a tiny amount don't get wrapped. This prevents points that
+	    // have drifted from their original location along the 180th meridian (due to
+	    // floating point error) from changing their sign.
+	    var SPI = 3.14159265359;
+
+	    var exports$1 = {};
+	    exports$1.greenwich = 0.0; //"0dE",
+	    exports$1.lisbon = -9.131906111111; //"9d07'54.862\"W",
+	    exports$1.paris = 2.337229166667; //"2d20'14.025\"E",
+	    exports$1.bogota = -74.080916666667; //"74d04'51.3\"W",
+	    exports$1.madrid = -3.687938888889; //"3d41'16.58\"W",
+	    exports$1.rome = 12.452333333333; //"12d27'8.4\"E",
+	    exports$1.bern = 7.439583333333; //"7d26'22.5\"E",
+	    exports$1.jakarta = 106.807719444444; //"106d48'27.79\"E",
+	    exports$1.ferro = -17.666666666667; //"17d40'W",
+	    exports$1.brussels = 4.367975; //"4d22'4.71\"E",
+	    exports$1.stockholm = 18.058277777778; //"18d3'29.8\"E",
+	    exports$1.athens = 23.7163375; //"23d42'58.815\"E",
+	    exports$1.oslo = 10.722916666667; //"10d43'22.5\"E"
+
+	    var units = {
+	      ft: {to_meter: 0.3048},
+	      'us-ft': {to_meter: 1200 / 3937}
+	    };
+
+	    var ignoredChar = /[\s_\-\/\(\)]/g;
+	    function match(obj, key) {
+	      if (obj[key]) {
+	        return obj[key];
+	      }
+	      var keys = Object.keys(obj);
+	      var lkey = key.toLowerCase().replace(ignoredChar, '');
+	      var i = -1;
+	      var testkey, processedKey;
+	      while (++i < keys.length) {
+	        testkey = keys[i];
+	        processedKey = testkey.toLowerCase().replace(ignoredChar, '');
+	        if (processedKey === lkey) {
+	          return obj[testkey];
+	        }
+	      }
+	    }
+
+	    var parseProj = function(defData) {
+	      var self = {};
+	      var paramObj = defData.split('+').map(function(v) {
+	        return v.trim();
+	      }).filter(function(a) {
+	        return a;
+	      }).reduce(function(p, a) {
+	        var split = a.split('=');
+	        split.push(true);
+	        p[split[0].toLowerCase()] = split[1];
+	        return p;
+	      }, {});
+	      var paramName, paramVal, paramOutname;
+	      var params = {
+	        proj: 'projName',
+	        datum: 'datumCode',
+	        rf: function(v) {
+	          self.rf = parseFloat(v);
+	        },
+	        lat_0: function(v) {
+	          self.lat0 = v * D2R;
+	        },
+	        lat_1: function(v) {
+	          self.lat1 = v * D2R;
+	        },
+	        lat_2: function(v) {
+	          self.lat2 = v * D2R;
+	        },
+	        lat_ts: function(v) {
+	          self.lat_ts = v * D2R;
+	        },
+	        lon_0: function(v) {
+	          self.long0 = v * D2R;
+	        },
+	        lon_1: function(v) {
+	          self.long1 = v * D2R;
+	        },
+	        lon_2: function(v) {
+	          self.long2 = v * D2R;
+	        },
+	        alpha: function(v) {
+	          self.alpha = parseFloat(v) * D2R;
+	        },
+	        gamma: function(v) {
+	          self.rectified_grid_angle = parseFloat(v);
+	        },
+	        lonc: function(v) {
+	          self.longc = v * D2R;
+	        },
+	        x_0: function(v) {
+	          self.x0 = parseFloat(v);
+	        },
+	        y_0: function(v) {
+	          self.y0 = parseFloat(v);
+	        },
+	        k_0: function(v) {
+	          self.k0 = parseFloat(v);
+	        },
+	        k: function(v) {
+	          self.k0 = parseFloat(v);
+	        },
+	        a: function(v) {
+	          self.a = parseFloat(v);
+	        },
+	        b: function(v) {
+	          self.b = parseFloat(v);
+	        },
+	        r_a: function() {
+	          self.R_A = true;
+	        },
+	        zone: function(v) {
+	          self.zone = parseInt(v, 10);
+	        },
+	        south: function() {
+	          self.utmSouth = true;
+	        },
+	        towgs84: function(v) {
+	          self.datum_params = v.split(",").map(function(a) {
+	            return parseFloat(a);
+	          });
+	        },
+	        to_meter: function(v) {
+	          self.to_meter = parseFloat(v);
+	        },
+	        units: function(v) {
+	          self.units = v;
+	          var unit = match(units, v);
+	          if (unit) {
+	            self.to_meter = unit.to_meter;
+	          }
+	        },
+	        from_greenwich: function(v) {
+	          self.from_greenwich = v * D2R;
+	        },
+	        pm: function(v) {
+	          var pm = match(exports$1, v);
+	          self.from_greenwich = (pm ? pm : parseFloat(v)) * D2R;
+	        },
+	        nadgrids: function(v) {
+	          if (v === '@null') {
+	            self.datumCode = 'none';
+	          }
+	          else {
+	            self.nadgrids = v;
+	          }
+	        },
+	        axis: function(v) {
+	          var legalAxis = "ewnsud";
+	          if (v.length === 3 && legalAxis.indexOf(v.substr(0, 1)) !== -1 && legalAxis.indexOf(v.substr(1, 1)) !== -1 && legalAxis.indexOf(v.substr(2, 1)) !== -1) {
+	            self.axis = v;
+	          }
+	        },
+	        approx: function() {
+	          self.approx = true;
+	        }
+	      };
+	      for (paramName in paramObj) {
+	        paramVal = paramObj[paramName];
+	        if (paramName in params) {
+	          paramOutname = params[paramName];
+	          if (typeof paramOutname === 'function') {
+	            paramOutname(paramVal);
+	          }
+	          else {
+	            self[paramOutname] = paramVal;
+	          }
+	        }
+	        else {
+	          self[paramName] = paramVal;
+	        }
+	      }
+	      if(typeof self.datumCode === 'string' && self.datumCode !== "WGS84"){
+	        self.datumCode = self.datumCode.toLowerCase();
+	      }
+	      return self;
+	    };
+
+	    var NEUTRAL = 1;
+	    var KEYWORD = 2;
+	    var NUMBER = 3;
+	    var QUOTED = 4;
+	    var AFTERQUOTE = 5;
+	    var ENDED = -1;
+	    var whitespace = /\s/;
+	    var latin = /[A-Za-z]/;
+	    var keyword = /[A-Za-z84]/;
+	    var endThings = /[,\]]/;
+	    var digets = /[\d\.E\-\+]/;
+	    // const ignoredChar = /[\s_\-\/\(\)]/g;
+	    function Parser(text) {
+	      if (typeof text !== 'string') {
+	        throw new Error('not a string');
+	      }
+	      this.text = text.trim();
+	      this.level = 0;
+	      this.place = 0;
+	      this.root = null;
+	      this.stack = [];
+	      this.currentObject = null;
+	      this.state = NEUTRAL;
+	    }
+	    Parser.prototype.readCharicter = function() {
+	      var char = this.text[this.place++];
+	      if (this.state !== QUOTED) {
+	        while (whitespace.test(char)) {
+	          if (this.place >= this.text.length) {
+	            return;
+	          }
+	          char = this.text[this.place++];
+	        }
+	      }
+	      switch (this.state) {
+	        case NEUTRAL:
+	          return this.neutral(char);
+	        case KEYWORD:
+	          return this.keyword(char)
+	        case QUOTED:
+	          return this.quoted(char);
+	        case AFTERQUOTE:
+	          return this.afterquote(char);
+	        case NUMBER:
+	          return this.number(char);
+	        case ENDED:
+	          return;
+	      }
+	    };
+	    Parser.prototype.afterquote = function(char) {
+	      if (char === '"') {
+	        this.word += '"';
+	        this.state = QUOTED;
+	        return;
+	      }
+	      if (endThings.test(char)) {
+	        this.word = this.word.trim();
+	        this.afterItem(char);
+	        return;
+	      }
+	      throw new Error('havn\'t handled "' +char + '" in afterquote yet, index ' + this.place);
+	    };
+	    Parser.prototype.afterItem = function(char) {
+	      if (char === ',') {
+	        if (this.word !== null) {
+	          this.currentObject.push(this.word);
+	        }
+	        this.word = null;
+	        this.state = NEUTRAL;
+	        return;
+	      }
+	      if (char === ']') {
+	        this.level--;
+	        if (this.word !== null) {
+	          this.currentObject.push(this.word);
+	          this.word = null;
+	        }
+	        this.state = NEUTRAL;
+	        this.currentObject = this.stack.pop();
+	        if (!this.currentObject) {
+	          this.state = ENDED;
+	        }
+
+	        return;
+	      }
+	    };
+	    Parser.prototype.number = function(char) {
+	      if (digets.test(char)) {
+	        this.word += char;
+	        return;
+	      }
+	      if (endThings.test(char)) {
+	        this.word = parseFloat(this.word);
+	        this.afterItem(char);
+	        return;
+	      }
+	      throw new Error('havn\'t handled "' +char + '" in number yet, index ' + this.place);
+	    };
+	    Parser.prototype.quoted = function(char) {
+	      if (char === '"') {
+	        this.state = AFTERQUOTE;
+	        return;
+	      }
+	      this.word += char;
+	      return;
+	    };
+	    Parser.prototype.keyword = function(char) {
+	      if (keyword.test(char)) {
+	        this.word += char;
+	        return;
+	      }
+	      if (char === '[') {
+	        var newObjects = [];
+	        newObjects.push(this.word);
+	        this.level++;
+	        if (this.root === null) {
+	          this.root = newObjects;
+	        } else {
+	          this.currentObject.push(newObjects);
+	        }
+	        this.stack.push(this.currentObject);
+	        this.currentObject = newObjects;
+	        this.state = NEUTRAL;
+	        return;
+	      }
+	      if (endThings.test(char)) {
+	        this.afterItem(char);
+	        return;
+	      }
+	      throw new Error('havn\'t handled "' +char + '" in keyword yet, index ' + this.place);
+	    };
+	    Parser.prototype.neutral = function(char) {
+	      if (latin.test(char)) {
+	        this.word = char;
+	        this.state = KEYWORD;
+	        return;
+	      }
+	      if (char === '"') {
+	        this.word = '';
+	        this.state = QUOTED;
+	        return;
+	      }
+	      if (digets.test(char)) {
+	        this.word = char;
+	        this.state = NUMBER;
+	        return;
+	      }
+	      if (endThings.test(char)) {
+	        this.afterItem(char);
+	        return;
+	      }
+	      throw new Error('havn\'t handled "' +char + '" in neutral yet, index ' + this.place);
+	    };
+	    Parser.prototype.output = function() {
+	      while (this.place < this.text.length) {
+	        this.readCharicter();
+	      }
+	      if (this.state === ENDED) {
+	        return this.root;
+	      }
+	      throw new Error('unable to parse string "' +this.text + '". State is ' + this.state);
+	    };
+
+	    function parseString(txt) {
+	      var parser = new Parser(txt);
+	      return parser.output();
+	    }
+
+	    function mapit(obj, key, value) {
+	      if (Array.isArray(key)) {
+	        value.unshift(key);
+	        key = null;
+	      }
+	      var thing = key ? {} : obj;
+
+	      var out = value.reduce(function(newObj, item) {
+	        sExpr(item, newObj);
+	        return newObj
+	      }, thing);
+	      if (key) {
+	        obj[key] = out;
+	      }
+	    }
+
+	    function sExpr(v, obj) {
+	      if (!Array.isArray(v)) {
+	        obj[v] = true;
+	        return;
+	      }
+	      var key = v.shift();
+	      if (key === 'PARAMETER') {
+	        key = v.shift();
+	      }
+	      if (v.length === 1) {
+	        if (Array.isArray(v[0])) {
+	          obj[key] = {};
+	          sExpr(v[0], obj[key]);
+	          return;
+	        }
+	        obj[key] = v[0];
+	        return;
+	      }
+	      if (!v.length) {
+	        obj[key] = true;
+	        return;
+	      }
+	      if (key === 'TOWGS84') {
+	        obj[key] = v;
+	        return;
+	      }
+	      if (key === 'AXIS') {
+	        if (!(key in obj)) {
+	          obj[key] = [];
+	        }
+	        obj[key].push(v);
+	        return;
+	      }
+	      if (!Array.isArray(key)) {
+	        obj[key] = {};
+	      }
+
+	      var i;
+	      switch (key) {
+	        case 'UNIT':
+	        case 'PRIMEM':
+	        case 'VERT_DATUM':
+	          obj[key] = {
+	            name: v[0].toLowerCase(),
+	            convert: v[1]
+	          };
+	          if (v.length === 3) {
+	            sExpr(v[2], obj[key]);
+	          }
+	          return;
+	        case 'SPHEROID':
+	        case 'ELLIPSOID':
+	          obj[key] = {
+	            name: v[0],
+	            a: v[1],
+	            rf: v[2]
+	          };
+	          if (v.length === 4) {
+	            sExpr(v[3], obj[key]);
+	          }
+	          return;
+	        case 'PROJECTEDCRS':
+	        case 'PROJCRS':
+	        case 'GEOGCS':
+	        case 'GEOCCS':
+	        case 'PROJCS':
+	        case 'LOCAL_CS':
+	        case 'GEODCRS':
+	        case 'GEODETICCRS':
+	        case 'GEODETICDATUM':
+	        case 'EDATUM':
+	        case 'ENGINEERINGDATUM':
+	        case 'VERT_CS':
+	        case 'VERTCRS':
+	        case 'VERTICALCRS':
+	        case 'COMPD_CS':
+	        case 'COMPOUNDCRS':
+	        case 'ENGINEERINGCRS':
+	        case 'ENGCRS':
+	        case 'FITTED_CS':
+	        case 'LOCAL_DATUM':
+	        case 'DATUM':
+	          v[0] = ['name', v[0]];
+	          mapit(obj, key, v);
+	          return;
+	        default:
+	          i = -1;
+	          while (++i < v.length) {
+	            if (!Array.isArray(v[i])) {
+	              return sExpr(v, obj[key]);
+	            }
+	          }
+	          return mapit(obj, key, v);
+	      }
+	    }
+
+	    var D2R$1 = 0.01745329251994329577;
+	    function rename(obj, params) {
+	      var outName = params[0];
+	      var inName = params[1];
+	      if (!(outName in obj) && (inName in obj)) {
+	        obj[outName] = obj[inName];
+	        if (params.length === 3) {
+	          obj[outName] = params[2](obj[outName]);
+	        }
+	      }
+	    }
+
+	    function d2r(input) {
+	      return input * D2R$1;
+	    }
+
+	    function cleanWKT(wkt) {
+	      if (wkt.type === 'GEOGCS') {
+	        wkt.projName = 'longlat';
+	      } else if (wkt.type === 'LOCAL_CS') {
+	        wkt.projName = 'identity';
+	        wkt.local = true;
+	      } else {
+	        if (typeof wkt.PROJECTION === 'object') {
+	          wkt.projName = Object.keys(wkt.PROJECTION)[0];
+	        } else {
+	          wkt.projName = wkt.PROJECTION;
+	        }
+	      }
+	      if (wkt.AXIS) {
+	        var axisOrder = '';
+	        for (var i = 0, ii = wkt.AXIS.length; i < ii; ++i) {
+	          var axis = [wkt.AXIS[i][0].toLowerCase(), wkt.AXIS[i][1].toLowerCase()];
+	          if (axis[0].indexOf('north') !== -1 || ((axis[0] === 'y' || axis[0] === 'lat') && axis[1] === 'north')) {
+	            axisOrder += 'n';
+	          } else if (axis[0].indexOf('south') !== -1 || ((axis[0] === 'y' || axis[0] === 'lat') && axis[1] === 'south')) {
+	            axisOrder += 's';
+	          } else if (axis[0].indexOf('east') !== -1 || ((axis[0] === 'x' || axis[0] === 'lon') && axis[1] === 'east')) {
+	            axisOrder += 'e';
+	          } else if (axis[0].indexOf('west') !== -1 || ((axis[0] === 'x' || axis[0] === 'lon') && axis[1] === 'west')) {
+	            axisOrder += 'w';
+	          }
+	        }
+	        if (axisOrder.length === 2) {
+	          axisOrder += 'u';
+	        }
+	        if (axisOrder.length === 3) {
+	          wkt.axis = axisOrder;
+	        }
+	      }
+	      if (wkt.UNIT) {
+	        wkt.units = wkt.UNIT.name.toLowerCase();
+	        if (wkt.units === 'metre') {
+	          wkt.units = 'meter';
+	        }
+	        if (wkt.UNIT.convert) {
+	          if (wkt.type === 'GEOGCS') {
+	            if (wkt.DATUM && wkt.DATUM.SPHEROID) {
+	              wkt.to_meter = wkt.UNIT.convert*wkt.DATUM.SPHEROID.a;
+	            }
+	          } else {
+	            wkt.to_meter = wkt.UNIT.convert;
+	          }
+	        }
+	      }
+	      var geogcs = wkt.GEOGCS;
+	      if (wkt.type === 'GEOGCS') {
+	        geogcs = wkt;
+	      }
+	      if (geogcs) {
+	        //if(wkt.GEOGCS.PRIMEM&&wkt.GEOGCS.PRIMEM.convert){
+	        //  wkt.from_greenwich=wkt.GEOGCS.PRIMEM.convert*D2R;
+	        //}
+	        if (geogcs.DATUM) {
+	          wkt.datumCode = geogcs.DATUM.name.toLowerCase();
+	        } else {
+	          wkt.datumCode = geogcs.name.toLowerCase();
+	        }
+	        if (wkt.datumCode.slice(0, 2) === 'd_') {
+	          wkt.datumCode = wkt.datumCode.slice(2);
+	        }
+	        if (wkt.datumCode === 'new_zealand_geodetic_datum_1949' || wkt.datumCode === 'new_zealand_1949') {
+	          wkt.datumCode = 'nzgd49';
+	        }
+	        if (wkt.datumCode === 'wgs_1984' || wkt.datumCode === 'world_geodetic_system_1984') {
+	          if (wkt.PROJECTION === 'Mercator_Auxiliary_Sphere') {
+	            wkt.sphere = true;
+	          }
+	          wkt.datumCode = 'wgs84';
+	        }
+	        if (wkt.datumCode.slice(-6) === '_ferro') {
+	          wkt.datumCode = wkt.datumCode.slice(0, - 6);
+	        }
+	        if (wkt.datumCode.slice(-8) === '_jakarta') {
+	          wkt.datumCode = wkt.datumCode.slice(0, - 8);
+	        }
+	        if (~wkt.datumCode.indexOf('belge')) {
+	          wkt.datumCode = 'rnb72';
+	        }
+	        if (geogcs.DATUM && geogcs.DATUM.SPHEROID) {
+	          wkt.ellps = geogcs.DATUM.SPHEROID.name.replace('_19', '').replace(/[Cc]larke\_18/, 'clrk');
+	          if (wkt.ellps.toLowerCase().slice(0, 13) === 'international') {
+	            wkt.ellps = 'intl';
+	          }
+
+	          wkt.a = geogcs.DATUM.SPHEROID.a;
+	          wkt.rf = parseFloat(geogcs.DATUM.SPHEROID.rf, 10);
+	        }
+
+	        if (geogcs.DATUM && geogcs.DATUM.TOWGS84) {
+	          wkt.datum_params = geogcs.DATUM.TOWGS84;
+	        }
+	        if (~wkt.datumCode.indexOf('osgb_1936')) {
+	          wkt.datumCode = 'osgb36';
+	        }
+	        if (~wkt.datumCode.indexOf('osni_1952')) {
+	          wkt.datumCode = 'osni52';
+	        }
+	        if (~wkt.datumCode.indexOf('tm65')
+	          || ~wkt.datumCode.indexOf('geodetic_datum_of_1965')) {
+	          wkt.datumCode = 'ire65';
+	        }
+	        if (wkt.datumCode === 'ch1903+') {
+	          wkt.datumCode = 'ch1903';
+	        }
+	        if (~wkt.datumCode.indexOf('israel')) {
+	          wkt.datumCode = 'isr93';
+	        }
+	      }
+	      if (wkt.b && !isFinite(wkt.b)) {
+	        wkt.b = wkt.a;
+	      }
+
+	      function toMeter(input) {
+	        var ratio = wkt.to_meter || 1;
+	        return input * ratio;
+	      }
+	      var renamer = function(a) {
+	        return rename(wkt, a);
+	      };
+	      var list = [
+	        ['standard_parallel_1', 'Standard_Parallel_1'],
+	        ['standard_parallel_1', 'Latitude of 1st standard parallel'],
+	        ['standard_parallel_2', 'Standard_Parallel_2'],
+	        ['standard_parallel_2', 'Latitude of 2nd standard parallel'],
+	        ['false_easting', 'False_Easting'],
+	        ['false_easting', 'False easting'],
+	        ['false-easting', 'Easting at false origin'],
+	        ['false_northing', 'False_Northing'],
+	        ['false_northing', 'False northing'],
+	        ['false_northing', 'Northing at false origin'],
+	        ['central_meridian', 'Central_Meridian'],
+	        ['central_meridian', 'Longitude of natural origin'],
+	        ['central_meridian', 'Longitude of false origin'],
+	        ['latitude_of_origin', 'Latitude_Of_Origin'],
+	        ['latitude_of_origin', 'Central_Parallel'],
+	        ['latitude_of_origin', 'Latitude of natural origin'],
+	        ['latitude_of_origin', 'Latitude of false origin'],
+	        ['scale_factor', 'Scale_Factor'],
+	        ['k0', 'scale_factor'],
+	        ['latitude_of_center', 'Latitude_Of_Center'],
+	        ['latitude_of_center', 'Latitude_of_center'],
+	        ['lat0', 'latitude_of_center', d2r],
+	        ['longitude_of_center', 'Longitude_Of_Center'],
+	        ['longitude_of_center', 'Longitude_of_center'],
+	        ['longc', 'longitude_of_center', d2r],
+	        ['x0', 'false_easting', toMeter],
+	        ['y0', 'false_northing', toMeter],
+	        ['long0', 'central_meridian', d2r],
+	        ['lat0', 'latitude_of_origin', d2r],
+	        ['lat0', 'standard_parallel_1', d2r],
+	        ['lat1', 'standard_parallel_1', d2r],
+	        ['lat2', 'standard_parallel_2', d2r],
+	        ['azimuth', 'Azimuth'],
+	        ['alpha', 'azimuth', d2r],
+	        ['srsCode', 'name']
+	      ];
+	      list.forEach(renamer);
+	      if (!wkt.long0 && wkt.longc && (wkt.projName === 'Albers_Conic_Equal_Area' || wkt.projName === 'Lambert_Azimuthal_Equal_Area')) {
+	        wkt.long0 = wkt.longc;
+	      }
+	      if (!wkt.lat_ts && wkt.lat1 && (wkt.projName === 'Stereographic_South_Pole' || wkt.projName === 'Polar Stereographic (variant B)')) {
+	        wkt.lat0 = d2r(wkt.lat1 > 0 ? 90 : -90);
+	        wkt.lat_ts = wkt.lat1;
+	      }
+	    }
+	    var wkt = function(wkt) {
+	      var lisp = parseString(wkt);
+	      var type = lisp.shift();
+	      var name = lisp.shift();
+	      lisp.unshift(['name', name]);
+	      lisp.unshift(['type', type]);
+	      var obj = {};
+	      sExpr(lisp, obj);
+	      cleanWKT(obj);
+	      return obj;
+	    };
+
+	    function defs(name) {
+	      /*global console*/
+	      var that = this;
+	      if (arguments.length === 2) {
+	        var def = arguments[1];
+	        if (typeof def === 'string') {
+	          if (def.charAt(0) === '+') {
+	            defs[name] = parseProj(arguments[1]);
+	          }
+	          else {
+	            defs[name] = wkt(arguments[1]);
+	          }
+	        } else {
+	          defs[name] = def;
+	        }
+	      }
+	      else if (arguments.length === 1) {
+	        if (Array.isArray(name)) {
+	          return name.map(function(v) {
+	            if (Array.isArray(v)) {
+	              defs.apply(that, v);
+	            }
+	            else {
+	              defs(v);
+	            }
+	          });
+	        }
+	        else if (typeof name === 'string') {
+	          if (name in defs) {
+	            return defs[name];
+	          }
+	        }
+	        else if ('EPSG' in name) {
+	          defs['EPSG:' + name.EPSG] = name;
+	        }
+	        else if ('ESRI' in name) {
+	          defs['ESRI:' + name.ESRI] = name;
+	        }
+	        else if ('IAU2000' in name) {
+	          defs['IAU2000:' + name.IAU2000] = name;
+	        }
+	        else {
+	          console.log(name);
+	        }
+	        return;
+	      }
+
+
+	    }
+	    globals(defs);
+
+	    function testObj(code){
+	      return typeof code === 'string';
+	    }
+	    function testDef(code){
+	      return code in defs;
+	    }
+	    var codeWords = ['PROJECTEDCRS', 'PROJCRS', 'GEOGCS','GEOCCS','PROJCS','LOCAL_CS', 'GEODCRS', 'GEODETICCRS', 'GEODETICDATUM', 'ENGCRS', 'ENGINEERINGCRS'];
+	    function testWKT(code){
+	      return codeWords.some(function (word) {
+	        return code.indexOf(word) > -1;
+	      });
+	    }
+	    var codes = ['3857', '900913', '3785', '102113'];
+	    function checkMercator(item) {
+	      var auth = match(item, 'authority');
+	      if (!auth) {
+	        return;
+	      }
+	      var code = match(auth, 'epsg');
+	      return code && codes.indexOf(code) > -1;
+	    }
+	    function checkProjStr(item) {
+	      var ext = match(item, 'extension');
+	      if (!ext) {
+	        return;
+	      }
+	      return match(ext, 'proj4');
+	    }
+	    function testProj(code){
+	      return code[0] === '+';
+	    }
+	    function parse(code){
+	      if (testObj(code)) {
+	        //check to see if this is a WKT string
+	        if (testDef(code)) {
+	          return defs[code];
+	        }
+	        if (testWKT(code)) {
+	          var out = wkt(code);
+	          // test of spetial case, due to this being a very common and often malformed
+	          if (checkMercator(out)) {
+	            return defs['EPSG:3857'];
+	          }
+	          var maybeProjStr = checkProjStr(out);
+	          if (maybeProjStr) {
+	            return parseProj(maybeProjStr);
+	          }
+	          return out;
+	        }
+	        if (testProj(code)) {
+	          return parseProj(code);
+	        }
+	      }else{
+	        return code;
+	      }
+	    }
+
+	    var extend = function(destination, source) {
+	      destination = destination || {};
+	      var value, property;
+	      if (!source) {
+	        return destination;
+	      }
+	      for (property in source) {
+	        value = source[property];
+	        if (value !== undefined) {
+	          destination[property] = value;
+	        }
+	      }
+	      return destination;
+	    };
+
+	    var msfnz = function(eccent, sinphi, cosphi) {
+	      var con = eccent * sinphi;
+	      return cosphi / (Math.sqrt(1 - con * con));
+	    };
+
+	    var sign = function(x) {
+	      return x<0 ? -1 : 1;
+	    };
+
+	    var adjust_lon = function(x) {
+	      return (Math.abs(x) <= SPI) ? x : (x - (sign(x) * TWO_PI));
+	    };
+
+	    var tsfnz = function(eccent, phi, sinphi) {
+	      var con = eccent * sinphi;
+	      var com = 0.5 * eccent;
+	      con = Math.pow(((1 - con) / (1 + con)), com);
+	      return (Math.tan(0.5 * (HALF_PI - phi)) / con);
+	    };
+
+	    var phi2z = function(eccent, ts) {
+	      var eccnth = 0.5 * eccent;
+	      var con, dphi;
+	      var phi = HALF_PI - 2 * Math.atan(ts);
+	      for (var i = 0; i <= 15; i++) {
+	        con = eccent * Math.sin(phi);
+	        dphi = HALF_PI - 2 * Math.atan(ts * (Math.pow(((1 - con) / (1 + con)), eccnth))) - phi;
+	        phi += dphi;
+	        if (Math.abs(dphi) <= 0.0000000001) {
+	          return phi;
+	        }
+	      }
+	      //console.log("phi2z has NoConvergence");
+	      return -9999;
+	    };
+
+	    function init() {
+	      var con = this.b / this.a;
+	      this.es = 1 - con * con;
+	      if(!('x0' in this)){
+	        this.x0 = 0;
+	      }
+	      if(!('y0' in this)){
+	        this.y0 = 0;
+	      }
+	      this.e = Math.sqrt(this.es);
+	      if (this.lat_ts) {
+	        if (this.sphere) {
+	          this.k0 = Math.cos(this.lat_ts);
+	        }
+	        else {
+	          this.k0 = msfnz(this.e, Math.sin(this.lat_ts), Math.cos(this.lat_ts));
+	        }
+	      }
+	      else {
+	        if (!this.k0) {
+	          if (this.k) {
+	            this.k0 = this.k;
+	          }
+	          else {
+	            this.k0 = 1;
+	          }
+	        }
+	      }
+	    }
+
+	    /* Mercator forward equations--mapping lat,long to x,y
+	      --------------------------------------------------*/
+
+	    function forward(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      // convert to radians
+	      if (lat * R2D > 90 && lat * R2D < -90 && lon * R2D > 180 && lon * R2D < -180) {
+	        return null;
+	      }
+
+	      var x, y;
+	      if (Math.abs(Math.abs(lat) - HALF_PI) <= EPSLN) {
+	        return null;
+	      }
+	      else {
+	        if (this.sphere) {
+	          x = this.x0 + this.a * this.k0 * adjust_lon(lon - this.long0);
+	          y = this.y0 + this.a * this.k0 * Math.log(Math.tan(FORTPI + 0.5 * lat));
+	        }
+	        else {
+	          var sinphi = Math.sin(lat);
+	          var ts = tsfnz(this.e, lat, sinphi);
+	          x = this.x0 + this.a * this.k0 * adjust_lon(lon - this.long0);
+	          y = this.y0 - this.a * this.k0 * Math.log(ts);
+	        }
+	        p.x = x;
+	        p.y = y;
+	        return p;
+	      }
+	    }
+
+	    /* Mercator inverse equations--mapping x,y to lat/long
+	      --------------------------------------------------*/
+	    function inverse(p) {
+
+	      var x = p.x - this.x0;
+	      var y = p.y - this.y0;
+	      var lon, lat;
+
+	      if (this.sphere) {
+	        lat = HALF_PI - 2 * Math.atan(Math.exp(-y / (this.a * this.k0)));
+	      }
+	      else {
+	        var ts = Math.exp(-y / (this.a * this.k0));
+	        lat = phi2z(this.e, ts);
+	        if (lat === -9999) {
+	          return null;
+	        }
+	      }
+	      lon = adjust_lon(this.long0 + x / (this.a * this.k0));
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$1 = ["Mercator", "Popular Visualisation Pseudo Mercator", "Mercator_1SP", "Mercator_Auxiliary_Sphere", "merc"];
+	    var merc = {
+	      init: init,
+	      forward: forward,
+	      inverse: inverse,
+	      names: names$1
+	    };
+
+	    function init$1() {
+	      //no-op for longlat
+	    }
+
+	    function identity(pt) {
+	      return pt;
+	    }
+	    var names$2 = ["longlat", "identity"];
+	    var longlat = {
+	      init: init$1,
+	      forward: identity,
+	      inverse: identity,
+	      names: names$2
+	    };
+
+	    var projs = [merc, longlat];
+	    var names = {};
+	    var projStore = [];
+
+	    function add(proj, i) {
+	      var len = projStore.length;
+	      if (!proj.names) {
+	        console.log(i);
+	        return true;
+	      }
+	      projStore[len] = proj;
+	      proj.names.forEach(function(n) {
+	        names[n.toLowerCase()] = len;
+	      });
+	      return this;
+	    }
+
+	    function get(name) {
+	      if (!name) {
+	        return false;
+	      }
+	      var n = name.toLowerCase();
+	      if (typeof names[n] !== 'undefined' && projStore[names[n]]) {
+	        return projStore[names[n]];
+	      }
+	    }
+
+	    function start() {
+	      projs.forEach(add);
+	    }
+	    var projections = {
+	      start: start,
+	      add: add,
+	      get: get
+	    };
+
+	    var exports$2 = {};
+	    exports$2.MERIT = {
+	      a: 6378137.0,
+	      rf: 298.257,
+	      ellipseName: "MERIT 1983"
+	    };
+
+	    exports$2.SGS85 = {
+	      a: 6378136.0,
+	      rf: 298.257,
+	      ellipseName: "Soviet Geodetic System 85"
+	    };
+
+	    exports$2.GRS80 = {
+	      a: 6378137.0,
+	      rf: 298.257222101,
+	      ellipseName: "GRS 1980(IUGG, 1980)"
+	    };
+
+	    exports$2.IAU76 = {
+	      a: 6378140.0,
+	      rf: 298.257,
+	      ellipseName: "IAU 1976"
+	    };
+
+	    exports$2.airy = {
+	      a: 6377563.396,
+	      b: 6356256.910,
+	      ellipseName: "Airy 1830"
+	    };
+
+	    exports$2.APL4 = {
+	      a: 6378137,
+	      rf: 298.25,
+	      ellipseName: "Appl. Physics. 1965"
+	    };
+
+	    exports$2.NWL9D = {
+	      a: 6378145.0,
+	      rf: 298.25,
+	      ellipseName: "Naval Weapons Lab., 1965"
+	    };
+
+	    exports$2.mod_airy = {
+	      a: 6377340.189,
+	      b: 6356034.446,
+	      ellipseName: "Modified Airy"
+	    };
+
+	    exports$2.andrae = {
+	      a: 6377104.43,
+	      rf: 300.0,
+	      ellipseName: "Andrae 1876 (Den., Iclnd.)"
+	    };
+
+	    exports$2.aust_SA = {
+	      a: 6378160.0,
+	      rf: 298.25,
+	      ellipseName: "Australian Natl & S. Amer. 1969"
+	    };
+
+	    exports$2.GRS67 = {
+	      a: 6378160.0,
+	      rf: 298.2471674270,
+	      ellipseName: "GRS 67(IUGG 1967)"
+	    };
+
+	    exports$2.bessel = {
+	      a: 6377397.155,
+	      rf: 299.1528128,
+	      ellipseName: "Bessel 1841"
+	    };
+
+	    exports$2.bess_nam = {
+	      a: 6377483.865,
+	      rf: 299.1528128,
+	      ellipseName: "Bessel 1841 (Namibia)"
+	    };
+
+	    exports$2.clrk66 = {
+	      a: 6378206.4,
+	      b: 6356583.8,
+	      ellipseName: "Clarke 1866"
+	    };
+
+	    exports$2.clrk80 = {
+	      a: 6378249.145,
+	      rf: 293.4663,
+	      ellipseName: "Clarke 1880 mod."
+	    };
+
+	    exports$2.clrk58 = {
+	      a: 6378293.645208759,
+	      rf: 294.2606763692654,
+	      ellipseName: "Clarke 1858"
+	    };
+
+	    exports$2.CPM = {
+	      a: 6375738.7,
+	      rf: 334.29,
+	      ellipseName: "Comm. des Poids et Mesures 1799"
+	    };
+
+	    exports$2.delmbr = {
+	      a: 6376428.0,
+	      rf: 311.5,
+	      ellipseName: "Delambre 1810 (Belgium)"
+	    };
+
+	    exports$2.engelis = {
+	      a: 6378136.05,
+	      rf: 298.2566,
+	      ellipseName: "Engelis 1985"
+	    };
+
+	    exports$2.evrst30 = {
+	      a: 6377276.345,
+	      rf: 300.8017,
+	      ellipseName: "Everest 1830"
+	    };
+
+	    exports$2.evrst48 = {
+	      a: 6377304.063,
+	      rf: 300.8017,
+	      ellipseName: "Everest 1948"
+	    };
+
+	    exports$2.evrst56 = {
+	      a: 6377301.243,
+	      rf: 300.8017,
+	      ellipseName: "Everest 1956"
+	    };
+
+	    exports$2.evrst69 = {
+	      a: 6377295.664,
+	      rf: 300.8017,
+	      ellipseName: "Everest 1969"
+	    };
+
+	    exports$2.evrstSS = {
+	      a: 6377298.556,
+	      rf: 300.8017,
+	      ellipseName: "Everest (Sabah & Sarawak)"
+	    };
+
+	    exports$2.fschr60 = {
+	      a: 6378166.0,
+	      rf: 298.3,
+	      ellipseName: "Fischer (Mercury Datum) 1960"
+	    };
+
+	    exports$2.fschr60m = {
+	      a: 6378155.0,
+	      rf: 298.3,
+	      ellipseName: "Fischer 1960"
+	    };
+
+	    exports$2.fschr68 = {
+	      a: 6378150.0,
+	      rf: 298.3,
+	      ellipseName: "Fischer 1968"
+	    };
+
+	    exports$2.helmert = {
+	      a: 6378200.0,
+	      rf: 298.3,
+	      ellipseName: "Helmert 1906"
+	    };
+
+	    exports$2.hough = {
+	      a: 6378270.0,
+	      rf: 297.0,
+	      ellipseName: "Hough"
+	    };
+
+	    exports$2.intl = {
+	      a: 6378388.0,
+	      rf: 297.0,
+	      ellipseName: "International 1909 (Hayford)"
+	    };
+
+	    exports$2.kaula = {
+	      a: 6378163.0,
+	      rf: 298.24,
+	      ellipseName: "Kaula 1961"
+	    };
+
+	    exports$2.lerch = {
+	      a: 6378139.0,
+	      rf: 298.257,
+	      ellipseName: "Lerch 1979"
+	    };
+
+	    exports$2.mprts = {
+	      a: 6397300.0,
+	      rf: 191.0,
+	      ellipseName: "Maupertius 1738"
+	    };
+
+	    exports$2.new_intl = {
+	      a: 6378157.5,
+	      b: 6356772.2,
+	      ellipseName: "New International 1967"
+	    };
+
+	    exports$2.plessis = {
+	      a: 6376523.0,
+	      rf: 6355863.0,
+	      ellipseName: "Plessis 1817 (France)"
+	    };
+
+	    exports$2.krass = {
+	      a: 6378245.0,
+	      rf: 298.3,
+	      ellipseName: "Krassovsky, 1942"
+	    };
+
+	    exports$2.SEasia = {
+	      a: 6378155.0,
+	      b: 6356773.3205,
+	      ellipseName: "Southeast Asia"
+	    };
+
+	    exports$2.walbeck = {
+	      a: 6376896.0,
+	      b: 6355834.8467,
+	      ellipseName: "Walbeck"
+	    };
+
+	    exports$2.WGS60 = {
+	      a: 6378165.0,
+	      rf: 298.3,
+	      ellipseName: "WGS 60"
+	    };
+
+	    exports$2.WGS66 = {
+	      a: 6378145.0,
+	      rf: 298.25,
+	      ellipseName: "WGS 66"
+	    };
+
+	    exports$2.WGS7 = {
+	      a: 6378135.0,
+	      rf: 298.26,
+	      ellipseName: "WGS 72"
+	    };
+
+	    var WGS84 = exports$2.WGS84 = {
+	      a: 6378137.0,
+	      rf: 298.257223563,
+	      ellipseName: "WGS 84"
+	    };
+
+	    exports$2.sphere = {
+	      a: 6370997.0,
+	      b: 6370997.0,
+	      ellipseName: "Normal Sphere (r=6370997)"
+	    };
+
+	    function eccentricity(a, b, rf, R_A) {
+	      var a2 = a * a; // used in geocentric
+	      var b2 = b * b; // used in geocentric
+	      var es = (a2 - b2) / a2; // e ^ 2
+	      var e = 0;
+	      if (R_A) {
+	        a *= 1 - es * (SIXTH + es * (RA4 + es * RA6));
+	        a2 = a * a;
+	        es = 0;
+	      } else {
+	        e = Math.sqrt(es); // eccentricity
+	      }
+	      var ep2 = (a2 - b2) / b2; // used in geocentric
+	      return {
+	        es: es,
+	        e: e,
+	        ep2: ep2
+	      };
+	    }
+	    function sphere(a, b, rf, ellps, sphere) {
+	      if (!a) { // do we have an ellipsoid?
+	        var ellipse = match(exports$2, ellps);
+	        if (!ellipse) {
+	          ellipse = WGS84;
+	        }
+	        a = ellipse.a;
+	        b = ellipse.b;
+	        rf = ellipse.rf;
+	      }
+
+	      if (rf && !b) {
+	        b = (1.0 - 1.0 / rf) * a;
+	      }
+	      if (rf === 0 || Math.abs(a - b) < EPSLN) {
+	        sphere = true;
+	        b = a;
+	      }
+	      return {
+	        a: a,
+	        b: b,
+	        rf: rf,
+	        sphere: sphere
+	      };
+	    }
+
+	    var exports$3 = {};
+	    exports$3.wgs84 = {
+	      towgs84: "0,0,0",
+	      ellipse: "WGS84",
+	      datumName: "WGS84"
+	    };
+
+	    exports$3.ch1903 = {
+	      towgs84: "674.374,15.056,405.346",
+	      ellipse: "bessel",
+	      datumName: "swiss"
+	    };
+
+	    exports$3.ggrs87 = {
+	      towgs84: "-199.87,74.79,246.62",
+	      ellipse: "GRS80",
+	      datumName: "Greek_Geodetic_Reference_System_1987"
+	    };
+
+	    exports$3.nad83 = {
+	      towgs84: "0,0,0",
+	      ellipse: "GRS80",
+	      datumName: "North_American_Datum_1983"
+	    };
+
+	    exports$3.nad27 = {
+	      nadgrids: "@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat",
+	      ellipse: "clrk66",
+	      datumName: "North_American_Datum_1927"
+	    };
+
+	    exports$3.potsdam = {
+	      towgs84: "598.1,73.7,418.2,0.202,0.045,-2.455,6.7",
+	      ellipse: "bessel",
+	      datumName: "Potsdam Rauenberg 1950 DHDN"
+	    };
+
+	    exports$3.carthage = {
+	      towgs84: "-263.0,6.0,431.0",
+	      ellipse: "clark80",
+	      datumName: "Carthage 1934 Tunisia"
+	    };
+
+	    exports$3.hermannskogel = {
+	      towgs84: "577.326,90.129,463.919,5.137,1.474,5.297,2.4232",
+	      ellipse: "bessel",
+	      datumName: "Hermannskogel"
+	    };
+
+	    exports$3.osni52 = {
+	      towgs84: "482.530,-130.596,564.557,-1.042,-0.214,-0.631,8.15",
+	      ellipse: "airy",
+	      datumName: "Irish National"
+	    };
+
+	    exports$3.ire65 = {
+	      towgs84: "482.530,-130.596,564.557,-1.042,-0.214,-0.631,8.15",
+	      ellipse: "mod_airy",
+	      datumName: "Ireland 1965"
+	    };
+
+	    exports$3.rassadiran = {
+	      towgs84: "-133.63,-157.5,-158.62",
+	      ellipse: "intl",
+	      datumName: "Rassadiran"
+	    };
+
+	    exports$3.nzgd49 = {
+	      towgs84: "59.47,-5.04,187.44,0.47,-0.1,1.024,-4.5993",
+	      ellipse: "intl",
+	      datumName: "New Zealand Geodetic Datum 1949"
+	    };
+
+	    exports$3.osgb36 = {
+	      towgs84: "446.448,-125.157,542.060,0.1502,0.2470,0.8421,-20.4894",
+	      ellipse: "airy",
+	      datumName: "Airy 1830"
+	    };
+
+	    exports$3.s_jtsk = {
+	      towgs84: "589,76,480",
+	      ellipse: 'bessel',
+	      datumName: 'S-JTSK (Ferro)'
+	    };
+
+	    exports$3.beduaram = {
+	      towgs84: '-106,-87,188',
+	      ellipse: 'clrk80',
+	      datumName: 'Beduaram'
+	    };
+
+	    exports$3.gunung_segara = {
+	      towgs84: '-403,684,41',
+	      ellipse: 'bessel',
+	      datumName: 'Gunung Segara Jakarta'
+	    };
+
+	    exports$3.rnb72 = {
+	      towgs84: "106.869,-52.2978,103.724,-0.33657,0.456955,-1.84218,1",
+	      ellipse: "intl",
+	      datumName: "Reseau National Belge 1972"
+	    };
+
+	    function datum(datumCode, datum_params, a, b, es, ep2, nadgrids) {
+	      var out = {};
+
+	      if (datumCode === undefined || datumCode === 'none') {
+	        out.datum_type = PJD_NODATUM;
+	      } else {
+	        out.datum_type = PJD_WGS84;
+	      }
+
+	      if (datum_params) {
+	        out.datum_params = datum_params.map(parseFloat);
+	        if (out.datum_params[0] !== 0 || out.datum_params[1] !== 0 || out.datum_params[2] !== 0) {
+	          out.datum_type = PJD_3PARAM;
+	        }
+	        if (out.datum_params.length > 3) {
+	          if (out.datum_params[3] !== 0 || out.datum_params[4] !== 0 || out.datum_params[5] !== 0 || out.datum_params[6] !== 0) {
+	            out.datum_type = PJD_7PARAM;
+	            out.datum_params[3] *= SEC_TO_RAD;
+	            out.datum_params[4] *= SEC_TO_RAD;
+	            out.datum_params[5] *= SEC_TO_RAD;
+	            out.datum_params[6] = (out.datum_params[6] / 1000000.0) + 1.0;
+	          }
+	        }
+	      }
+
+	      if (nadgrids) {
+	        out.datum_type = PJD_GRIDSHIFT;
+	        out.grids = nadgrids;
+	      }
+	      out.a = a; //datum object also uses these values
+	      out.b = b;
+	      out.es = es;
+	      out.ep2 = ep2;
+	      return out;
+	    }
+
+	    /**
+	     * Resources for details of NTv2 file formats:
+	     * - https://web.archive.org/web/20140127204822if_/http://www.mgs.gov.on.ca:80/stdprodconsume/groups/content/@mgs/@iandit/documents/resourcelist/stel02_047447.pdf
+	     * - http://mimaka.com/help/gs/html/004_NTV2%20Data%20Format.htm
+	     */
+
+	    var loadedNadgrids = {};
+
+	    /**
+	     * Load a binary NTv2 file (.gsb) to a key that can be used in a proj string like +nadgrids=<key>. Pass the NTv2 file
+	     * as an ArrayBuffer.
+	     */
+	    function nadgrid(key, data) {
+	      var view = new DataView(data);
+	      var isLittleEndian = detectLittleEndian(view);
+	      var header = readHeader(view, isLittleEndian);
+	      if (header.nSubgrids > 1) {
+	        console.log('Only single NTv2 subgrids are currently supported, subsequent sub grids are ignored');
+	      }
+	      var subgrids = readSubgrids(view, header, isLittleEndian);
+	      var nadgrid = {header: header, subgrids: subgrids};
+	      loadedNadgrids[key] = nadgrid;
+	      return nadgrid;
+	    }
+
+	    /**
+	     * Given a proj4 value for nadgrids, return an array of loaded grids
+	     */
+	    function getNadgrids(nadgrids) {
+	      // Format details: http://proj.maptools.org/gen_parms.html
+	      if (nadgrids === undefined) { return null; }
+	      var grids = nadgrids.split(',');
+	      return grids.map(parseNadgridString);
+	    }
+
+	    function parseNadgridString(value) {
+	      if (value.length === 0) {
+	        return null;
+	      }
+	      var optional = value[0] === '@';
+	      if (optional) {
+	        value = value.slice(1);
+	      }
+	      if (value === 'null') {
+	        return {name: 'null', mandatory: !optional, grid: null, isNull: true};
+	      }
+	      return {
+	        name: value,
+	        mandatory: !optional,
+	        grid: loadedNadgrids[value] || null,
+	        isNull: false
+	      };
+	    }
+
+	    function secondsToRadians(seconds) {
+	      return (seconds / 3600) * Math.PI / 180;
+	    }
+
+	    function detectLittleEndian(view) {
+	      var nFields = view.getInt32(8, false);
+	      if (nFields === 11) {
+	        return false;
+	      }
+	      nFields = view.getInt32(8, true);
+	      if (nFields !== 11) {
+	        console.warn('Failed to detect nadgrid endian-ness, defaulting to little-endian');
+	      }
+	      return true;
+	    }
+
+	    function readHeader(view, isLittleEndian) {
+	      return {
+	        nFields: view.getInt32(8, isLittleEndian),
+	        nSubgridFields: view.getInt32(24, isLittleEndian),
+	        nSubgrids: view.getInt32(40, isLittleEndian),
+	        shiftType: decodeString(view, 56, 56 + 8).trim(),
+	        fromSemiMajorAxis: view.getFloat64(120, isLittleEndian),
+	        fromSemiMinorAxis: view.getFloat64(136, isLittleEndian),
+	        toSemiMajorAxis: view.getFloat64(152, isLittleEndian),
+	        toSemiMinorAxis: view.getFloat64(168, isLittleEndian),
+	      };
+	    }
+
+	    function decodeString(view, start, end) {
+	      return String.fromCharCode.apply(null, new Uint8Array(view.buffer.slice(start, end)));
+	    }
+
+	    function readSubgrids(view, header, isLittleEndian) {
+	      var gridOffset = 176;
+	      var grids = [];
+	      for (var i = 0; i < header.nSubgrids; i++) {
+	        var subHeader = readGridHeader(view, gridOffset, isLittleEndian);
+	        var nodes = readGridNodes(view, gridOffset, subHeader, isLittleEndian);
+	        var lngColumnCount = Math.round(
+	          1 + (subHeader.upperLongitude - subHeader.lowerLongitude) / subHeader.longitudeInterval);
+	        var latColumnCount = Math.round(
+	          1 + (subHeader.upperLatitude - subHeader.lowerLatitude) / subHeader.latitudeInterval);
+	        // Proj4 operates on radians whereas the coordinates are in seconds in the grid
+	        grids.push({
+	          ll: [secondsToRadians(subHeader.lowerLongitude), secondsToRadians(subHeader.lowerLatitude)],
+	          del: [secondsToRadians(subHeader.longitudeInterval), secondsToRadians(subHeader.latitudeInterval)],
+	          lim: [lngColumnCount, latColumnCount],
+	          count: subHeader.gridNodeCount,
+	          cvs: mapNodes(nodes)
+	        });
+	      }
+	      return grids;
+	    }
+
+	    function mapNodes(nodes) {
+	      return nodes.map(function (r) {return [secondsToRadians(r.longitudeShift), secondsToRadians(r.latitudeShift)];});
+	    }
+
+	    function readGridHeader(view, offset, isLittleEndian) {
+	      return {
+	        name: decodeString(view, offset + 8, offset + 16).trim(),
+	        parent: decodeString(view, offset + 24, offset + 24 + 8).trim(),
+	        lowerLatitude: view.getFloat64(offset + 72, isLittleEndian),
+	        upperLatitude: view.getFloat64(offset + 88, isLittleEndian),
+	        lowerLongitude: view.getFloat64(offset + 104, isLittleEndian),
+	        upperLongitude: view.getFloat64(offset + 120, isLittleEndian),
+	        latitudeInterval: view.getFloat64(offset + 136, isLittleEndian),
+	        longitudeInterval: view.getFloat64(offset + 152, isLittleEndian),
+	        gridNodeCount: view.getInt32(offset + 168, isLittleEndian)
+	      };
+	    }
+
+	    function readGridNodes(view, offset, gridHeader, isLittleEndian) {
+	      var nodesOffset = offset + 176;
+	      var gridRecordLength = 16;
+	      var gridShiftRecords = [];
+	      for (var i = 0; i < gridHeader.gridNodeCount; i++) {
+	        var record = {
+	          latitudeShift: view.getFloat32(nodesOffset + i * gridRecordLength, isLittleEndian),
+	          longitudeShift: view.getFloat32(nodesOffset + i * gridRecordLength + 4, isLittleEndian),
+	          latitudeAccuracy: view.getFloat32(nodesOffset + i * gridRecordLength + 8, isLittleEndian),
+	          longitudeAccuracy: view.getFloat32(nodesOffset + i * gridRecordLength + 12, isLittleEndian),
+	        };
+	        gridShiftRecords.push(record);
+	      }
+	      return gridShiftRecords;
+	    }
+
+	    function Projection(srsCode,callback) {
+	      if (!(this instanceof Projection)) {
+	        return new Projection(srsCode);
+	      }
+	      callback = callback || function(error){
+	        if(error){
+	          throw error;
+	        }
+	      };
+	      var json = parse(srsCode);
+	      if(typeof json !== 'object'){
+	        callback(srsCode);
+	        return;
+	      }
+	      var ourProj = Projection.projections.get(json.projName);
+	      if(!ourProj){
+	        callback(srsCode);
+	        return;
+	      }
+	      if (json.datumCode && json.datumCode !== 'none') {
+	        var datumDef = match(exports$3, json.datumCode);
+	        if (datumDef) {
+	          json.datum_params = json.datum_params || (datumDef.towgs84 ? datumDef.towgs84.split(',') : null);
+	          json.ellps = datumDef.ellipse;
+	          json.datumName = datumDef.datumName ? datumDef.datumName : json.datumCode;
+	        }
+	      }
+	      json.k0 = json.k0 || 1.0;
+	      json.axis = json.axis || 'enu';
+	      json.ellps = json.ellps || 'wgs84';
+	      json.lat1 = json.lat1 || json.lat0; // Lambert_Conformal_Conic_1SP, for example, needs this
+
+	      var sphere_ = sphere(json.a, json.b, json.rf, json.ellps, json.sphere);
+	      var ecc = eccentricity(sphere_.a, sphere_.b, sphere_.rf, json.R_A);
+	      var nadgrids = getNadgrids(json.nadgrids);
+	      var datumObj = json.datum || datum(json.datumCode, json.datum_params, sphere_.a, sphere_.b, ecc.es, ecc.ep2,
+	        nadgrids);
+
+	      extend(this, json); // transfer everything over from the projection because we don't know what we'll need
+	      extend(this, ourProj); // transfer all the methods from the projection
+
+	      // copy the 4 things over we calculated in deriveConstants.sphere
+	      this.a = sphere_.a;
+	      this.b = sphere_.b;
+	      this.rf = sphere_.rf;
+	      this.sphere = sphere_.sphere;
+
+	      // copy the 3 things we calculated in deriveConstants.eccentricity
+	      this.es = ecc.es;
+	      this.e = ecc.e;
+	      this.ep2 = ecc.ep2;
+
+	      // add in the datum object
+	      this.datum = datumObj;
+
+	      // init the projection
+	      this.init();
+
+	      // legecy callback from back in the day when it went to spatialreference.org
+	      callback(null, this);
+
+	    }
+	    Projection.projections = projections;
+	    Projection.projections.start();
+
+	    'use strict';
+	    function compareDatums(source, dest) {
+	      if (source.datum_type !== dest.datum_type) {
+	        return false; // false, datums are not equal
+	      } else if (source.a !== dest.a || Math.abs(source.es - dest.es) > 0.000000000050) {
+	        // the tolerance for es is to ensure that GRS80 and WGS84
+	        // are considered identical
+	        return false;
+	      } else if (source.datum_type === PJD_3PARAM) {
+	        return (source.datum_params[0] === dest.datum_params[0] && source.datum_params[1] === dest.datum_params[1] && source.datum_params[2] === dest.datum_params[2]);
+	      } else if (source.datum_type === PJD_7PARAM) {
+	        return (source.datum_params[0] === dest.datum_params[0] && source.datum_params[1] === dest.datum_params[1] && source.datum_params[2] === dest.datum_params[2] && source.datum_params[3] === dest.datum_params[3] && source.datum_params[4] === dest.datum_params[4] && source.datum_params[5] === dest.datum_params[5] && source.datum_params[6] === dest.datum_params[6]);
+	      } else {
+	        return true; // datums are equal
+	      }
+	    } // cs_compare_datums()
+
+	    /*
+	     * The function Convert_Geodetic_To_Geocentric converts geodetic coordinates
+	     * (latitude, longitude, and height) to geocentric coordinates (X, Y, Z),
+	     * according to the current ellipsoid parameters.
+	     *
+	     *    Latitude  : Geodetic latitude in radians                     (input)
+	     *    Longitude : Geodetic longitude in radians                    (input)
+	     *    Height    : Geodetic height, in meters                       (input)
+	     *    X         : Calculated Geocentric X coordinate, in meters    (output)
+	     *    Y         : Calculated Geocentric Y coordinate, in meters    (output)
+	     *    Z         : Calculated Geocentric Z coordinate, in meters    (output)
+	     *
+	     */
+	    function geodeticToGeocentric(p, es, a) {
+	      var Longitude = p.x;
+	      var Latitude = p.y;
+	      var Height = p.z ? p.z : 0; //Z value not always supplied
+
+	      var Rn; /*  Earth radius at location  */
+	      var Sin_Lat; /*  Math.sin(Latitude)  */
+	      var Sin2_Lat; /*  Square of Math.sin(Latitude)  */
+	      var Cos_Lat; /*  Math.cos(Latitude)  */
+
+	      /*
+	       ** Don't blow up if Latitude is just a little out of the value
+	       ** range as it may just be a rounding issue.  Also removed longitude
+	       ** test, it should be wrapped by Math.cos() and Math.sin().  NFW for PROJ.4, Sep/2001.
+	       */
+	      if (Latitude < -HALF_PI && Latitude > -1.001 * HALF_PI) {
+	        Latitude = -HALF_PI;
+	      } else if (Latitude > HALF_PI && Latitude < 1.001 * HALF_PI) {
+	        Latitude = HALF_PI;
+	      } else if (Latitude < -HALF_PI) {
+	        /* Latitude out of range */
+	        //..reportError('geocent:lat out of range:' + Latitude);
+	        return { x: -Infinity, y: -Infinity, z: p.z };
+	      } else if (Latitude > HALF_PI) {
+	        /* Latitude out of range */
+	        return { x: Infinity, y: Infinity, z: p.z };
+	      }
+
+	      if (Longitude > Math.PI) {
+	        Longitude -= (2 * Math.PI);
+	      }
+	      Sin_Lat = Math.sin(Latitude);
+	      Cos_Lat = Math.cos(Latitude);
+	      Sin2_Lat = Sin_Lat * Sin_Lat;
+	      Rn = a / (Math.sqrt(1.0e0 - es * Sin2_Lat));
+	      return {
+	        x: (Rn + Height) * Cos_Lat * Math.cos(Longitude),
+	        y: (Rn + Height) * Cos_Lat * Math.sin(Longitude),
+	        z: ((Rn * (1 - es)) + Height) * Sin_Lat
+	      };
+	    } // cs_geodetic_to_geocentric()
+
+	    function geocentricToGeodetic(p, es, a, b) {
+	      /* local defintions and variables */
+	      /* end-criterium of loop, accuracy of sin(Latitude) */
+	      var genau = 1e-12;
+	      var genau2 = (genau * genau);
+	      var maxiter = 30;
+
+	      var P; /* distance between semi-minor axis and location */
+	      var RR; /* distance between center and location */
+	      var CT; /* sin of geocentric latitude */
+	      var ST; /* cos of geocentric latitude */
+	      var RX;
+	      var RK;
+	      var RN; /* Earth radius at location */
+	      var CPHI0; /* cos of start or old geodetic latitude in iterations */
+	      var SPHI0; /* sin of start or old geodetic latitude in iterations */
+	      var CPHI; /* cos of searched geodetic latitude */
+	      var SPHI; /* sin of searched geodetic latitude */
+	      var SDPHI; /* end-criterium: addition-theorem of sin(Latitude(iter)-Latitude(iter-1)) */
+	      var iter; /* # of continous iteration, max. 30 is always enough (s.a.) */
+
+	      var X = p.x;
+	      var Y = p.y;
+	      var Z = p.z ? p.z : 0.0; //Z value not always supplied
+	      var Longitude;
+	      var Latitude;
+	      var Height;
+
+	      P = Math.sqrt(X * X + Y * Y);
+	      RR = Math.sqrt(X * X + Y * Y + Z * Z);
+
+	      /*      special cases for latitude and longitude */
+	      if (P / a < genau) {
+
+	        /*  special case, if P=0. (X=0., Y=0.) */
+	        Longitude = 0.0;
+
+	        /*  if (X,Y,Z)=(0.,0.,0.) then Height becomes semi-minor axis
+	         *  of ellipsoid (=center of mass), Latitude becomes PI/2 */
+	        if (RR / a < genau) {
+	          Latitude = HALF_PI;
+	          Height = -b;
+	          return {
+	            x: p.x,
+	            y: p.y,
+	            z: p.z
+	          };
+	        }
+	      } else {
+	        /*  ellipsoidal (geodetic) longitude
+	         *  interval: -PI < Longitude <= +PI */
+	        Longitude = Math.atan2(Y, X);
+	      }
+
+	      /* --------------------------------------------------------------
+	       * Following iterative algorithm was developped by
+	       * "Institut for Erdmessung", University of Hannover, July 1988.
+	       * Internet: www.ife.uni-hannover.de
+	       * Iterative computation of CPHI,SPHI and Height.
+	       * Iteration of CPHI and SPHI to 10**-12 radian resp.
+	       * 2*10**-7 arcsec.
+	       * --------------------------------------------------------------
+	       */
+	      CT = Z / RR;
+	      ST = P / RR;
+	      RX = 1.0 / Math.sqrt(1.0 - es * (2.0 - es) * ST * ST);
+	      CPHI0 = ST * (1.0 - es) * RX;
+	      SPHI0 = CT * RX;
+	      iter = 0;
+
+	      /* loop to find sin(Latitude) resp. Latitude
+	       * until |sin(Latitude(iter)-Latitude(iter-1))| < genau */
+	      do {
+	        iter++;
+	        RN = a / Math.sqrt(1.0 - es * SPHI0 * SPHI0);
+
+	        /*  ellipsoidal (geodetic) height */
+	        Height = P * CPHI0 + Z * SPHI0 - RN * (1.0 - es * SPHI0 * SPHI0);
+
+	        RK = es * RN / (RN + Height);
+	        RX = 1.0 / Math.sqrt(1.0 - RK * (2.0 - RK) * ST * ST);
+	        CPHI = ST * (1.0 - RK) * RX;
+	        SPHI = CT * RX;
+	        SDPHI = SPHI * CPHI0 - CPHI * SPHI0;
+	        CPHI0 = CPHI;
+	        SPHI0 = SPHI;
+	      }
+	      while (SDPHI * SDPHI > genau2 && iter < maxiter);
+
+	      /*      ellipsoidal (geodetic) latitude */
+	      Latitude = Math.atan(SPHI / Math.abs(CPHI));
+	      return {
+	        x: Longitude,
+	        y: Latitude,
+	        z: Height
+	      };
+	    } // cs_geocentric_to_geodetic()
+
+	    /****************************************************************/
+	    // pj_geocentic_to_wgs84( p )
+	    //  p = point to transform in geocentric coordinates (x,y,z)
+
+
+	    /** point object, nothing fancy, just allows values to be
+	        passed back and forth by reference rather than by value.
+	        Other point classes may be used as long as they have
+	        x and y properties, which will get modified in the transform method.
+	    */
+	    function geocentricToWgs84(p, datum_type, datum_params) {
+
+	      if (datum_type === PJD_3PARAM) {
+	        // if( x[io] === HUGE_VAL )
+	        //    continue;
+	        return {
+	          x: p.x + datum_params[0],
+	          y: p.y + datum_params[1],
+	          z: p.z + datum_params[2],
+	        };
+	      } else if (datum_type === PJD_7PARAM) {
+	        var Dx_BF = datum_params[0];
+	        var Dy_BF = datum_params[1];
+	        var Dz_BF = datum_params[2];
+	        var Rx_BF = datum_params[3];
+	        var Ry_BF = datum_params[4];
+	        var Rz_BF = datum_params[5];
+	        var M_BF = datum_params[6];
+	        // if( x[io] === HUGE_VAL )
+	        //    continue;
+	        return {
+	          x: M_BF * (p.x - Rz_BF * p.y + Ry_BF * p.z) + Dx_BF,
+	          y: M_BF * (Rz_BF * p.x + p.y - Rx_BF * p.z) + Dy_BF,
+	          z: M_BF * (-Ry_BF * p.x + Rx_BF * p.y + p.z) + Dz_BF
+	        };
+	      }
+	    } // cs_geocentric_to_wgs84
+
+	    /****************************************************************/
+	    // pj_geocentic_from_wgs84()
+	    //  coordinate system definition,
+	    //  point to transform in geocentric coordinates (x,y,z)
+	    function geocentricFromWgs84(p, datum_type, datum_params) {
+
+	      if (datum_type === PJD_3PARAM) {
+	        //if( x[io] === HUGE_VAL )
+	        //    continue;
+	        return {
+	          x: p.x - datum_params[0],
+	          y: p.y - datum_params[1],
+	          z: p.z - datum_params[2],
+	        };
+
+	      } else if (datum_type === PJD_7PARAM) {
+	        var Dx_BF = datum_params[0];
+	        var Dy_BF = datum_params[1];
+	        var Dz_BF = datum_params[2];
+	        var Rx_BF = datum_params[3];
+	        var Ry_BF = datum_params[4];
+	        var Rz_BF = datum_params[5];
+	        var M_BF = datum_params[6];
+	        var x_tmp = (p.x - Dx_BF) / M_BF;
+	        var y_tmp = (p.y - Dy_BF) / M_BF;
+	        var z_tmp = (p.z - Dz_BF) / M_BF;
+	        //if( x[io] === HUGE_VAL )
+	        //    continue;
+
+	        return {
+	          x: x_tmp + Rz_BF * y_tmp - Ry_BF * z_tmp,
+	          y: -Rz_BF * x_tmp + y_tmp + Rx_BF * z_tmp,
+	          z: Ry_BF * x_tmp - Rx_BF * y_tmp + z_tmp
+	        };
+	      } //cs_geocentric_from_wgs84()
+	    }
+
+	    function checkParams(type) {
+	      return (type === PJD_3PARAM || type === PJD_7PARAM);
+	    }
+
+	    var datum_transform = function(source, dest, point) {
+	      // Short cut if the datums are identical.
+	      if (compareDatums(source, dest)) {
+	        return point; // in this case, zero is sucess,
+	        // whereas cs_compare_datums returns 1 to indicate TRUE
+	        // confusing, should fix this
+	      }
+
+	      // Explicitly skip datum transform by setting 'datum=none' as parameter for either source or dest
+	      if (source.datum_type === PJD_NODATUM || dest.datum_type === PJD_NODATUM) {
+	        return point;
+	      }
+
+	      // If this datum requires grid shifts, then apply it to geodetic coordinates.
+	      var source_a = source.a;
+	      var source_es = source.es;
+	      if (source.datum_type === PJD_GRIDSHIFT) {
+	        var gridShiftCode = applyGridShift(source, false, point);
+	        if (gridShiftCode !== 0) {
+	          return undefined;
+	        }
+	        source_a = SRS_WGS84_SEMIMAJOR;
+	        source_es = SRS_WGS84_ESQUARED;
+	      }
+
+	      var dest_a = dest.a;
+	      var dest_b = dest.b;
+	      var dest_es = dest.es;
+	      if (dest.datum_type === PJD_GRIDSHIFT) {
+	        dest_a = SRS_WGS84_SEMIMAJOR;
+	        dest_b = SRS_WGS84_SEMIMINOR;
+	        dest_es = SRS_WGS84_ESQUARED;
+	      }
+
+	      // Do we need to go through geocentric coordinates?
+	      if (source_es === dest_es && source_a === dest_a && !checkParams(source.datum_type) &&  !checkParams(dest.datum_type)) {
+	        return point;
+	      }
+
+	      // Convert to geocentric coordinates.
+	      point = geodeticToGeocentric(point, source_es, source_a);
+	      // Convert between datums
+	      if (checkParams(source.datum_type)) {
+	        point = geocentricToWgs84(point, source.datum_type, source.datum_params);
+	      }
+	      if (checkParams(dest.datum_type)) {
+	        point = geocentricFromWgs84(point, dest.datum_type, dest.datum_params);
+	      }
+	      point = geocentricToGeodetic(point, dest_es, dest_a, dest_b);
+
+	      if (dest.datum_type === PJD_GRIDSHIFT) {
+	        var destGridShiftResult = applyGridShift(dest, true, point);
+	        if (destGridShiftResult !== 0) {
+	          return undefined;
+	        }
+	      }
+
+	      return point;
+	    };
+
+	    function applyGridShift(source, inverse, point) {
+	      if (source.grids === null || source.grids.length === 0) {
+	        console.log('Grid shift grids not found');
+	        return -1;
+	      }
+	      var input = {x: -point.x, y: point.y};
+	      var output = {x: Number.NaN, y: Number.NaN};
+	      var attemptedGrids = [];
+	      for (var i = 0; i < source.grids.length; i++) {
+	        var grid = source.grids[i];
+	        attemptedGrids.push(grid.name);
+	        if (grid.isNull) {
+	          output = input;
+	          break;
+	        }
+	        if (grid.grid === null) {
+	          if (grid.mandatory) {
+	            console.log("Unable to find mandatory grid '" + grid.name + "'");
+	            return -1;
+	          }
+	          continue;
+	        }
+	        var subgrid = grid.grid.subgrids[0];
+	        // skip tables that don't match our point at all
+	        var epsilon = (Math.abs(subgrid.del[1]) + Math.abs(subgrid.del[0])) / 10000.0;
+	        var minX = subgrid.ll[0] - epsilon;
+	        var minY = subgrid.ll[1] - epsilon;
+	        var maxX = subgrid.ll[0] + (subgrid.lim[0] - 1) * subgrid.del[0] + epsilon;
+	        var maxY = subgrid.ll[1] + (subgrid.lim[1] - 1) * subgrid.del[1] + epsilon;
+	        if (minY > input.y || minX > input.x || maxY < input.y || maxX < input.x ) {
+	          continue;
+	        }
+	        output = applySubgridShift(input, inverse, subgrid);
+	        if (!isNaN(output.x)) {
+	          break;
+	        }
+	      }
+	      if (isNaN(output.x)) {
+	        console.log("Failed to find a grid shift table for location '"+
+	          -input.x * R2D + " " + input.y * R2D + " tried: '" + attemptedGrids + "'");
+	        return -1;
+	      }
+	      point.x = -output.x;
+	      point.y = output.y;
+	      return 0;
+	    }
+
+	    function applySubgridShift(pin, inverse, ct) {
+	      var val = {x: Number.NaN, y: Number.NaN};
+	      if (isNaN(pin.x)) { return val; }
+	      var tb = {x: pin.x, y: pin.y};
+	      tb.x -= ct.ll[0];
+	      tb.y -= ct.ll[1];
+	      tb.x = adjust_lon(tb.x - Math.PI) + Math.PI;
+	      var t = nadInterpolate(tb, ct);
+	      if (inverse) {
+	        if (isNaN(t.x)) {
+	          return val;
+	        }
+	        t.x = tb.x - t.x;
+	        t.y = tb.y - t.y;
+	        var i = 9, tol = 1e-12;
+	        var dif, del;
+	        do {
+	          del = nadInterpolate(t, ct);
+	          if (isNaN(del.x)) {
+	            console.log("Inverse grid shift iteration failed, presumably at grid edge.  Using first approximation.");
+	            break;
+	          }
+	          dif = {x: tb.x - (del.x + t.x), y: tb.y - (del.y + t.y)};
+	          t.x += dif.x;
+	          t.y += dif.y;
+	        } while (i-- && Math.abs(dif.x) > tol && Math.abs(dif.y) > tol);
+	        if (i < 0) {
+	          console.log("Inverse grid shift iterator failed to converge.");
+	          return val;
+	        }
+	        val.x = adjust_lon(t.x + ct.ll[0]);
+	        val.y = t.y + ct.ll[1];
+	      } else {
+	        if (!isNaN(t.x)) {
+	          val.x = pin.x + t.x;
+	          val.y = pin.y + t.y;
+	        }
+	      }
+	      return val;
+	    }
+
+	    function nadInterpolate(pin, ct) {
+	      var t = {x: pin.x / ct.del[0], y: pin.y / ct.del[1]};
+	      var indx = {x: Math.floor(t.x), y: Math.floor(t.y)};
+	      var frct = {x: t.x - 1.0 * indx.x, y: t.y - 1.0 * indx.y};
+	      var val= {x: Number.NaN, y: Number.NaN};
+	      var inx;
+	      if (indx.x < 0 || indx.x >= ct.lim[0]) {
+	        return val;
+	      }
+	      if (indx.y < 0 || indx.y >= ct.lim[1]) {
+	        return val;
+	      }
+	      inx = (indx.y * ct.lim[0]) + indx.x;
+	      var f00 = {x: ct.cvs[inx][0], y: ct.cvs[inx][1]};
+	      inx++;
+	      var f10= {x: ct.cvs[inx][0], y: ct.cvs[inx][1]};
+	      inx += ct.lim[0];
+	      var f11 = {x: ct.cvs[inx][0], y: ct.cvs[inx][1]};
+	      inx--;
+	      var f01 = {x: ct.cvs[inx][0], y: ct.cvs[inx][1]};
+	      var m11 = frct.x * frct.y, m10 = frct.x * (1.0 - frct.y),
+	        m00 = (1.0 - frct.x) * (1.0 - frct.y), m01 = (1.0 - frct.x) * frct.y;
+	      val.x = (m00 * f00.x + m10 * f10.x + m01 * f01.x + m11 * f11.x);
+	      val.y = (m00 * f00.y + m10 * f10.y + m01 * f01.y + m11 * f11.y);
+	      return val;
+	    }
+
+	    var adjust_axis = function(crs, denorm, point) {
+	      var xin = point.x,
+	        yin = point.y,
+	        zin = point.z || 0.0;
+	      var v, t, i;
+	      var out = {};
+	      for (i = 0; i < 3; i++) {
+	        if (denorm && i === 2 && point.z === undefined) {
+	          continue;
+	        }
+	        if (i === 0) {
+	          v = xin;
+	          if ("ew".indexOf(crs.axis[i]) !== -1) {
+	            t = 'x';
+	          } else {
+	            t = 'y';
+	          }
+
+	        }
+	        else if (i === 1) {
+	          v = yin;
+	          if ("ns".indexOf(crs.axis[i]) !== -1) {
+	            t = 'y';
+	          } else {
+	            t = 'x';
+	          }
+	        }
+	        else {
+	          v = zin;
+	          t = 'z';
+	        }
+	        switch (crs.axis[i]) {
+	        case 'e':
+	          out[t] = v;
+	          break;
+	        case 'w':
+	          out[t] = -v;
+	          break;
+	        case 'n':
+	          out[t] = v;
+	          break;
+	        case 's':
+	          out[t] = -v;
+	          break;
+	        case 'u':
+	          if (point[t] !== undefined) {
+	            out.z = v;
+	          }
+	          break;
+	        case 'd':
+	          if (point[t] !== undefined) {
+	            out.z = -v;
+	          }
+	          break;
+	        default:
+	          //console.log("ERROR: unknow axis ("+crs.axis[i]+") - check definition of "+crs.projName);
+	          return null;
+	        }
+	      }
+	      return out;
+	    };
+
+	    var toPoint = function (array){
+	      var out = {
+	        x: array[0],
+	        y: array[1]
+	      };
+	      if (array.length>2) {
+	        out.z = array[2];
+	      }
+	      if (array.length>3) {
+	        out.m = array[3];
+	      }
+	      return out;
+	    };
+
+	    var checkSanity = function (point) {
+	      checkCoord(point.x);
+	      checkCoord(point.y);
+	    };
+	    function checkCoord(num) {
+	      if (typeof Number.isFinite === 'function') {
+	        if (Number.isFinite(num)) {
+	          return;
+	        }
+	        throw new TypeError('coordinates must be finite numbers');
+	      }
+	      if (typeof num !== 'number' || num !== num || !isFinite(num)) {
+	        throw new TypeError('coordinates must be finite numbers');
+	      }
+	    }
+
+	    function checkNotWGS(source, dest) {
+	      return ((source.datum.datum_type === PJD_3PARAM || source.datum.datum_type === PJD_7PARAM) && dest.datumCode !== 'WGS84') || ((dest.datum.datum_type === PJD_3PARAM || dest.datum.datum_type === PJD_7PARAM) && source.datumCode !== 'WGS84');
+	    }
+
+	    function transform(source, dest, point, enforceAxis) {
+	      var wgs84;
+	      if (Array.isArray(point)) {
+	        point = toPoint(point);
+	      }
+	      checkSanity(point);
+	      // Workaround for datum shifts towgs84, if either source or destination projection is not wgs84
+	      if (source.datum && dest.datum && checkNotWGS(source, dest)) {
+	        wgs84 = new Projection('WGS84');
+	        point = transform(source, wgs84, point, enforceAxis);
+	        source = wgs84;
+	      }
+	      // DGR, 2010/11/12
+	      if (enforceAxis && source.axis !== 'enu') {
+	        point = adjust_axis(source, false, point);
+	      }
+	      // Transform source points to long/lat, if they aren't already.
+	      if (source.projName === 'longlat') {
+	        point = {
+	          x: point.x * D2R,
+	          y: point.y * D2R,
+	          z: point.z || 0
+	        };
+	      } else {
+	        if (source.to_meter) {
+	          point = {
+	            x: point.x * source.to_meter,
+	            y: point.y * source.to_meter,
+	            z: point.z || 0
+	          };
+	        }
+	        point = source.inverse(point); // Convert Cartesian to longlat
+	        if (!point) {
+	          return;
+	        }
+	      }
+	      // Adjust for the prime meridian if necessary
+	      if (source.from_greenwich) {
+	        point.x += source.from_greenwich;
+	      }
+
+	      // Convert datums if needed, and if possible.
+	      point = datum_transform(source.datum, dest.datum, point);
+	      if (!point) {
+	        return;
+	      }
+
+	      // Adjust for the prime meridian if necessary
+	      if (dest.from_greenwich) {
+	        point = {
+	          x: point.x - dest.from_greenwich,
+	          y: point.y,
+	          z: point.z || 0
+	        };
+	      }
+
+	      if (dest.projName === 'longlat') {
+	        // convert radians to decimal degrees
+	        point = {
+	          x: point.x * R2D,
+	          y: point.y * R2D,
+	          z: point.z || 0
+	        };
+	      } else { // else project
+	        point = dest.forward(point);
+	        if (dest.to_meter) {
+	          point = {
+	            x: point.x / dest.to_meter,
+	            y: point.y / dest.to_meter,
+	            z: point.z || 0
+	          };
+	        }
+	      }
+
+	      // DGR, 2010/11/12
+	      if (enforceAxis && dest.axis !== 'enu') {
+	        return adjust_axis(dest, true, point);
+	      }
+
+	      return point;
+	    }
+
+	    var wgs84 = Projection('WGS84');
+
+	    function transformer(from, to, coords, enforceAxis) {
+	      var transformedArray, out, keys;
+	      if (Array.isArray(coords)) {
+	        transformedArray = transform(from, to, coords, enforceAxis) || {x: NaN, y: NaN};
+	        if (coords.length > 2) {
+	          if ((typeof from.name !== 'undefined' && from.name === 'geocent') || (typeof to.name !== 'undefined' && to.name === 'geocent')) {
+	            if (typeof transformedArray.z === 'number') {
+	              return [transformedArray.x, transformedArray.y, transformedArray.z].concat(coords.splice(3));
+	            } else {
+	              return [transformedArray.x, transformedArray.y, coords[2]].concat(coords.splice(3));
+	            }
+	          } else {
+	            return [transformedArray.x, transformedArray.y].concat(coords.splice(2));
+	          }
+	        } else {
+	          return [transformedArray.x, transformedArray.y];
+	        }
+	      } else {
+	        out = transform(from, to, coords, enforceAxis);
+	        keys = Object.keys(coords);
+	        if (keys.length === 2) {
+	          return out;
+	        }
+	        keys.forEach(function (key) {
+	          if ((typeof from.name !== 'undefined' && from.name === 'geocent') || (typeof to.name !== 'undefined' && to.name === 'geocent')) {
+	            if (key === 'x' || key === 'y' || key === 'z') {
+	              return;
+	            }
+	          } else {
+	            if (key === 'x' || key === 'y') {
+	              return;
+	            }
+	          }
+	          out[key] = coords[key];
+	        });
+	        return out;
+	      }
+	    }
+
+	    function checkProj(item) {
+	      if (item instanceof Projection) {
+	        return item;
+	      }
+	      if (item.oProj) {
+	        return item.oProj;
+	      }
+	      return Projection(item);
+	    }
+
+	    function proj4$1(fromProj, toProj, coord) {
+	      fromProj = checkProj(fromProj);
+	      var single = false;
+	      var obj;
+	      if (typeof toProj === 'undefined') {
+	        toProj = fromProj;
+	        fromProj = wgs84;
+	        single = true;
+	      } else if (typeof toProj.x !== 'undefined' || Array.isArray(toProj)) {
+	        coord = toProj;
+	        toProj = fromProj;
+	        fromProj = wgs84;
+	        single = true;
+	      }
+	      toProj = checkProj(toProj);
+	      if (coord) {
+	        return transformer(fromProj, toProj, coord);
+	      } else {
+	        obj = {
+	          forward: function (coords, enforceAxis) {
+	            return transformer(fromProj, toProj, coords, enforceAxis);
+	          },
+	          inverse: function (coords, enforceAxis) {
+	            return transformer(toProj, fromProj, coords, enforceAxis);
+	          }
+	        };
+	        if (single) {
+	          obj.oProj = toProj;
+	        }
+	        return obj;
+	      }
+	    }
+
+	    /**
+	     * UTM zones are grouped, and assigned to one of a group of 6
+	     * sets.
+	     *
+	     * {int} @private
+	     */
+	    var NUM_100K_SETS = 6;
+
+	    /**
+	     * The column letters (for easting) of the lower left value, per
+	     * set.
+	     *
+	     * {string} @private
+	     */
+	    var SET_ORIGIN_COLUMN_LETTERS = 'AJSAJS';
+
+	    /**
+	     * The row letters (for northing) of the lower left value, per
+	     * set.
+	     *
+	     * {string} @private
+	     */
+	    var SET_ORIGIN_ROW_LETTERS = 'AFAFAF';
+
+	    var A = 65; // A
+	    var I = 73; // I
+	    var O = 79; // O
+	    var V = 86; // V
+	    var Z = 90; // Z
+	    var mgrs = {
+	      forward: forward$1,
+	      inverse: inverse$1,
+	      toPoint: toPoint$1
+	    };
+	    /**
+	     * Conversion of lat/lon to MGRS.
+	     *
+	     * @param {object} ll Object literal with lat and lon properties on a
+	     *     WGS84 ellipsoid.
+	     * @param {int} accuracy Accuracy in digits (5 for 1 m, 4 for 10 m, 3 for
+	     *      100 m, 2 for 1000 m or 1 for 10000 m). Optional, default is 5.
+	     * @return {string} the MGRS string for the given location and accuracy.
+	     */
+	    function forward$1(ll, accuracy) {
+	      accuracy = accuracy || 5; // default accuracy 1m
+	      return encode(LLtoUTM({
+	        lat: ll[1],
+	        lon: ll[0]
+	      }), accuracy);
+	    }
+
+	    /**
+	     * Conversion of MGRS to lat/lon.
+	     *
+	     * @param {string} mgrs MGRS string.
+	     * @return {array} An array with left (longitude), bottom (latitude), right
+	     *     (longitude) and top (latitude) values in WGS84, representing the
+	     *     bounding box for the provided MGRS reference.
+	     */
+	    function inverse$1(mgrs) {
+	      var bbox = UTMtoLL(decode(mgrs.toUpperCase()));
+	      if (bbox.lat && bbox.lon) {
+	        return [bbox.lon, bbox.lat, bbox.lon, bbox.lat];
+	      }
+	      return [bbox.left, bbox.bottom, bbox.right, bbox.top];
+	    }
+
+	    function toPoint$1(mgrs) {
+	      var bbox = UTMtoLL(decode(mgrs.toUpperCase()));
+	      if (bbox.lat && bbox.lon) {
+	        return [bbox.lon, bbox.lat];
+	      }
+	      return [(bbox.left + bbox.right) / 2, (bbox.top + bbox.bottom) / 2];
+	    }
+	    /**
+	     * Conversion from degrees to radians.
+	     *
+	     * @private
+	     * @param {number} deg the angle in degrees.
+	     * @return {number} the angle in radians.
+	     */
+	    function degToRad(deg) {
+	      return (deg * (Math.PI / 180.0));
+	    }
+
+	    /**
+	     * Conversion from radians to degrees.
+	     *
+	     * @private
+	     * @param {number} rad the angle in radians.
+	     * @return {number} the angle in degrees.
+	     */
+	    function radToDeg(rad) {
+	      return (180.0 * (rad / Math.PI));
+	    }
+
+	    /**
+	     * Converts a set of Longitude and Latitude co-ordinates to UTM
+	     * using the WGS84 ellipsoid.
+	     *
+	     * @private
+	     * @param {object} ll Object literal with lat and lon properties
+	     *     representing the WGS84 coordinate to be converted.
+	     * @return {object} Object literal containing the UTM value with easting,
+	     *     northing, zoneNumber and zoneLetter properties, and an optional
+	     *     accuracy property in digits. Returns null if the conversion failed.
+	     */
+	    function LLtoUTM(ll) {
+	      var Lat = ll.lat;
+	      var Long = ll.lon;
+	      var a = 6378137.0; //ellip.radius;
+	      var eccSquared = 0.00669438; //ellip.eccsq;
+	      var k0 = 0.9996;
+	      var LongOrigin;
+	      var eccPrimeSquared;
+	      var N, T, C, A, M;
+	      var LatRad = degToRad(Lat);
+	      var LongRad = degToRad(Long);
+	      var LongOriginRad;
+	      var ZoneNumber;
+	      // (int)
+	      ZoneNumber = Math.floor((Long + 180) / 6) + 1;
+
+	      //Make sure the longitude 180.00 is in Zone 60
+	      if (Long === 180) {
+	        ZoneNumber = 60;
+	      }
+
+	      // Special zone for Norway
+	      if (Lat >= 56.0 && Lat < 64.0 && Long >= 3.0 && Long < 12.0) {
+	        ZoneNumber = 32;
+	      }
+
+	      // Special zones for Svalbard
+	      if (Lat >= 72.0 && Lat < 84.0) {
+	        if (Long >= 0.0 && Long < 9.0) {
+	          ZoneNumber = 31;
+	        }
+	        else if (Long >= 9.0 && Long < 21.0) {
+	          ZoneNumber = 33;
+	        }
+	        else if (Long >= 21.0 && Long < 33.0) {
+	          ZoneNumber = 35;
+	        }
+	        else if (Long >= 33.0 && Long < 42.0) {
+	          ZoneNumber = 37;
+	        }
+	      }
+
+	      LongOrigin = (ZoneNumber - 1) * 6 - 180 + 3; //+3 puts origin
+	      // in middle of
+	      // zone
+	      LongOriginRad = degToRad(LongOrigin);
+
+	      eccPrimeSquared = (eccSquared) / (1 - eccSquared);
+
+	      N = a / Math.sqrt(1 - eccSquared * Math.sin(LatRad) * Math.sin(LatRad));
+	      T = Math.tan(LatRad) * Math.tan(LatRad);
+	      C = eccPrimeSquared * Math.cos(LatRad) * Math.cos(LatRad);
+	      A = Math.cos(LatRad) * (LongRad - LongOriginRad);
+
+	      M = a * ((1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 - 5 * eccSquared * eccSquared * eccSquared / 256) * LatRad - (3 * eccSquared / 8 + 3 * eccSquared * eccSquared / 32 + 45 * eccSquared * eccSquared * eccSquared / 1024) * Math.sin(2 * LatRad) + (15 * eccSquared * eccSquared / 256 + 45 * eccSquared * eccSquared * eccSquared / 1024) * Math.sin(4 * LatRad) - (35 * eccSquared * eccSquared * eccSquared / 3072) * Math.sin(6 * LatRad));
+
+	      var UTMEasting = (k0 * N * (A + (1 - T + C) * A * A * A / 6.0 + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A * A * A * A * A / 120.0) + 500000.0);
+
+	      var UTMNorthing = (k0 * (M + N * Math.tan(LatRad) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24.0 + (61 - 58 * T + T * T + 600 * C - 330 * eccPrimeSquared) * A * A * A * A * A * A / 720.0)));
+	      if (Lat < 0.0) {
+	        UTMNorthing += 10000000.0; //10000000 meter offset for
+	        // southern hemisphere
+	      }
+
+	      return {
+	        northing: Math.round(UTMNorthing),
+	        easting: Math.round(UTMEasting),
+	        zoneNumber: ZoneNumber,
+	        zoneLetter: getLetterDesignator(Lat)
+	      };
+	    }
+
+	    /**
+	     * Converts UTM coords to lat/long, using the WGS84 ellipsoid. This is a convenience
+	     * class where the Zone can be specified as a single string eg."60N" which
+	     * is then broken down into the ZoneNumber and ZoneLetter.
+	     *
+	     * @private
+	     * @param {object} utm An object literal with northing, easting, zoneNumber
+	     *     and zoneLetter properties. If an optional accuracy property is
+	     *     provided (in meters), a bounding box will be returned instead of
+	     *     latitude and longitude.
+	     * @return {object} An object literal containing either lat and lon values
+	     *     (if no accuracy was provided), or top, right, bottom and left values
+	     *     for the bounding box calculated according to the provided accuracy.
+	     *     Returns null if the conversion failed.
+	     */
+	    function UTMtoLL(utm) {
+
+	      var UTMNorthing = utm.northing;
+	      var UTMEasting = utm.easting;
+	      var zoneLetter = utm.zoneLetter;
+	      var zoneNumber = utm.zoneNumber;
+	      // check the ZoneNummber is valid
+	      if (zoneNumber < 0 || zoneNumber > 60) {
+	        return null;
+	      }
+
+	      var k0 = 0.9996;
+	      var a = 6378137.0; //ellip.radius;
+	      var eccSquared = 0.00669438; //ellip.eccsq;
+	      var eccPrimeSquared;
+	      var e1 = (1 - Math.sqrt(1 - eccSquared)) / (1 + Math.sqrt(1 - eccSquared));
+	      var N1, T1, C1, R1, D, M;
+	      var LongOrigin;
+	      var mu, phi1Rad;
+
+	      // remove 500,000 meter offset for longitude
+	      var x = UTMEasting - 500000.0;
+	      var y = UTMNorthing;
+
+	      // We must know somehow if we are in the Northern or Southern
+	      // hemisphere, this is the only time we use the letter So even
+	      // if the Zone letter isn't exactly correct it should indicate
+	      // the hemisphere correctly
+	      if (zoneLetter < 'N') {
+	        y -= 10000000.0; // remove 10,000,000 meter offset used
+	        // for southern hemisphere
+	      }
+
+	      // There are 60 zones with zone 1 being at West -180 to -174
+	      LongOrigin = (zoneNumber - 1) * 6 - 180 + 3; // +3 puts origin
+	      // in middle of
+	      // zone
+
+	      eccPrimeSquared = (eccSquared) / (1 - eccSquared);
+
+	      M = y / k0;
+	      mu = M / (a * (1 - eccSquared / 4 - 3 * eccSquared * eccSquared / 64 - 5 * eccSquared * eccSquared * eccSquared / 256));
+
+	      phi1Rad = mu + (3 * e1 / 2 - 27 * e1 * e1 * e1 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 * e1 * e1 * e1 / 32) * Math.sin(4 * mu) + (151 * e1 * e1 * e1 / 96) * Math.sin(6 * mu);
+	      // double phi1 = ProjMath.radToDeg(phi1Rad);
+
+	      N1 = a / Math.sqrt(1 - eccSquared * Math.sin(phi1Rad) * Math.sin(phi1Rad));
+	      T1 = Math.tan(phi1Rad) * Math.tan(phi1Rad);
+	      C1 = eccPrimeSquared * Math.cos(phi1Rad) * Math.cos(phi1Rad);
+	      R1 = a * (1 - eccSquared) / Math.pow(1 - eccSquared * Math.sin(phi1Rad) * Math.sin(phi1Rad), 1.5);
+	      D = x / (N1 * k0);
+
+	      var lat = phi1Rad - (N1 * Math.tan(phi1Rad) / R1) * (D * D / 2 - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * eccPrimeSquared) * D * D * D * D / 24 + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * eccPrimeSquared - 3 * C1 * C1) * D * D * D * D * D * D / 720);
+	      lat = radToDeg(lat);
+
+	      var lon = (D - (1 + 2 * T1 + C1) * D * D * D / 6 + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * eccPrimeSquared + 24 * T1 * T1) * D * D * D * D * D / 120) / Math.cos(phi1Rad);
+	      lon = LongOrigin + radToDeg(lon);
+
+	      var result;
+	      if (utm.accuracy) {
+	        var topRight = UTMtoLL({
+	          northing: utm.northing + utm.accuracy,
+	          easting: utm.easting + utm.accuracy,
+	          zoneLetter: utm.zoneLetter,
+	          zoneNumber: utm.zoneNumber
+	        });
+	        result = {
+	          top: topRight.lat,
+	          right: topRight.lon,
+	          bottom: lat,
+	          left: lon
+	        };
+	      }
+	      else {
+	        result = {
+	          lat: lat,
+	          lon: lon
+	        };
+	      }
+	      return result;
+	    }
+
+	    /**
+	     * Calculates the MGRS letter designator for the given latitude.
+	     *
+	     * @private
+	     * @param {number} lat The latitude in WGS84 to get the letter designator
+	     *     for.
+	     * @return {char} The letter designator.
+	     */
+	    function getLetterDesignator(lat) {
+	      //This is here as an error flag to show that the Latitude is
+	      //outside MGRS limits
+	      var LetterDesignator = 'Z';
+
+	      if ((84 >= lat) && (lat >= 72)) {
+	        LetterDesignator = 'X';
+	      }
+	      else if ((72 > lat) && (lat >= 64)) {
+	        LetterDesignator = 'W';
+	      }
+	      else if ((64 > lat) && (lat >= 56)) {
+	        LetterDesignator = 'V';
+	      }
+	      else if ((56 > lat) && (lat >= 48)) {
+	        LetterDesignator = 'U';
+	      }
+	      else if ((48 > lat) && (lat >= 40)) {
+	        LetterDesignator = 'T';
+	      }
+	      else if ((40 > lat) && (lat >= 32)) {
+	        LetterDesignator = 'S';
+	      }
+	      else if ((32 > lat) && (lat >= 24)) {
+	        LetterDesignator = 'R';
+	      }
+	      else if ((24 > lat) && (lat >= 16)) {
+	        LetterDesignator = 'Q';
+	      }
+	      else if ((16 > lat) && (lat >= 8)) {
+	        LetterDesignator = 'P';
+	      }
+	      else if ((8 > lat) && (lat >= 0)) {
+	        LetterDesignator = 'N';
+	      }
+	      else if ((0 > lat) && (lat >= -8)) {
+	        LetterDesignator = 'M';
+	      }
+	      else if ((-8 > lat) && (lat >= -16)) {
+	        LetterDesignator = 'L';
+	      }
+	      else if ((-16 > lat) && (lat >= -24)) {
+	        LetterDesignator = 'K';
+	      }
+	      else if ((-24 > lat) && (lat >= -32)) {
+	        LetterDesignator = 'J';
+	      }
+	      else if ((-32 > lat) && (lat >= -40)) {
+	        LetterDesignator = 'H';
+	      }
+	      else if ((-40 > lat) && (lat >= -48)) {
+	        LetterDesignator = 'G';
+	      }
+	      else if ((-48 > lat) && (lat >= -56)) {
+	        LetterDesignator = 'F';
+	      }
+	      else if ((-56 > lat) && (lat >= -64)) {
+	        LetterDesignator = 'E';
+	      }
+	      else if ((-64 > lat) && (lat >= -72)) {
+	        LetterDesignator = 'D';
+	      }
+	      else if ((-72 > lat) && (lat >= -80)) {
+	        LetterDesignator = 'C';
+	      }
+	      return LetterDesignator;
+	    }
+
+	    /**
+	     * Encodes a UTM location as MGRS string.
+	     *
+	     * @private
+	     * @param {object} utm An object literal with easting, northing,
+	     *     zoneLetter, zoneNumber
+	     * @param {number} accuracy Accuracy in digits (1-5).
+	     * @return {string} MGRS string for the given UTM location.
+	     */
+	    function encode(utm, accuracy) {
+	      // prepend with leading zeroes
+	      var seasting = "00000" + utm.easting,
+	        snorthing = "00000" + utm.northing;
+
+	      return utm.zoneNumber + utm.zoneLetter + get100kID(utm.easting, utm.northing, utm.zoneNumber) + seasting.substr(seasting.length - 5, accuracy) + snorthing.substr(snorthing.length - 5, accuracy);
+	    }
+
+	    /**
+	     * Get the two letter 100k designator for a given UTM easting,
+	     * northing and zone number value.
+	     *
+	     * @private
+	     * @param {number} easting
+	     * @param {number} northing
+	     * @param {number} zoneNumber
+	     * @return the two letter 100k designator for the given UTM location.
+	     */
+	    function get100kID(easting, northing, zoneNumber) {
+	      var setParm = get100kSetForZone(zoneNumber);
+	      var setColumn = Math.floor(easting / 100000);
+	      var setRow = Math.floor(northing / 100000) % 20;
+	      return getLetter100kID(setColumn, setRow, setParm);
+	    }
+
+	    /**
+	     * Given a UTM zone number, figure out the MGRS 100K set it is in.
+	     *
+	     * @private
+	     * @param {number} i An UTM zone number.
+	     * @return {number} the 100k set the UTM zone is in.
+	     */
+	    function get100kSetForZone(i) {
+	      var setParm = i % NUM_100K_SETS;
+	      if (setParm === 0) {
+	        setParm = NUM_100K_SETS;
+	      }
+
+	      return setParm;
+	    }
+
+	    /**
+	     * Get the two-letter MGRS 100k designator given information
+	     * translated from the UTM northing, easting and zone number.
+	     *
+	     * @private
+	     * @param {number} column the column index as it relates to the MGRS
+	     *        100k set spreadsheet, created from the UTM easting.
+	     *        Values are 1-8.
+	     * @param {number} row the row index as it relates to the MGRS 100k set
+	     *        spreadsheet, created from the UTM northing value. Values
+	     *        are from 0-19.
+	     * @param {number} parm the set block, as it relates to the MGRS 100k set
+	     *        spreadsheet, created from the UTM zone. Values are from
+	     *        1-60.
+	     * @return two letter MGRS 100k code.
+	     */
+	    function getLetter100kID(column, row, parm) {
+	      // colOrigin and rowOrigin are the letters at the origin of the set
+	      var index = parm - 1;
+	      var colOrigin = SET_ORIGIN_COLUMN_LETTERS.charCodeAt(index);
+	      var rowOrigin = SET_ORIGIN_ROW_LETTERS.charCodeAt(index);
+
+	      // colInt and rowInt are the letters to build to return
+	      var colInt = colOrigin + column - 1;
+	      var rowInt = rowOrigin + row;
+	      var rollover = false;
+
+	      if (colInt > Z) {
+	        colInt = colInt - Z + A - 1;
+	        rollover = true;
+	      }
+
+	      if (colInt === I || (colOrigin < I && colInt > I) || ((colInt > I || colOrigin < I) && rollover)) {
+	        colInt++;
+	      }
+
+	      if (colInt === O || (colOrigin < O && colInt > O) || ((colInt > O || colOrigin < O) && rollover)) {
+	        colInt++;
+
+	        if (colInt === I) {
+	          colInt++;
+	        }
+	      }
+
+	      if (colInt > Z) {
+	        colInt = colInt - Z + A - 1;
+	      }
+
+	      if (rowInt > V) {
+	        rowInt = rowInt - V + A - 1;
+	        rollover = true;
+	      }
+	      else {
+	        rollover = false;
+	      }
+
+	      if (((rowInt === I) || ((rowOrigin < I) && (rowInt > I))) || (((rowInt > I) || (rowOrigin < I)) && rollover)) {
+	        rowInt++;
+	      }
+
+	      if (((rowInt === O) || ((rowOrigin < O) && (rowInt > O))) || (((rowInt > O) || (rowOrigin < O)) && rollover)) {
+	        rowInt++;
+
+	        if (rowInt === I) {
+	          rowInt++;
+	        }
+	      }
+
+	      if (rowInt > V) {
+	        rowInt = rowInt - V + A - 1;
+	      }
+
+	      var twoLetter = String.fromCharCode(colInt) + String.fromCharCode(rowInt);
+	      return twoLetter;
+	    }
+
+	    /**
+	     * Decode the UTM parameters from a MGRS string.
+	     *
+	     * @private
+	     * @param {string} mgrsString an UPPERCASE coordinate string is expected.
+	     * @return {object} An object literal with easting, northing, zoneLetter,
+	     *     zoneNumber and accuracy (in meters) properties.
+	     */
+	    function decode(mgrsString) {
+
+	      if (mgrsString && mgrsString.length === 0) {
+	        throw ("MGRSPoint coverting from nothing");
+	      }
+
+	      var length = mgrsString.length;
+
+	      var hunK = null;
+	      var sb = "";
+	      var testChar;
+	      var i = 0;
+
+	      // get Zone number
+	      while (!(/[A-Z]/).test(testChar = mgrsString.charAt(i))) {
+	        if (i >= 2) {
+	          throw ("MGRSPoint bad conversion from: " + mgrsString);
+	        }
+	        sb += testChar;
+	        i++;
+	      }
+
+	      var zoneNumber = parseInt(sb, 10);
+
+	      if (i === 0 || i + 3 > length) {
+	        // A good MGRS string has to be 4-5 digits long,
+	        // ##AAA/#AAA at least.
+	        throw ("MGRSPoint bad conversion from: " + mgrsString);
+	      }
+
+	      var zoneLetter = mgrsString.charAt(i++);
+
+	      // Should we check the zone letter here? Why not.
+	      if (zoneLetter <= 'A' || zoneLetter === 'B' || zoneLetter === 'Y' || zoneLetter >= 'Z' || zoneLetter === 'I' || zoneLetter === 'O') {
+	        throw ("MGRSPoint zone letter " + zoneLetter + " not handled: " + mgrsString);
+	      }
+
+	      hunK = mgrsString.substring(i, i += 2);
+
+	      var set = get100kSetForZone(zoneNumber);
+
+	      var east100k = getEastingFromChar(hunK.charAt(0), set);
+	      var north100k = getNorthingFromChar(hunK.charAt(1), set);
+
+	      // We have a bug where the northing may be 2000000 too low.
+	      // How
+	      // do we know when to roll over?
+
+	      while (north100k < getMinNorthing(zoneLetter)) {
+	        north100k += 2000000;
+	      }
+
+	      // calculate the char index for easting/northing separator
+	      var remainder = length - i;
+
+	      if (remainder % 2 !== 0) {
+	        throw ("MGRSPoint has to have an even number \nof digits after the zone letter and two 100km letters - front \nhalf for easting meters, second half for \nnorthing meters" + mgrsString);
+	      }
+
+	      var sep = remainder / 2;
+
+	      var sepEasting = 0.0;
+	      var sepNorthing = 0.0;
+	      var accuracyBonus, sepEastingString, sepNorthingString, easting, northing;
+	      if (sep > 0) {
+	        accuracyBonus = 100000.0 / Math.pow(10, sep);
+	        sepEastingString = mgrsString.substring(i, i + sep);
+	        sepEasting = parseFloat(sepEastingString) * accuracyBonus;
+	        sepNorthingString = mgrsString.substring(i + sep);
+	        sepNorthing = parseFloat(sepNorthingString) * accuracyBonus;
+	      }
+
+	      easting = sepEasting + east100k;
+	      northing = sepNorthing + north100k;
+
+	      return {
+	        easting: easting,
+	        northing: northing,
+	        zoneLetter: zoneLetter,
+	        zoneNumber: zoneNumber,
+	        accuracy: accuracyBonus
+	      };
+	    }
+
+	    /**
+	     * Given the first letter from a two-letter MGRS 100k zone, and given the
+	     * MGRS table set for the zone number, figure out the easting value that
+	     * should be added to the other, secondary easting value.
+	     *
+	     * @private
+	     * @param {char} e The first letter from a two-letter MGRS 100´k zone.
+	     * @param {number} set The MGRS table set for the zone number.
+	     * @return {number} The easting value for the given letter and set.
+	     */
+	    function getEastingFromChar(e, set) {
+	      // colOrigin is the letter at the origin of the set for the
+	      // column
+	      var curCol = SET_ORIGIN_COLUMN_LETTERS.charCodeAt(set - 1);
+	      var eastingValue = 100000.0;
+	      var rewindMarker = false;
+
+	      while (curCol !== e.charCodeAt(0)) {
+	        curCol++;
+	        if (curCol === I) {
+	          curCol++;
+	        }
+	        if (curCol === O) {
+	          curCol++;
+	        }
+	        if (curCol > Z) {
+	          if (rewindMarker) {
+	            throw ("Bad character: " + e);
+	          }
+	          curCol = A;
+	          rewindMarker = true;
+	        }
+	        eastingValue += 100000.0;
+	      }
+
+	      return eastingValue;
+	    }
+
+	    /**
+	     * Given the second letter from a two-letter MGRS 100k zone, and given the
+	     * MGRS table set for the zone number, figure out the northing value that
+	     * should be added to the other, secondary northing value. You have to
+	     * remember that Northings are determined from the equator, and the vertical
+	     * cycle of letters mean a 2000000 additional northing meters. This happens
+	     * approx. every 18 degrees of latitude. This method does *NOT* count any
+	     * additional northings. You have to figure out how many 2000000 meters need
+	     * to be added for the zone letter of the MGRS coordinate.
+	     *
+	     * @private
+	     * @param {char} n Second letter of the MGRS 100k zone
+	     * @param {number} set The MGRS table set number, which is dependent on the
+	     *     UTM zone number.
+	     * @return {number} The northing value for the given letter and set.
+	     */
+	    function getNorthingFromChar(n, set) {
+
+	      if (n > 'V') {
+	        throw ("MGRSPoint given invalid Northing " + n);
+	      }
+
+	      // rowOrigin is the letter at the origin of the set for the
+	      // column
+	      var curRow = SET_ORIGIN_ROW_LETTERS.charCodeAt(set - 1);
+	      var northingValue = 0.0;
+	      var rewindMarker = false;
+
+	      while (curRow !== n.charCodeAt(0)) {
+	        curRow++;
+	        if (curRow === I) {
+	          curRow++;
+	        }
+	        if (curRow === O) {
+	          curRow++;
+	        }
+	        // fixing a bug making whole application hang in this loop
+	        // when 'n' is a wrong character
+	        if (curRow > V) {
+	          if (rewindMarker) { // making sure that this loop ends
+	            throw ("Bad character: " + n);
+	          }
+	          curRow = A;
+	          rewindMarker = true;
+	        }
+	        northingValue += 100000.0;
+	      }
+
+	      return northingValue;
+	    }
+
+	    /**
+	     * The function getMinNorthing returns the minimum northing value of a MGRS
+	     * zone.
+	     *
+	     * Ported from Geotrans' c Lattitude_Band_Value structure table.
+	     *
+	     * @private
+	     * @param {char} zoneLetter The MGRS zone to get the min northing for.
+	     * @return {number}
+	     */
+	    function getMinNorthing(zoneLetter) {
+	      var northing;
+	      switch (zoneLetter) {
+	      case 'C':
+	        northing = 1100000.0;
+	        break;
+	      case 'D':
+	        northing = 2000000.0;
+	        break;
+	      case 'E':
+	        northing = 2800000.0;
+	        break;
+	      case 'F':
+	        northing = 3700000.0;
+	        break;
+	      case 'G':
+	        northing = 4600000.0;
+	        break;
+	      case 'H':
+	        northing = 5500000.0;
+	        break;
+	      case 'J':
+	        northing = 6400000.0;
+	        break;
+	      case 'K':
+	        northing = 7300000.0;
+	        break;
+	      case 'L':
+	        northing = 8200000.0;
+	        break;
+	      case 'M':
+	        northing = 9100000.0;
+	        break;
+	      case 'N':
+	        northing = 0.0;
+	        break;
+	      case 'P':
+	        northing = 800000.0;
+	        break;
+	      case 'Q':
+	        northing = 1700000.0;
+	        break;
+	      case 'R':
+	        northing = 2600000.0;
+	        break;
+	      case 'S':
+	        northing = 3500000.0;
+	        break;
+	      case 'T':
+	        northing = 4400000.0;
+	        break;
+	      case 'U':
+	        northing = 5300000.0;
+	        break;
+	      case 'V':
+	        northing = 6200000.0;
+	        break;
+	      case 'W':
+	        northing = 7000000.0;
+	        break;
+	      case 'X':
+	        northing = 7900000.0;
+	        break;
+	      default:
+	        northing = -1.0;
+	      }
+	      if (northing >= 0.0) {
+	        return northing;
+	      }
+	      else {
+	        throw ("Invalid zone letter: " + zoneLetter);
+	      }
+
+	    }
+
+	    function Point(x, y, z) {
+	      if (!(this instanceof Point)) {
+	        return new Point(x, y, z);
+	      }
+	      if (Array.isArray(x)) {
+	        this.x = x[0];
+	        this.y = x[1];
+	        this.z = x[2] || 0.0;
+	      } else if(typeof x === 'object') {
+	        this.x = x.x;
+	        this.y = x.y;
+	        this.z = x.z || 0.0;
+	      } else if (typeof x === 'string' && typeof y === 'undefined') {
+	        var coords = x.split(',');
+	        this.x = parseFloat(coords[0], 10);
+	        this.y = parseFloat(coords[1], 10);
+	        this.z = parseFloat(coords[2], 10) || 0.0;
+	      } else {
+	        this.x = x;
+	        this.y = y;
+	        this.z = z || 0.0;
+	      }
+	      console.warn('proj4.Point will be removed in version 3, use proj4.toPoint');
+	    }
+
+	    Point.fromMGRS = function(mgrsStr) {
+	      return new Point(toPoint$1(mgrsStr));
+	    };
+	    Point.prototype.toMGRS = function(accuracy) {
+	      return forward$1([this.x, this.y], accuracy);
+	    };
+
+	    var C00 = 1;
+	    var C02 = 0.25;
+	    var C04 = 0.046875;
+	    var C06 = 0.01953125;
+	    var C08 = 0.01068115234375;
+	    var C22 = 0.75;
+	    var C44 = 0.46875;
+	    var C46 = 0.01302083333333333333;
+	    var C48 = 0.00712076822916666666;
+	    var C66 = 0.36458333333333333333;
+	    var C68 = 0.00569661458333333333;
+	    var C88 = 0.3076171875;
+
+	    var pj_enfn = function(es) {
+	      var en = [];
+	      en[0] = C00 - es * (C02 + es * (C04 + es * (C06 + es * C08)));
+	      en[1] = es * (C22 - es * (C04 + es * (C06 + es * C08)));
+	      var t = es * es;
+	      en[2] = t * (C44 - es * (C46 + es * C48));
+	      t *= es;
+	      en[3] = t * (C66 - es * C68);
+	      en[4] = t * es * C88;
+	      return en;
+	    };
+
+	    var pj_mlfn = function(phi, sphi, cphi, en) {
+	      cphi *= sphi;
+	      sphi *= sphi;
+	      return (en[0] * phi - cphi * (en[1] + sphi * (en[2] + sphi * (en[3] + sphi * en[4]))));
+	    };
+
+	    var MAX_ITER = 20;
+
+	    var pj_inv_mlfn = function(arg, es, en) {
+	      var k = 1 / (1 - es);
+	      var phi = arg;
+	      for (var i = MAX_ITER; i; --i) { /* rarely goes over 2 iterations */
+	        var s = Math.sin(phi);
+	        var t = 1 - es * s * s;
+	        //t = this.pj_mlfn(phi, s, Math.cos(phi), en) - arg;
+	        //phi -= t * (t * Math.sqrt(t)) * k;
+	        t = (pj_mlfn(phi, s, Math.cos(phi), en) - arg) * (t * Math.sqrt(t)) * k;
+	        phi -= t;
+	        if (Math.abs(t) < EPSLN) {
+	          return phi;
+	        }
+	      }
+	      //..reportError("cass:pj_inv_mlfn: Convergence error");
+	      return phi;
+	    };
+
+	    // Heavily based on this tmerc projection implementation
+	    // https://github.com/mbloch/mapshaper-proj/blob/master/src/projections/tmerc.js
+
+	    function init$2() {
+	      this.x0 = this.x0 !== undefined ? this.x0 : 0;
+	      this.y0 = this.y0 !== undefined ? this.y0 : 0;
+	      this.long0 = this.long0 !== undefined ? this.long0 : 0;
+	      this.lat0 = this.lat0 !== undefined ? this.lat0 : 0;
+
+	      if (this.es) {
+	        this.en = pj_enfn(this.es);
+	        this.ml0 = pj_mlfn(this.lat0, Math.sin(this.lat0), Math.cos(this.lat0), this.en);
+	      }
+	    }
+
+	    /**
+	        Transverse Mercator Forward  - long/lat to x/y
+	        long/lat in radians
+	      */
+	    function forward$2(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      var delta_lon = adjust_lon(lon - this.long0);
+	      var con;
+	      var x, y;
+	      var sin_phi = Math.sin(lat);
+	      var cos_phi = Math.cos(lat);
+
+	      if (!this.es) {
+	        var b = cos_phi * Math.sin(delta_lon);
+
+	        if ((Math.abs(Math.abs(b) - 1)) < EPSLN) {
+	          return (93);
+	        }
+	        else {
+	          x = 0.5 * this.a * this.k0 * Math.log((1 + b) / (1 - b)) + this.x0;
+	          y = cos_phi * Math.cos(delta_lon) / Math.sqrt(1 - Math.pow(b, 2));
+	          b = Math.abs(y);
+
+	          if (b >= 1) {
+	            if ((b - 1) > EPSLN) {
+	              return (93);
+	            }
+	            else {
+	              y = 0;
+	            }
+	          }
+	          else {
+	            y = Math.acos(y);
+	          }
+
+	          if (lat < 0) {
+	            y = -y;
+	          }
+
+	          y = this.a * this.k0 * (y - this.lat0) + this.y0;
+	        }
+	      }
+	      else {
+	        var al = cos_phi * delta_lon;
+	        var als = Math.pow(al, 2);
+	        var c = this.ep2 * Math.pow(cos_phi, 2);
+	        var cs = Math.pow(c, 2);
+	        var tq = Math.abs(cos_phi) > EPSLN ? Math.tan(lat) : 0;
+	        var t = Math.pow(tq, 2);
+	        var ts = Math.pow(t, 2);
+	        con = 1 - this.es * Math.pow(sin_phi, 2);
+	        al = al / Math.sqrt(con);
+	        var ml = pj_mlfn(lat, sin_phi, cos_phi, this.en);
+
+	        x = this.a * (this.k0 * al * (1 +
+	          als / 6 * (1 - t + c +
+	          als / 20 * (5 - 18 * t + ts + 14 * c - 58 * t * c +
+	          als / 42 * (61 + 179 * ts - ts * t - 479 * t))))) +
+	          this.x0;
+
+	        y = this.a * (this.k0 * (ml - this.ml0 +
+	          sin_phi * delta_lon * al / 2 * (1 +
+	          als / 12 * (5 - t + 9 * c + 4 * cs +
+	          als / 30 * (61 + ts - 58 * t + 270 * c - 330 * t * c +
+	          als / 56 * (1385 + 543 * ts - ts * t - 3111 * t)))))) +
+	          this.y0;
+	      }
+
+	      p.x = x;
+	      p.y = y;
+
+	      return p;
+	    }
+
+	    /**
+	        Transverse Mercator Inverse  -  x/y to long/lat
+	      */
+	    function inverse$2(p) {
+	      var con, phi;
+	      var lat, lon;
+	      var x = (p.x - this.x0) * (1 / this.a);
+	      var y = (p.y - this.y0) * (1 / this.a);
+
+	      if (!this.es) {
+	        var f = Math.exp(x / this.k0);
+	        var g = 0.5 * (f - 1 / f);
+	        var temp = this.lat0 + y / this.k0;
+	        var h = Math.cos(temp);
+	        con = Math.sqrt((1 - Math.pow(h, 2)) / (1 + Math.pow(g, 2)));
+	        lat = Math.asin(con);
+
+	        if (y < 0) {
+	          lat = -lat;
+	        }
+
+	        if ((g === 0) && (h === 0)) {
+	          lon = 0;
+	        }
+	        else {
+	          lon = adjust_lon(Math.atan2(g, h) + this.long0);
+	        }
+	      }
+	      else { // ellipsoidal form
+	        con = this.ml0 + y / this.k0;
+	        phi = pj_inv_mlfn(con, this.es, this.en);
+
+	        if (Math.abs(phi) < HALF_PI) {
+	          var sin_phi = Math.sin(phi);
+	          var cos_phi = Math.cos(phi);
+	          var tan_phi = Math.abs(cos_phi) > EPSLN ? Math.tan(phi) : 0;
+	          var c = this.ep2 * Math.pow(cos_phi, 2);
+	          var cs = Math.pow(c, 2);
+	          var t = Math.pow(tan_phi, 2);
+	          var ts = Math.pow(t, 2);
+	          con = 1 - this.es * Math.pow(sin_phi, 2);
+	          var d = x * Math.sqrt(con) / this.k0;
+	          var ds = Math.pow(d, 2);
+	          con = con * tan_phi;
+
+	          lat = phi - (con * ds / (1 - this.es)) * 0.5 * (1 -
+	            ds / 12 * (5 + 3 * t - 9 * c * t + c - 4 * cs -
+	            ds / 30 * (61 + 90 * t - 252 * c * t + 45 * ts + 46 * c -
+	            ds / 56 * (1385 + 3633 * t + 4095 * ts + 1574 * ts * t))));
+
+	          lon = adjust_lon(this.long0 + (d * (1 -
+	            ds / 6 * (1 + 2 * t + c -
+	            ds / 20 * (5 + 28 * t + 24 * ts + 8 * c * t + 6 * c -
+	            ds / 42 * (61 + 662 * t + 1320 * ts + 720 * ts * t)))) / cos_phi));
+	        }
+	        else {
+	          lat = HALF_PI * sign(y);
+	          lon = 0;
+	        }
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+
+	      return p;
+	    }
+
+	    var names$3 = ["Fast_Transverse_Mercator", "Fast Transverse Mercator"];
+	    var tmerc = {
+	      init: init$2,
+	      forward: forward$2,
+	      inverse: inverse$2,
+	      names: names$3
+	    };
+
+	    var sinh = function(x) {
+	      var r = Math.exp(x);
+	      r = (r - 1 / r) / 2;
+	      return r;
+	    };
+
+	    var hypot = function(x, y) {
+	      x = Math.abs(x);
+	      y = Math.abs(y);
+	      var a = Math.max(x, y);
+	      var b = Math.min(x, y) / (a ? a : 1);
+
+	      return a * Math.sqrt(1 + Math.pow(b, 2));
+	    };
+
+	    var log1py = function(x) {
+	      var y = 1 + x;
+	      var z = y - 1;
+
+	      return z === 0 ? x : x * Math.log(y) / z;
+	    };
+
+	    var asinhy = function(x) {
+	      var y = Math.abs(x);
+	      y = log1py(y * (1 + y / (hypot(1, y) + 1)));
+
+	      return x < 0 ? -y : y;
+	    };
+
+	    var gatg = function(pp, B) {
+	      var cos_2B = 2 * Math.cos(2 * B);
+	      var i = pp.length - 1;
+	      var h1 = pp[i];
+	      var h2 = 0;
+	      var h;
+
+	      while (--i >= 0) {
+	        h = -h2 + cos_2B * h1 + pp[i];
+	        h2 = h1;
+	        h1 = h;
+	      }
+
+	      return (B + h * Math.sin(2 * B));
+	    };
+
+	    var clens = function(pp, arg_r) {
+	      var r = 2 * Math.cos(arg_r);
+	      var i = pp.length - 1;
+	      var hr1 = pp[i];
+	      var hr2 = 0;
+	      var hr;
+
+	      while (--i >= 0) {
+	        hr = -hr2 + r * hr1 + pp[i];
+	        hr2 = hr1;
+	        hr1 = hr;
+	      }
+
+	      return Math.sin(arg_r) * hr;
+	    };
+
+	    var cosh = function(x) {
+	      var r = Math.exp(x);
+	      r = (r + 1 / r) / 2;
+	      return r;
+	    };
+
+	    var clens_cmplx = function(pp, arg_r, arg_i) {
+	      var sin_arg_r = Math.sin(arg_r);
+	      var cos_arg_r = Math.cos(arg_r);
+	      var sinh_arg_i = sinh(arg_i);
+	      var cosh_arg_i = cosh(arg_i);
+	      var r = 2 * cos_arg_r * cosh_arg_i;
+	      var i = -2 * sin_arg_r * sinh_arg_i;
+	      var j = pp.length - 1;
+	      var hr = pp[j];
+	      var hi1 = 0;
+	      var hr1 = 0;
+	      var hi = 0;
+	      var hr2;
+	      var hi2;
+
+	      while (--j >= 0) {
+	        hr2 = hr1;
+	        hi2 = hi1;
+	        hr1 = hr;
+	        hi1 = hi;
+	        hr = -hr2 + r * hr1 - i * hi1 + pp[j];
+	        hi = -hi2 + i * hr1 + r * hi1;
+	      }
+
+	      r = sin_arg_r * cosh_arg_i;
+	      i = cos_arg_r * sinh_arg_i;
+
+	      return [r * hr - i * hi, r * hi + i * hr];
+	    };
+
+	    // Heavily based on this etmerc projection implementation
+	    // https://github.com/mbloch/mapshaper-proj/blob/master/src/projections/etmerc.js
+
+	    function init$3() {
+	      if (!this.approx && (isNaN(this.es) || this.es <= 0)) {
+	        throw new Error('Incorrect elliptical usage. Try using the +approx option in the proj string, or PROJECTION["Fast_Transverse_Mercator"] in the WKT.');
+	      }
+	      if (this.approx) {
+	        // When '+approx' is set, use tmerc instead
+	        tmerc.init.apply(this);
+	        this.forward = tmerc.forward;
+	        this.inverse = tmerc.inverse;
+	      }
+
+	      this.x0 = this.x0 !== undefined ? this.x0 : 0;
+	      this.y0 = this.y0 !== undefined ? this.y0 : 0;
+	      this.long0 = this.long0 !== undefined ? this.long0 : 0;
+	      this.lat0 = this.lat0 !== undefined ? this.lat0 : 0;
+
+	      this.cgb = [];
+	      this.cbg = [];
+	      this.utg = [];
+	      this.gtu = [];
+
+	      var f = this.es / (1 + Math.sqrt(1 - this.es));
+	      var n = f / (2 - f);
+	      var np = n;
+
+	      this.cgb[0] = n * (2 + n * (-2 / 3 + n * (-2 + n * (116 / 45 + n * (26 / 45 + n * (-2854 / 675 ))))));
+	      this.cbg[0] = n * (-2 + n * ( 2 / 3 + n * ( 4 / 3 + n * (-82 / 45 + n * (32 / 45 + n * (4642 / 4725))))));
+
+	      np = np * n;
+	      this.cgb[1] = np * (7 / 3 + n * (-8 / 5 + n * (-227 / 45 + n * (2704 / 315 + n * (2323 / 945)))));
+	      this.cbg[1] = np * (5 / 3 + n * (-16 / 15 + n * ( -13 / 9 + n * (904 / 315 + n * (-1522 / 945)))));
+
+	      np = np * n;
+	      this.cgb[2] = np * (56 / 15 + n * (-136 / 35 + n * (-1262 / 105 + n * (73814 / 2835))));
+	      this.cbg[2] = np * (-26 / 15 + n * (34 / 21 + n * (8 / 5 + n * (-12686 / 2835))));
+
+	      np = np * n;
+	      this.cgb[3] = np * (4279 / 630 + n * (-332 / 35 + n * (-399572 / 14175)));
+	      this.cbg[3] = np * (1237 / 630 + n * (-12 / 5 + n * ( -24832 / 14175)));
+
+	      np = np * n;
+	      this.cgb[4] = np * (4174 / 315 + n * (-144838 / 6237));
+	      this.cbg[4] = np * (-734 / 315 + n * (109598 / 31185));
+
+	      np = np * n;
+	      this.cgb[5] = np * (601676 / 22275);
+	      this.cbg[5] = np * (444337 / 155925);
+
+	      np = Math.pow(n, 2);
+	      this.Qn = this.k0 / (1 + n) * (1 + np * (1 / 4 + np * (1 / 64 + np / 256)));
+
+	      this.utg[0] = n * (-0.5 + n * ( 2 / 3 + n * (-37 / 96 + n * ( 1 / 360 + n * (81 / 512 + n * (-96199 / 604800))))));
+	      this.gtu[0] = n * (0.5 + n * (-2 / 3 + n * (5 / 16 + n * (41 / 180 + n * (-127 / 288 + n * (7891 / 37800))))));
+
+	      this.utg[1] = np * (-1 / 48 + n * (-1 / 15 + n * (437 / 1440 + n * (-46 / 105 + n * (1118711 / 3870720)))));
+	      this.gtu[1] = np * (13 / 48 + n * (-3 / 5 + n * (557 / 1440 + n * (281 / 630 + n * (-1983433 / 1935360)))));
+
+	      np = np * n;
+	      this.utg[2] = np * (-17 / 480 + n * (37 / 840 + n * (209 / 4480 + n * (-5569 / 90720 ))));
+	      this.gtu[2] = np * (61 / 240 + n * (-103 / 140 + n * (15061 / 26880 + n * (167603 / 181440))));
+
+	      np = np * n;
+	      this.utg[3] = np * (-4397 / 161280 + n * (11 / 504 + n * (830251 / 7257600)));
+	      this.gtu[3] = np * (49561 / 161280 + n * (-179 / 168 + n * (6601661 / 7257600)));
+
+	      np = np * n;
+	      this.utg[4] = np * (-4583 / 161280 + n * (108847 / 3991680));
+	      this.gtu[4] = np * (34729 / 80640 + n * (-3418889 / 1995840));
+
+	      np = np * n;
+	      this.utg[5] = np * (-20648693 / 638668800);
+	      this.gtu[5] = np * (212378941 / 319334400);
+
+	      var Z = gatg(this.cbg, this.lat0);
+	      this.Zb = -this.Qn * (Z + clens(this.gtu, 2 * Z));
+	    }
+
+	    function forward$3(p) {
+	      var Ce = adjust_lon(p.x - this.long0);
+	      var Cn = p.y;
+
+	      Cn = gatg(this.cbg, Cn);
+	      var sin_Cn = Math.sin(Cn);
+	      var cos_Cn = Math.cos(Cn);
+	      var sin_Ce = Math.sin(Ce);
+	      var cos_Ce = Math.cos(Ce);
+
+	      Cn = Math.atan2(sin_Cn, cos_Ce * cos_Cn);
+	      Ce = Math.atan2(sin_Ce * cos_Cn, hypot(sin_Cn, cos_Cn * cos_Ce));
+	      Ce = asinhy(Math.tan(Ce));
+
+	      var tmp = clens_cmplx(this.gtu, 2 * Cn, 2 * Ce);
+
+	      Cn = Cn + tmp[0];
+	      Ce = Ce + tmp[1];
+
+	      var x;
+	      var y;
+
+	      if (Math.abs(Ce) <= 2.623395162778) {
+	        x = this.a * (this.Qn * Ce) + this.x0;
+	        y = this.a * (this.Qn * Cn + this.Zb) + this.y0;
+	      }
+	      else {
+	        x = Infinity;
+	        y = Infinity;
+	      }
+
+	      p.x = x;
+	      p.y = y;
+
+	      return p;
+	    }
+
+	    function inverse$3(p) {
+	      var Ce = (p.x - this.x0) * (1 / this.a);
+	      var Cn = (p.y - this.y0) * (1 / this.a);
+
+	      Cn = (Cn - this.Zb) / this.Qn;
+	      Ce = Ce / this.Qn;
+
+	      var lon;
+	      var lat;
+
+	      if (Math.abs(Ce) <= 2.623395162778) {
+	        var tmp = clens_cmplx(this.utg, 2 * Cn, 2 * Ce);
+
+	        Cn = Cn + tmp[0];
+	        Ce = Ce + tmp[1];
+	        Ce = Math.atan(sinh(Ce));
+
+	        var sin_Cn = Math.sin(Cn);
+	        var cos_Cn = Math.cos(Cn);
+	        var sin_Ce = Math.sin(Ce);
+	        var cos_Ce = Math.cos(Ce);
+
+	        Cn = Math.atan2(sin_Cn * cos_Ce, hypot(sin_Ce, cos_Ce * cos_Cn));
+	        Ce = Math.atan2(sin_Ce, cos_Ce * cos_Cn);
+
+	        lon = adjust_lon(Ce + this.long0);
+	        lat = gatg(this.cgb, Cn);
+	      }
+	      else {
+	        lon = Infinity;
+	        lat = Infinity;
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+
+	      return p;
+	    }
+
+	    var names$4 = ["Extended_Transverse_Mercator", "Extended Transverse Mercator", "etmerc", "Transverse_Mercator", "Transverse Mercator", "tmerc"];
+	    var etmerc = {
+	      init: init$3,
+	      forward: forward$3,
+	      inverse: inverse$3,
+	      names: names$4
+	    };
+
+	    var adjust_zone = function(zone, lon) {
+	      if (zone === undefined) {
+	        zone = Math.floor((adjust_lon(lon) + Math.PI) * 30 / Math.PI) + 1;
+
+	        if (zone < 0) {
+	          return 0;
+	        } else if (zone > 60) {
+	          return 60;
+	        }
+	      }
+	      return zone;
+	    };
+
+	    var dependsOn = 'etmerc';
+	    function init$4() {
+	      var zone = adjust_zone(this.zone, this.long0);
+	      if (zone === undefined) {
+	        throw new Error('unknown utm zone');
+	      }
+	      this.lat0 = 0;
+	      this.long0 =  ((6 * Math.abs(zone)) - 183) * D2R;
+	      this.x0 = 500000;
+	      this.y0 = this.utmSouth ? 10000000 : 0;
+	      this.k0 = 0.9996;
+
+	      etmerc.init.apply(this);
+	      this.forward = etmerc.forward;
+	      this.inverse = etmerc.inverse;
+	    }
+
+	    var names$5 = ["Universal Transverse Mercator System", "utm"];
+	    var utm = {
+	      init: init$4,
+	      names: names$5,
+	      dependsOn: dependsOn
+	    };
+
+	    var srat = function(esinp, exp) {
+	      return (Math.pow((1 - esinp) / (1 + esinp), exp));
+	    };
+
+	    var MAX_ITER$1 = 20;
+	    function init$6() {
+	      var sphi = Math.sin(this.lat0);
+	      var cphi = Math.cos(this.lat0);
+	      cphi *= cphi;
+	      this.rc = Math.sqrt(1 - this.es) / (1 - this.es * sphi * sphi);
+	      this.C = Math.sqrt(1 + this.es * cphi * cphi / (1 - this.es));
+	      this.phic0 = Math.asin(sphi / this.C);
+	      this.ratexp = 0.5 * this.C * this.e;
+	      this.K = Math.tan(0.5 * this.phic0 + FORTPI) / (Math.pow(Math.tan(0.5 * this.lat0 + FORTPI), this.C) * srat(this.e * sphi, this.ratexp));
+	    }
+
+	    function forward$5(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      p.y = 2 * Math.atan(this.K * Math.pow(Math.tan(0.5 * lat + FORTPI), this.C) * srat(this.e * Math.sin(lat), this.ratexp)) - HALF_PI;
+	      p.x = this.C * lon;
+	      return p;
+	    }
+
+	    function inverse$5(p) {
+	      var DEL_TOL = 1e-14;
+	      var lon = p.x / this.C;
+	      var lat = p.y;
+	      var num = Math.pow(Math.tan(0.5 * lat + FORTPI) / this.K, 1 / this.C);
+	      for (var i = MAX_ITER$1; i > 0; --i) {
+	        lat = 2 * Math.atan(num * srat(this.e * Math.sin(p.y), - 0.5 * this.e)) - HALF_PI;
+	        if (Math.abs(lat - p.y) < DEL_TOL) {
+	          break;
+	        }
+	        p.y = lat;
+	      }
+	      /* convergence failed */
+	      if (!i) {
+	        return null;
+	      }
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$7 = ["gauss"];
+	    var gauss = {
+	      init: init$6,
+	      forward: forward$5,
+	      inverse: inverse$5,
+	      names: names$7
+	    };
+
+	    function init$5() {
+	      gauss.init.apply(this);
+	      if (!this.rc) {
+	        return;
+	      }
+	      this.sinc0 = Math.sin(this.phic0);
+	      this.cosc0 = Math.cos(this.phic0);
+	      this.R2 = 2 * this.rc;
+	      if (!this.title) {
+	        this.title = "Oblique Stereographic Alternative";
+	      }
+	    }
+
+	    function forward$4(p) {
+	      var sinc, cosc, cosl, k;
+	      p.x = adjust_lon(p.x - this.long0);
+	      gauss.forward.apply(this, [p]);
+	      sinc = Math.sin(p.y);
+	      cosc = Math.cos(p.y);
+	      cosl = Math.cos(p.x);
+	      k = this.k0 * this.R2 / (1 + this.sinc0 * sinc + this.cosc0 * cosc * cosl);
+	      p.x = k * cosc * Math.sin(p.x);
+	      p.y = k * (this.cosc0 * sinc - this.sinc0 * cosc * cosl);
+	      p.x = this.a * p.x + this.x0;
+	      p.y = this.a * p.y + this.y0;
+	      return p;
+	    }
+
+	    function inverse$4(p) {
+	      var sinc, cosc, lon, lat, rho;
+	      p.x = (p.x - this.x0) / this.a;
+	      p.y = (p.y - this.y0) / this.a;
+
+	      p.x /= this.k0;
+	      p.y /= this.k0;
+	      if ((rho = Math.sqrt(p.x * p.x + p.y * p.y))) {
+	        var c = 2 * Math.atan2(rho, this.R2);
+	        sinc = Math.sin(c);
+	        cosc = Math.cos(c);
+	        lat = Math.asin(cosc * this.sinc0 + p.y * sinc * this.cosc0 / rho);
+	        lon = Math.atan2(p.x * sinc, rho * this.cosc0 * cosc - p.y * this.sinc0 * sinc);
+	      }
+	      else {
+	        lat = this.phic0;
+	        lon = 0;
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+	      gauss.inverse.apply(this, [p]);
+	      p.x = adjust_lon(p.x + this.long0);
+	      return p;
+	    }
+
+	    var names$6 = ["Stereographic_North_Pole", "Oblique_Stereographic", "Polar_Stereographic", "sterea","Oblique Stereographic Alternative","Double_Stereographic"];
+	    var sterea = {
+	      init: init$5,
+	      forward: forward$4,
+	      inverse: inverse$4,
+	      names: names$6
+	    };
+
+	    function ssfn_(phit, sinphi, eccen) {
+	      sinphi *= eccen;
+	      return (Math.tan(0.5 * (HALF_PI + phit)) * Math.pow((1 - sinphi) / (1 + sinphi), 0.5 * eccen));
+	    }
+
+	    function init$7() {
+	      this.coslat0 = Math.cos(this.lat0);
+	      this.sinlat0 = Math.sin(this.lat0);
+	      if (this.sphere) {
+	        if (this.k0 === 1 && !isNaN(this.lat_ts) && Math.abs(this.coslat0) <= EPSLN) {
+	          this.k0 = 0.5 * (1 + sign(this.lat0) * Math.sin(this.lat_ts));
+	        }
+	      }
+	      else {
+	        if (Math.abs(this.coslat0) <= EPSLN) {
+	          if (this.lat0 > 0) {
+	            //North pole
+	            //trace('stere:north pole');
+	            this.con = 1;
+	          }
+	          else {
+	            //South pole
+	            //trace('stere:south pole');
+	            this.con = -1;
+	          }
+	        }
+	        this.cons = Math.sqrt(Math.pow(1 + this.e, 1 + this.e) * Math.pow(1 - this.e, 1 - this.e));
+	        if (this.k0 === 1 && !isNaN(this.lat_ts) && Math.abs(this.coslat0) <= EPSLN) {
+	          this.k0 = 0.5 * this.cons * msfnz(this.e, Math.sin(this.lat_ts), Math.cos(this.lat_ts)) / tsfnz(this.e, this.con * this.lat_ts, this.con * Math.sin(this.lat_ts));
+	        }
+	        this.ms1 = msfnz(this.e, this.sinlat0, this.coslat0);
+	        this.X0 = 2 * Math.atan(this.ssfn_(this.lat0, this.sinlat0, this.e)) - HALF_PI;
+	        this.cosX0 = Math.cos(this.X0);
+	        this.sinX0 = Math.sin(this.X0);
+	      }
+	    }
+
+	    // Stereographic forward equations--mapping lat,long to x,y
+	    function forward$6(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      var sinlat = Math.sin(lat);
+	      var coslat = Math.cos(lat);
+	      var A, X, sinX, cosX, ts, rh;
+	      var dlon = adjust_lon(lon - this.long0);
+
+	      if (Math.abs(Math.abs(lon - this.long0) - Math.PI) <= EPSLN && Math.abs(lat + this.lat0) <= EPSLN) {
+	        //case of the origine point
+	        //trace('stere:this is the origin point');
+	        p.x = NaN;
+	        p.y = NaN;
+	        return p;
+	      }
+	      if (this.sphere) {
+	        //trace('stere:sphere case');
+	        A = 2 * this.k0 / (1 + this.sinlat0 * sinlat + this.coslat0 * coslat * Math.cos(dlon));
+	        p.x = this.a * A * coslat * Math.sin(dlon) + this.x0;
+	        p.y = this.a * A * (this.coslat0 * sinlat - this.sinlat0 * coslat * Math.cos(dlon)) + this.y0;
+	        return p;
+	      }
+	      else {
+	        X = 2 * Math.atan(this.ssfn_(lat, sinlat, this.e)) - HALF_PI;
+	        cosX = Math.cos(X);
+	        sinX = Math.sin(X);
+	        if (Math.abs(this.coslat0) <= EPSLN) {
+	          ts = tsfnz(this.e, lat * this.con, this.con * sinlat);
+	          rh = 2 * this.a * this.k0 * ts / this.cons;
+	          p.x = this.x0 + rh * Math.sin(lon - this.long0);
+	          p.y = this.y0 - this.con * rh * Math.cos(lon - this.long0);
+	          //trace(p.toString());
+	          return p;
+	        }
+	        else if (Math.abs(this.sinlat0) < EPSLN) {
+	          //Eq
+	          //trace('stere:equateur');
+	          A = 2 * this.a * this.k0 / (1 + cosX * Math.cos(dlon));
+	          p.y = A * sinX;
+	        }
+	        else {
+	          //other case
+	          //trace('stere:normal case');
+	          A = 2 * this.a * this.k0 * this.ms1 / (this.cosX0 * (1 + this.sinX0 * sinX + this.cosX0 * cosX * Math.cos(dlon)));
+	          p.y = A * (this.cosX0 * sinX - this.sinX0 * cosX * Math.cos(dlon)) + this.y0;
+	        }
+	        p.x = A * cosX * Math.sin(dlon) + this.x0;
+	      }
+	      //trace(p.toString());
+	      return p;
+	    }
+
+	    //* Stereographic inverse equations--mapping x,y to lat/long
+	    function inverse$6(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      var lon, lat, ts, ce, Chi;
+	      var rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	      if (this.sphere) {
+	        var c = 2 * Math.atan(rh / (2 * this.a * this.k0));
+	        lon = this.long0;
+	        lat = this.lat0;
+	        if (rh <= EPSLN) {
+	          p.x = lon;
+	          p.y = lat;
+	          return p;
+	        }
+	        lat = Math.asin(Math.cos(c) * this.sinlat0 + p.y * Math.sin(c) * this.coslat0 / rh);
+	        if (Math.abs(this.coslat0) < EPSLN) {
+	          if (this.lat0 > 0) {
+	            lon = adjust_lon(this.long0 + Math.atan2(p.x, - 1 * p.y));
+	          }
+	          else {
+	            lon = adjust_lon(this.long0 + Math.atan2(p.x, p.y));
+	          }
+	        }
+	        else {
+	          lon = adjust_lon(this.long0 + Math.atan2(p.x * Math.sin(c), rh * this.coslat0 * Math.cos(c) - p.y * this.sinlat0 * Math.sin(c)));
+	        }
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+	      else {
+	        if (Math.abs(this.coslat0) <= EPSLN) {
+	          if (rh <= EPSLN) {
+	            lat = this.lat0;
+	            lon = this.long0;
+	            p.x = lon;
+	            p.y = lat;
+	            //trace(p.toString());
+	            return p;
+	          }
+	          p.x *= this.con;
+	          p.y *= this.con;
+	          ts = rh * this.cons / (2 * this.a * this.k0);
+	          lat = this.con * phi2z(this.e, ts);
+	          lon = this.con * adjust_lon(this.con * this.long0 + Math.atan2(p.x, - 1 * p.y));
+	        }
+	        else {
+	          ce = 2 * Math.atan(rh * this.cosX0 / (2 * this.a * this.k0 * this.ms1));
+	          lon = this.long0;
+	          if (rh <= EPSLN) {
+	            Chi = this.X0;
+	          }
+	          else {
+	            Chi = Math.asin(Math.cos(ce) * this.sinX0 + p.y * Math.sin(ce) * this.cosX0 / rh);
+	            lon = adjust_lon(this.long0 + Math.atan2(p.x * Math.sin(ce), rh * this.cosX0 * Math.cos(ce) - p.y * this.sinX0 * Math.sin(ce)));
+	          }
+	          lat = -1 * phi2z(this.e, Math.tan(0.5 * (HALF_PI + Chi)));
+	        }
+	      }
+	      p.x = lon;
+	      p.y = lat;
+
+	      //trace(p.toString());
+	      return p;
+
+	    }
+
+	    var names$8 = ["stere", "Stereographic_South_Pole", "Polar Stereographic (variant B)"];
+	    var stere = {
+	      init: init$7,
+	      forward: forward$6,
+	      inverse: inverse$6,
+	      names: names$8,
+	      ssfn_: ssfn_
+	    };
+
+	    /*
+	      references:
+	        Formules et constantes pour le Calcul pour la
+	        projection cylindrique conforme à axe oblique et pour la transformation entre
+	        des systèmes de référence.
+	        http://www.swisstopo.admin.ch/internet/swisstopo/fr/home/topics/survey/sys/refsys/switzerland.parsysrelated1.31216.downloadList.77004.DownloadFile.tmp/swissprojectionfr.pdf
+	      */
+
+	    function init$8() {
+	      var phy0 = this.lat0;
+	      this.lambda0 = this.long0;
+	      var sinPhy0 = Math.sin(phy0);
+	      var semiMajorAxis = this.a;
+	      var invF = this.rf;
+	      var flattening = 1 / invF;
+	      var e2 = 2 * flattening - Math.pow(flattening, 2);
+	      var e = this.e = Math.sqrt(e2);
+	      this.R = this.k0 * semiMajorAxis * Math.sqrt(1 - e2) / (1 - e2 * Math.pow(sinPhy0, 2));
+	      this.alpha = Math.sqrt(1 + e2 / (1 - e2) * Math.pow(Math.cos(phy0), 4));
+	      this.b0 = Math.asin(sinPhy0 / this.alpha);
+	      var k1 = Math.log(Math.tan(Math.PI / 4 + this.b0 / 2));
+	      var k2 = Math.log(Math.tan(Math.PI / 4 + phy0 / 2));
+	      var k3 = Math.log((1 + e * sinPhy0) / (1 - e * sinPhy0));
+	      this.K = k1 - this.alpha * k2 + this.alpha * e / 2 * k3;
+	    }
+
+	    function forward$7(p) {
+	      var Sa1 = Math.log(Math.tan(Math.PI / 4 - p.y / 2));
+	      var Sa2 = this.e / 2 * Math.log((1 + this.e * Math.sin(p.y)) / (1 - this.e * Math.sin(p.y)));
+	      var S = -this.alpha * (Sa1 + Sa2) + this.K;
+
+	      // spheric latitude
+	      var b = 2 * (Math.atan(Math.exp(S)) - Math.PI / 4);
+
+	      // spheric longitude
+	      var I = this.alpha * (p.x - this.lambda0);
+
+	      // psoeudo equatorial rotation
+	      var rotI = Math.atan(Math.sin(I) / (Math.sin(this.b0) * Math.tan(b) + Math.cos(this.b0) * Math.cos(I)));
+
+	      var rotB = Math.asin(Math.cos(this.b0) * Math.sin(b) - Math.sin(this.b0) * Math.cos(b) * Math.cos(I));
+
+	      p.y = this.R / 2 * Math.log((1 + Math.sin(rotB)) / (1 - Math.sin(rotB))) + this.y0;
+	      p.x = this.R * rotI + this.x0;
+	      return p;
+	    }
+
+	    function inverse$7(p) {
+	      var Y = p.x - this.x0;
+	      var X = p.y - this.y0;
+
+	      var rotI = Y / this.R;
+	      var rotB = 2 * (Math.atan(Math.exp(X / this.R)) - Math.PI / 4);
+
+	      var b = Math.asin(Math.cos(this.b0) * Math.sin(rotB) + Math.sin(this.b0) * Math.cos(rotB) * Math.cos(rotI));
+	      var I = Math.atan(Math.sin(rotI) / (Math.cos(this.b0) * Math.cos(rotI) - Math.sin(this.b0) * Math.tan(rotB)));
+
+	      var lambda = this.lambda0 + I / this.alpha;
+
+	      var S = 0;
+	      var phy = b;
+	      var prevPhy = -1000;
+	      var iteration = 0;
+	      while (Math.abs(phy - prevPhy) > 0.0000001) {
+	        if (++iteration > 20) {
+	          //...reportError("omercFwdInfinity");
+	          return;
+	        }
+	        //S = Math.log(Math.tan(Math.PI / 4 + phy / 2));
+	        S = 1 / this.alpha * (Math.log(Math.tan(Math.PI / 4 + b / 2)) - this.K) + this.e * Math.log(Math.tan(Math.PI / 4 + Math.asin(this.e * Math.sin(phy)) / 2));
+	        prevPhy = phy;
+	        phy = 2 * Math.atan(Math.exp(S)) - Math.PI / 2;
+	      }
+
+	      p.x = lambda;
+	      p.y = phy;
+	      return p;
+	    }
+
+	    var names$9 = ["somerc"];
+	    var somerc = {
+	      init: init$8,
+	      forward: forward$7,
+	      inverse: inverse$7,
+	      names: names$9
+	    };
+
+	    var TOL = 1e-7;
+
+	    function isTypeA(P) {
+	      var typeAProjections = ['Hotine_Oblique_Mercator','Hotine_Oblique_Mercator_Azimuth_Natural_Origin'];
+	      var projectionName = typeof P.PROJECTION === "object" ? Object.keys(P.PROJECTION)[0] : P.PROJECTION;
+	      
+	      return 'no_uoff' in P || 'no_off' in P || typeAProjections.indexOf(projectionName) !== -1;
+	    }
+
+
+	    /* Initialize the Oblique Mercator  projection
+	        ------------------------------------------*/
+	    function init$9() {  
+	      var con, com, cosph0, D, F, H, L, sinph0, p, J, gamma = 0,
+	        gamma0, lamc = 0, lam1 = 0, lam2 = 0, phi1 = 0, phi2 = 0, alpha_c = 0;
+	      
+	      // only Type A uses the no_off or no_uoff property
+	      // https://github.com/OSGeo/proj.4/issues/104
+	      this.no_off = isTypeA(this);
+	      this.no_rot = 'no_rot' in this;
+	      
+	      var alp = false;
+	      if ("alpha" in this) {
+	        alp = true;
+	      }
+
+	      var gam = false;
+	      if ("rectified_grid_angle" in this) {
+	        gam = true;
+	      }
+
+	      if (alp) {
+	        alpha_c = this.alpha;
+	      }
+	      
+	      if (gam) {
+	        gamma = (this.rectified_grid_angle * D2R);
+	      }
+	      
+	      if (alp || gam) {
+	        lamc = this.longc;
+	      } else {
+	        lam1 = this.long1;
+	        phi1 = this.lat1;
+	        lam2 = this.long2;
+	        phi2 = this.lat2;
+	        
+	        if (Math.abs(phi1 - phi2) <= TOL || (con = Math.abs(phi1)) <= TOL ||
+	            Math.abs(con - HALF_PI) <= TOL || Math.abs(Math.abs(this.lat0) - HALF_PI) <= TOL ||
+	            Math.abs(Math.abs(phi2) - HALF_PI) <= TOL) {
+	          throw new Error();
+	        }
+	      }
+	      
+	      var one_es = 1.0 - this.es;
+	      com = Math.sqrt(one_es);
+	      
+	      if (Math.abs(this.lat0) > EPSLN) {
+	        sinph0 = Math.sin(this.lat0);
+	        cosph0 = Math.cos(this.lat0);
+	        con = 1 - this.es * sinph0 * sinph0;
+	        this.B = cosph0 * cosph0;
+	        this.B = Math.sqrt(1 + this.es * this.B * this.B / one_es);
+	        this.A = this.B * this.k0 * com / con;
+	        D = this.B * com / (cosph0 * Math.sqrt(con));
+	        F = D * D -1;
+	        
+	        if (F <= 0) {
+	          F = 0;
+	        } else {
+	          F = Math.sqrt(F);
+	          if (this.lat0 < 0) {
+	            F = -F;
+	          }
+	        }
+	        
+	        this.E = F += D;
+	        this.E *= Math.pow(tsfnz(this.e, this.lat0, sinph0), this.B);
+	      } else {
+	        this.B = 1 / com;
+	        this.A = this.k0;
+	        this.E = D = F = 1;
+	      }
+	      
+	      if (alp || gam) {
+	        if (alp) {
+	          gamma0 = Math.asin(Math.sin(alpha_c) / D);
+	          if (!gam) {
+	            gamma = alpha_c;
+	          }
+	        } else {
+	          gamma0 = gamma;
+	          alpha_c = Math.asin(D * Math.sin(gamma0));
+	        }
+	        this.lam0 = lamc - Math.asin(0.5 * (F - 1 / F) * Math.tan(gamma0)) / this.B;
+	      } else {
+	        H = Math.pow(tsfnz(this.e, phi1, Math.sin(phi1)), this.B);
+	        L = Math.pow(tsfnz(this.e, phi2, Math.sin(phi2)), this.B);
+	        F = this.E / H;
+	        p = (L - H) / (L + H);
+	        J = this.E * this.E;
+	        J = (J - L * H) / (J + L * H);
+	        con = lam1 - lam2;
+	        
+	        if (con < -Math.pi) {
+	          lam2 -=TWO_PI;
+	        } else if (con > Math.pi) {
+	          lam2 += TWO_PI;
+	        }
+	        
+	        this.lam0 = adjust_lon(0.5 * (lam1 + lam2) - Math.atan(J * Math.tan(0.5 * this.B * (lam1 - lam2)) / p) / this.B);
+	        gamma0 = Math.atan(2 * Math.sin(this.B * adjust_lon(lam1 - this.lam0)) / (F - 1 / F));
+	        gamma = alpha_c = Math.asin(D * Math.sin(gamma0));
+	      }
+	      
+	      this.singam = Math.sin(gamma0);
+	      this.cosgam = Math.cos(gamma0);
+	      this.sinrot = Math.sin(gamma);
+	      this.cosrot = Math.cos(gamma);
+	      
+	      this.rB = 1 / this.B;
+	      this.ArB = this.A * this.rB;
+	      this.BrA = 1 / this.ArB;
+	      if (this.no_off) {
+	        this.u_0 = 0;
+	      } else {
+	        this.u_0 = Math.abs(this.ArB * Math.atan(Math.sqrt(D * D - 1) / Math.cos(alpha_c)));
+	        
+	        if (this.lat0 < 0) {
+	          this.u_0 = - this.u_0;
+	        }  
+	      }
+	        
+	      F = 0.5 * gamma0;
+	      this.v_pole_n = this.ArB * Math.log(Math.tan(FORTPI - F));
+	      this.v_pole_s = this.ArB * Math.log(Math.tan(FORTPI + F));
+	    }
+
+
+	    /* Oblique Mercator forward equations--mapping lat,long to x,y
+	        ----------------------------------------------------------*/
+	    function forward$8(p) {
+	      var coords = {};
+	      var S, T, U, V, W, temp, u, v;
+	      p.x = p.x - this.lam0;
+	      
+	      if (Math.abs(Math.abs(p.y) - HALF_PI) > EPSLN) {
+	        W = this.E / Math.pow(tsfnz(this.e, p.y, Math.sin(p.y)), this.B);
+	        
+	        temp = 1 / W;
+	        S = 0.5 * (W - temp);
+	        T = 0.5 * (W + temp);
+	        V = Math.sin(this.B * p.x);
+	        U = (S * this.singam - V * this.cosgam) / T;
+	            
+	        if (Math.abs(Math.abs(U) - 1.0) < EPSLN) {
+	          throw new Error();
+	        }
+	        
+	        v = 0.5 * this.ArB * Math.log((1 - U)/(1 + U));
+	        temp = Math.cos(this.B * p.x);
+	        
+	        if (Math.abs(temp) < TOL) {
+	          u = this.A * p.x;
+	        } else {
+	          u = this.ArB * Math.atan2((S * this.cosgam + V * this.singam), temp);
+	        }    
+	      } else {
+	        v = p.y > 0 ? this.v_pole_n : this.v_pole_s;
+	        u = this.ArB * p.y;
+	      }
+	         
+	      if (this.no_rot) {
+	        coords.x = u;
+	        coords.y = v;
+	      } else {
+	        u -= this.u_0;
+	        coords.x = v * this.cosrot + u * this.sinrot;
+	        coords.y = u * this.cosrot - v * this.sinrot;
+	      }
+	      
+	      coords.x = (this.a * coords.x + this.x0);
+	      coords.y = (this.a * coords.y + this.y0);
+	      
+	      return coords;
+	    }
+
+	    function inverse$8(p) {
+	      var u, v, Qp, Sp, Tp, Vp, Up;
+	      var coords = {};
+	      
+	      p.x = (p.x - this.x0) * (1.0 / this.a);
+	      p.y = (p.y - this.y0) * (1.0 / this.a);
+
+	      if (this.no_rot) {
+	        v = p.y;
+	        u = p.x;
+	      } else {
+	        v = p.x * this.cosrot - p.y * this.sinrot;
+	        u = p.y * this.cosrot + p.x * this.sinrot + this.u_0;
+	      }
+	      
+	      Qp = Math.exp(-this.BrA * v);
+	      Sp = 0.5 * (Qp - 1 / Qp);
+	      Tp = 0.5 * (Qp + 1 / Qp);
+	      Vp = Math.sin(this.BrA * u);
+	      Up = (Vp * this.cosgam + Sp * this.singam) / Tp;
+	      
+	      if (Math.abs(Math.abs(Up) - 1) < EPSLN) {
+	        coords.x = 0;
+	        coords.y = Up < 0 ? -HALF_PI : HALF_PI;
+	      } else {
+	        coords.y = this.E / Math.sqrt((1 + Up) / (1 - Up));
+	        coords.y = phi2z(this.e, Math.pow(coords.y, 1 / this.B));
+	        
+	        if (coords.y === Infinity) {
+	          throw new Error();
+	        }
+	            
+	        coords.x = -this.rB * Math.atan2((Sp * this.cosgam - Vp * this.singam), Math.cos(this.BrA * u));
+	      }
+	      
+	      coords.x += this.lam0;
+	      
+	      return coords;
+	    }
+
+	    var names$10 = ["Hotine_Oblique_Mercator", "Hotine Oblique Mercator", "Hotine_Oblique_Mercator_Azimuth_Natural_Origin", "Hotine_Oblique_Mercator_Two_Point_Natural_Origin", "Hotine_Oblique_Mercator_Azimuth_Center", "Oblique_Mercator", "omerc"];
+	    var omerc = {
+	      init: init$9,
+	      forward: forward$8,
+	      inverse: inverse$8,
+	      names: names$10
+	    };
+
+	    function init$10() {
+	      
+	      //double lat0;                    /* the reference latitude               */
+	      //double long0;                   /* the reference longitude              */
+	      //double lat1;                    /* first standard parallel              */
+	      //double lat2;                    /* second standard parallel             */
+	      //double r_maj;                   /* major axis                           */
+	      //double r_min;                   /* minor axis                           */
+	      //double false_east;              /* x offset in meters                   */
+	      //double false_north;             /* y offset in meters                   */
+	      
+	      //the above value can be set with proj4.defs
+	      //example: proj4.defs("EPSG:2154","+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+
+	      if (!this.lat2) {
+	        this.lat2 = this.lat1;
+	      } //if lat2 is not defined
+	      if (!this.k0) {
+	        this.k0 = 1;
+	      }
+	      this.x0 = this.x0 || 0;
+	      this.y0 = this.y0 || 0;
+	      // Standard Parallels cannot be equal and on opposite sides of the equator
+	      if (Math.abs(this.lat1 + this.lat2) < EPSLN) {
+	        return;
+	      }
+
+	      var temp = this.b / this.a;
+	      this.e = Math.sqrt(1 - temp * temp);
+
+	      var sin1 = Math.sin(this.lat1);
+	      var cos1 = Math.cos(this.lat1);
+	      var ms1 = msfnz(this.e, sin1, cos1);
+	      var ts1 = tsfnz(this.e, this.lat1, sin1);
+
+	      var sin2 = Math.sin(this.lat2);
+	      var cos2 = Math.cos(this.lat2);
+	      var ms2 = msfnz(this.e, sin2, cos2);
+	      var ts2 = tsfnz(this.e, this.lat2, sin2);
+
+	      var ts0 = tsfnz(this.e, this.lat0, Math.sin(this.lat0));
+
+	      if (Math.abs(this.lat1 - this.lat2) > EPSLN) {
+	        this.ns = Math.log(ms1 / ms2) / Math.log(ts1 / ts2);
+	      }
+	      else {
+	        this.ns = sin1;
+	      }
+	      if (isNaN(this.ns)) {
+	        this.ns = sin1;
+	      }
+	      this.f0 = ms1 / (this.ns * Math.pow(ts1, this.ns));
+	      this.rh = this.a * this.f0 * Math.pow(ts0, this.ns);
+	      if (!this.title) {
+	        this.title = "Lambert Conformal Conic";
+	      }
+	    }
+
+	    // Lambert Conformal conic forward equations--mapping lat,long to x,y
+	    // -----------------------------------------------------------------
+	    function forward$9(p) {
+
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      // singular cases :
+	      if (Math.abs(2 * Math.abs(lat) - Math.PI) <= EPSLN) {
+	        lat = sign(lat) * (HALF_PI - 2 * EPSLN);
+	      }
+
+	      var con = Math.abs(Math.abs(lat) - HALF_PI);
+	      var ts, rh1;
+	      if (con > EPSLN) {
+	        ts = tsfnz(this.e, lat, Math.sin(lat));
+	        rh1 = this.a * this.f0 * Math.pow(ts, this.ns);
+	      }
+	      else {
+	        con = lat * this.ns;
+	        if (con <= 0) {
+	          return null;
+	        }
+	        rh1 = 0;
+	      }
+	      var theta = this.ns * adjust_lon(lon - this.long0);
+	      p.x = this.k0 * (rh1 * Math.sin(theta)) + this.x0;
+	      p.y = this.k0 * (this.rh - rh1 * Math.cos(theta)) + this.y0;
+
+	      return p;
+	    }
+
+	    // Lambert Conformal Conic inverse equations--mapping x,y to lat/long
+	    // -----------------------------------------------------------------
+	    function inverse$9(p) {
+
+	      var rh1, con, ts;
+	      var lat, lon;
+	      var x = (p.x - this.x0) / this.k0;
+	      var y = (this.rh - (p.y - this.y0) / this.k0);
+	      if (this.ns > 0) {
+	        rh1 = Math.sqrt(x * x + y * y);
+	        con = 1;
+	      }
+	      else {
+	        rh1 = -Math.sqrt(x * x + y * y);
+	        con = -1;
+	      }
+	      var theta = 0;
+	      if (rh1 !== 0) {
+	        theta = Math.atan2((con * x), (con * y));
+	      }
+	      if ((rh1 !== 0) || (this.ns > 0)) {
+	        con = 1 / this.ns;
+	        ts = Math.pow((rh1 / (this.a * this.f0)), con);
+	        lat = phi2z(this.e, ts);
+	        if (lat === -9999) {
+	          return null;
+	        }
+	      }
+	      else {
+	        lat = -HALF_PI;
+	      }
+	      lon = adjust_lon(theta / this.ns + this.long0);
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$11 = [
+	      "Lambert Tangential Conformal Conic Projection",
+	      "Lambert_Conformal_Conic",
+	      "Lambert_Conformal_Conic_1SP",
+	      "Lambert_Conformal_Conic_2SP",
+	      "lcc",
+	      "Lambert Conic Conformal (1SP)",
+	      "Lambert Conic Conformal (2SP)"
+	    ];
+
+	    var lcc = {
+	      init: init$10,
+	      forward: forward$9,
+	      inverse: inverse$9,
+	      names: names$11
+	    };
+
+	    function init$11() {
+	      this.a = 6377397.155;
+	      this.es = 0.006674372230614;
+	      this.e = Math.sqrt(this.es);
+	      if (!this.lat0) {
+	        this.lat0 = 0.863937979737193;
+	      }
+	      if (!this.long0) {
+	        this.long0 = 0.7417649320975901 - 0.308341501185665;
+	      }
+	      /* if scale not set default to 0.9999 */
+	      if (!this.k0) {
+	        this.k0 = 0.9999;
+	      }
+	      this.s45 = 0.785398163397448; /* 45 */
+	      this.s90 = 2 * this.s45;
+	      this.fi0 = this.lat0;
+	      this.e2 = this.es;
+	      this.e = Math.sqrt(this.e2);
+	      this.alfa = Math.sqrt(1 + (this.e2 * Math.pow(Math.cos(this.fi0), 4)) / (1 - this.e2));
+	      this.uq = 1.04216856380474;
+	      this.u0 = Math.asin(Math.sin(this.fi0) / this.alfa);
+	      this.g = Math.pow((1 + this.e * Math.sin(this.fi0)) / (1 - this.e * Math.sin(this.fi0)), this.alfa * this.e / 2);
+	      this.k = Math.tan(this.u0 / 2 + this.s45) / Math.pow(Math.tan(this.fi0 / 2 + this.s45), this.alfa) * this.g;
+	      this.k1 = this.k0;
+	      this.n0 = this.a * Math.sqrt(1 - this.e2) / (1 - this.e2 * Math.pow(Math.sin(this.fi0), 2));
+	      this.s0 = 1.37008346281555;
+	      this.n = Math.sin(this.s0);
+	      this.ro0 = this.k1 * this.n0 / Math.tan(this.s0);
+	      this.ad = this.s90 - this.uq;
+	    }
+
+	    /* ellipsoid */
+	    /* calculate xy from lat/lon */
+	    /* Constants, identical to inverse transform function */
+	    function forward$10(p) {
+	      var gfi, u, deltav, s, d, eps, ro;
+	      var lon = p.x;
+	      var lat = p.y;
+	      var delta_lon = adjust_lon(lon - this.long0);
+	      /* Transformation */
+	      gfi = Math.pow(((1 + this.e * Math.sin(lat)) / (1 - this.e * Math.sin(lat))), (this.alfa * this.e / 2));
+	      u = 2 * (Math.atan(this.k * Math.pow(Math.tan(lat / 2 + this.s45), this.alfa) / gfi) - this.s45);
+	      deltav = -delta_lon * this.alfa;
+	      s = Math.asin(Math.cos(this.ad) * Math.sin(u) + Math.sin(this.ad) * Math.cos(u) * Math.cos(deltav));
+	      d = Math.asin(Math.cos(u) * Math.sin(deltav) / Math.cos(s));
+	      eps = this.n * d;
+	      ro = this.ro0 * Math.pow(Math.tan(this.s0 / 2 + this.s45), this.n) / Math.pow(Math.tan(s / 2 + this.s45), this.n);
+	      p.y = ro * Math.cos(eps) / 1;
+	      p.x = ro * Math.sin(eps) / 1;
+
+	      if (!this.czech) {
+	        p.y *= -1;
+	        p.x *= -1;
+	      }
+	      return (p);
+	    }
+
+	    /* calculate lat/lon from xy */
+	    function inverse$10(p) {
+	      var u, deltav, s, d, eps, ro, fi1;
+	      var ok;
+
+	      /* Transformation */
+	      /* revert y, x*/
+	      var tmp = p.x;
+	      p.x = p.y;
+	      p.y = tmp;
+	      if (!this.czech) {
+	        p.y *= -1;
+	        p.x *= -1;
+	      }
+	      ro = Math.sqrt(p.x * p.x + p.y * p.y);
+	      eps = Math.atan2(p.y, p.x);
+	      d = eps / Math.sin(this.s0);
+	      s = 2 * (Math.atan(Math.pow(this.ro0 / ro, 1 / this.n) * Math.tan(this.s0 / 2 + this.s45)) - this.s45);
+	      u = Math.asin(Math.cos(this.ad) * Math.sin(s) - Math.sin(this.ad) * Math.cos(s) * Math.cos(d));
+	      deltav = Math.asin(Math.cos(s) * Math.sin(d) / Math.cos(u));
+	      p.x = this.long0 - deltav / this.alfa;
+	      fi1 = u;
+	      ok = 0;
+	      var iter = 0;
+	      do {
+	        p.y = 2 * (Math.atan(Math.pow(this.k, - 1 / this.alfa) * Math.pow(Math.tan(u / 2 + this.s45), 1 / this.alfa) * Math.pow((1 + this.e * Math.sin(fi1)) / (1 - this.e * Math.sin(fi1)), this.e / 2)) - this.s45);
+	        if (Math.abs(fi1 - p.y) < 0.0000000001) {
+	          ok = 1;
+	        }
+	        fi1 = p.y;
+	        iter += 1;
+	      } while (ok === 0 && iter < 15);
+	      if (iter >= 15) {
+	        return null;
+	      }
+
+	      return (p);
+	    }
+
+	    var names$12 = ["Krovak", "krovak"];
+	    var krovak = {
+	      init: init$11,
+	      forward: forward$10,
+	      inverse: inverse$10,
+	      names: names$12
+	    };
+
+	    var mlfn = function(e0, e1, e2, e3, phi) {
+	      return (e0 * phi - e1 * Math.sin(2 * phi) + e2 * Math.sin(4 * phi) - e3 * Math.sin(6 * phi));
+	    };
+
+	    var e0fn = function(x) {
+	      return (1 - 0.25 * x * (1 + x / 16 * (3 + 1.25 * x)));
+	    };
+
+	    var e1fn = function(x) {
+	      return (0.375 * x * (1 + 0.25 * x * (1 + 0.46875 * x)));
+	    };
+
+	    var e2fn = function(x) {
+	      return (0.05859375 * x * x * (1 + 0.75 * x));
+	    };
+
+	    var e3fn = function(x) {
+	      return (x * x * x * (35 / 3072));
+	    };
+
+	    var gN = function(a, e, sinphi) {
+	      var temp = e * sinphi;
+	      return a / Math.sqrt(1 - temp * temp);
+	    };
+
+	    var adjust_lat = function(x) {
+	      return (Math.abs(x) < HALF_PI) ? x : (x - (sign(x) * Math.PI));
+	    };
+
+	    var imlfn = function(ml, e0, e1, e2, e3) {
+	      var phi;
+	      var dphi;
+
+	      phi = ml / e0;
+	      for (var i = 0; i < 15; i++) {
+	        dphi = (ml - (e0 * phi - e1 * Math.sin(2 * phi) + e2 * Math.sin(4 * phi) - e3 * Math.sin(6 * phi))) / (e0 - 2 * e1 * Math.cos(2 * phi) + 4 * e2 * Math.cos(4 * phi) - 6 * e3 * Math.cos(6 * phi));
+	        phi += dphi;
+	        if (Math.abs(dphi) <= 0.0000000001) {
+	          return phi;
+	        }
+	      }
+
+	      //..reportError("IMLFN-CONV:Latitude failed to converge after 15 iterations");
+	      return NaN;
+	    };
+
+	    function init$12() {
+	      if (!this.sphere) {
+	        this.e0 = e0fn(this.es);
+	        this.e1 = e1fn(this.es);
+	        this.e2 = e2fn(this.es);
+	        this.e3 = e3fn(this.es);
+	        this.ml0 = this.a * mlfn(this.e0, this.e1, this.e2, this.e3, this.lat0);
+	      }
+	    }
+
+	    /* Cassini forward equations--mapping lat,long to x,y
+	      -----------------------------------------------------------------------*/
+	    function forward$11(p) {
+
+	      /* Forward equations
+	          -----------------*/
+	      var x, y;
+	      var lam = p.x;
+	      var phi = p.y;
+	      lam = adjust_lon(lam - this.long0);
+
+	      if (this.sphere) {
+	        x = this.a * Math.asin(Math.cos(phi) * Math.sin(lam));
+	        y = this.a * (Math.atan2(Math.tan(phi), Math.cos(lam)) - this.lat0);
+	      }
+	      else {
+	        //ellipsoid
+	        var sinphi = Math.sin(phi);
+	        var cosphi = Math.cos(phi);
+	        var nl = gN(this.a, this.e, sinphi);
+	        var tl = Math.tan(phi) * Math.tan(phi);
+	        var al = lam * Math.cos(phi);
+	        var asq = al * al;
+	        var cl = this.es * cosphi * cosphi / (1 - this.es);
+	        var ml = this.a * mlfn(this.e0, this.e1, this.e2, this.e3, phi);
+
+	        x = nl * al * (1 - asq * tl * (1 / 6 - (8 - tl + 8 * cl) * asq / 120));
+	        y = ml - this.ml0 + nl * sinphi / cosphi * asq * (0.5 + (5 - tl + 6 * cl) * asq / 24);
+
+
+	      }
+
+	      p.x = x + this.x0;
+	      p.y = y + this.y0;
+	      return p;
+	    }
+
+	    /* Inverse equations
+	      -----------------*/
+	    function inverse$11(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      var x = p.x / this.a;
+	      var y = p.y / this.a;
+	      var phi, lam;
+
+	      if (this.sphere) {
+	        var dd = y + this.lat0;
+	        phi = Math.asin(Math.sin(dd) * Math.cos(x));
+	        lam = Math.atan2(Math.tan(x), Math.cos(dd));
+	      }
+	      else {
+	        /* ellipsoid */
+	        var ml1 = this.ml0 / this.a + y;
+	        var phi1 = imlfn(ml1, this.e0, this.e1, this.e2, this.e3);
+	        if (Math.abs(Math.abs(phi1) - HALF_PI) <= EPSLN) {
+	          p.x = this.long0;
+	          p.y = HALF_PI;
+	          if (y < 0) {
+	            p.y *= -1;
+	          }
+	          return p;
+	        }
+	        var nl1 = gN(this.a, this.e, Math.sin(phi1));
+
+	        var rl1 = nl1 * nl1 * nl1 / this.a / this.a * (1 - this.es);
+	        var tl1 = Math.pow(Math.tan(phi1), 2);
+	        var dl = x * this.a / nl1;
+	        var dsq = dl * dl;
+	        phi = phi1 - nl1 * Math.tan(phi1) / rl1 * dl * dl * (0.5 - (1 + 3 * tl1) * dl * dl / 24);
+	        lam = dl * (1 - dsq * (tl1 / 3 + (1 + 3 * tl1) * tl1 * dsq / 15)) / Math.cos(phi1);
+
+	      }
+
+	      p.x = adjust_lon(lam + this.long0);
+	      p.y = adjust_lat(phi);
+	      return p;
+
+	    }
+
+	    var names$13 = ["Cassini", "Cassini_Soldner", "cass"];
+	    var cass = {
+	      init: init$12,
+	      forward: forward$11,
+	      inverse: inverse$11,
+	      names: names$13
+	    };
+
+	    var qsfnz = function(eccent, sinphi) {
+	      var con;
+	      if (eccent > 1.0e-7) {
+	        con = eccent * sinphi;
+	        return ((1 - eccent * eccent) * (sinphi / (1 - con * con) - (0.5 / eccent) * Math.log((1 - con) / (1 + con))));
+	      }
+	      else {
+	        return (2 * sinphi);
+	      }
+	    };
+
+	    /*
+	      reference
+	        "New Equal-Area Map Projections for Noncircular Regions", John P. Snyder,
+	        The American Cartographer, Vol 15, No. 4, October 1988, pp. 341-355.
+	      */
+
+	    var S_POLE = 1;
+
+	    var N_POLE = 2;
+	    var EQUIT = 3;
+	    var OBLIQ = 4;
+
+	    /* Initialize the Lambert Azimuthal Equal Area projection
+	      ------------------------------------------------------*/
+	    function init$13() {
+	      var t = Math.abs(this.lat0);
+	      if (Math.abs(t - HALF_PI) < EPSLN) {
+	        this.mode = this.lat0 < 0 ? this.S_POLE : this.N_POLE;
+	      }
+	      else if (Math.abs(t) < EPSLN) {
+	        this.mode = this.EQUIT;
+	      }
+	      else {
+	        this.mode = this.OBLIQ;
+	      }
+	      if (this.es > 0) {
+	        var sinphi;
+
+	        this.qp = qsfnz(this.e, 1);
+	        this.mmf = 0.5 / (1 - this.es);
+	        this.apa = authset(this.es);
+	        switch (this.mode) {
+	        case this.N_POLE:
+	          this.dd = 1;
+	          break;
+	        case this.S_POLE:
+	          this.dd = 1;
+	          break;
+	        case this.EQUIT:
+	          this.rq = Math.sqrt(0.5 * this.qp);
+	          this.dd = 1 / this.rq;
+	          this.xmf = 1;
+	          this.ymf = 0.5 * this.qp;
+	          break;
+	        case this.OBLIQ:
+	          this.rq = Math.sqrt(0.5 * this.qp);
+	          sinphi = Math.sin(this.lat0);
+	          this.sinb1 = qsfnz(this.e, sinphi) / this.qp;
+	          this.cosb1 = Math.sqrt(1 - this.sinb1 * this.sinb1);
+	          this.dd = Math.cos(this.lat0) / (Math.sqrt(1 - this.es * sinphi * sinphi) * this.rq * this.cosb1);
+	          this.ymf = (this.xmf = this.rq) / this.dd;
+	          this.xmf *= this.dd;
+	          break;
+	        }
+	      }
+	      else {
+	        if (this.mode === this.OBLIQ) {
+	          this.sinph0 = Math.sin(this.lat0);
+	          this.cosph0 = Math.cos(this.lat0);
+	        }
+	      }
+	    }
+
+	    /* Lambert Azimuthal Equal Area forward equations--mapping lat,long to x,y
+	      -----------------------------------------------------------------------*/
+	    function forward$12(p) {
+
+	      /* Forward equations
+	          -----------------*/
+	      var x, y, coslam, sinlam, sinphi, q, sinb, cosb, b, cosphi;
+	      var lam = p.x;
+	      var phi = p.y;
+
+	      lam = adjust_lon(lam - this.long0);
+	      if (this.sphere) {
+	        sinphi = Math.sin(phi);
+	        cosphi = Math.cos(phi);
+	        coslam = Math.cos(lam);
+	        if (this.mode === this.OBLIQ || this.mode === this.EQUIT) {
+	          y = (this.mode === this.EQUIT) ? 1 + cosphi * coslam : 1 + this.sinph0 * sinphi + this.cosph0 * cosphi * coslam;
+	          if (y <= EPSLN) {
+	            return null;
+	          }
+	          y = Math.sqrt(2 / y);
+	          x = y * cosphi * Math.sin(lam);
+	          y *= (this.mode === this.EQUIT) ? sinphi : this.cosph0 * sinphi - this.sinph0 * cosphi * coslam;
+	        }
+	        else if (this.mode === this.N_POLE || this.mode === this.S_POLE) {
+	          if (this.mode === this.N_POLE) {
+	            coslam = -coslam;
+	          }
+	          if (Math.abs(phi + this.lat0) < EPSLN) {
+	            return null;
+	          }
+	          y = FORTPI - phi * 0.5;
+	          y = 2 * ((this.mode === this.S_POLE) ? Math.cos(y) : Math.sin(y));
+	          x = y * Math.sin(lam);
+	          y *= coslam;
+	        }
+	      }
+	      else {
+	        sinb = 0;
+	        cosb = 0;
+	        b = 0;
+	        coslam = Math.cos(lam);
+	        sinlam = Math.sin(lam);
+	        sinphi = Math.sin(phi);
+	        q = qsfnz(this.e, sinphi);
+	        if (this.mode === this.OBLIQ || this.mode === this.EQUIT) {
+	          sinb = q / this.qp;
+	          cosb = Math.sqrt(1 - sinb * sinb);
+	        }
+	        switch (this.mode) {
+	        case this.OBLIQ:
+	          b = 1 + this.sinb1 * sinb + this.cosb1 * cosb * coslam;
+	          break;
+	        case this.EQUIT:
+	          b = 1 + cosb * coslam;
+	          break;
+	        case this.N_POLE:
+	          b = HALF_PI + phi;
+	          q = this.qp - q;
+	          break;
+	        case this.S_POLE:
+	          b = phi - HALF_PI;
+	          q = this.qp + q;
+	          break;
+	        }
+	        if (Math.abs(b) < EPSLN) {
+	          return null;
+	        }
+	        switch (this.mode) {
+	        case this.OBLIQ:
+	        case this.EQUIT:
+	          b = Math.sqrt(2 / b);
+	          if (this.mode === this.OBLIQ) {
+	            y = this.ymf * b * (this.cosb1 * sinb - this.sinb1 * cosb * coslam);
+	          }
+	          else {
+	            y = (b = Math.sqrt(2 / (1 + cosb * coslam))) * sinb * this.ymf;
+	          }
+	          x = this.xmf * b * cosb * sinlam;
+	          break;
+	        case this.N_POLE:
+	        case this.S_POLE:
+	          if (q >= 0) {
+	            x = (b = Math.sqrt(q)) * sinlam;
+	            y = coslam * ((this.mode === this.S_POLE) ? b : -b);
+	          }
+	          else {
+	            x = y = 0;
+	          }
+	          break;
+	        }
+	      }
+
+	      p.x = this.a * x + this.x0;
+	      p.y = this.a * y + this.y0;
+	      return p;
+	    }
+
+	    /* Inverse equations
+	      -----------------*/
+	    function inverse$12(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      var x = p.x / this.a;
+	      var y = p.y / this.a;
+	      var lam, phi, cCe, sCe, q, rho, ab;
+	      if (this.sphere) {
+	        var cosz = 0,
+	          rh, sinz = 0;
+
+	        rh = Math.sqrt(x * x + y * y);
+	        phi = rh * 0.5;
+	        if (phi > 1) {
+	          return null;
+	        }
+	        phi = 2 * Math.asin(phi);
+	        if (this.mode === this.OBLIQ || this.mode === this.EQUIT) {
+	          sinz = Math.sin(phi);
+	          cosz = Math.cos(phi);
+	        }
+	        switch (this.mode) {
+	        case this.EQUIT:
+	          phi = (Math.abs(rh) <= EPSLN) ? 0 : Math.asin(y * sinz / rh);
+	          x *= sinz;
+	          y = cosz * rh;
+	          break;
+	        case this.OBLIQ:
+	          phi = (Math.abs(rh) <= EPSLN) ? this.lat0 : Math.asin(cosz * this.sinph0 + y * sinz * this.cosph0 / rh);
+	          x *= sinz * this.cosph0;
+	          y = (cosz - Math.sin(phi) * this.sinph0) * rh;
+	          break;
+	        case this.N_POLE:
+	          y = -y;
+	          phi = HALF_PI - phi;
+	          break;
+	        case this.S_POLE:
+	          phi -= HALF_PI;
+	          break;
+	        }
+	        lam = (y === 0 && (this.mode === this.EQUIT || this.mode === this.OBLIQ)) ? 0 : Math.atan2(x, y);
+	      }
+	      else {
+	        ab = 0;
+	        if (this.mode === this.OBLIQ || this.mode === this.EQUIT) {
+	          x /= this.dd;
+	          y *= this.dd;
+	          rho = Math.sqrt(x * x + y * y);
+	          if (rho < EPSLN) {
+	            p.x = this.long0;
+	            p.y = this.lat0;
+	            return p;
+	          }
+	          sCe = 2 * Math.asin(0.5 * rho / this.rq);
+	          cCe = Math.cos(sCe);
+	          x *= (sCe = Math.sin(sCe));
+	          if (this.mode === this.OBLIQ) {
+	            ab = cCe * this.sinb1 + y * sCe * this.cosb1 / rho;
+	            q = this.qp * ab;
+	            y = rho * this.cosb1 * cCe - y * this.sinb1 * sCe;
+	          }
+	          else {
+	            ab = y * sCe / rho;
+	            q = this.qp * ab;
+	            y = rho * cCe;
+	          }
+	        }
+	        else if (this.mode === this.N_POLE || this.mode === this.S_POLE) {
+	          if (this.mode === this.N_POLE) {
+	            y = -y;
+	          }
+	          q = (x * x + y * y);
+	          if (!q) {
+	            p.x = this.long0;
+	            p.y = this.lat0;
+	            return p;
+	          }
+	          ab = 1 - q / this.qp;
+	          if (this.mode === this.S_POLE) {
+	            ab = -ab;
+	          }
+	        }
+	        lam = Math.atan2(x, y);
+	        phi = authlat(Math.asin(ab), this.apa);
+	      }
+
+	      p.x = adjust_lon(this.long0 + lam);
+	      p.y = phi;
+	      return p;
+	    }
+
+	    /* determine latitude from authalic latitude */
+	    var P00 = 0.33333333333333333333;
+
+	    var P01 = 0.17222222222222222222;
+	    var P02 = 0.10257936507936507936;
+	    var P10 = 0.06388888888888888888;
+	    var P11 = 0.06640211640211640211;
+	    var P20 = 0.01641501294219154443;
+
+	    function authset(es) {
+	      var t;
+	      var APA = [];
+	      APA[0] = es * P00;
+	      t = es * es;
+	      APA[0] += t * P01;
+	      APA[1] = t * P10;
+	      t *= es;
+	      APA[0] += t * P02;
+	      APA[1] += t * P11;
+	      APA[2] = t * P20;
+	      return APA;
+	    }
+
+	    function authlat(beta, APA) {
+	      var t = beta + beta;
+	      return (beta + APA[0] * Math.sin(t) + APA[1] * Math.sin(t + t) + APA[2] * Math.sin(t + t + t));
+	    }
+
+	    var names$14 = ["Lambert Azimuthal Equal Area", "Lambert_Azimuthal_Equal_Area", "laea"];
+	    var laea = {
+	      init: init$13,
+	      forward: forward$12,
+	      inverse: inverse$12,
+	      names: names$14,
+	      S_POLE: S_POLE,
+	      N_POLE: N_POLE,
+	      EQUIT: EQUIT,
+	      OBLIQ: OBLIQ
+	    };
+
+	    var asinz = function(x) {
+	      if (Math.abs(x) > 1) {
+	        x = (x > 1) ? 1 : -1;
+	      }
+	      return Math.asin(x);
+	    };
+
+	    function init$14() {
+
+	      if (Math.abs(this.lat1 + this.lat2) < EPSLN) {
+	        return;
+	      }
+	      this.temp = this.b / this.a;
+	      this.es = 1 - Math.pow(this.temp, 2);
+	      this.e3 = Math.sqrt(this.es);
+
+	      this.sin_po = Math.sin(this.lat1);
+	      this.cos_po = Math.cos(this.lat1);
+	      this.t1 = this.sin_po;
+	      this.con = this.sin_po;
+	      this.ms1 = msfnz(this.e3, this.sin_po, this.cos_po);
+	      this.qs1 = qsfnz(this.e3, this.sin_po, this.cos_po);
+
+	      this.sin_po = Math.sin(this.lat2);
+	      this.cos_po = Math.cos(this.lat2);
+	      this.t2 = this.sin_po;
+	      this.ms2 = msfnz(this.e3, this.sin_po, this.cos_po);
+	      this.qs2 = qsfnz(this.e3, this.sin_po, this.cos_po);
+
+	      this.sin_po = Math.sin(this.lat0);
+	      this.cos_po = Math.cos(this.lat0);
+	      this.t3 = this.sin_po;
+	      this.qs0 = qsfnz(this.e3, this.sin_po, this.cos_po);
+
+	      if (Math.abs(this.lat1 - this.lat2) > EPSLN) {
+	        this.ns0 = (this.ms1 * this.ms1 - this.ms2 * this.ms2) / (this.qs2 - this.qs1);
+	      }
+	      else {
+	        this.ns0 = this.con;
+	      }
+	      this.c = this.ms1 * this.ms1 + this.ns0 * this.qs1;
+	      this.rh = this.a * Math.sqrt(this.c - this.ns0 * this.qs0) / this.ns0;
+	    }
+
+	    /* Albers Conical Equal Area forward equations--mapping lat,long to x,y
+	      -------------------------------------------------------------------*/
+	    function forward$13(p) {
+
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      this.sin_phi = Math.sin(lat);
+	      this.cos_phi = Math.cos(lat);
+
+	      var qs = qsfnz(this.e3, this.sin_phi, this.cos_phi);
+	      var rh1 = this.a * Math.sqrt(this.c - this.ns0 * qs) / this.ns0;
+	      var theta = this.ns0 * adjust_lon(lon - this.long0);
+	      var x = rh1 * Math.sin(theta) + this.x0;
+	      var y = this.rh - rh1 * Math.cos(theta) + this.y0;
+
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    function inverse$13(p) {
+	      var rh1, qs, con, theta, lon, lat;
+
+	      p.x -= this.x0;
+	      p.y = this.rh - p.y + this.y0;
+	      if (this.ns0 >= 0) {
+	        rh1 = Math.sqrt(p.x * p.x + p.y * p.y);
+	        con = 1;
+	      }
+	      else {
+	        rh1 = -Math.sqrt(p.x * p.x + p.y * p.y);
+	        con = -1;
+	      }
+	      theta = 0;
+	      if (rh1 !== 0) {
+	        theta = Math.atan2(con * p.x, con * p.y);
+	      }
+	      con = rh1 * this.ns0 / this.a;
+	      if (this.sphere) {
+	        lat = Math.asin((this.c - con * con) / (2 * this.ns0));
+	      }
+	      else {
+	        qs = (this.c - con * con) / this.ns0;
+	        lat = this.phi1z(this.e3, qs);
+	      }
+
+	      lon = adjust_lon(theta / this.ns0 + this.long0);
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    /* Function to compute phi1, the latitude for the inverse of the
+	       Albers Conical Equal-Area projection.
+	    -------------------------------------------*/
+	    function phi1z(eccent, qs) {
+	      var sinphi, cosphi, con, com, dphi;
+	      var phi = asinz(0.5 * qs);
+	      if (eccent < EPSLN) {
+	        return phi;
+	      }
+
+	      var eccnts = eccent * eccent;
+	      for (var i = 1; i <= 25; i++) {
+	        sinphi = Math.sin(phi);
+	        cosphi = Math.cos(phi);
+	        con = eccent * sinphi;
+	        com = 1 - con * con;
+	        dphi = 0.5 * com * com / cosphi * (qs / (1 - eccnts) - sinphi / com + 0.5 / eccent * Math.log((1 - con) / (1 + con)));
+	        phi = phi + dphi;
+	        if (Math.abs(dphi) <= 1e-7) {
+	          return phi;
+	        }
+	      }
+	      return null;
+	    }
+
+	    var names$15 = ["Albers_Conic_Equal_Area", "Albers", "aea"];
+	    var aea = {
+	      init: init$14,
+	      forward: forward$13,
+	      inverse: inverse$13,
+	      names: names$15,
+	      phi1z: phi1z
+	    };
+
+	    /*
+	      reference:
+	        Wolfram Mathworld "Gnomonic Projection"
+	        http://mathworld.wolfram.com/GnomonicProjection.html
+	        Accessed: 12th November 2009
+	      */
+	    function init$15() {
+
+	      /* Place parameters in static storage for common use
+	          -------------------------------------------------*/
+	      this.sin_p14 = Math.sin(this.lat0);
+	      this.cos_p14 = Math.cos(this.lat0);
+	      // Approximation for projecting points to the horizon (infinity)
+	      this.infinity_dist = 1000 * this.a;
+	      this.rc = 1;
+	    }
+
+	    /* Gnomonic forward equations--mapping lat,long to x,y
+	        ---------------------------------------------------*/
+	    function forward$14(p) {
+	      var sinphi, cosphi; /* sin and cos value        */
+	      var dlon; /* delta longitude value      */
+	      var coslon; /* cos of longitude        */
+	      var ksp; /* scale factor          */
+	      var g;
+	      var x, y;
+	      var lon = p.x;
+	      var lat = p.y;
+	      /* Forward equations
+	          -----------------*/
+	      dlon = adjust_lon(lon - this.long0);
+
+	      sinphi = Math.sin(lat);
+	      cosphi = Math.cos(lat);
+
+	      coslon = Math.cos(dlon);
+	      g = this.sin_p14 * sinphi + this.cos_p14 * cosphi * coslon;
+	      ksp = 1;
+	      if ((g > 0) || (Math.abs(g) <= EPSLN)) {
+	        x = this.x0 + this.a * ksp * cosphi * Math.sin(dlon) / g;
+	        y = this.y0 + this.a * ksp * (this.cos_p14 * sinphi - this.sin_p14 * cosphi * coslon) / g;
+	      }
+	      else {
+
+	        // Point is in the opposing hemisphere and is unprojectable
+	        // We still need to return a reasonable point, so we project
+	        // to infinity, on a bearing
+	        // equivalent to the northern hemisphere equivalent
+	        // This is a reasonable approximation for short shapes and lines that
+	        // straddle the horizon.
+
+	        x = this.x0 + this.infinity_dist * cosphi * Math.sin(dlon);
+	        y = this.y0 + this.infinity_dist * (this.cos_p14 * sinphi - this.sin_p14 * cosphi * coslon);
+
+	      }
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    function inverse$14(p) {
+	      var rh; /* Rho */
+	      var sinc, cosc;
+	      var c;
+	      var lon, lat;
+
+	      /* Inverse equations
+	          -----------------*/
+	      p.x = (p.x - this.x0) / this.a;
+	      p.y = (p.y - this.y0) / this.a;
+
+	      p.x /= this.k0;
+	      p.y /= this.k0;
+
+	      if ((rh = Math.sqrt(p.x * p.x + p.y * p.y))) {
+	        c = Math.atan2(rh, this.rc);
+	        sinc = Math.sin(c);
+	        cosc = Math.cos(c);
+
+	        lat = asinz(cosc * this.sin_p14 + (p.y * sinc * this.cos_p14) / rh);
+	        lon = Math.atan2(p.x * sinc, rh * this.cos_p14 * cosc - p.y * this.sin_p14 * sinc);
+	        lon = adjust_lon(this.long0 + lon);
+	      }
+	      else {
+	        lat = this.phic0;
+	        lon = 0;
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$16 = ["gnom"];
+	    var gnom = {
+	      init: init$15,
+	      forward: forward$14,
+	      inverse: inverse$14,
+	      names: names$16
+	    };
+
+	    var iqsfnz = function(eccent, q) {
+	      var temp = 1 - (1 - eccent * eccent) / (2 * eccent) * Math.log((1 - eccent) / (1 + eccent));
+	      if (Math.abs(Math.abs(q) - temp) < 1.0E-6) {
+	        if (q < 0) {
+	          return (-1 * HALF_PI);
+	        }
+	        else {
+	          return HALF_PI;
+	        }
+	      }
+	      //var phi = 0.5* q/(1-eccent*eccent);
+	      var phi = Math.asin(0.5 * q);
+	      var dphi;
+	      var sin_phi;
+	      var cos_phi;
+	      var con;
+	      for (var i = 0; i < 30; i++) {
+	        sin_phi = Math.sin(phi);
+	        cos_phi = Math.cos(phi);
+	        con = eccent * sin_phi;
+	        dphi = Math.pow(1 - con * con, 2) / (2 * cos_phi) * (q / (1 - eccent * eccent) - sin_phi / (1 - con * con) + 0.5 / eccent * Math.log((1 - con) / (1 + con)));
+	        phi += dphi;
+	        if (Math.abs(dphi) <= 0.0000000001) {
+	          return phi;
+	        }
+	      }
+
+	      //console.log("IQSFN-CONV:Latitude failed to converge after 30 iterations");
+	      return NaN;
+	    };
+
+	    /*
+	      reference:
+	        "Cartographic Projection Procedures for the UNIX Environment-
+	        A User's Manual" by Gerald I. Evenden,
+	        USGS Open File Report 90-284and Release 4 Interim Reports (2003)
+	    */
+	    function init$16() {
+	      //no-op
+	      if (!this.sphere) {
+	        this.k0 = msfnz(this.e, Math.sin(this.lat_ts), Math.cos(this.lat_ts));
+	      }
+	    }
+
+	    /* Cylindrical Equal Area forward equations--mapping lat,long to x,y
+	        ------------------------------------------------------------*/
+	    function forward$15(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      var x, y;
+	      /* Forward equations
+	          -----------------*/
+	      var dlon = adjust_lon(lon - this.long0);
+	      if (this.sphere) {
+	        x = this.x0 + this.a * dlon * Math.cos(this.lat_ts);
+	        y = this.y0 + this.a * Math.sin(lat) / Math.cos(this.lat_ts);
+	      }
+	      else {
+	        var qs = qsfnz(this.e, Math.sin(lat));
+	        x = this.x0 + this.a * this.k0 * dlon;
+	        y = this.y0 + this.a * qs * 0.5 / this.k0;
+	      }
+
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    /* Cylindrical Equal Area inverse equations--mapping x,y to lat/long
+	        ------------------------------------------------------------*/
+	    function inverse$15(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      var lon, lat;
+
+	      if (this.sphere) {
+	        lon = adjust_lon(this.long0 + (p.x / this.a) / Math.cos(this.lat_ts));
+	        lat = Math.asin((p.y / this.a) * Math.cos(this.lat_ts));
+	      }
+	      else {
+	        lat = iqsfnz(this.e, 2 * p.y * this.k0 / this.a);
+	        lon = adjust_lon(this.long0 + p.x / (this.a * this.k0));
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$17 = ["cea"];
+	    var cea = {
+	      init: init$16,
+	      forward: forward$15,
+	      inverse: inverse$15,
+	      names: names$17
+	    };
+
+	    function init$17() {
+
+	      this.x0 = this.x0 || 0;
+	      this.y0 = this.y0 || 0;
+	      this.lat0 = this.lat0 || 0;
+	      this.long0 = this.long0 || 0;
+	      this.lat_ts = this.lat_ts || 0;
+	      this.title = this.title || "Equidistant Cylindrical (Plate Carre)";
+
+	      this.rc = Math.cos(this.lat_ts);
+	    }
+
+	    // forward equations--mapping lat,long to x,y
+	    // -----------------------------------------------------------------
+	    function forward$16(p) {
+
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      var dlon = adjust_lon(lon - this.long0);
+	      var dlat = adjust_lat(lat - this.lat0);
+	      p.x = this.x0 + (this.a * dlon * this.rc);
+	      p.y = this.y0 + (this.a * dlat);
+	      return p;
+	    }
+
+	    // inverse equations--mapping x,y to lat/long
+	    // -----------------------------------------------------------------
+	    function inverse$16(p) {
+
+	      var x = p.x;
+	      var y = p.y;
+
+	      p.x = adjust_lon(this.long0 + ((x - this.x0) / (this.a * this.rc)));
+	      p.y = adjust_lat(this.lat0 + ((y - this.y0) / (this.a)));
+	      return p;
+	    }
+
+	    var names$18 = ["Equirectangular", "Equidistant_Cylindrical", "eqc"];
+	    var eqc = {
+	      init: init$17,
+	      forward: forward$16,
+	      inverse: inverse$16,
+	      names: names$18
+	    };
+
+	    var MAX_ITER$2 = 20;
+
+	    function init$18() {
+	      /* Place parameters in static storage for common use
+	          -------------------------------------------------*/
+	      this.temp = this.b / this.a;
+	      this.es = 1 - Math.pow(this.temp, 2); // devait etre dans tmerc.js mais n y est pas donc je commente sinon retour de valeurs nulles
+	      this.e = Math.sqrt(this.es);
+	      this.e0 = e0fn(this.es);
+	      this.e1 = e1fn(this.es);
+	      this.e2 = e2fn(this.es);
+	      this.e3 = e3fn(this.es);
+	      this.ml0 = this.a * mlfn(this.e0, this.e1, this.e2, this.e3, this.lat0); //si que des zeros le calcul ne se fait pas
+	    }
+
+	    /* Polyconic forward equations--mapping lat,long to x,y
+	        ---------------------------------------------------*/
+	    function forward$17(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      var x, y, el;
+	      var dlon = adjust_lon(lon - this.long0);
+	      el = dlon * Math.sin(lat);
+	      if (this.sphere) {
+	        if (Math.abs(lat) <= EPSLN) {
+	          x = this.a * dlon;
+	          y = -1 * this.a * this.lat0;
+	        }
+	        else {
+	          x = this.a * Math.sin(el) / Math.tan(lat);
+	          y = this.a * (adjust_lat(lat - this.lat0) + (1 - Math.cos(el)) / Math.tan(lat));
+	        }
+	      }
+	      else {
+	        if (Math.abs(lat) <= EPSLN) {
+	          x = this.a * dlon;
+	          y = -1 * this.ml0;
+	        }
+	        else {
+	          var nl = gN(this.a, this.e, Math.sin(lat)) / Math.tan(lat);
+	          x = nl * Math.sin(el);
+	          y = this.a * mlfn(this.e0, this.e1, this.e2, this.e3, lat) - this.ml0 + nl * (1 - Math.cos(el));
+	        }
+
+	      }
+	      p.x = x + this.x0;
+	      p.y = y + this.y0;
+	      return p;
+	    }
+
+	    /* Inverse equations
+	      -----------------*/
+	    function inverse$17(p) {
+	      var lon, lat, x, y, i;
+	      var al, bl;
+	      var phi, dphi;
+	      x = p.x - this.x0;
+	      y = p.y - this.y0;
+
+	      if (this.sphere) {
+	        if (Math.abs(y + this.a * this.lat0) <= EPSLN) {
+	          lon = adjust_lon(x / this.a + this.long0);
+	          lat = 0;
+	        }
+	        else {
+	          al = this.lat0 + y / this.a;
+	          bl = x * x / this.a / this.a + al * al;
+	          phi = al;
+	          var tanphi;
+	          for (i = MAX_ITER$2; i; --i) {
+	            tanphi = Math.tan(phi);
+	            dphi = -1 * (al * (phi * tanphi + 1) - phi - 0.5 * (phi * phi + bl) * tanphi) / ((phi - al) / tanphi - 1);
+	            phi += dphi;
+	            if (Math.abs(dphi) <= EPSLN) {
+	              lat = phi;
+	              break;
+	            }
+	          }
+	          lon = adjust_lon(this.long0 + (Math.asin(x * Math.tan(phi) / this.a)) / Math.sin(lat));
+	        }
+	      }
+	      else {
+	        if (Math.abs(y + this.ml0) <= EPSLN) {
+	          lat = 0;
+	          lon = adjust_lon(this.long0 + x / this.a);
+	        }
+	        else {
+
+	          al = (this.ml0 + y) / this.a;
+	          bl = x * x / this.a / this.a + al * al;
+	          phi = al;
+	          var cl, mln, mlnp, ma;
+	          var con;
+	          for (i = MAX_ITER$2; i; --i) {
+	            con = this.e * Math.sin(phi);
+	            cl = Math.sqrt(1 - con * con) * Math.tan(phi);
+	            mln = this.a * mlfn(this.e0, this.e1, this.e2, this.e3, phi);
+	            mlnp = this.e0 - 2 * this.e1 * Math.cos(2 * phi) + 4 * this.e2 * Math.cos(4 * phi) - 6 * this.e3 * Math.cos(6 * phi);
+	            ma = mln / this.a;
+	            dphi = (al * (cl * ma + 1) - ma - 0.5 * cl * (ma * ma + bl)) / (this.es * Math.sin(2 * phi) * (ma * ma + bl - 2 * al * ma) / (4 * cl) + (al - ma) * (cl * mlnp - 2 / Math.sin(2 * phi)) - mlnp);
+	            phi -= dphi;
+	            if (Math.abs(dphi) <= EPSLN) {
+	              lat = phi;
+	              break;
+	            }
+	          }
+
+	          //lat=phi4z(this.e,this.e0,this.e1,this.e2,this.e3,al,bl,0,0);
+	          cl = Math.sqrt(1 - this.es * Math.pow(Math.sin(lat), 2)) * Math.tan(lat);
+	          lon = adjust_lon(this.long0 + Math.asin(x * cl / this.a) / Math.sin(lat));
+	        }
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$19 = ["Polyconic", "poly"];
+	    var poly = {
+	      init: init$18,
+	      forward: forward$17,
+	      inverse: inverse$17,
+	      names: names$19
+	    };
+
+	    /*
+	      reference
+	        Department of Land and Survey Technical Circular 1973/32
+	          http://www.linz.govt.nz/docs/miscellaneous/nz-map-definition.pdf
+	        OSG Technical Report 4.1
+	          http://www.linz.govt.nz/docs/miscellaneous/nzmg.pdf
+	      */
+
+	    /**
+	     * iterations: Number of iterations to refine inverse transform.
+	     *     0 -> km accuracy
+	     *     1 -> m accuracy -- suitable for most mapping applications
+	     *     2 -> mm accuracy
+	     */
+
+
+	    function init$19() {
+	      this.A = [];
+	      this.A[1] = 0.6399175073;
+	      this.A[2] = -0.1358797613;
+	      this.A[3] = 0.063294409;
+	      this.A[4] = -0.02526853;
+	      this.A[5] = 0.0117879;
+	      this.A[6] = -0.0055161;
+	      this.A[7] = 0.0026906;
+	      this.A[8] = -0.001333;
+	      this.A[9] = 0.00067;
+	      this.A[10] = -0.00034;
+
+	      this.B_re = [];
+	      this.B_im = [];
+	      this.B_re[1] = 0.7557853228;
+	      this.B_im[1] = 0;
+	      this.B_re[2] = 0.249204646;
+	      this.B_im[2] = 0.003371507;
+	      this.B_re[3] = -0.001541739;
+	      this.B_im[3] = 0.041058560;
+	      this.B_re[4] = -0.10162907;
+	      this.B_im[4] = 0.01727609;
+	      this.B_re[5] = -0.26623489;
+	      this.B_im[5] = -0.36249218;
+	      this.B_re[6] = -0.6870983;
+	      this.B_im[6] = -1.1651967;
+
+	      this.C_re = [];
+	      this.C_im = [];
+	      this.C_re[1] = 1.3231270439;
+	      this.C_im[1] = 0;
+	      this.C_re[2] = -0.577245789;
+	      this.C_im[2] = -0.007809598;
+	      this.C_re[3] = 0.508307513;
+	      this.C_im[3] = -0.112208952;
+	      this.C_re[4] = -0.15094762;
+	      this.C_im[4] = 0.18200602;
+	      this.C_re[5] = 1.01418179;
+	      this.C_im[5] = 1.64497696;
+	      this.C_re[6] = 1.9660549;
+	      this.C_im[6] = 2.5127645;
+
+	      this.D = [];
+	      this.D[1] = 1.5627014243;
+	      this.D[2] = 0.5185406398;
+	      this.D[3] = -0.03333098;
+	      this.D[4] = -0.1052906;
+	      this.D[5] = -0.0368594;
+	      this.D[6] = 0.007317;
+	      this.D[7] = 0.01220;
+	      this.D[8] = 0.00394;
+	      this.D[9] = -0.0013;
+	    }
+
+	    /**
+	        New Zealand Map Grid Forward  - long/lat to x/y
+	        long/lat in radians
+	      */
+	    function forward$18(p) {
+	      var n;
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      var delta_lat = lat - this.lat0;
+	      var delta_lon = lon - this.long0;
+
+	      // 1. Calculate d_phi and d_psi    ...                          // and d_lambda
+	      // For this algorithm, delta_latitude is in seconds of arc x 10-5, so we need to scale to those units. Longitude is radians.
+	      var d_phi = delta_lat / SEC_TO_RAD * 1E-5;
+	      var d_lambda = delta_lon;
+	      var d_phi_n = 1; // d_phi^0
+
+	      var d_psi = 0;
+	      for (n = 1; n <= 10; n++) {
+	        d_phi_n = d_phi_n * d_phi;
+	        d_psi = d_psi + this.A[n] * d_phi_n;
+	      }
+
+	      // 2. Calculate theta
+	      var th_re = d_psi;
+	      var th_im = d_lambda;
+
+	      // 3. Calculate z
+	      var th_n_re = 1;
+	      var th_n_im = 0; // theta^0
+	      var th_n_re1;
+	      var th_n_im1;
+
+	      var z_re = 0;
+	      var z_im = 0;
+	      for (n = 1; n <= 6; n++) {
+	        th_n_re1 = th_n_re * th_re - th_n_im * th_im;
+	        th_n_im1 = th_n_im * th_re + th_n_re * th_im;
+	        th_n_re = th_n_re1;
+	        th_n_im = th_n_im1;
+	        z_re = z_re + this.B_re[n] * th_n_re - this.B_im[n] * th_n_im;
+	        z_im = z_im + this.B_im[n] * th_n_re + this.B_re[n] * th_n_im;
+	      }
+
+	      // 4. Calculate easting and northing
+	      p.x = (z_im * this.a) + this.x0;
+	      p.y = (z_re * this.a) + this.y0;
+
+	      return p;
+	    }
+
+	    /**
+	        New Zealand Map Grid Inverse  -  x/y to long/lat
+	      */
+	    function inverse$18(p) {
+	      var n;
+	      var x = p.x;
+	      var y = p.y;
+
+	      var delta_x = x - this.x0;
+	      var delta_y = y - this.y0;
+
+	      // 1. Calculate z
+	      var z_re = delta_y / this.a;
+	      var z_im = delta_x / this.a;
+
+	      // 2a. Calculate theta - first approximation gives km accuracy
+	      var z_n_re = 1;
+	      var z_n_im = 0; // z^0
+	      var z_n_re1;
+	      var z_n_im1;
+
+	      var th_re = 0;
+	      var th_im = 0;
+	      for (n = 1; n <= 6; n++) {
+	        z_n_re1 = z_n_re * z_re - z_n_im * z_im;
+	        z_n_im1 = z_n_im * z_re + z_n_re * z_im;
+	        z_n_re = z_n_re1;
+	        z_n_im = z_n_im1;
+	        th_re = th_re + this.C_re[n] * z_n_re - this.C_im[n] * z_n_im;
+	        th_im = th_im + this.C_im[n] * z_n_re + this.C_re[n] * z_n_im;
+	      }
+
+	      // 2b. Iterate to refine the accuracy of the calculation
+	      //        0 iterations gives km accuracy
+	      //        1 iteration gives m accuracy -- good enough for most mapping applications
+	      //        2 iterations bives mm accuracy
+	      for (var i = 0; i < this.iterations; i++) {
+	        var th_n_re = th_re;
+	        var th_n_im = th_im;
+	        var th_n_re1;
+	        var th_n_im1;
+
+	        var num_re = z_re;
+	        var num_im = z_im;
+	        for (n = 2; n <= 6; n++) {
+	          th_n_re1 = th_n_re * th_re - th_n_im * th_im;
+	          th_n_im1 = th_n_im * th_re + th_n_re * th_im;
+	          th_n_re = th_n_re1;
+	          th_n_im = th_n_im1;
+	          num_re = num_re + (n - 1) * (this.B_re[n] * th_n_re - this.B_im[n] * th_n_im);
+	          num_im = num_im + (n - 1) * (this.B_im[n] * th_n_re + this.B_re[n] * th_n_im);
+	        }
+
+	        th_n_re = 1;
+	        th_n_im = 0;
+	        var den_re = this.B_re[1];
+	        var den_im = this.B_im[1];
+	        for (n = 2; n <= 6; n++) {
+	          th_n_re1 = th_n_re * th_re - th_n_im * th_im;
+	          th_n_im1 = th_n_im * th_re + th_n_re * th_im;
+	          th_n_re = th_n_re1;
+	          th_n_im = th_n_im1;
+	          den_re = den_re + n * (this.B_re[n] * th_n_re - this.B_im[n] * th_n_im);
+	          den_im = den_im + n * (this.B_im[n] * th_n_re + this.B_re[n] * th_n_im);
+	        }
+
+	        // Complex division
+	        var den2 = den_re * den_re + den_im * den_im;
+	        th_re = (num_re * den_re + num_im * den_im) / den2;
+	        th_im = (num_im * den_re - num_re * den_im) / den2;
+	      }
+
+	      // 3. Calculate d_phi              ...                                    // and d_lambda
+	      var d_psi = th_re;
+	      var d_lambda = th_im;
+	      var d_psi_n = 1; // d_psi^0
+
+	      var d_phi = 0;
+	      for (n = 1; n <= 9; n++) {
+	        d_psi_n = d_psi_n * d_psi;
+	        d_phi = d_phi + this.D[n] * d_psi_n;
+	      }
+
+	      // 4. Calculate latitude and longitude
+	      // d_phi is calcuated in second of arc * 10^-5, so we need to scale back to radians. d_lambda is in radians.
+	      var lat = this.lat0 + (d_phi * SEC_TO_RAD * 1E5);
+	      var lon = this.long0 + d_lambda;
+
+	      p.x = lon;
+	      p.y = lat;
+
+	      return p;
+	    }
+
+	    var names$20 = ["New_Zealand_Map_Grid", "nzmg"];
+	    var nzmg = {
+	      init: init$19,
+	      forward: forward$18,
+	      inverse: inverse$18,
+	      names: names$20
+	    };
+
+	    /*
+	      reference
+	        "New Equal-Area Map Projections for Noncircular Regions", John P. Snyder,
+	        The American Cartographer, Vol 15, No. 4, October 1988, pp. 341-355.
+	      */
+
+
+	    /* Initialize the Miller Cylindrical projection
+	      -------------------------------------------*/
+	    function init$20() {
+	      //no-op
+	    }
+
+	    /* Miller Cylindrical forward equations--mapping lat,long to x,y
+	        ------------------------------------------------------------*/
+	    function forward$19(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      /* Forward equations
+	          -----------------*/
+	      var dlon = adjust_lon(lon - this.long0);
+	      var x = this.x0 + this.a * dlon;
+	      var y = this.y0 + this.a * Math.log(Math.tan((Math.PI / 4) + (lat / 2.5))) * 1.25;
+
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    /* Miller Cylindrical inverse equations--mapping x,y to lat/long
+	        ------------------------------------------------------------*/
+	    function inverse$19(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+
+	      var lon = adjust_lon(this.long0 + p.x / this.a);
+	      var lat = 2.5 * (Math.atan(Math.exp(0.8 * p.y / this.a)) - Math.PI / 4);
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$21 = ["Miller_Cylindrical", "mill"];
+	    var mill = {
+	      init: init$20,
+	      forward: forward$19,
+	      inverse: inverse$19,
+	      names: names$21
+	    };
+
+	    var MAX_ITER$3 = 20;
+	    function init$21() {
+	      /* Place parameters in static storage for common use
+	        -------------------------------------------------*/
+
+
+	      if (!this.sphere) {
+	        this.en = pj_enfn(this.es);
+	      }
+	      else {
+	        this.n = 1;
+	        this.m = 0;
+	        this.es = 0;
+	        this.C_y = Math.sqrt((this.m + 1) / this.n);
+	        this.C_x = this.C_y / (this.m + 1);
+	      }
+
+	    }
+
+	    /* Sinusoidal forward equations--mapping lat,long to x,y
+	      -----------------------------------------------------*/
+	    function forward$20(p) {
+	      var x, y;
+	      var lon = p.x;
+	      var lat = p.y;
+	      /* Forward equations
+	        -----------------*/
+	      lon = adjust_lon(lon - this.long0);
+
+	      if (this.sphere) {
+	        if (!this.m) {
+	          lat = this.n !== 1 ? Math.asin(this.n * Math.sin(lat)) : lat;
+	        }
+	        else {
+	          var k = this.n * Math.sin(lat);
+	          for (var i = MAX_ITER$3; i; --i) {
+	            var V = (this.m * lat + Math.sin(lat) - k) / (this.m + Math.cos(lat));
+	            lat -= V;
+	            if (Math.abs(V) < EPSLN) {
+	              break;
+	            }
+	          }
+	        }
+	        x = this.a * this.C_x * lon * (this.m + Math.cos(lat));
+	        y = this.a * this.C_y * lat;
+
+	      }
+	      else {
+
+	        var s = Math.sin(lat);
+	        var c = Math.cos(lat);
+	        y = this.a * pj_mlfn(lat, s, c, this.en);
+	        x = this.a * lon * c / Math.sqrt(1 - this.es * s * s);
+	      }
+
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    function inverse$20(p) {
+	      var lat, temp, lon, s;
+
+	      p.x -= this.x0;
+	      lon = p.x / this.a;
+	      p.y -= this.y0;
+	      lat = p.y / this.a;
+
+	      if (this.sphere) {
+	        lat /= this.C_y;
+	        lon = lon / (this.C_x * (this.m + Math.cos(lat)));
+	        if (this.m) {
+	          lat = asinz((this.m * lat + Math.sin(lat)) / this.n);
+	        }
+	        else if (this.n !== 1) {
+	          lat = asinz(Math.sin(lat) / this.n);
+	        }
+	        lon = adjust_lon(lon + this.long0);
+	        lat = adjust_lat(lat);
+	      }
+	      else {
+	        lat = pj_inv_mlfn(p.y / this.a, this.es, this.en);
+	        s = Math.abs(lat);
+	        if (s < HALF_PI) {
+	          s = Math.sin(lat);
+	          temp = this.long0 + p.x * Math.sqrt(1 - this.es * s * s) / (this.a * Math.cos(lat));
+	          //temp = this.long0 + p.x / (this.a * Math.cos(lat));
+	          lon = adjust_lon(temp);
+	        }
+	        else if ((s - EPSLN) < HALF_PI) {
+	          lon = this.long0;
+	        }
+	      }
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$22 = ["Sinusoidal", "sinu"];
+	    var sinu = {
+	      init: init$21,
+	      forward: forward$20,
+	      inverse: inverse$20,
+	      names: names$22
+	    };
+
+	    function init$22() {}
+	    /* Mollweide forward equations--mapping lat,long to x,y
+	        ----------------------------------------------------*/
+	    function forward$21(p) {
+
+	      /* Forward equations
+	          -----------------*/
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      var delta_lon = adjust_lon(lon - this.long0);
+	      var theta = lat;
+	      var con = Math.PI * Math.sin(lat);
+
+	      /* Iterate using the Newton-Raphson method to find theta
+	          -----------------------------------------------------*/
+	      while (true) {
+	        var delta_theta = -(theta + Math.sin(theta) - con) / (1 + Math.cos(theta));
+	        theta += delta_theta;
+	        if (Math.abs(delta_theta) < EPSLN) {
+	          break;
+	        }
+	      }
+	      theta /= 2;
+
+	      /* If the latitude is 90 deg, force the x coordinate to be "0 + false easting"
+	           this is done here because of precision problems with "cos(theta)"
+	           --------------------------------------------------------------------------*/
+	      if (Math.PI / 2 - Math.abs(lat) < EPSLN) {
+	        delta_lon = 0;
+	      }
+	      var x = 0.900316316158 * this.a * delta_lon * Math.cos(theta) + this.x0;
+	      var y = 1.4142135623731 * this.a * Math.sin(theta) + this.y0;
+
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    function inverse$21(p) {
+	      var theta;
+	      var arg;
+
+	      /* Inverse equations
+	          -----------------*/
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      arg = p.y / (1.4142135623731 * this.a);
+
+	      /* Because of division by zero problems, 'arg' can not be 1.  Therefore
+	           a number very close to one is used instead.
+	           -------------------------------------------------------------------*/
+	      if (Math.abs(arg) > 0.999999999999) {
+	        arg = 0.999999999999;
+	      }
+	      theta = Math.asin(arg);
+	      var lon = adjust_lon(this.long0 + (p.x / (0.900316316158 * this.a * Math.cos(theta))));
+	      if (lon < (-Math.PI)) {
+	        lon = -Math.PI;
+	      }
+	      if (lon > Math.PI) {
+	        lon = Math.PI;
+	      }
+	      arg = (2 * theta + Math.sin(2 * theta)) / Math.PI;
+	      if (Math.abs(arg) > 1) {
+	        arg = 1;
+	      }
+	      var lat = Math.asin(arg);
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$23 = ["Mollweide", "moll"];
+	    var moll = {
+	      init: init$22,
+	      forward: forward$21,
+	      inverse: inverse$21,
+	      names: names$23
+	    };
+
+	    function init$23() {
+
+	      /* Place parameters in static storage for common use
+	          -------------------------------------------------*/
+	      // Standard Parallels cannot be equal and on opposite sides of the equator
+	      if (Math.abs(this.lat1 + this.lat2) < EPSLN) {
+	        return;
+	      }
+	      this.lat2 = this.lat2 || this.lat1;
+	      this.temp = this.b / this.a;
+	      this.es = 1 - Math.pow(this.temp, 2);
+	      this.e = Math.sqrt(this.es);
+	      this.e0 = e0fn(this.es);
+	      this.e1 = e1fn(this.es);
+	      this.e2 = e2fn(this.es);
+	      this.e3 = e3fn(this.es);
+
+	      this.sinphi = Math.sin(this.lat1);
+	      this.cosphi = Math.cos(this.lat1);
+
+	      this.ms1 = msfnz(this.e, this.sinphi, this.cosphi);
+	      this.ml1 = mlfn(this.e0, this.e1, this.e2, this.e3, this.lat1);
+
+	      if (Math.abs(this.lat1 - this.lat2) < EPSLN) {
+	        this.ns = this.sinphi;
+	      }
+	      else {
+	        this.sinphi = Math.sin(this.lat2);
+	        this.cosphi = Math.cos(this.lat2);
+	        this.ms2 = msfnz(this.e, this.sinphi, this.cosphi);
+	        this.ml2 = mlfn(this.e0, this.e1, this.e2, this.e3, this.lat2);
+	        this.ns = (this.ms1 - this.ms2) / (this.ml2 - this.ml1);
+	      }
+	      this.g = this.ml1 + this.ms1 / this.ns;
+	      this.ml0 = mlfn(this.e0, this.e1, this.e2, this.e3, this.lat0);
+	      this.rh = this.a * (this.g - this.ml0);
+	    }
+
+	    /* Equidistant Conic forward equations--mapping lat,long to x,y
+	      -----------------------------------------------------------*/
+	    function forward$22(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      var rh1;
+
+	      /* Forward equations
+	          -----------------*/
+	      if (this.sphere) {
+	        rh1 = this.a * (this.g - lat);
+	      }
+	      else {
+	        var ml = mlfn(this.e0, this.e1, this.e2, this.e3, lat);
+	        rh1 = this.a * (this.g - ml);
+	      }
+	      var theta = this.ns * adjust_lon(lon - this.long0);
+	      var x = this.x0 + rh1 * Math.sin(theta);
+	      var y = this.y0 + this.rh - rh1 * Math.cos(theta);
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    /* Inverse equations
+	      -----------------*/
+	    function inverse$22(p) {
+	      p.x -= this.x0;
+	      p.y = this.rh - p.y + this.y0;
+	      var con, rh1, lat, lon;
+	      if (this.ns >= 0) {
+	        rh1 = Math.sqrt(p.x * p.x + p.y * p.y);
+	        con = 1;
+	      }
+	      else {
+	        rh1 = -Math.sqrt(p.x * p.x + p.y * p.y);
+	        con = -1;
+	      }
+	      var theta = 0;
+	      if (rh1 !== 0) {
+	        theta = Math.atan2(con * p.x, con * p.y);
+	      }
+
+	      if (this.sphere) {
+	        lon = adjust_lon(this.long0 + theta / this.ns);
+	        lat = adjust_lat(this.g - rh1 / this.a);
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+	      else {
+	        var ml = this.g - rh1 / this.a;
+	        lat = imlfn(ml, this.e0, this.e1, this.e2, this.e3);
+	        lon = adjust_lon(this.long0 + theta / this.ns);
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+
+	    }
+
+	    var names$24 = ["Equidistant_Conic", "eqdc"];
+	    var eqdc = {
+	      init: init$23,
+	      forward: forward$22,
+	      inverse: inverse$22,
+	      names: names$24
+	    };
+
+	    /* Initialize the Van Der Grinten projection
+	      ----------------------------------------*/
+	    function init$24() {
+	      //this.R = 6370997; //Radius of earth
+	      this.R = this.a;
+	    }
+
+	    function forward$23(p) {
+
+	      var lon = p.x;
+	      var lat = p.y;
+
+	      /* Forward equations
+	        -----------------*/
+	      var dlon = adjust_lon(lon - this.long0);
+	      var x, y;
+
+	      if (Math.abs(lat) <= EPSLN) {
+	        x = this.x0 + this.R * dlon;
+	        y = this.y0;
+	      }
+	      var theta = asinz(2 * Math.abs(lat / Math.PI));
+	      if ((Math.abs(dlon) <= EPSLN) || (Math.abs(Math.abs(lat) - HALF_PI) <= EPSLN)) {
+	        x = this.x0;
+	        if (lat >= 0) {
+	          y = this.y0 + Math.PI * this.R * Math.tan(0.5 * theta);
+	        }
+	        else {
+	          y = this.y0 + Math.PI * this.R * -Math.tan(0.5 * theta);
+	        }
+	        //  return(OK);
+	      }
+	      var al = 0.5 * Math.abs((Math.PI / dlon) - (dlon / Math.PI));
+	      var asq = al * al;
+	      var sinth = Math.sin(theta);
+	      var costh = Math.cos(theta);
+
+	      var g = costh / (sinth + costh - 1);
+	      var gsq = g * g;
+	      var m = g * (2 / sinth - 1);
+	      var msq = m * m;
+	      var con = Math.PI * this.R * (al * (g - msq) + Math.sqrt(asq * (g - msq) * (g - msq) - (msq + asq) * (gsq - msq))) / (msq + asq);
+	      if (dlon < 0) {
+	        con = -con;
+	      }
+	      x = this.x0 + con;
+	      //con = Math.abs(con / (Math.PI * this.R));
+	      var q = asq + g;
+	      con = Math.PI * this.R * (m * q - al * Math.sqrt((msq + asq) * (asq + 1) - q * q)) / (msq + asq);
+	      if (lat >= 0) {
+	        //y = this.y0 + Math.PI * this.R * Math.sqrt(1 - con * con - 2 * al * con);
+	        y = this.y0 + con;
+	      }
+	      else {
+	        //y = this.y0 - Math.PI * this.R * Math.sqrt(1 - con * con - 2 * al * con);
+	        y = this.y0 - con;
+	      }
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    /* Van Der Grinten inverse equations--mapping x,y to lat/long
+	      ---------------------------------------------------------*/
+	    function inverse$23(p) {
+	      var lon, lat;
+	      var xx, yy, xys, c1, c2, c3;
+	      var a1;
+	      var m1;
+	      var con;
+	      var th1;
+	      var d;
+
+	      /* inverse equations
+	        -----------------*/
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      con = Math.PI * this.R;
+	      xx = p.x / con;
+	      yy = p.y / con;
+	      xys = xx * xx + yy * yy;
+	      c1 = -Math.abs(yy) * (1 + xys);
+	      c2 = c1 - 2 * yy * yy + xx * xx;
+	      c3 = -2 * c1 + 1 + 2 * yy * yy + xys * xys;
+	      d = yy * yy / c3 + (2 * c2 * c2 * c2 / c3 / c3 / c3 - 9 * c1 * c2 / c3 / c3) / 27;
+	      a1 = (c1 - c2 * c2 / 3 / c3) / c3;
+	      m1 = 2 * Math.sqrt(-a1 / 3);
+	      con = ((3 * d) / a1) / m1;
+	      if (Math.abs(con) > 1) {
+	        if (con >= 0) {
+	          con = 1;
+	        }
+	        else {
+	          con = -1;
+	        }
+	      }
+	      th1 = Math.acos(con) / 3;
+	      if (p.y >= 0) {
+	        lat = (-m1 * Math.cos(th1 + Math.PI / 3) - c2 / 3 / c3) * Math.PI;
+	      }
+	      else {
+	        lat = -(-m1 * Math.cos(th1 + Math.PI / 3) - c2 / 3 / c3) * Math.PI;
+	      }
+
+	      if (Math.abs(xx) < EPSLN) {
+	        lon = this.long0;
+	      }
+	      else {
+	        lon = adjust_lon(this.long0 + Math.PI * (xys - 1 + Math.sqrt(1 + 2 * (xx * xx - yy * yy) + xys * xys)) / 2 / xx);
+	      }
+
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$25 = ["Van_der_Grinten_I", "VanDerGrinten", "vandg"];
+	    var vandg = {
+	      init: init$24,
+	      forward: forward$23,
+	      inverse: inverse$23,
+	      names: names$25
+	    };
+
+	    function init$25() {
+	      this.sin_p12 = Math.sin(this.lat0);
+	      this.cos_p12 = Math.cos(this.lat0);
+	    }
+
+	    function forward$24(p) {
+	      var lon = p.x;
+	      var lat = p.y;
+	      var sinphi = Math.sin(p.y);
+	      var cosphi = Math.cos(p.y);
+	      var dlon = adjust_lon(lon - this.long0);
+	      var e0, e1, e2, e3, Mlp, Ml, tanphi, Nl1, Nl, psi, Az, G, H, GH, Hs, c, kp, cos_c, s, s2, s3, s4, s5;
+	      if (this.sphere) {
+	        if (Math.abs(this.sin_p12 - 1) <= EPSLN) {
+	          //North Pole case
+	          p.x = this.x0 + this.a * (HALF_PI - lat) * Math.sin(dlon);
+	          p.y = this.y0 - this.a * (HALF_PI - lat) * Math.cos(dlon);
+	          return p;
+	        }
+	        else if (Math.abs(this.sin_p12 + 1) <= EPSLN) {
+	          //South Pole case
+	          p.x = this.x0 + this.a * (HALF_PI + lat) * Math.sin(dlon);
+	          p.y = this.y0 + this.a * (HALF_PI + lat) * Math.cos(dlon);
+	          return p;
+	        }
+	        else {
+	          //default case
+	          cos_c = this.sin_p12 * sinphi + this.cos_p12 * cosphi * Math.cos(dlon);
+	          c = Math.acos(cos_c);
+	          kp = c ? c / Math.sin(c) : 1;
+	          p.x = this.x0 + this.a * kp * cosphi * Math.sin(dlon);
+	          p.y = this.y0 + this.a * kp * (this.cos_p12 * sinphi - this.sin_p12 * cosphi * Math.cos(dlon));
+	          return p;
+	        }
+	      }
+	      else {
+	        e0 = e0fn(this.es);
+	        e1 = e1fn(this.es);
+	        e2 = e2fn(this.es);
+	        e3 = e3fn(this.es);
+	        if (Math.abs(this.sin_p12 - 1) <= EPSLN) {
+	          //North Pole case
+	          Mlp = this.a * mlfn(e0, e1, e2, e3, HALF_PI);
+	          Ml = this.a * mlfn(e0, e1, e2, e3, lat);
+	          p.x = this.x0 + (Mlp - Ml) * Math.sin(dlon);
+	          p.y = this.y0 - (Mlp - Ml) * Math.cos(dlon);
+	          return p;
+	        }
+	        else if (Math.abs(this.sin_p12 + 1) <= EPSLN) {
+	          //South Pole case
+	          Mlp = this.a * mlfn(e0, e1, e2, e3, HALF_PI);
+	          Ml = this.a * mlfn(e0, e1, e2, e3, lat);
+	          p.x = this.x0 + (Mlp + Ml) * Math.sin(dlon);
+	          p.y = this.y0 + (Mlp + Ml) * Math.cos(dlon);
+	          return p;
+	        }
+	        else {
+	          //Default case
+	          tanphi = sinphi / cosphi;
+	          Nl1 = gN(this.a, this.e, this.sin_p12);
+	          Nl = gN(this.a, this.e, sinphi);
+	          psi = Math.atan((1 - this.es) * tanphi + this.es * Nl1 * this.sin_p12 / (Nl * cosphi));
+	          Az = Math.atan2(Math.sin(dlon), this.cos_p12 * Math.tan(psi) - this.sin_p12 * Math.cos(dlon));
+	          if (Az === 0) {
+	            s = Math.asin(this.cos_p12 * Math.sin(psi) - this.sin_p12 * Math.cos(psi));
+	          }
+	          else if (Math.abs(Math.abs(Az) - Math.PI) <= EPSLN) {
+	            s = -Math.asin(this.cos_p12 * Math.sin(psi) - this.sin_p12 * Math.cos(psi));
+	          }
+	          else {
+	            s = Math.asin(Math.sin(dlon) * Math.cos(psi) / Math.sin(Az));
+	          }
+	          G = this.e * this.sin_p12 / Math.sqrt(1 - this.es);
+	          H = this.e * this.cos_p12 * Math.cos(Az) / Math.sqrt(1 - this.es);
+	          GH = G * H;
+	          Hs = H * H;
+	          s2 = s * s;
+	          s3 = s2 * s;
+	          s4 = s3 * s;
+	          s5 = s4 * s;
+	          c = Nl1 * s * (1 - s2 * Hs * (1 - Hs) / 6 + s3 / 8 * GH * (1 - 2 * Hs) + s4 / 120 * (Hs * (4 - 7 * Hs) - 3 * G * G * (1 - 7 * Hs)) - s5 / 48 * GH);
+	          p.x = this.x0 + c * Math.sin(Az);
+	          p.y = this.y0 + c * Math.cos(Az);
+	          return p;
+	        }
+	      }
+
+
+	    }
+
+	    function inverse$24(p) {
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      var rh, z, sinz, cosz, lon, lat, con, e0, e1, e2, e3, Mlp, M, N1, psi, Az, cosAz, tmp, A, B, D, Ee, F, sinpsi;
+	      if (this.sphere) {
+	        rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	        if (rh > (2 * HALF_PI * this.a)) {
+	          return;
+	        }
+	        z = rh / this.a;
+
+	        sinz = Math.sin(z);
+	        cosz = Math.cos(z);
+
+	        lon = this.long0;
+	        if (Math.abs(rh) <= EPSLN) {
+	          lat = this.lat0;
+	        }
+	        else {
+	          lat = asinz(cosz * this.sin_p12 + (p.y * sinz * this.cos_p12) / rh);
+	          con = Math.abs(this.lat0) - HALF_PI;
+	          if (Math.abs(con) <= EPSLN) {
+	            if (this.lat0 >= 0) {
+	              lon = adjust_lon(this.long0 + Math.atan2(p.x, - p.y));
+	            }
+	            else {
+	              lon = adjust_lon(this.long0 - Math.atan2(-p.x, p.y));
+	            }
+	          }
+	          else {
+	            /*con = cosz - this.sin_p12 * Math.sin(lat);
+	            if ((Math.abs(con) < EPSLN) && (Math.abs(p.x) < EPSLN)) {
+	              //no-op, just keep the lon value as is
+	            } else {
+	              var temp = Math.atan2((p.x * sinz * this.cos_p12), (con * rh));
+	              lon = adjust_lon(this.long0 + Math.atan2((p.x * sinz * this.cos_p12), (con * rh)));
+	            }*/
+	            lon = adjust_lon(this.long0 + Math.atan2(p.x * sinz, rh * this.cos_p12 * cosz - p.y * this.sin_p12 * sinz));
+	          }
+	        }
+
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+	      else {
+	        e0 = e0fn(this.es);
+	        e1 = e1fn(this.es);
+	        e2 = e2fn(this.es);
+	        e3 = e3fn(this.es);
+	        if (Math.abs(this.sin_p12 - 1) <= EPSLN) {
+	          //North pole case
+	          Mlp = this.a * mlfn(e0, e1, e2, e3, HALF_PI);
+	          rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	          M = Mlp - rh;
+	          lat = imlfn(M / this.a, e0, e1, e2, e3);
+	          lon = adjust_lon(this.long0 + Math.atan2(p.x, - 1 * p.y));
+	          p.x = lon;
+	          p.y = lat;
+	          return p;
+	        }
+	        else if (Math.abs(this.sin_p12 + 1) <= EPSLN) {
+	          //South pole case
+	          Mlp = this.a * mlfn(e0, e1, e2, e3, HALF_PI);
+	          rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	          M = rh - Mlp;
+
+	          lat = imlfn(M / this.a, e0, e1, e2, e3);
+	          lon = adjust_lon(this.long0 + Math.atan2(p.x, p.y));
+	          p.x = lon;
+	          p.y = lat;
+	          return p;
+	        }
+	        else {
+	          //default case
+	          rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	          Az = Math.atan2(p.x, p.y);
+	          N1 = gN(this.a, this.e, this.sin_p12);
+	          cosAz = Math.cos(Az);
+	          tmp = this.e * this.cos_p12 * cosAz;
+	          A = -tmp * tmp / (1 - this.es);
+	          B = 3 * this.es * (1 - A) * this.sin_p12 * this.cos_p12 * cosAz / (1 - this.es);
+	          D = rh / N1;
+	          Ee = D - A * (1 + A) * Math.pow(D, 3) / 6 - B * (1 + 3 * A) * Math.pow(D, 4) / 24;
+	          F = 1 - A * Ee * Ee / 2 - D * Ee * Ee * Ee / 6;
+	          psi = Math.asin(this.sin_p12 * Math.cos(Ee) + this.cos_p12 * Math.sin(Ee) * cosAz);
+	          lon = adjust_lon(this.long0 + Math.asin(Math.sin(Az) * Math.sin(Ee) / Math.cos(psi)));
+	          sinpsi = Math.sin(psi);
+	          lat = Math.atan2((sinpsi - this.es * F * this.sin_p12) * Math.tan(psi), sinpsi * (1 - this.es));
+	          p.x = lon;
+	          p.y = lat;
+	          return p;
+	        }
+	      }
+
+	    }
+
+	    var names$26 = ["Azimuthal_Equidistant", "aeqd"];
+	    var aeqd = {
+	      init: init$25,
+	      forward: forward$24,
+	      inverse: inverse$24,
+	      names: names$26
+	    };
+
+	    function init$26() {
+	      //double temp;      /* temporary variable    */
+
+	      /* Place parameters in static storage for common use
+	          -------------------------------------------------*/
+	      this.sin_p14 = Math.sin(this.lat0);
+	      this.cos_p14 = Math.cos(this.lat0);
+	    }
+
+	    /* Orthographic forward equations--mapping lat,long to x,y
+	        ---------------------------------------------------*/
+	    function forward$25(p) {
+	      var sinphi, cosphi; /* sin and cos value        */
+	      var dlon; /* delta longitude value      */
+	      var coslon; /* cos of longitude        */
+	      var ksp; /* scale factor          */
+	      var g, x, y;
+	      var lon = p.x;
+	      var lat = p.y;
+	      /* Forward equations
+	          -----------------*/
+	      dlon = adjust_lon(lon - this.long0);
+
+	      sinphi = Math.sin(lat);
+	      cosphi = Math.cos(lat);
+
+	      coslon = Math.cos(dlon);
+	      g = this.sin_p14 * sinphi + this.cos_p14 * cosphi * coslon;
+	      ksp = 1;
+	      if ((g > 0) || (Math.abs(g) <= EPSLN)) {
+	        x = this.a * ksp * cosphi * Math.sin(dlon);
+	        y = this.y0 + this.a * ksp * (this.cos_p14 * sinphi - this.sin_p14 * cosphi * coslon);
+	      }
+	      p.x = x;
+	      p.y = y;
+	      return p;
+	    }
+
+	    function inverse$25(p) {
+	      var rh; /* height above ellipsoid      */
+	      var z; /* angle          */
+	      var sinz, cosz; /* sin of z and cos of z      */
+	      var con;
+	      var lon, lat;
+	      /* Inverse equations
+	          -----------------*/
+	      p.x -= this.x0;
+	      p.y -= this.y0;
+	      rh = Math.sqrt(p.x * p.x + p.y * p.y);
+	      z = asinz(rh / this.a);
+
+	      sinz = Math.sin(z);
+	      cosz = Math.cos(z);
+
+	      lon = this.long0;
+	      if (Math.abs(rh) <= EPSLN) {
+	        lat = this.lat0;
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+	      lat = asinz(cosz * this.sin_p14 + (p.y * sinz * this.cos_p14) / rh);
+	      con = Math.abs(this.lat0) - HALF_PI;
+	      if (Math.abs(con) <= EPSLN) {
+	        if (this.lat0 >= 0) {
+	          lon = adjust_lon(this.long0 + Math.atan2(p.x, - p.y));
+	        }
+	        else {
+	          lon = adjust_lon(this.long0 - Math.atan2(-p.x, p.y));
+	        }
+	        p.x = lon;
+	        p.y = lat;
+	        return p;
+	      }
+	      lon = adjust_lon(this.long0 + Math.atan2((p.x * sinz), rh * this.cos_p14 * cosz - p.y * this.sin_p14 * sinz));
+	      p.x = lon;
+	      p.y = lat;
+	      return p;
+	    }
+
+	    var names$27 = ["ortho"];
+	    var ortho = {
+	      init: init$26,
+	      forward: forward$25,
+	      inverse: inverse$25,
+	      names: names$27
+	    };
+
+	    // QSC projection rewritten from the original PROJ4
+	    // https://github.com/OSGeo/proj.4/blob/master/src/PJ_qsc.c
+
+	    /* constants */
+	    var FACE_ENUM = {
+	        FRONT: 1,
+	        RIGHT: 2,
+	        BACK: 3,
+	        LEFT: 4,
+	        TOP: 5,
+	        BOTTOM: 6
+	    };
+
+	    var AREA_ENUM = {
+	        AREA_0: 1,
+	        AREA_1: 2,
+	        AREA_2: 3,
+	        AREA_3: 4
+	    };
+
+	    function init$27() {
+
+	      this.x0 = this.x0 || 0;
+	      this.y0 = this.y0 || 0;
+	      this.lat0 = this.lat0 || 0;
+	      this.long0 = this.long0 || 0;
+	      this.lat_ts = this.lat_ts || 0;
+	      this.title = this.title || "Quadrilateralized Spherical Cube";
+
+	      /* Determine the cube face from the center of projection. */
+	      if (this.lat0 >= HALF_PI - FORTPI / 2.0) {
+	        this.face = FACE_ENUM.TOP;
+	      } else if (this.lat0 <= -(HALF_PI - FORTPI / 2.0)) {
+	        this.face = FACE_ENUM.BOTTOM;
+	      } else if (Math.abs(this.long0) <= FORTPI) {
+	        this.face = FACE_ENUM.FRONT;
+	      } else if (Math.abs(this.long0) <= HALF_PI + FORTPI) {
+	        this.face = this.long0 > 0.0 ? FACE_ENUM.RIGHT : FACE_ENUM.LEFT;
+	      } else {
+	        this.face = FACE_ENUM.BACK;
+	      }
+
+	      /* Fill in useful values for the ellipsoid <-> sphere shift
+	       * described in [LK12]. */
+	      if (this.es !== 0) {
+	        this.one_minus_f = 1 - (this.a - this.b) / this.a;
+	        this.one_minus_f_squared = this.one_minus_f * this.one_minus_f;
+	      }
+	    }
+
+	    // QSC forward equations--mapping lat,long to x,y
+	    // -----------------------------------------------------------------
+	    function forward$26(p) {
+	      var xy = {x: 0, y: 0};
+	      var lat, lon;
+	      var theta, phi;
+	      var t, mu;
+	      /* nu; */
+	      var area = {value: 0};
+
+	      // move lon according to projection's lon
+	      p.x -= this.long0;
+
+	      /* Convert the geodetic latitude to a geocentric latitude.
+	       * This corresponds to the shift from the ellipsoid to the sphere
+	       * described in [LK12]. */
+	      if (this.es !== 0) {//if (P->es != 0) {
+	        lat = Math.atan(this.one_minus_f_squared * Math.tan(p.y));
+	      } else {
+	        lat = p.y;
+	      }
+
+	      /* Convert the input lat, lon into theta, phi as used by QSC.
+	       * This depends on the cube face and the area on it.
+	       * For the top and bottom face, we can compute theta and phi
+	       * directly from phi, lam. For the other faces, we must use
+	       * unit sphere cartesian coordinates as an intermediate step. */
+	      lon = p.x; //lon = lp.lam;
+	      if (this.face === FACE_ENUM.TOP) {
+	        phi = HALF_PI - lat;
+	        if (lon >= FORTPI && lon <= HALF_PI + FORTPI) {
+	          area.value = AREA_ENUM.AREA_0;
+	          theta = lon - HALF_PI;
+	        } else if (lon > HALF_PI + FORTPI || lon <= -(HALF_PI + FORTPI)) {
+	          area.value = AREA_ENUM.AREA_1;
+	          theta = (lon > 0.0 ? lon - SPI : lon + SPI);
+	        } else if (lon > -(HALF_PI + FORTPI) && lon <= -FORTPI) {
+	          area.value = AREA_ENUM.AREA_2;
+	          theta = lon + HALF_PI;
+	        } else {
+	          area.value = AREA_ENUM.AREA_3;
+	          theta = lon;
+	        }
+	      } else if (this.face === FACE_ENUM.BOTTOM) {
+	        phi = HALF_PI + lat;
+	        if (lon >= FORTPI && lon <= HALF_PI + FORTPI) {
+	          area.value = AREA_ENUM.AREA_0;
+	          theta = -lon + HALF_PI;
+	        } else if (lon < FORTPI && lon >= -FORTPI) {
+	          area.value = AREA_ENUM.AREA_1;
+	          theta = -lon;
+	        } else if (lon < -FORTPI && lon >= -(HALF_PI + FORTPI)) {
+	          area.value = AREA_ENUM.AREA_2;
+	          theta = -lon - HALF_PI;
+	        } else {
+	          area.value = AREA_ENUM.AREA_3;
+	          theta = (lon > 0.0 ? -lon + SPI : -lon - SPI);
+	        }
+	      } else {
+	        var q, r, s;
+	        var sinlat, coslat;
+	        var sinlon, coslon;
+
+	        if (this.face === FACE_ENUM.RIGHT) {
+	          lon = qsc_shift_lon_origin(lon, +HALF_PI);
+	        } else if (this.face === FACE_ENUM.BACK) {
+	          lon = qsc_shift_lon_origin(lon, +SPI);
+	        } else if (this.face === FACE_ENUM.LEFT) {
+	          lon = qsc_shift_lon_origin(lon, -HALF_PI);
+	        }
+	        sinlat = Math.sin(lat);
+	        coslat = Math.cos(lat);
+	        sinlon = Math.sin(lon);
+	        coslon = Math.cos(lon);
+	        q = coslat * coslon;
+	        r = coslat * sinlon;
+	        s = sinlat;
+
+	        if (this.face === FACE_ENUM.FRONT) {
+	          phi = Math.acos(q);
+	          theta = qsc_fwd_equat_face_theta(phi, s, r, area);
+	        } else if (this.face === FACE_ENUM.RIGHT) {
+	          phi = Math.acos(r);
+	          theta = qsc_fwd_equat_face_theta(phi, s, -q, area);
+	        } else if (this.face === FACE_ENUM.BACK) {
+	          phi = Math.acos(-q);
+	          theta = qsc_fwd_equat_face_theta(phi, s, -r, area);
+	        } else if (this.face === FACE_ENUM.LEFT) {
+	          phi = Math.acos(-r);
+	          theta = qsc_fwd_equat_face_theta(phi, s, q, area);
+	        } else {
+	          /* Impossible */
+	          phi = theta = 0;
+	          area.value = AREA_ENUM.AREA_0;
+	        }
+	      }
+
+	      /* Compute mu and nu for the area of definition.
+	       * For mu, see Eq. (3-21) in [OL76], but note the typos:
+	       * compare with Eq. (3-14). For nu, see Eq. (3-38). */
+	      mu = Math.atan((12 / SPI) * (theta + Math.acos(Math.sin(theta) * Math.cos(FORTPI)) - HALF_PI));
+	      t = Math.sqrt((1 - Math.cos(phi)) / (Math.cos(mu) * Math.cos(mu)) / (1 - Math.cos(Math.atan(1 / Math.cos(theta)))));
+
+	      /* Apply the result to the real area. */
+	      if (area.value === AREA_ENUM.AREA_1) {
+	        mu += HALF_PI;
+	      } else if (area.value === AREA_ENUM.AREA_2) {
+	        mu += SPI;
+	      } else if (area.value === AREA_ENUM.AREA_3) {
+	        mu += 1.5 * SPI;
+	      }
+
+	      /* Now compute x, y from mu and nu */
+	      xy.x = t * Math.cos(mu);
+	      xy.y = t * Math.sin(mu);
+	      xy.x = xy.x * this.a + this.x0;
+	      xy.y = xy.y * this.a + this.y0;
+
+	      p.x = xy.x;
+	      p.y = xy.y;
+	      return p;
+	    }
+
+	    // QSC inverse equations--mapping x,y to lat/long
+	    // -----------------------------------------------------------------
+	    function inverse$26(p) {
+	      var lp = {lam: 0, phi: 0};
+	      var mu, nu, cosmu, tannu;
+	      var tantheta, theta, cosphi, phi;
+	      var t;
+	      var area = {value: 0};
+
+	      /* de-offset */
+	      p.x = (p.x - this.x0) / this.a;
+	      p.y = (p.y - this.y0) / this.a;
+
+	      /* Convert the input x, y to the mu and nu angles as used by QSC.
+	       * This depends on the area of the cube face. */
+	      nu = Math.atan(Math.sqrt(p.x * p.x + p.y * p.y));
+	      mu = Math.atan2(p.y, p.x);
+	      if (p.x >= 0.0 && p.x >= Math.abs(p.y)) {
+	        area.value = AREA_ENUM.AREA_0;
+	      } else if (p.y >= 0.0 && p.y >= Math.abs(p.x)) {
+	        area.value = AREA_ENUM.AREA_1;
+	        mu -= HALF_PI;
+	      } else if (p.x < 0.0 && -p.x >= Math.abs(p.y)) {
+	        area.value = AREA_ENUM.AREA_2;
+	        mu = (mu < 0.0 ? mu + SPI : mu - SPI);
+	      } else {
+	        area.value = AREA_ENUM.AREA_3;
+	        mu += HALF_PI;
+	      }
+
+	      /* Compute phi and theta for the area of definition.
+	       * The inverse projection is not described in the original paper, but some
+	       * good hints can be found here (as of 2011-12-14):
+	       * http://fits.gsfc.nasa.gov/fitsbits/saf.93/saf.9302
+	       * (search for "Message-Id: <9302181759.AA25477 at fits.cv.nrao.edu>") */
+	      t = (SPI / 12) * Math.tan(mu);
+	      tantheta = Math.sin(t) / (Math.cos(t) - (1 / Math.sqrt(2)));
+	      theta = Math.atan(tantheta);
+	      cosmu = Math.cos(mu);
+	      tannu = Math.tan(nu);
+	      cosphi = 1 - cosmu * cosmu * tannu * tannu * (1 - Math.cos(Math.atan(1 / Math.cos(theta))));
+	      if (cosphi < -1) {
+	        cosphi = -1;
+	      } else if (cosphi > +1) {
+	        cosphi = +1;
+	      }
+
+	      /* Apply the result to the real area on the cube face.
+	       * For the top and bottom face, we can compute phi and lam directly.
+	       * For the other faces, we must use unit sphere cartesian coordinates
+	       * as an intermediate step. */
+	      if (this.face === FACE_ENUM.TOP) {
+	        phi = Math.acos(cosphi);
+	        lp.phi = HALF_PI - phi;
+	        if (area.value === AREA_ENUM.AREA_0) {
+	          lp.lam = theta + HALF_PI;
+	        } else if (area.value === AREA_ENUM.AREA_1) {
+	          lp.lam = (theta < 0.0 ? theta + SPI : theta - SPI);
+	        } else if (area.value === AREA_ENUM.AREA_2) {
+	          lp.lam = theta - HALF_PI;
+	        } else /* area.value == AREA_ENUM.AREA_3 */ {
+	          lp.lam = theta;
+	        }
+	      } else if (this.face === FACE_ENUM.BOTTOM) {
+	        phi = Math.acos(cosphi);
+	        lp.phi = phi - HALF_PI;
+	        if (area.value === AREA_ENUM.AREA_0) {
+	          lp.lam = -theta + HALF_PI;
+	        } else if (area.value === AREA_ENUM.AREA_1) {
+	          lp.lam = -theta;
+	        } else if (area.value === AREA_ENUM.AREA_2) {
+	          lp.lam = -theta - HALF_PI;
+	        } else /* area.value == AREA_ENUM.AREA_3 */ {
+	          lp.lam = (theta < 0.0 ? -theta - SPI : -theta + SPI);
+	        }
+	      } else {
+	        /* Compute phi and lam via cartesian unit sphere coordinates. */
+	        var q, r, s;
+	        q = cosphi;
+	        t = q * q;
+	        if (t >= 1) {
+	          s = 0;
+	        } else {
+	          s = Math.sqrt(1 - t) * Math.sin(theta);
+	        }
+	        t += s * s;
+	        if (t >= 1) {
+	          r = 0;
+	        } else {
+	          r = Math.sqrt(1 - t);
+	        }
+	        /* Rotate q,r,s into the correct area. */
+	        if (area.value === AREA_ENUM.AREA_1) {
+	          t = r;
+	          r = -s;
+	          s = t;
+	        } else if (area.value === AREA_ENUM.AREA_2) {
+	          r = -r;
+	          s = -s;
+	        } else if (area.value === AREA_ENUM.AREA_3) {
+	          t = r;
+	          r = s;
+	          s = -t;
+	        }
+	        /* Rotate q,r,s into the correct cube face. */
+	        if (this.face === FACE_ENUM.RIGHT) {
+	          t = q;
+	          q = -r;
+	          r = t;
+	        } else if (this.face === FACE_ENUM.BACK) {
+	          q = -q;
+	          r = -r;
+	        } else if (this.face === FACE_ENUM.LEFT) {
+	          t = q;
+	          q = r;
+	          r = -t;
+	        }
+	        /* Now compute phi and lam from the unit sphere coordinates. */
+	        lp.phi = Math.acos(-s) - HALF_PI;
+	        lp.lam = Math.atan2(r, q);
+	        if (this.face === FACE_ENUM.RIGHT) {
+	          lp.lam = qsc_shift_lon_origin(lp.lam, -HALF_PI);
+	        } else if (this.face === FACE_ENUM.BACK) {
+	          lp.lam = qsc_shift_lon_origin(lp.lam, -SPI);
+	        } else if (this.face === FACE_ENUM.LEFT) {
+	          lp.lam = qsc_shift_lon_origin(lp.lam, +HALF_PI);
+	        }
+	      }
+
+	      /* Apply the shift from the sphere to the ellipsoid as described
+	       * in [LK12]. */
+	      if (this.es !== 0) {
+	        var invert_sign;
+	        var tanphi, xa;
+	        invert_sign = (lp.phi < 0 ? 1 : 0);
+	        tanphi = Math.tan(lp.phi);
+	        xa = this.b / Math.sqrt(tanphi * tanphi + this.one_minus_f_squared);
+	        lp.phi = Math.atan(Math.sqrt(this.a * this.a - xa * xa) / (this.one_minus_f * xa));
+	        if (invert_sign) {
+	          lp.phi = -lp.phi;
+	        }
+	      }
+
+	      lp.lam += this.long0;
+	      p.x = lp.lam;
+	      p.y = lp.phi;
+	      return p;
+	    }
+
+	    /* Helper function for forward projection: compute the theta angle
+	     * and determine the area number. */
+	    function qsc_fwd_equat_face_theta(phi, y, x, area) {
+	      var theta;
+	      if (phi < EPSLN) {
+	        area.value = AREA_ENUM.AREA_0;
+	        theta = 0.0;
+	      } else {
+	        theta = Math.atan2(y, x);
+	        if (Math.abs(theta) <= FORTPI) {
+	          area.value = AREA_ENUM.AREA_0;
+	        } else if (theta > FORTPI && theta <= HALF_PI + FORTPI) {
+	          area.value = AREA_ENUM.AREA_1;
+	          theta -= HALF_PI;
+	        } else if (theta > HALF_PI + FORTPI || theta <= -(HALF_PI + FORTPI)) {
+	          area.value = AREA_ENUM.AREA_2;
+	          theta = (theta >= 0.0 ? theta - SPI : theta + SPI);
+	        } else {
+	          area.value = AREA_ENUM.AREA_3;
+	          theta += HALF_PI;
+	        }
+	      }
+	      return theta;
+	    }
+
+	    /* Helper function: shift the longitude. */
+	    function qsc_shift_lon_origin(lon, offset) {
+	      var slon = lon + offset;
+	      if (slon < -SPI) {
+	        slon += TWO_PI;
+	      } else if (slon > +SPI) {
+	        slon -= TWO_PI;
+	      }
+	      return slon;
+	    }
+
+	    var names$28 = ["Quadrilateralized Spherical Cube", "Quadrilateralized_Spherical_Cube", "qsc"];
+	    var qsc = {
+	      init: init$27,
+	      forward: forward$26,
+	      inverse: inverse$26,
+	      names: names$28
+	    };
+
+	    // Robinson projection
+	    // Based on https://github.com/OSGeo/proj.4/blob/master/src/PJ_robin.c
+	    // Polynomial coeficients from http://article.gmane.org/gmane.comp.gis.proj-4.devel/6039
+
+	    var COEFS_X = [
+	        [1.0000, 2.2199e-17, -7.15515e-05, 3.1103e-06],
+	        [0.9986, -0.000482243, -2.4897e-05, -1.3309e-06],
+	        [0.9954, -0.00083103, -4.48605e-05, -9.86701e-07],
+	        [0.9900, -0.00135364, -5.9661e-05, 3.6777e-06],
+	        [0.9822, -0.00167442, -4.49547e-06, -5.72411e-06],
+	        [0.9730, -0.00214868, -9.03571e-05, 1.8736e-08],
+	        [0.9600, -0.00305085, -9.00761e-05, 1.64917e-06],
+	        [0.9427, -0.00382792, -6.53386e-05, -2.6154e-06],
+	        [0.9216, -0.00467746, -0.00010457, 4.81243e-06],
+	        [0.8962, -0.00536223, -3.23831e-05, -5.43432e-06],
+	        [0.8679, -0.00609363, -0.000113898, 3.32484e-06],
+	        [0.8350, -0.00698325, -6.40253e-05, 9.34959e-07],
+	        [0.7986, -0.00755338, -5.00009e-05, 9.35324e-07],
+	        [0.7597, -0.00798324, -3.5971e-05, -2.27626e-06],
+	        [0.7186, -0.00851367, -7.01149e-05, -8.6303e-06],
+	        [0.6732, -0.00986209, -0.000199569, 1.91974e-05],
+	        [0.6213, -0.010418, 8.83923e-05, 6.24051e-06],
+	        [0.5722, -0.00906601, 0.000182, 6.24051e-06],
+	        [0.5322, -0.00677797, 0.000275608, 6.24051e-06]
+	    ];
+
+	    var COEFS_Y = [
+	        [-5.20417e-18, 0.0124, 1.21431e-18, -8.45284e-11],
+	        [0.0620, 0.0124, -1.26793e-09, 4.22642e-10],
+	        [0.1240, 0.0124, 5.07171e-09, -1.60604e-09],
+	        [0.1860, 0.0123999, -1.90189e-08, 6.00152e-09],
+	        [0.2480, 0.0124002, 7.10039e-08, -2.24e-08],
+	        [0.3100, 0.0123992, -2.64997e-07, 8.35986e-08],
+	        [0.3720, 0.0124029, 9.88983e-07, -3.11994e-07],
+	        [0.4340, 0.0123893, -3.69093e-06, -4.35621e-07],
+	        [0.4958, 0.0123198, -1.02252e-05, -3.45523e-07],
+	        [0.5571, 0.0121916, -1.54081e-05, -5.82288e-07],
+	        [0.6176, 0.0119938, -2.41424e-05, -5.25327e-07],
+	        [0.6769, 0.011713, -3.20223e-05, -5.16405e-07],
+	        [0.7346, 0.0113541, -3.97684e-05, -6.09052e-07],
+	        [0.7903, 0.0109107, -4.89042e-05, -1.04739e-06],
+	        [0.8435, 0.0103431, -6.4615e-05, -1.40374e-09],
+	        [0.8936, 0.00969686, -6.4636e-05, -8.547e-06],
+	        [0.9394, 0.00840947, -0.000192841, -4.2106e-06],
+	        [0.9761, 0.00616527, -0.000256, -4.2106e-06],
+	        [1.0000, 0.00328947, -0.000319159, -4.2106e-06]
+	    ];
+
+	    var FXC = 0.8487;
+	    var FYC = 1.3523;
+	    var C1 = R2D/5; // rad to 5-degree interval
+	    var RC1 = 1/C1;
+	    var NODES = 18;
+
+	    var poly3_val = function(coefs, x) {
+	        return coefs[0] + x * (coefs[1] + x * (coefs[2] + x * coefs[3]));
+	    };
+
+	    var poly3_der = function(coefs, x) {
+	        return coefs[1] + x * (2 * coefs[2] + x * 3 * coefs[3]);
+	    };
+
+	    function newton_rapshon(f_df, start, max_err, iters) {
+	        var x = start;
+	        for (; iters; --iters) {
+	            var upd = f_df(x);
+	            x -= upd;
+	            if (Math.abs(upd) < max_err) {
+	                break;
+	            }
+	        }
+	        return x;
+	    }
+
+	    function init$28() {
+	        this.x0 = this.x0 || 0;
+	        this.y0 = this.y0 || 0;
+	        this.long0 = this.long0 || 0;
+	        this.es = 0;
+	        this.title = this.title || "Robinson";
+	    }
+
+	    function forward$27(ll) {
+	        var lon = adjust_lon(ll.x - this.long0);
+
+	        var dphi = Math.abs(ll.y);
+	        var i = Math.floor(dphi * C1);
+	        if (i < 0) {
+	            i = 0;
+	        } else if (i >= NODES) {
+	            i = NODES - 1;
+	        }
+	        dphi = R2D * (dphi - RC1 * i);
+	        var xy = {
+	            x: poly3_val(COEFS_X[i], dphi) * lon,
+	            y: poly3_val(COEFS_Y[i], dphi)
+	        };
+	        if (ll.y < 0) {
+	            xy.y = -xy.y;
+	        }
+
+	        xy.x = xy.x * this.a * FXC + this.x0;
+	        xy.y = xy.y * this.a * FYC + this.y0;
+	        return xy;
+	    }
+
+	    function inverse$27(xy) {
+	        var ll = {
+	            x: (xy.x - this.x0) / (this.a * FXC),
+	            y: Math.abs(xy.y - this.y0) / (this.a * FYC)
+	        };
+
+	        if (ll.y >= 1) { // pathologic case
+	            ll.x /= COEFS_X[NODES][0];
+	            ll.y = xy.y < 0 ? -HALF_PI : HALF_PI;
+	        } else {
+	            // find table interval
+	            var i = Math.floor(ll.y * NODES);
+	            if (i < 0) {
+	                i = 0;
+	            } else if (i >= NODES) {
+	                i = NODES - 1;
+	            }
+	            for (;;) {
+	                if (COEFS_Y[i][0] > ll.y) {
+	                    --i;
+	                } else if (COEFS_Y[i+1][0] <= ll.y) {
+	                    ++i;
+	                } else {
+	                    break;
+	                }
+	            }
+	            // linear interpolation in 5 degree interval
+	            var coefs = COEFS_Y[i];
+	            var t = 5 * (ll.y - coefs[0]) / (COEFS_Y[i+1][0] - coefs[0]);
+	            // find t so that poly3_val(coefs, t) = ll.y
+	            t = newton_rapshon(function(x) {
+	                return (poly3_val(coefs, x) - ll.y) / poly3_der(coefs, x);
+	            }, t, EPSLN, 100);
+
+	            ll.x /= poly3_val(COEFS_X[i], t);
+	            ll.y = (5 * i + t) * D2R;
+	            if (xy.y < 0) {
+	                ll.y = -ll.y;
+	            }
+	        }
+
+	        ll.x = adjust_lon(ll.x + this.long0);
+	        return ll;
+	    }
+
+	    var names$29 = ["Robinson", "robin"];
+	    var robin = {
+	      init: init$28,
+	      forward: forward$27,
+	      inverse: inverse$27,
+	      names: names$29
+	    };
+
+	    function init$29() {
+	        this.name = 'geocent';
+
+	    }
+
+	    function forward$28(p) {
+	        var point = geodeticToGeocentric(p, this.es, this.a);
+	        return point;
+	    }
+
+	    function inverse$28(p) {
+	        var point = geocentricToGeodetic(p, this.es, this.a, this.b);
+	        return point;
+	    }
+
+	    var names$30 = ["Geocentric", 'geocentric', "geocent", "Geocent"];
+	    var geocent = {
+	        init: init$29,
+	        forward: forward$28,
+	        inverse: inverse$28,
+	        names: names$30
+	    };
+
+	    var mode = {
+	      N_POLE: 0,
+	      S_POLE: 1,
+	      EQUIT: 2,
+	      OBLIQ: 3
+	    };
+
+	    var params = {
+	      h:     { def: 100000, num: true },           // default is Karman line, no default in PROJ.7
+	      azi:   { def: 0, num: true, degrees: true }, // default is North
+	      tilt:  { def: 0, num: true, degrees: true }, // default is Nadir
+	      long0: { def: 0, num: true },                // default is Greenwich, conversion to rad is automatic
+	      lat0:  { def: 0, num: true }                 // default is Equator, conversion to rad is automatic
+	    };
+
+	    function init$30() {
+	      Object.keys(params).forEach(function (p) {
+	        if (typeof this[p] === "undefined") {
+	          this[p] = params[p].def;
+	        } else if (params[p].num && isNaN(this[p])) {
+	          throw new Error("Invalid parameter value, must be numeric " + p + " = " + this[p]);
+	        } else if (params[p].num) {
+	          this[p] = parseFloat(this[p]);
+	        }
+	        if (params[p].degrees) {
+	          this[p] = this[p] * D2R;
+	        }
+	      }.bind(this));
+
+	      if (Math.abs((Math.abs(this.lat0) - HALF_PI)) < EPSLN) {
+	        this.mode = this.lat0 < 0 ? mode.S_POLE : mode.N_POLE;
+	      } else if (Math.abs(this.lat0) < EPSLN) {
+	        this.mode = mode.EQUIT;
+	      } else {
+	        this.mode = mode.OBLIQ;
+	        this.sinph0 = Math.sin(this.lat0);
+	        this.cosph0 = Math.cos(this.lat0);
+	      }
+
+	      this.pn1 = this.h / this.a;  // Normalize relative to the Earth's radius
+
+	      if (this.pn1 <= 0 || this.pn1 > 1e10) {
+	        throw new Error("Invalid height");
+	      }
+	      
+	      this.p = 1 + this.pn1;
+	      this.rp = 1 / this.p;
+	      this.h1 = 1 / this.pn1;
+	      this.pfact = (this.p + 1) * this.h1;
+	      this.es = 0;
+
+	      var omega = this.tilt;
+	      var gamma = this.azi;
+	      this.cg = Math.cos(gamma);
+	      this.sg = Math.sin(gamma);
+	      this.cw = Math.cos(omega);
+	      this.sw = Math.sin(omega);
+	    }
+
+	    function forward$29(p) {
+	      p.x -= this.long0;
+	      var sinphi = Math.sin(p.y);
+	      var cosphi = Math.cos(p.y);
+	      var coslam = Math.cos(p.x);
+	      var x, y;
+	      switch (this.mode) {
+	        case mode.OBLIQ:
+	          y = this.sinph0 * sinphi + this.cosph0 * cosphi * coslam;
+	          break;
+	        case mode.EQUIT:
+	          y = cosphi * coslam;
+	          break;
+	        case mode.S_POLE:
+	          y = -sinphi;
+	          break;
+	        case mode.N_POLE:
+	          y = sinphi;
+	          break;
+	      }
+	      y = this.pn1 / (this.p - y);
+	      x = y * cosphi * Math.sin(p.x);
+
+	      switch (this.mode) {
+	        case mode.OBLIQ:
+	          y *= this.cosph0 * sinphi - this.sinph0 * cosphi * coslam;
+	          break;
+	        case mode.EQUIT:
+	          y *= sinphi;
+	          break;
+	        case mode.N_POLE:
+	          y *= -(cosphi * coslam);
+	          break;
+	        case mode.S_POLE:
+	          y *= cosphi * coslam;
+	          break;
+	      }
+
+	      // Tilt 
+	      var yt, ba;
+	      yt = y * this.cg + x * this.sg;
+	      ba = 1 / (yt * this.sw * this.h1 + this.cw);
+	      x = (x * this.cg - y * this.sg) * this.cw * ba;
+	      y = yt * ba;
+
+	      p.x = x * this.a;
+	      p.y = y * this.a;
+	      return p;
+	    }
+
+	    function inverse$29(p) {
+	      p.x /= this.a;
+	      p.y /= this.a;
+	      var r = { x: p.x, y: p.y };
+
+	      // Un-Tilt
+	      var bm, bq, yt;
+	      yt = 1 / (this.pn1 - p.y * this.sw);
+	      bm = this.pn1 * p.x * yt;
+	      bq = this.pn1 * p.y * this.cw * yt;
+	      p.x = bm * this.cg + bq * this.sg;
+	      p.y = bq * this.cg - bm * this.sg;
+
+	      var rh = hypot(p.x, p.y);
+	      if (Math.abs(rh) < EPSLN) {
+	        r.x = 0;
+	        r.y = p.y;
+	      } else {
+	        var cosz, sinz;
+	        sinz = 1 - rh * rh * this.pfact;
+	        sinz = (this.p - Math.sqrt(sinz)) / (this.pn1 / rh + rh / this.pn1);
+	        cosz = Math.sqrt(1 - sinz * sinz);
+	        switch (this.mode) {
+	          case mode.OBLIQ:
+	            r.y = Math.asin(cosz * this.sinph0 + p.y * sinz * this.cosph0 / rh);
+	            p.y = (cosz - this.sinph0 * Math.sin(r.y)) * rh;
+	            p.x *= sinz * this.cosph0;
+	            break;
+	          case mode.EQUIT:
+	            r.y = Math.asin(p.y * sinz / rh);
+	            p.y = cosz * rh;
+	            p.x *= sinz;
+	            break;
+	          case mode.N_POLE:
+	            r.y = Math.asin(cosz);
+	            p.y = -p.y;
+	            break;
+	          case mode.S_POLE:
+	            r.y = -Math.asin(cosz);
+	            break;
+	        }
+	        r.x = Math.atan2(p.x, p.y);
+	      }
+
+	      p.x = r.x + this.long0;
+	      p.y = r.y;
+	      return p;
+	    }
+
+	    var names$31 = ["Tilted_Perspective", "tpers"];
+	    var tpers = {
+	      init: init$30,
+	      forward: forward$29,
+	      inverse: inverse$29,
+	      names: names$31
+	    };
+
+	    function init$31() {
+	        this.flip_axis = (this.sweep === 'x' ? 1 : 0);
+	        this.h = Number(this.h);
+	        this.radius_g_1 = this.h / this.a;
+
+	        if (this.radius_g_1 <= 0 || this.radius_g_1 > 1e10) {
+	            throw new Error();
+	        }
+
+	        this.radius_g = 1.0 + this.radius_g_1;
+	        this.C = this.radius_g * this.radius_g - 1.0;
+
+	        if (this.es !== 0.0) {
+	            var one_es = 1.0 - this.es;
+	            var rone_es = 1 / one_es;
+
+	            this.radius_p = Math.sqrt(one_es);
+	            this.radius_p2 = one_es;
+	            this.radius_p_inv2 = rone_es;
+
+	            this.shape = 'ellipse'; // Use as a condition in the forward and inverse functions.
+	        } else {
+	            this.radius_p = 1.0;
+	            this.radius_p2 = 1.0;
+	            this.radius_p_inv2 = 1.0;
+
+	            this.shape = 'sphere';  // Use as a condition in the forward and inverse functions.
+	        }
+
+	        if (!this.title) {
+	            this.title = "Geostationary Satellite View";
+	        }
+	    }
+
+	    function forward$30(p) {
+	        var lon = p.x;
+	        var lat = p.y;
+	        var tmp, v_x, v_y, v_z;
+	        lon = lon - this.long0;
+
+	        if (this.shape === 'ellipse') {
+	            lat = Math.atan(this.radius_p2 * Math.tan(lat));
+	            var r = this.radius_p / hypot(this.radius_p * Math.cos(lat), Math.sin(lat));
+
+	            v_x = r * Math.cos(lon) * Math.cos(lat);
+	            v_y = r * Math.sin(lon) * Math.cos(lat);
+	            v_z = r * Math.sin(lat);
+
+	            if (((this.radius_g - v_x) * v_x - v_y * v_y - v_z * v_z * this.radius_p_inv2) < 0.0) {
+	                p.x = Number.NaN;
+	                p.y = Number.NaN;
+	                return p;
+	            }
+
+	            tmp = this.radius_g - v_x;
+	            if (this.flip_axis) {
+	                p.x = this.radius_g_1 * Math.atan(v_y / hypot(v_z, tmp));
+	                p.y = this.radius_g_1 * Math.atan(v_z / tmp);
+	            } else {
+	                p.x = this.radius_g_1 * Math.atan(v_y / tmp);
+	                p.y = this.radius_g_1 * Math.atan(v_z / hypot(v_y, tmp));
+	            }
+	        } else if (this.shape === 'sphere') {
+	            tmp = Math.cos(lat);
+	            v_x = Math.cos(lon) * tmp;
+	            v_y = Math.sin(lon) * tmp;
+	            v_z = Math.sin(lat);
+	            tmp = this.radius_g - v_x;
+
+	            if (this.flip_axis) {
+	                p.x = this.radius_g_1 * Math.atan(v_y / hypot(v_z, tmp));
+	                p.y = this.radius_g_1 * Math.atan(v_z / tmp);
+	            } else {
+	                p.x = this.radius_g_1 * Math.atan(v_y / tmp);
+	                p.y = this.radius_g_1 * Math.atan(v_z / hypot(v_y, tmp));
+	            }
+	        }
+	        p.x = p.x * this.a;
+	        p.y = p.y * this.a;
+	        return p;
+	    }
+
+	    function inverse$30(p) {
+	        var v_x = -1.0;
+	        var v_y = 0.0;
+	        var v_z = 0.0;
+	        var a, b, det, k;
+
+	        p.x = p.x / this.a;
+	        p.y = p.y / this.a;
+
+	        if (this.shape === 'ellipse') {
+	            if (this.flip_axis) {
+	                v_z = Math.tan(p.y / this.radius_g_1);
+	                v_y = Math.tan(p.x / this.radius_g_1) * hypot(1.0, v_z);
+	            } else {
+	                v_y = Math.tan(p.x / this.radius_g_1);
+	                v_z = Math.tan(p.y / this.radius_g_1) * hypot(1.0, v_y);
+	            }
+
+	            var v_zp = v_z / this.radius_p;
+	            a = v_y * v_y + v_zp * v_zp + v_x * v_x;
+	            b = 2 * this.radius_g * v_x;
+	            det = (b * b) - 4 * a * this.C;
+
+	            if (det < 0.0) {
+	                p.x = Number.NaN;
+	                p.y = Number.NaN;
+	                return p;
+	            }
+
+	            k = (-b - Math.sqrt(det)) / (2.0 * a);
+	            v_x = this.radius_g + k * v_x;
+	            v_y *= k;
+	            v_z *= k;
+
+	            p.x = Math.atan2(v_y, v_x);
+	            p.y = Math.atan(v_z * Math.cos(p.x) / v_x);
+	            p.y = Math.atan(this.radius_p_inv2 * Math.tan(p.y));
+	        } else if (this.shape === 'sphere') {
+	            if (this.flip_axis) {
+	                v_z = Math.tan(p.y / this.radius_g_1);
+	                v_y = Math.tan(p.x / this.radius_g_1) * Math.sqrt(1.0 + v_z * v_z);
+	            } else {
+	                v_y = Math.tan(p.x / this.radius_g_1);
+	                v_z = Math.tan(p.y / this.radius_g_1) * Math.sqrt(1.0 + v_y * v_y);
+	            }
+
+	            a = v_y * v_y + v_z * v_z + v_x * v_x;
+	            b = 2 * this.radius_g * v_x;
+	            det = (b * b) - 4 * a * this.C;
+	            if (det < 0.0) {
+	                p.x = Number.NaN;
+	                p.y = Number.NaN;
+	                return p;
+	            }
+
+	            k = (-b - Math.sqrt(det)) / (2.0 * a);
+	            v_x = this.radius_g + k * v_x;
+	            v_y *= k;
+	            v_z *= k;
+
+	            p.x = Math.atan2(v_y, v_x);
+	            p.y = Math.atan(v_z * Math.cos(p.x) / v_x);
+	        }
+	        p.x = p.x + this.long0;
+	        return p;
+	    }
+
+	    var names$32 = ["Geostationary Satellite View", "Geostationary_Satellite", "geos"];
+	    var geos = {
+	        init: init$31,
+	        forward: forward$30,
+	        inverse: inverse$30,
+	        names: names$32,
+	    };
+
+	    var includedProjections = function(proj4){
+	      proj4.Proj.projections.add(tmerc);
+	      proj4.Proj.projections.add(etmerc);
+	      proj4.Proj.projections.add(utm);
+	      proj4.Proj.projections.add(sterea);
+	      proj4.Proj.projections.add(stere);
+	      proj4.Proj.projections.add(somerc);
+	      proj4.Proj.projections.add(omerc);
+	      proj4.Proj.projections.add(lcc);
+	      proj4.Proj.projections.add(krovak);
+	      proj4.Proj.projections.add(cass);
+	      proj4.Proj.projections.add(laea);
+	      proj4.Proj.projections.add(aea);
+	      proj4.Proj.projections.add(gnom);
+	      proj4.Proj.projections.add(cea);
+	      proj4.Proj.projections.add(eqc);
+	      proj4.Proj.projections.add(poly);
+	      proj4.Proj.projections.add(nzmg);
+	      proj4.Proj.projections.add(mill);
+	      proj4.Proj.projections.add(sinu);
+	      proj4.Proj.projections.add(moll);
+	      proj4.Proj.projections.add(eqdc);
+	      proj4.Proj.projections.add(vandg);
+	      proj4.Proj.projections.add(aeqd);
+	      proj4.Proj.projections.add(ortho);
+	      proj4.Proj.projections.add(qsc);
+	      proj4.Proj.projections.add(robin);
+	      proj4.Proj.projections.add(geocent);
+	      proj4.Proj.projections.add(tpers);
+	      proj4.Proj.projections.add(geos);
+	    };
+
+	    proj4$1.defaultDatum = 'WGS84'; //default datum
+	    proj4$1.Proj = Projection;
+	    proj4$1.WGS84 = new proj4$1.Proj('WGS84');
+	    proj4$1.Point = Point;
+	    proj4$1.toPoint = toPoint;
+	    proj4$1.defs = defs;
+	    proj4$1.nadgrid = nadgrid;
+	    proj4$1.transform = transform;
+	    proj4$1.mgrs = mgrs;
+	    proj4$1.version = '2.8.0';
+	    includedProjections(proj4$1);
+
+	    return proj4$1;
+
+	})));
+
+
+/***/ }),
+/* 248 */
+/***/ (function(module, exports, __webpack_require__) {
+
 	/*** IMPORTS FROM imports-loader ***/
 	var L = __webpack_require__(4);
 
@@ -74136,7 +82175,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 247 */
+/* 249 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -74215,7 +82254,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 248 */
+/* 250 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -74440,7 +82479,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 249 */
+/* 251 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -74450,7 +82489,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 250 */
+/* 252 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -74584,7 +82623,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 251 */
+/* 253 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -74855,7 +82894,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 252 */
+/* 254 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -75974,7 +84013,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 253 */
+/* 255 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*** IMPORTS FROM imports-loader ***/
@@ -76592,7 +84631,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 254 */
+/* 256 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -76893,7 +84932,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 255 */
+/* 257 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77030,7 +85069,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 256 */
+/* 258 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77227,7 +85266,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 257 */
+/* 259 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -77736,7 +85775,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 258 */
+/* 260 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -78057,7 +86096,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 259 */
+/* 261 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/
@@ -78236,7 +86275,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 /***/ }),
-/* 260 */
+/* 262 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*** IMPORTS FROM imports-loader ***/

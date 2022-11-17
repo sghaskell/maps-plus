@@ -3,7 +3,7 @@
   <row>
     <panel>
       <viz type="leaflet_maps_app.maps-plus">
-        <title>Antarctic Projection Demo</title>
+        <title>Custom Marker Icon</title>
         <search>
           <query>| makeresults count=1
 | eval latitude=-86.665225,longitude=86.699878,description="Antarctica",tooltip="Antarctica",customIcon="inspire22.jpg",markerSize="40,40"
@@ -99,7 +99,7 @@
   <row>
     <panel>
       <viz type="leaflet_maps_app.maps-plus">
-        <title>Antarctic Projection Demo</title>
+        <title>Path Lines</title>
         <search>
           <query>| inputlookup inspire22Coords.csv | eval tooltip=description</query>
           <earliest>-24h@h</earliest>

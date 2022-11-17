@@ -80,3 +80,5 @@ display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur = <int> 
 display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress = <int>
+display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck = <string>
+display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticProj = <string>

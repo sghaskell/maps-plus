@@ -26,7 +26,7 @@
     "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",
     "leaflet-contextmenu": "^1.2.1",
-    "leaflet-dialog": "^1.0.1",
+    "leaflet-dialog": "^1.0.5",
     "leaflet-google-places-autocomplete": "^0.0.8",
     "simpleheat": "^0.4.0",
     "load-google-maps-api": "^1.0.0",

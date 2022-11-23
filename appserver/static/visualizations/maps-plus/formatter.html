@@ -848,21 +848,85 @@
             </div>
         </div>
     </form>
+    <form class="splunk-formatter-section" section-label="Antarctic">
+        <div class="control-group">
+            <label class="control-label">Antarctic Projection</label>
+            <div class="controls controls-fill ">
+                <splunk-radio-input name="{{VIZ_NAMESPACE}}.antarcticProj" value="1">
+                    <option value="1">Enabled</option>
+                    <option value="0">Disabled</option>
+                </splunk-radio-input>
+                <span class="help-block ">EPSG:3031 projection for Antarctic mapping use cases.</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Map Tile</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.antarcticMapTile" value="https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser">
+                  <option value="https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser">GBIF Geyser</option>
+                  <option value="https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?osm-bright">GBIF OSM Bright</option>
+                  <option value="https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}">NASA GIBS</option>
+                </splunk-select> 
+                <span class="help-block ">Visit <a target="_blank" href="https://nasa-gibs.github.io/gibs-api-docs/access-basics/#ogc-web-map-tile-service-wmts">NASA GIBS site </a> for advanced configuration options.</span>
+            </div>
+        </div>
+        <div>
+            <hr>
+            <label class="control-label">GIBS Config</label>
+            <span class="help-block ">Visit <a target="_blank" href="https://nasa-gibs.github.io/gibs-api-docs/access-basics/#ogc-web-map-tile-service-wmts">NASA GIBS site </a> for advanced configuration options. Leave options blank for default image.</span>
+            <br>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GIBS Layer Identifier</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsLayerId" value="MODIS_Aqua_CorrectedReflectance_TrueColor"></splunk-text-input>
+                <span class="help-block ">Lower Corner</span> 
+            </div>
+        </div>
+        <div class="control-group" section-label="THIS IS A SECTION LABEL">
+            <label class="control-label">GIBS Format</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.gibsFormat" value="jpg">
+                  <option value="jpg">jpeg</option>
+                  <option value="png">png</option>
+                </splunk-select> 
+                <span class="help-block ">Image Format</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GIBS Lower Corner</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsLowerCorner" value="-4194304"></splunk-text-input>
+                <span class="help-block ">Lower Corner</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GIBS Upper Corner</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsUpperCorner" value="4194304"></splunk-text-input>
+                <span class="help-block ">Upper Corner</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GIBS Tile Matrix Set</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsTileMatrixSet" value="250m"></splunk-text-input>
+                <span class="help-block ">Tile Matrix Set</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">GIBS Time</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsTime"></splunk-text-input>
+                <span class="help-block ">Set date for static image. Leave blank to get image from current day. Format yyyy-mm-dd</span> 
+            </div>
+        </div>
+    </form>
     <form class="splunk-formatter-section" section-label="Experimental">
         <div class="control-group">
             <label class="control-label">Version Check</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.splunkVersionCheck" value="1">
-                    <option value="1">Enabled</option>
-                    <option value="0">Disabled</option>
-                </splunk-radio-input>
-                <span class="help-block ">WARNING: Only disable version Splunk version check if you're running Splunk 7.x+. Disable if you run into issues with built-in check. Adverse side effects may be seen with check disabled.</span>
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label">Antarctic Projection</label>
-            <div class="controls controls-fill ">
-                <splunk-radio-input name="{{VIZ_NAMESPACE}}.antarcticProj" value="1">
                     <option value="1">Enabled</option>
                     <option value="0">Disabled</option>
                 </splunk-radio-input>

@@ -116,6 +116,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	parentView: null,
 	showClearPlayback: false,
 	mapOptions: {},
+	tileOptions: {},
+	map: {},
 	contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 	validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
 	isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
@@ -197,6 +199,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticProj': 0,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticMapTile': "https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsLayerId': "MODIS_Aqua_CorrectedReflectance_TrueColor",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsFormat': "image/jpeg",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsLowerCorner': -4194304,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsUpperCorner': 4194304,
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsTileMatrixSet': "250m",
+	    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsTime': "",
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.tileSize': 512,
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
 	    'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
@@ -217,7 +226,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    this.isSplunkSeven = false
 	    this.curPage = 0
 	    this.allDataProcessed = false
-	    this.splunkVersion = parseFloat(0.0)     
+	    this.splunkVersion = parseFloat(0.0)
+	    this.pixelRatio = parseInt(window.devicePixelRatio) || 1
+	    //this.tileOptions = {}
 
 	    try {
 	        // Get version from global tokens
@@ -372,6 +383,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
 	        measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
 	        measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
+	        antarcticMapTile = this._propertyExists('antarcticMapTile', configChanges) ? this._getEscapedProperty('antarcticMapTile', configChanges):this._getEscapedProperty('antarcticMapTile', previousConfig),
+	        gibsLayerId = this._propertyExists('gibsLayerId', configChanges) ? this._getEscapedProperty('gibsLayerId', configChanges):this._getEscapedProperty('gibsLayerId', previousConfig),
+	        gibsFormat = this._propertyExists('gibsFormat', configChanges) ? this._getEscapedProperty('gibsFormat', configChanges):this._getEscapedProperty('gibsFormat', previousConfig),
+	        gibsLowerCorner = this._propertyExists('gibsLowerCorner', configChanges) ? this._getEscapedProperty('gibsLowerCorner', configChanges):this._getEscapedProperty('gibsLowerCorner', previousConfig),
+	        gibsUpperCorner = this._propertyExists('gibsUpperCorner', configChanges) ? this._getEscapedProperty('gibsUpperCorner', configChanges):this._getEscapedProperty('gibsUpperCorner', previousConfig),
+	        gibsTileMatrixSet = this._propertyExists('gibsTileMatrixSet', configChanges) ? this._getEscapedProperty('gibsTileMatrixSet', configChanges):this._getEscapedProperty('gibsTileMatrixSet', previousConfig),
+	        gibsTime = this._propertyExists('gibsTime', configChanges) ? this._getEscapedProperty('gibsTime', configChanges):this._getEscapedProperty('gibsTime', previousConfig),
+	        tileSize = this._propertyExists('tileSize', configChanges) ? this._getEscapedProperty('tileSize', configChanges):this._getEscapedProperty('tileSize', previousConfig)
+
 
 	    // Update tile layer
 	    if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
@@ -1195,14 +1215,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	// coordinates. Allow user to copy and paste center coordinates into 
 	// Center Lat and Center Lon format menu options.
 	showCoordinates: function (e) {
-	    this.map.on('dialog:closed', function(e) { 
-	        this.coordDialog.destroy()
-	    }, this)
-
 	    var coordinates = e.latlng.toString().match(/([-\d\.]+)/g)
 	    var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g)
-	    var curZoom = this.map.getZoom()
-	    
+	    var curZoom = this.map.getZoom()    
 	    var content = "Pointer Latitude: <input type=\"text\" name=\"pointer_lat\" value=\"" + coordinates[0] + "\">" +
 	          "<br>Pointer Longitude: <input type=\"text\" name=\"pointer_long\" value=\"" + coordinates[1] + "\">" +
 	          "<br>Zoom Level: <input type=\"text\" name=\"zoom_level\" value=\"" + curZoom + "\">" +
@@ -1210,10 +1225,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	          "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
 	          "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
 
-	    var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
-	      .setContent(content)
-	      .addTo(this.map)
-	      .open()
+	    var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], 
+	        minSize: [100,100], 
+	        maxSize: [350,500], 
+	        position: 'topleft', 
+	        anchor: [100, 500]
+	    })
+	    .setContent(content)
+	    .addTo(this.map)
+	    .open()
 	},
 
 	addToPlayback: function(e) {
@@ -1821,6 +1841,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
 	        splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
 	        antarcticProj = parseInt(this._getEscapedProperty('antarcticProj', config)),
+	        antarcticMapTile = this._getEscapedProperty('antarcticMapTile', config),
+	        gibsLayerId = this._getEscapedProperty('gibsLayerId', config),
+	        gibsFormat = this._getEscapedProperty('gibsFormat', config),
+	        gibsLowerCorner = parseInt(this._getEscapedProperty('gibsLowerCorner', config)),
+	        gibsUpperCorner = parseInt(this._getEscapedProperty('gibsUpperCorner', config)),
+	        gibsTileMatrixSet = this._getEscapedProperty('gibsTileMatrixSet', config),
+	        gibsTime = this._getEscapedProperty('gibsTime', config),
 	        tileSize = parseInt(this._getEscapedProperty('tileSize', config)),
 	        showProgress = parseInt(this._getEscapedProperty('showProgress', config))
 
@@ -2016,36 +2043,76 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 
 	        if(this.isArgTrue(antarcticProj)) {
-	            this.activeTile = "https://tile.gbif.org/3031/omt/{z}/{x}/{y}@1x.png?gbif-geyser"
-	            this.pixel_ratio = parseInt(window.devicePixelRatio) || 1;
+	            // Set tile size
+	            $.extend(this.tileOptions, {tileSize: tileSize})
+
+	            // GIBS
+	            if(antarcticMapTile.match(/gibs/g)) {
+	                var crsGibs = this.crsGibs = new L.Proj.CRS(
+	                    'EPSG:3031',
+	                    '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 ' +
+	                    '+ellps=WGS84 +datum=WGS84 +units=m +no_defs', {
+	                    origin: [gibsLowerCorner, gibsUpperCorner],
+	                    resolutions: [
+	                      8192.0,
+	                      4096.0,
+	                      2048.0,
+	                      1024.0,
+	                      512.0,
+	                      256.0
+	                    ],
+	                    bounds: L.Bounds([
+	                      [gibsLowerCorner, gibsLowerCorner],
+	                      [gibsUpperCorner, gibsUpperCorner]
+	                    ])
+	                  })
+
+	                $.extend(this.tileOptions, {tileSize: tileSize,
+	                                            gibsLayerId: gibsLayerId,
+	                                            gibsTileMatrixSet: gibsTileMatrixSet,
+	                                            gibsFormat: gibsFormat,
+	                                            gibsTime: gibsTime,
+	                                            subdomains: 'abc',
+	                                            attribution:
+	                                              '<a href="https://wiki.earthdata.nasa.gov/display/GIBS">' +
+	                                              'NASA EOSDIS GIBS</a>'
+	                })
+
+	                $.extend(this.mapOptions, {
+	                    crs: this.crsGibs,
+	                })
+	            } else {
+	                //GBIS
+	                antarcticMapTile = antarcticMapTile.replace("{r}", this.pixelRatio) 
+
+	                this.extent = 12367396.2185; // To the Equator
+	                this.resolutions = Array(maxZoom + 1)
+	                    .fill()
+	                    .map((_, i) => this.extent / tileSize / Math.pow(2, i - 1));
 	    
-	            this.extent = 12367396.2185; // To the Equator
-	            this.resolutions = Array(maxZoom + 1)
-	                .fill()
-	                .map((_, i) => this.extent / tileSize / Math.pow(2, i - 1));
-	    
-	            var crsA = this.crsA = new L.Proj.CRS(
-	                "EPSG:3031",
-	                "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
-	                {
-	                  origin: [-this.extent, this.extent],
-	                  projectedBounds: L.bounds(
-	                    L.point(-this.extent, this.extent),
-	                    L.point(this.extent, -this.extent)
-	                  ),
-	                  resolutions: this.resolutions
-	                }
-	              );
-	    
-	            $.extend(this.mapOptions, {
-	              crs: this.crsA,
-	              //worldCopyJump: true
-	            })
+	                var crsGbis = this.crsGbis = new L.Proj.CRS(
+	                    "EPSG:3031",
+	                    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs",
+	                    {
+	                      origin: [-this.extent, this.extent],
+	                      projectedBounds: L.bounds(
+	                        L.point(-this.extent, this.extent),
+	                        L.point(this.extent, -this.extent)
+	                      ),
+	                      resolutions: this.resolutions
+	                    }
+	                  );
+
+	                $.extend(this.mapOptions, {
+	                    crs: this.crsGbis,
+	                })
+	            }
 	        }
 	        
 
 	        // Create map 
-	        var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+	        //var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+	        this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
 
 	        // Dark Mode Support
 	        if(this.isDarkTheme) { this._darkModeInit() }
@@ -2102,12 +2169,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                this.map.addLayer(this.tileLayer)
 	            }
 	        } else {
-	            this.tileOptions = {attribution: this.attribution,
+	            $.extend(this.tileOptions, {
+	                attribution: this.attribution,
 	                minZoom: minZoom,
 	                maxZoom: maxZoom
-	            }
+	            })
+
 	            if(this.isArgTrue(antarcticProj)) {
-	                $.extend(this.tileOptions, {tileSize: tileSize})
+	                this.activeTile = antarcticMapTile
 	            }
 
 	            // Setup the tile layer with map tile, zoom and attribution

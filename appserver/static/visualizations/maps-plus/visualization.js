@@ -2005,6 +2005,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 
 	                // Create map 
 	                var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+					
+					
+					//prevent on mouse up after longclick (contextmenu on mac)
+					//that the click event is fired 
+					var contextmenu=0
+					this.map.on('contextmenu', function (event) {
+						contextmenu=1
+					});
+
+					//  This function will be called when the map is clicked 
+					//  to set coordinates latitude and longitued tokens
+					this.map.on('click', function (event) {
+						if(contextmenu == 0)
+						{
+							var coordinates = event.latlng.toString().match(/([-\d\.]+)/g)
+							//var def_tok = mvc.Components.get("default");
+							var def_tok = mvc.Components.get("default");
+							var sub_tok = mvc.Components.get("submitted");
+							def_tok.set('latitude', coordinates[0]);
+							def_tok.set('longitude', coordinates[1]);
+							sub_tok.set('latitude', coordinates[0]);
+							sub_tok.set('longitude', coordinates[1]);
+							
+						}
+						contextmenu=0
+					});
 
 	                // Dark Mode Support
 	                if(this.isDarkTheme) { this._darkModeInit() }
@@ -55335,7 +55361,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        };
 
 	    var bn = moment.defineLocale('bn', {
-	        months: 'জানুয়ারি_ফেব্রুয়ারি_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্টেম্বর_অক্টোবর_নভেম্বর_ডিসেম্বর'.split(
+	        months: 'জানুয়ারি_ফেব্রুয়ারি_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্টেম্বর_অক্টোবর_নভেম্বর_ডিসেম্বর'.split(
 	            '_'
 	        ),
 	        monthsShort: 'জানু_ফেব্রু_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্ট_অক্টো_নভে_ডিসে'.split(
@@ -55347,12 +55373,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        weekdaysShort: 'রবি_সোম_মঙ্গল_বুধ_বৃহস্পতি_শুক্র_শনি'.split('_'),
 	        weekdaysMin: 'রবি_সোম_মঙ্গল_বুধ_বৃহ_শুক্র_শনি'.split('_'),
 	        longDateFormat: {
-	            LT: 'A h:mm সময়',
-	            LTS: 'A h:mm:ss সময়',
+	            LT: 'A h:mm সময়',
+	            LTS: 'A h:mm:ss সময়',
 	            L: 'DD/MM/YYYY',
 	            LL: 'D MMMM YYYY',
-	            LLL: 'D MMMM YYYY, A h:mm সময়',
-	            LLLL: 'dddd, D MMMM YYYY, A h:mm সময়',
+	            LLL: 'D MMMM YYYY, A h:mm সময়',
+	            LLLL: 'dddd, D MMMM YYYY, A h:mm সময়',
 	        },
 	        calendar: {
 	            sameDay: '[আজ] LT',
@@ -55365,7 +55391,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        relativeTime: {
 	            future: '%s পরে',
 	            past: '%s আগে',
-	            s: 'কয়েক সেকেন্ড',
+	            s: 'কয়েক সেকেন্ড',
 	            ss: '%d সেকেন্ড',
 	            m: 'এক মিনিট',
 	            mm: '%d মিনিট',
@@ -55469,7 +55495,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        };
 
 	    var bnBd = moment.defineLocale('bn-bd', {
-	        months: 'জানুয়ারি_ফেব্রুয়ারি_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্টেম্বর_অক্টোবর_নভেম্বর_ডিসেম্বর'.split(
+	        months: 'জানুয়ারি_ফেব্রুয়ারি_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্টেম্বর_অক্টোবর_নভেম্বর_ডিসেম্বর'.split(
 	            '_'
 	        ),
 	        monthsShort: 'জানু_ফেব্রু_মার্চ_এপ্রিল_মে_জুন_জুলাই_আগস্ট_সেপ্ট_অক্টো_নভে_ডিসে'.split(
@@ -55481,12 +55507,12 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        weekdaysShort: 'রবি_সোম_মঙ্গল_বুধ_বৃহস্পতি_শুক্র_শনি'.split('_'),
 	        weekdaysMin: 'রবি_সোম_মঙ্গল_বুধ_বৃহ_শুক্র_শনি'.split('_'),
 	        longDateFormat: {
-	            LT: 'A h:mm সময়',
-	            LTS: 'A h:mm:ss সময়',
+	            LT: 'A h:mm সময়',
+	            LTS: 'A h:mm:ss সময়',
 	            L: 'DD/MM/YYYY',
 	            LL: 'D MMMM YYYY',
-	            LLL: 'D MMMM YYYY, A h:mm সময়',
-	            LLLL: 'dddd, D MMMM YYYY, A h:mm সময়',
+	            LLL: 'D MMMM YYYY, A h:mm সময়',
+	            LLLL: 'dddd, D MMMM YYYY, A h:mm সময়',
 	        },
 	        calendar: {
 	            sameDay: '[আজ] LT',
@@ -55499,7 +55525,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        relativeTime: {
 	            future: '%s পরে',
 	            past: '%s আগে',
-	            s: 'কয়েক সেকেন্ড',
+	            s: 'কয়েক সেকেন্ড',
 	            ss: '%d সেকেন্ড',
 	            m: 'এক মিনিট',
 	            mm: '%d মিনিট',
@@ -61827,18 +61853,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        };
 
 	    var kn = moment.defineLocale('kn', {
-	        months: 'ಜನವರಿ_ಫೆಬ್ರವರಿ_ಮಾರ್ಚ್_ಏಪ್ರಿಲ್_ಮೇ_ಜೂನ್_ಜುಲೈ_ಆಗಸ್ಟ್_ಸೆಪ್ಟೆಂಬರ್_ಅಕ್ಟೋಬರ್_ನವೆಂಬರ್_ಡಿಸೆಂಬರ್'.split(
+	        months: 'ಜನವರಿ_ಫೆಬ್ರವರಿ_ಮಾರ್ಚ್_ಏಪ್ರಿಲ್_ಮೇ_ಜೂನ್_ಜುಲೈ_ಆಗಸ್ಟ್_ಸೆಪ್ಟೆಂಬರ್_ಅಕ್ಟೋಬರ್_ನವೆಂಬರ್_ಡಿಸೆಂಬರ್'.split(
 	            '_'
 	        ),
-	        monthsShort: 'ಜನ_ಫೆಬ್ರ_ಮಾರ್ಚ್_ಏಪ್ರಿಲ್_ಮೇ_ಜೂನ್_ಜುಲೈ_ಆಗಸ್ಟ್_ಸೆಪ್ಟೆಂ_ಅಕ್ಟೋ_ನವೆಂ_ಡಿಸೆಂ'.split(
+	        monthsShort: 'ಜನ_ಫೆಬ್ರ_ಮಾರ್ಚ್_ಏಪ್ರಿಲ್_ಮೇ_ಜೂನ್_ಜುಲೈ_ಆಗಸ್ಟ್_ಸೆಪ್ಟೆಂ_ಅಕ್ಟೋ_ನವೆಂ_ಡಿಸೆಂ'.split(
 	            '_'
 	        ),
 	        monthsParseExact: true,
-	        weekdays: 'ಭಾನುವಾರ_ಸೋಮವಾರ_ಮಂಗಳವಾರ_ಬುಧವಾರ_ಗುರುವಾರ_ಶುಕ್ರವಾರ_ಶನಿವಾರ'.split(
+	        weekdays: 'ಭಾನುವಾರ_ಸೋಮವಾರ_ಮಂಗಳವಾರ_ಬುಧವಾರ_ಗುರುವಾರ_ಶುಕ್ರವಾರ_ಶನಿವಾರ'.split(
 	            '_'
 	        ),
-	        weekdaysShort: 'ಭಾನು_ಸೋಮ_ಮಂಗಳ_ಬುಧ_ಗುರು_ಶುಕ್ರ_ಶನಿ'.split('_'),
-	        weekdaysMin: 'ಭಾ_ಸೋ_ಮಂ_ಬು_ಗು_ಶು_ಶ'.split('_'),
+	        weekdaysShort: 'ಭಾನು_ಸೋಮ_ಮಂಗಳ_ಬುಧ_ಗುರು_ಶುಕ್ರ_ಶನಿ'.split('_'),
+	        weekdaysMin: 'ಭಾ_ಸೋ_ಮಂ_ಬು_ಗು_ಶು_ಶ'.split('_'),
 	        longDateFormat: {
 	            LT: 'A h:mm',
 	            LTS: 'A h:mm:ss',
@@ -61852,7 +61878,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            nextDay: '[ನಾಳೆ] LT',
 	            nextWeek: 'dddd, LT',
 	            lastDay: '[ನಿನ್ನೆ] LT',
-	            lastWeek: '[ಕೊನೆಯ] dddd, LT',
+	            lastWeek: '[ಕೊನೆಯ] dddd, LT',
 	            sameElse: 'L',
 	        },
 	        relativeTime: {
@@ -61909,9 +61935,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	                return 'ರಾತ್ರಿ';
 	            }
 	        },
-	        dayOfMonthOrdinalParse: /\d{1,2}(ನೇ)/,
+	        dayOfMonthOrdinalParse: /\d{1,2}(ನೇ)/,
 	        ordinal: function (number) {
-	            return number + 'ನೇ';
+	            return number + 'ನೇ';
 	        },
 	        week: {
 	            dow: 0, // Sunday is the first day of the week.
@@ -63794,7 +63820,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            sameElse: 'L',
 	        },
 	        relativeTime: {
-	            future: 'လာမည့် %s မှာ',
+	            future: 'လာမည့် %s မှာ',
 	            past: 'လွန်ခဲ့သော %s က',
 	            s: 'စက္ကန်.အနည်းငယ်',
 	            ss: '%d စက္ကန့်',
@@ -66454,10 +66480,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	        };
 
 	    var ta = moment.defineLocale('ta', {
-	        months: 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split(
+	        months: 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split(
 	            '_'
 	        ),
-	        monthsShort: 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split(
+	        monthsShort: 'ஜனவரி_பிப்ரவரி_மார்ச்_ஏப்ரல்_மே_ஜூன்_ஜூலை_ஆகஸ்ட்_செப்டெம்பர்_அக்டோபர்_நவம்பர்_டிசம்பர்'.split(
 	            '_'
 	        ),
 	        weekdays: 'ஞாயிற்றுக்கிழமை_திங்கட்கிழமை_செவ்வாய்கிழமை_புதன்கிழமை_வியாழக்கிழமை_வெள்ளிக்கிழமை_சனிக்கிழமை'.split(
@@ -68379,13 +68405,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	    //! moment.js locale configuration
 
 	    var yo = moment.defineLocale('yo', {
-	        months: 'Sẹ́rẹ́_Èrèlè_Ẹrẹ̀nà_Ìgbé_Èbibi_Òkùdu_Agẹmo_Ògún_Owewe_Ọ̀wàrà_Bélú_Ọ̀pẹ̀̀'.split(
+	        months: 'Sẹ́rẹ́_Èrèlè_Ẹrẹ̀nà_Ìgbé_Èbibi_Òkùdu_Agẹmo_Ògún_Owewe_Ọ̀wàrà_Bélú_Ọ̀pẹ̀̀'.split(
 	            '_'
 	        ),
-	        monthsShort: 'Sẹ́r_Èrl_Ẹrn_Ìgb_Èbi_Òkù_Agẹ_Ògú_Owe_Ọ̀wà_Bél_Ọ̀pẹ̀̀'.split('_'),
-	        weekdays: 'Àìkú_Ajé_Ìsẹ́gun_Ọjọ́rú_Ọjọ́bọ_Ẹtì_Àbámẹ́ta'.split('_'),
-	        weekdaysShort: 'Àìk_Ajé_Ìsẹ́_Ọjr_Ọjb_Ẹtì_Àbá'.split('_'),
-	        weekdaysMin: 'Àì_Aj_Ìs_Ọr_Ọb_Ẹt_Àb'.split('_'),
+	        monthsShort: 'Sẹ́r_Èrl_Ẹrn_Ìgb_Èbi_Òkù_Agẹ_Ògú_Owe_Ọ̀wà_Bél_Ọ̀pẹ̀̀'.split('_'),
+	        weekdays: 'Àìkú_Ajé_Ìsẹ́gun_Ọjọ́rú_Ọjọ́bọ_Ẹtì_Àbámẹ́ta'.split('_'),
+	        weekdaysShort: 'Àìk_Ajé_Ìsẹ́_Ọjr_Ọjb_Ẹtì_Àbá'.split('_'),
+	        weekdaysMin: 'Àì_Aj_Ìs_Ọr_Ọb_Ẹt_Àb'.split('_'),
 	        longDateFormat: {
 	            LT: 'h:mm A',
 	            LTS: 'h:mm:ss A',
@@ -68395,28 +68421,28 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils","splunkjs/m
 	            LLLL: 'dddd, D MMMM YYYY h:mm A',
 	        },
 	        calendar: {
-	            sameDay: '[Ònì ni] LT',
+	            sameDay: '[Ònì ni] LT',
 	            nextDay: '[Ọ̀la ni] LT',
-	            nextWeek: "dddd [Ọsẹ̀ tón'bọ] [ni] LT",
-	            lastDay: '[Àna ni] LT',
-	            lastWeek: 'dddd [Ọsẹ̀ tólọ́] [ni] LT',
+	            nextWeek: "dddd [Ọsẹ̀ tón'bọ] [ni] LT",
+	            lastDay: '[Àna ni] LT',
+	            lastWeek: 'dddd [Ọsẹ̀ tólọ́] [ni] LT',
 	            sameElse: 'L',
 	        },
 	        relativeTime: {
-	            future: 'ní %s',
-	            past: '%s kọjá',
-	            s: 'ìsẹjú aayá die',
-	            ss: 'aayá %d',
-	            m: 'ìsẹjú kan',
-	            mm: 'ìsẹjú %d',
-	            h: 'wákati kan',
-	            hh: 'wákati %d',
+	            future: 'ní %s',
+	            past: '%s kọjá',
+	            s: 'ìsẹjú aayá die',
+	            ss: 'aayá %d',
+	            m: 'ìsẹjú kan',
+	            mm: 'ìsẹjú %d',
+	            h: 'wákati kan',
+	            hh: 'wákati %d',
 	            d: 'ọjọ́ kan',
 	            dd: 'ọjọ́ %d',
-	            M: 'osù kan',
-	            MM: 'osù %d',
-	            y: 'ọdún kan',
-	            yy: 'ọdún %d',
+	            M: 'osù kan',
+	            MM: 'osù %d',
+	            y: 'ọdún kan',
+	            yy: 'ọdún %d',
 	        },
 	        dayOfMonthOrdinalParse: /ọjọ́\s\d{1,2}/,
 	        ordinal: 'ọjọ́ %d',

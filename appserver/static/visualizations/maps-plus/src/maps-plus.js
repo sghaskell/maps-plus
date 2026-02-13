@@ -2,7 +2,7 @@ define([
             'jquery',
             'underscore',
             'leaflet',
-            'togeojson',
+            '@mapbox/togeojson',
             'jszip',
             'jszip-utils',
             'api/SplunkVisualizationBase',

@@ -2082,7 +2082,22 @@ define([
                                            features: this.measureFeatures,
                                            map: this.map}
 
-                    // var measureControl = new L.Control.Measure(measureOptions)
+                    // Add fix for measurement jumping to center of map - https://github.com/ljagis/leaflet-measure/issues/171#issuecomment-1137483548
+                    L.Control.Measure.include({
+                        // set icon on the capture marker
+                        _setCaptureMarkerIcon: function () {
+                            // disable autopan
+                            this._captureMarker.options.autoPanOnFocus = false;
+
+                            // default function
+                            this._captureMarker.setIcon(
+                                L.divIcon({
+                                    iconSize: this._map.getSize().multiplyBy(2)
+                                })
+                            );
+                        },
+                    });
+
                     this.measureControl = new L.Control.Measure(measureOptions)
                     this.measureControl.addTo(this.map)
 

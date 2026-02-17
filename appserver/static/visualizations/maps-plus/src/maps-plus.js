@@ -1139,11 +1139,7 @@ define([
 		// Show dialog box with pointer lat/lon and center lat/lon
 		// coordinates. Allow user to copy and paste center coordinates into 
 		// Center Lat and Center Lon format menu options.
-        showCoordinates: function (e) {
-            this.map.on('dialog:closed', function(e) { 
-                this.coordDialog.destroy()
-            }, this)
-
+        showCoordinates: function (e) {       
             var coordinates = e.latlng.toString().match(/([-\d\.]+)/g)
             var centerCoordinates = this.map.getCenter().toString().match(/([-\d\.]+)/g)
             var curZoom = this.map.getZoom()
@@ -1155,10 +1151,13 @@ define([
                   "<br>Center Latitude: <input type=\"text\" name=\"center_lat\" value=\"" + centerCoordinates[0] + "\">" +
                   "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
 
-            var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500]})
+            var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], anchor: [100, 500], position: "topleft", initOpen: true })
               .setContent(content)
               .addTo(this.map)
-              .open()
+
+            this.map.on('dialog:closed', function(e) { 
+                this.coordDialog.destroy()
+            }, this)
         },
 
         addToPlayback: function(e) {

@@ -1,23 +1,25 @@
 {
   "name": "leaflet_maps_app",
-  "version": "3.1.7",
+  "version": "4.0.0",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {
-    "build": "node ./node_modules/webpack/bin/webpack.js",
-    "devbuild": "node ./node_modules/webpack/bin/webpack.js --progress",
-    "watch": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
+    "build": "webpack -p",
+    "devbuild": "webpack --progress"
   },
   "author": "Splunk",
   "license": "MIT",
   "devDependencies": {
-    "imports-loader": "^0.6.5",
-    "webpack": "^1.12.6"
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.7.0",
+    "imports-loader": "^0.8.0",
+    "webpack": "^3.12.0"
   },
   "dependencies": {
     "jquery": "^3.6.0",
     "underscore": "^1.13.2",
-    "leaflet": "^1.7.1",
+    "leaflet": "^1.9.4",
     "drmonty-leaflet-awesome-markers": "^2.0.2",
     "@mapbox/togeojson": "^0.16.2",
     "jszip": "^3.1.2",
@@ -26,7 +28,7 @@
     "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",
     "leaflet-contextmenu": "^1.4.0",
-    "leaflet-dialog": "^1.0.1",
+    "leaflet-dialog": "^1.0.5",
     "leaflet-google-places-autocomplete": "^0.0.8",
     "simpleheat": "^0.4.0",
     "load-google-maps-api": "^1.0.0",

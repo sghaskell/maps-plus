@@ -2,25 +2,55 @@ var webpack = require('webpack');
 var path = require('path');
 
 module.exports = {
-    entry: ['maps-plus'],
+    entry: './src/maps-plus.js',
+    
+    target: 'web',
+    
     resolve: {
-        root: [
+        modules: [
             path.join(__dirname, 'src'),
-        ]
+            path.join(__dirname, 'contrib/js'),
+            'node_modules'
+        ],
+        extensions: ['.js', '.json']
     },
+    
     output: {
         filename: 'visualization.js',
+        path: path.resolve(__dirname, '.'),
         libraryTarget: 'amd'
     },
+    
     module: {
-        loaders: [
+        rules: [
+            // Babel transpiles ES6 to ES5 FIRST (before other loaders)
+            {
+                test: /\.js$/,
+                exclude: /node_modules\/(?!(leaflet-ant-path)\/).*/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['env', {
+                                targets: {
+                                    browsers: ['ie 11']
+                                },
+                                modules: false
+                            }]
+                        ]
+                    }
+                }
+            },
             {
                 test: /leaflet\.spin\.js$/,
                 loader: 'imports-loader?L=leaflet'
             },
             {
                 test: /HeatLayer\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'imports-loader?simpleheat']
+                use: [
+                    'imports-loader?L=leaflet',
+                    'imports-loader?simpleheat'
+                ]
             },
             {
                 test: /leaflet\.awesome-markers\.js$/,
@@ -58,7 +88,7 @@ module.exports = {
                 test: /jquery\.i18n\.fallbacks\.js$/,
                 loader: 'imports-loader?$=jquery,jQuery=jquery'
             },
-           {
+            {
                 test: /jquery\.i18n\.language\.js$/,
                 loader: 'imports-loader?$=jquery,jQuery=jquery'
             },
@@ -72,7 +102,10 @@ module.exports = {
             },
             {
                 test: /leaflet-measure\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
+                use: [
+                    'imports-loader?L=leaflet',
+                    'transform-loader?brfs'
+                ]
             },
             {
                 test: /LeafletPlayback\.js$/,
@@ -80,102 +113,20 @@ module.exports = {
             }
         ]
     },
+    
     externals: [
         'api/SplunkVisualizationBase',
         'api/SplunkVisualizationUtils',
         'splunkjs/mvc'
-    ]
-};
-[root@ab31ff85d39a maps-plus]# 
-[root@ab31ff85d39a maps-plus]# vim webpack.config.js 
--bash: vim: command not found
-[root@ab31ff85d39a maps-plus]# vi webpack.config.js 
-[root@ab31ff85d39a maps-plus]# cat webpack.config.js 
-var webpack = require('webpack');
-var path = require('path');
-
-module.exports = {
-    entry: ['maps-plus'],
-    resolve: {
-        root: [
-            path.join(__dirname, 'src'),
-        ]
-    },
-    output: {
-        filename: 'visualization.js',
-        libraryTarget: 'amd'
-    },
-    module: {
-        loaders: [
-            {
-                test: /leaflet\.spin\.js$/,
-                loader: 'imports-loader?L=leaflet'
-            },
-            {
-                test: /HeatLayer\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'imports-loader?simpleheat']
-            },
-            {
-                test: /leaflet\.awesome-markers\.js$/,
-                loader: 'imports-loader?L=leaflet'
-            },
-            {
-                test: /leaflet-vector-markers\.js$/,
-                loader: 'imports-loader?L=leaflet'
-            },
-            {
-                test: /leaflet\.featuregroup\.subgroup-src\.js$/,
-                loader: 'imports-loader?define=>false'
-            },
-            {
-                test: /Modal\.js$/,
-                loader: 'imports-loader?_=underscore'
-            },
-            {
-                test: /CLDRPluralRuleParser\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.emitter\.bidi\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.emitter\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.fallbacks\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-           {
-                test: /jquery\.i18n\.language\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.messagestore\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /jquery\.i18n\.parser\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
-            },
-            {
-                test: /leaflet-measure\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
-            },
-            {
-                test: /LeafletPlayback\.js$/,
-                loader: 'imports-loader?$=jquery,jQuery=jquery'
+    ],
+    
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
             }
-        ]
-    },
-    externals: [
-        'api/SplunkVisualizationBase',
-        'api/SplunkVisualizationUtils',
-        'splunkjs/mvc'
-    ]
+        })
+    ],
+    
+    devtool: false
 };

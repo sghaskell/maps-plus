@@ -1,0 +1,7 @@
+{
+  "reports": {
+    "appapproval": {
+      "excluded_tags": ["check_hotlinking_splunk_web_libraries"]
+    }
+  }
+}

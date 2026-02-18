@@ -6,6 +6,14 @@ Maps+ for Splunk Changelog
 ### Fixed
 - Added missing `[id]` section to app.conf (AppInspect requirement)
 - Removed deprecated `leaflet_maps` visualization with vulnerable libraries
+- Path playback functionality (jQuery 4.0 compatibility issue)
+
+### Changed
+- Excluded source files from release package to resolve AppInspect warnings
+
+### Removed
+- splunkjs mvc due to failing appinspect
+- Splunk legacy splunk version check that is no longer needed and relied on splunkjs
 
 ## [4.0.0] - 2026-02-17
 

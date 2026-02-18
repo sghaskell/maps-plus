@@ -42,6 +42,3 @@ export = system
 
 [visualizations/google-street-view]
 export = system
-
-[visualizations/leaflet_maps]
-export = system

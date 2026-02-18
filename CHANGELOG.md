@@ -1,6 +1,12 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.0.1] - 2026-02-18
+
+### Fixed
+- Added missing `[id]` section to app.conf (AppInspect requirement)
+- Removed deprecated `leaflet_maps` visualization with vulnerable libraries
+
 ## [4.0.0] - 2026-02-17
 
 ### Breaking Changes

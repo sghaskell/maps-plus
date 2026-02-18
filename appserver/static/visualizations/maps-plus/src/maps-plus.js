@@ -7,7 +7,6 @@ define([
             'jszip-utils',
             'api/SplunkVisualizationBase',
             'api/SplunkVisualizationUtils',
-            'splunkjs/mvc',
             'load-google-maps-api',
             'moment',
             '../contrib/js/Modal',
@@ -45,7 +44,6 @@ define([
             JSZipUtils,
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
-            mvc,
             loadGoogleMapsAPI,
             moment,
             Modal,
@@ -142,7 +140,6 @@ define([
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
-            'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
             'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
             'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
         },
@@ -162,39 +159,6 @@ define([
             this.isSplunkSeven = false
             this.curPage = 0
             this.allDataProcessed = false
-            this.splunkVersion = parseFloat(0.0)     
-
-            try {
-                // Get version from global tokens
-                this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
-            } catch (error) {
-                // Detect version from REST API
-                $.ajax({
-                    type: "GET",
-                    async: false,
-                    context: this,
-                    url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-                    success: function(s) {                                        
-                        var xml = $(s)
-                        var that = this
-                        $(xml).find('content').children().children().each(function(i, v) {
-                            if(/name="version"/.test(v.outerHTML)) {
-                                that.splunkVersion = parseFloat(v.textContent)
-                                if(that.splunkVersion >= 7.0) {
-                                    that.isSplunkSeven = true
-                                }
-                            } 
-                        })
-                    },
-                    error: function(e) {
-                        //console.info(e)
-                    }
-                })
-            }
-
-            if(this.splunkVersion >= 7.0) {
-                this.isSplunkSeven = true
-            }
         },
   
         // Search data params
@@ -1757,7 +1721,6 @@ define([
                 heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
                 heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
                 heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
-                splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
                 showProgress = parseInt(this._getEscapedProperty('showProgress', config))
 
             // Auto Fit & Zoom once we've processed all data
@@ -1836,22 +1799,6 @@ define([
             // check for data
             if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
                 return this
-            }
-
-            if(this.isArgTrue(splunkVersionCheck)) {
-                // Make sure we're on Splunk 7.x+
-                if(!this.isSplunkSeven) {
-                    // Render warning modal
-                    this.renderModal('splunk-version-warning',
-                            "Unsupported Splunk Version",
-                            "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
-                            'Close')
-
-                    // throw viz error
-                    throw new SplunkVisualizationBase.VisualizationError(
-                        'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
-                    )
-                }
             }
 
             // Validate we have at least latitude and longitude fields

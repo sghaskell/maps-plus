@@ -50,7 +50,12 @@ Big thanks to the following people:
 * [dxwils3](https://github.com/dxwils3) for **pathColor** enhancement.
 
 ### Compatibility
-Maps+ for Splunk is compatible with **Splunk 7.x**
+Maps+ for Splunk is compatible with **Splunk 10.x**
+
+## AppInspect Notes
+The warnings about "hotlinking" Leaflet are false positives. Leaflet is bundled 
+via Webpack into visualization.js - the imports are resolved at build time, 
+not runtime. The app does not depend on Splunk Web's copy of Leaflet.
 
 ### Usage
 ##### Fields must be named exactly as labled here. The app is keyed off of field names and not field order.

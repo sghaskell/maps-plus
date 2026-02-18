@@ -6,7 +6,7 @@
 
 # Source files (users only need built visualization.js)
 appserver/static/visualizations/maps-plus/src/ export-ignore
-appserver/static/visualizations/maps-plus/contrib/ export-ignore
+#appserver/static/visualizations/maps-plus/contrib/ export-ignore
 appserver/static/visualizations/maps-plus/webpack.config.js export-ignore
 appserver/static/visualizations/maps-plus/package.json export-ignore
 

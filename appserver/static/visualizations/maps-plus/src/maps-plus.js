@@ -1,57 +1,54 @@
 define([
-    'jquery',
-    'underscore',
-    'leaflet',
-    '@mapbox/togeojson',
-    'jszip',
-    'jszip-utils',
-    'api/SplunkVisualizationBase',
-    'api/SplunkVisualizationUtils',
-    'splunkjs/mvc',
-    'load-google-maps-api',
-    'moment',
-    '../contrib/js/Modal',
-    '../contrib/js/theme-utils',
-    'spin.js',
-    'leaflet-bing-layer',
-    'leaflet-contextmenu',
-    'leaflet-dialog',
-    'leaflet-google-places-autocomplete',
-    'leaflet.markercluster',
-    'leaflet-ant-path',
-    'simpleheat',
-    'proj4leaflet',
-    '../contrib/js/HeatLayer',
-    '../contrib/js/leaflet.spin',
-    '../contrib/js/leaflet.featuregroup.subgroup-src',
-    '../contrib/js/leaflet-measure',
-    '../contrib/js/leaflet.awesome-markers',
-    '../contrib/js/leaflet-vector-markers',
-    '../contrib/js/LeafletPlayback',
-    '../contrib/js/CLDRPluralRuleParser',
-    '../contrib/js/jquery.i18n',
-    '../contrib/js/jquery.i18n.messagestore',
-    '../contrib/js/jquery.i18n.fallbacks',
-    '../contrib/js/jquery.i18n.language',
-    '../contrib/js/jquery.i18n.parser',
-    '../contrib/js/jquery.i18n.emitter',
-    '../contrib/js/jquery.i18n.emitter.bidi'
-],
-function(
-    $,
-    _,
-    L,
-    toGeoJSON,
-    JSZip,
-    JSZipUtils,
-    SplunkVisualizationBase,
-    SplunkVisualizationUtils,
-    mvc,
-    loadGoogleMapsAPI,
-    moment,
-    Modal,
-    themeUtils
-) {
+            'jquery',
+            'underscore',
+            'leaflet',
+            '@mapbox/togeojson',
+            'jszip',
+            'jszip-utils',
+            'api/SplunkVisualizationBase',
+            'api/SplunkVisualizationUtils',
+            'load-google-maps-api',
+            'moment',
+            '../contrib/js/Modal',
+            '../contrib/js/theme-utils',
+            'spin.js',
+            'leaflet-bing-layer',
+			'leaflet-contextmenu',
+			'leaflet-dialog',
+            'leaflet-google-places-autocomplete',
+            'leaflet.markercluster',
+            'leaflet-ant-path',
+            'simpleheat',
+            '../contrib/js/HeatLayer',
+            '../contrib/js/leaflet.spin',
+            '../contrib/js/leaflet.featuregroup.subgroup-src',
+            '../contrib/js/leaflet-measure',
+			'../contrib/js/leaflet.awesome-markers',
+            '../contrib/js/leaflet-vector-markers',
+            '../contrib/js/LeafletPlayback',
+            '../contrib/js/CLDRPluralRuleParser',
+            '../contrib/js/jquery.i18n',
+            '../contrib/js/jquery.i18n.messagestore',
+            '../contrib/js/jquery.i18n.fallbacks',
+            '../contrib/js/jquery.i18n.language',
+            '../contrib/js/jquery.i18n.parser',
+            '../contrib/js/jquery.i18n.emitter',
+            '../contrib/js/jquery.i18n.emitter.bidi'
+        ],
+        function(
+            $,
+            _,
+            L,
+            toGeoJSON,
+            JSZip,
+            JSZipUtils,
+            SplunkVisualizationBase,
+            SplunkVisualizationUtils,
+            loadGoogleMapsAPI,
+            moment,
+            Modal,
+            themeUtils
+        ) {
 
 
 
@@ -1174,15 +1171,16 @@ showCoordinates: function (e) {
           "<br>Center Longitude: <input type=\"text\" name=\"center_lon\" value=\"" + centerCoordinates[1] + "\">"
 
     var coordDialog = this.coordDialog = L.control.dialog({size: [300,435], 
-        minSize: [100,100], 
-        maxSize: [350,500], 
-        position: 'topleft', 
-        anchor: [100, 500]
-    })
-    .setContent(content)
-    .addTo(this.map)
-    .open()
-},
+            minSize: [100,100], 
+            maxSize: [350,500], 
+            position: 'topleft', 
+            anchor: [100, 500],
+            initOpen: true
+        })
+        .setContent(content)
+        .addTo(this.map)
+        .open()
+    },
 
 addToPlayback: function(e) {
     if(this.playback._showPlayback) {
@@ -1872,26 +1870,10 @@ updateView: function(data, config) {
     // get data
     var dataRows = data.results
 
-    // check for data
-    if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-        return this
-    }
-
-    if(this.isArgTrue(splunkVersionCheck)) {
-        // Make sure we're on Splunk 7.x+
-        if(!this.isSplunkSeven) {
-            // Render warning modal
-            this.renderModal('splunk-version-warning',
-                    "Unsupported Splunk Version",
-                    "<div class=\"alert alert-warning\"><i class=\"icon-alert\"></i>Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x</div>",
-                    'Close')
-
-            // throw viz error
-            throw new SplunkVisualizationBase.VisualizationError(
-                'Unsupported Splunk version detected - Maps+ for Splunk requires Splunk 7.x'
-            )
-        }
-    }
+            // check for data
+            if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
+                return this
+            }
 
     // Validate we have at least latitude and longitude fields
     if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
@@ -2198,9 +2180,24 @@ updateView: function(data, config) {
                                    features: this.measureFeatures,
                                    map: this.map}
 
-            // var measureControl = new L.Control.Measure(measureOptions)
-            this.measureControl = new L.Control.Measure(measureOptions)
-            this.measureControl.addTo(this.map)
+                    // Add fix for measurement jumping to center of map - https://github.com/ljagis/leaflet-measure/issues/171#issuecomment-1137483548
+                    L.Control.Measure.include({
+                        // set icon on the capture marker
+                        _setCaptureMarkerIcon: function () {
+                            // disable autopan
+                            this._captureMarker.options.autoPanOnFocus = false;
+
+                            // default function
+                            this._captureMarker.setIcon(
+                                L.divIcon({
+                                    iconSize: this._map.getSize().multiplyBy(2)
+                                })
+                            );
+                        },
+                    });
+
+                    this.measureControl = new L.Control.Measure(measureOptions)
+                    this.measureControl.addTo(this.map)
 
             if(this.isDarkTheme) { this._darkModeUpdate() }                    
         }

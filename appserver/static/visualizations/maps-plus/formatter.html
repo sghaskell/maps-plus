@@ -2,13 +2,13 @@
         <div class="control-group">
             <label class="control-label">Map Tile</label>
             <div class="controls controls-block">
-                <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
-                  <option value="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">Open Streetmap</option> 
-                  <option value="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option> 
-                  <option value="http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option> 
-                  <option value="http://tile.stamen.com/toner/{z}/{x}/{y}.png">Stamen Toner</option> 
-                  <option value="http://tile.stamen.com/terrain/{z}/{x}/{y}.jpg">Stamen Terrain (USA Only)</option> 
-                  <option value="http://tile.stamen.com/watercolor/{z}/{x}/{y}.jpg">Stamen Watercolor</option> 
+                <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
+                  <option value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">Open Streetmap</option> 
+                  <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option> 
+                  <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option> 
+                  <option value="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png">OpenTopoMap</option> 
+                  <option value="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian OSM</option> 
+                  <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery</option> 
                 </splunk-select> 
             </div>
         </div>
@@ -16,7 +16,7 @@
             <label class="control-label">Map Tile Override</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>
-                <span class="help-block ">Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png</span> 
+                <span class="help-block ">Use your own map tile URL and override defaults. Example: https://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png</span> 
             </div>
         </div>
         <div class="control-group">
@@ -104,7 +104,7 @@
             </div>
         </div>
     </form>
-    <form class="splunk-formatter-section" section-label="Map (Continued)">
+    <form class="splunk-formatter-section" section-label="Map Settings">
         <div class="control-group">
             <label class="control-label">Auto Fit & Zoom</label>
             <div class="controls controls-fill ">
@@ -217,7 +217,7 @@
             </div>
         </div>
     </form>
-    <form class="splunk-formatter-section" section-label="Clustering (Continued)">
+    <form class="splunk-formatter-section" section-label="Clustering Settings">
         <div class="control-group">
             <label class="control-label">Disable Clustering At Zoom</label>
             <div class="controls controls-fill ">
@@ -919,18 +919,6 @@
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsTime"></splunk-text-input>
                 <span class="help-block ">Set date for static image. Leave blank to get image from current day. Format yyyy-mm-dd</span> 
-            </div>
-        </div>
-    </form>
-    <form class="splunk-formatter-section" section-label="Experimental">
-        <div class="control-group">
-            <label class="control-label">Version Check</label>
-            <div class="controls controls-fill ">
-                <splunk-radio-input name="{{VIZ_NAMESPACE}}.splunkVersionCheck" value="1">
-                    <option value="1">Enabled</option>
-                    <option value="0">Disabled</option>
-                </splunk-radio-input>
-                <span class="help-block ">WARNING: Only disable version Splunk version check if you're running Splunk 7.x+. Disable if you run into issues with built-in check. Adverse side effects may be seen with check disabled.</span>
             </div>
         </div>
     </form>

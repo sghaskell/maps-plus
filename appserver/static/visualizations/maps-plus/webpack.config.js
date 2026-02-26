@@ -2,25 +2,55 @@ var webpack = require('webpack');
 var path = require('path');
 
 module.exports = {
-    entry: ['maps-plus'],
+    entry: './src/maps-plus.js',
+    
+    target: 'web',
+    
     resolve: {
-        root: [
+        modules: [
             path.join(__dirname, 'src'),
-        ]
+            path.join(__dirname, 'contrib/js'),
+            'node_modules'
+        ],
+        extensions: ['.js', '.json']
     },
+    
     output: {
         filename: 'visualization.js',
+        path: path.resolve(__dirname, '.'),
         libraryTarget: 'amd'
     },
+    
     module: {
-        loaders: [
+        rules: [
+            // Babel transpiles ES6 to ES5 FIRST (before other loaders)
+            {
+                test: /\.js$/,
+                exclude: /node_modules\/(?!(leaflet-ant-path)\/).*/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['env', {
+                                targets: {
+                                    browsers: ['ie 11']
+                                },
+                                modules: false
+                            }]
+                        ]
+                    }
+                }
+            },
             {
                 test: /leaflet\.spin\.js$/,
                 loader: 'imports-loader?L=leaflet'
             },
             {
                 test: /HeatLayer\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'imports-loader?simpleheat']
+                use: [
+                    'imports-loader?L=leaflet',
+                    'imports-loader?simpleheat'
+                ]
             },
             {
                 test: /leaflet\.awesome-markers\.js$/,
@@ -58,7 +88,7 @@ module.exports = {
                 test: /jquery\.i18n\.fallbacks\.js$/,
                 loader: 'imports-loader?$=jquery,jQuery=jquery'
             },
-           {
+            {
                 test: /jquery\.i18n\.language\.js$/,
                 loader: 'imports-loader?$=jquery,jQuery=jquery'
             },
@@ -72,7 +102,10 @@ module.exports = {
             },
             {
                 test: /leaflet-measure\.js$/,
-                loaders: ['imports-loader?L=leaflet', 'transform/cacheable?brfs']
+                use: [
+                    'imports-loader?L=leaflet',
+                    'transform-loader?brfs'
+                ]
             },
             {
                 test: /LeafletPlayback\.js$/,
@@ -80,9 +113,20 @@ module.exports = {
             }
         ]
     },
+    
     externals: [
         'api/SplunkVisualizationBase',
         'api/SplunkVisualizationUtils',
         'splunkjs/mvc'
-    ]
+    ],
+    
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        })
+    ],
+    
+    devtool: false
 };

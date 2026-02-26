@@ -1,2 +1,24 @@
 .gitattributes export-ignore  
 .gitignore export-ignore
+
+# Export-ignore: Exclude these from 'git archive' and releases
+# These files stay in the repo but don't ship to end users
+
+# Source files (users only need built visualization.js)
+appserver/static/visualizations/maps-plus/src/ export-ignore
+appserver/static/visualizations/maps-plus/contrib/js export-ignore
+appserver/static/visualizations/maps-plus/webpack.config.js export-ignore
+appserver/static/visualizations/maps-plus/package.json export-ignore
+
+# Build dependencies (never ship to users)
+appserver/static/visualizations/maps-plus/node_modules/ export-ignore
+
+# Git metadata
+.gitignore export-ignore
+.gitattributes export-ignore
+.git* export-ignore
+
+# Development files
+build_release.sh export-ignore
+README.md export-ignore
+CHANGELOG.md export-ignore

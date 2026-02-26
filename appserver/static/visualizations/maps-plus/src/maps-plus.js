@@ -77,7 +77,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maxClusterRadius': 80,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,

@@ -1,5 +1,5 @@
 <form class="splunk-formatter-section" section-label="Map">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Map Tile</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
@@ -12,21 +12,21 @@
                 </splunk-select> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Map Tile Override</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>
                 <span class="help-block ">Use your own map tile URL and override defaults. Example: https://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Map Attribution Override</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapAttributionOverride"></splunk-text-input>
                 <span class="help-block ">Use your own attribution.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Renderer</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.renderer" value="svg">
@@ -36,7 +36,7 @@
                 <span class="help-block ">Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Progress Indicator</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showProgress" value="1">
@@ -46,7 +46,7 @@
                 <span class="help-block ">Display progress spinner for long running searches</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Scroll Wheel Zoom</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.scrollWheelZoom" value="1">
@@ -56,7 +56,7 @@
                 <span class="help-block ">Enable or disable zooming on map with scroll wheel</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Full Screen Mode</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.fullScreen" value="0">
@@ -66,7 +66,7 @@
                 <span class="help-block ">Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Drilldown</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.drilldown" value="0">
@@ -76,7 +76,7 @@
                 <span class="help-block ">Enable or disable drilldown behavior for markers</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Drilldown Mouse Event</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.drilldownAction" value="dblclick">
@@ -86,7 +86,7 @@
                 <span class="help-block ">Select mouse event that triggers drilldown from markers</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Context Menu</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.contextMenu" value="1">
@@ -96,7 +96,7 @@
                 <span class="help-block ">Enable or disable context menu when right clicking the map.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Default Height</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.defaultHeight" value="600"></splunk-text-input>
@@ -105,7 +105,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Map Settings">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Auto Fit & Zoom</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.autoFitAndZoom" value="1">
@@ -115,49 +115,49 @@
                 <span class="help-block ">Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Auto Fit & Zoom Delay (ms)</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.autoFitAndZoomDelay" value="500"></splunk-text-input>
                 <span class="help-block ">Delay in milliseconds before triggering Auto Fit & Zoom. Increase if you get inconsistent behavior (Default: 500).</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Dashboard Refresh Interval</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.refreshInterval" value="0"></splunk-text-input>
                 <span class="help-block ">Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Map Zoom</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterZoom" value="6"></splunk-text-input>
                 <span class="help-block ">Initial Zoom for map (Default: 6).</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Center Lat</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterLat" value="39.50"></splunk-text-input>
                 <span class="help-block ">Initial Center Latitiude (Default: 39.50)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Center Lon</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterLon" value="-98.35"></splunk-text-input>
                 <span class="help-block ">Initial Center Longitude (Default: -98.35)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Min Zoom</label>
             <div class="controls controls-block">
                 <splunk-text-input class="input-medium" name="{{VIZ_NAMESPACE}}.minZoom" value="1"></splunk-text-input>
                 <span class="help-block ">Minimum zoom for tile layer. Does not affect map zoom. (Default: 1)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Max Zoom</label>
             <div class="controls controls-block">
                 <splunk-text-input class="input-medium" name="{{VIZ_NAMESPACE}}.maxZoom" value="19"></splunk-text-input>
@@ -166,7 +166,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Clustering">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Enable Clustering</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.cluster" value="1">
@@ -176,7 +176,7 @@
                 <span class="help-block ">Disable clustering and plot all markers. WARNING - This comes at a significant performance penalty for large datasets.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Show All Popups</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.allPopups" value="0">
@@ -186,7 +186,7 @@
                 <span class="help-block ">Display all popups on page load. Only works with clustering disabled.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Allow Multiple Popups</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.multiplePopups" value="0">
@@ -196,7 +196,7 @@
                 <span class="help-block ">Allow multiple popups to dispaly on screen without closing previous. Will disappear at higher zoom levels with clustering enabled. Enabled by default when showing all popups.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Animate</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.animate" value="1">
@@ -206,7 +206,7 @@
                 <span class="help-block ">Animate cluster separation on zoom</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Single Marker Mode</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.singleMarkerMode" value="0">
@@ -218,7 +218,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Clustering Settings">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Disable Clustering At Zoom</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.disableClusteringAtZoom" value="0">
@@ -228,28 +228,28 @@
                 <span class="help-block ">If enabled, disable clustering at and below level specified in Disable Clustering At Zoom Level.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Disable Clustering At Zoom Level</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.disableClusteringAtZoomLevel"></splunk-text-input>
                 <span class="help-block ">At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Max Cluster Radius</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.maxClusterRadius" value="80"></splunk-text-input>
                 <span class="help-block ">A cluster will cover at most this many pixels from its center (Default: 80)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Cluster Warning Size</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.maxSpiderfySize" value="100"></splunk-text-input>
                 <span class="help-block ">Display an alert warning that the cluster exceeds threshold at max-zoom and do not show underlying markers. Browser may hang and die if a single point exceeds a very large number.(Default: 100)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Distance Multiplier</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.spiderfyDistanceMultiplier" value="1"></splunk-text-input>
@@ -258,7 +258,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Markers">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Permanent Tooltip</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.permanentTooltip" value="0">
@@ -268,7 +268,7 @@
                 <span class="help-block ">Open the tooltip permanently or only on mouseover. Depends on tooltip field in search results.</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Sticky Tooltip</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.stickyTooltip" value="1">
@@ -280,7 +280,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Heatmap">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Enable Heatmap</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.heatmapEnable" value="0">
@@ -290,7 +290,7 @@
                 <span class="help-block ">Enable or disable heatmap.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Heatmap Only</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.heatmapOnly" value="0">
@@ -300,28 +300,28 @@
                 <span class="help-block ">Only show the heatmap. No markers will be rendered.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Min Opacity</label>
             <div class="controls controls-fill ">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapMinOpacity" value="1.0"></splunk-text-input>
                 <span class="help-block ">Minimum opacity the heat will start at. (Default: 1.0)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Radius</label>
             <div class="controls controls-fill ">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapRadius" value="25"></splunk-text-input>
                 <span class="help-block ">Radius of each point of heatmap. (Default: 25)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Blur</label>
             <div class="controls controls-fill ">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapBlur" value="15"></splunk-text-input>
                 <span class="help-block ">Amount of blur. (Default: 15)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Color Gradient</label>
             <div class="controls controls-fill ">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.heatmapColorGradient" value='{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}'></splunk-text-input>
@@ -330,7 +330,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Path Lines">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Path Lines</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPathLines" value="0">
@@ -340,21 +340,21 @@
                 <span class="help-block">Draw path lines on map alongside markers (hide individual markers with markerVisibility != "marker")</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Path Identifier</label>
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.pathIdentifier"></splunk-text-input>
                 <span class="help-block">Field used to distinguish unique paths, e.g. vehicle number or trip ID</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Path Colors</label>
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.pathColorList" value="#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378"></splunk-text-input>
                 <span class="help-block">Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Path Splits</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.pathSplits" value="0">
@@ -364,7 +364,7 @@
                 <span class="help-block">Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Path Split Interval</label>
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.pathSplitInterval" value="60"></splunk-text-input>
@@ -372,7 +372,7 @@
             </div>
         </div>
         <hr>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Playback</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlayback" value="0">
@@ -382,7 +382,7 @@
                 <span class="help-block">Playback route along path line.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Slider Control</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackSliderControl" value="1">
@@ -392,7 +392,7 @@
                 <span class="help-block">Show playback slider control.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Date Control</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackDateControl" value="1">
@@ -402,7 +402,7 @@
                 <span class="help-block">Show playback date control.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Play Control</label>
             <div class="controls controls-fill">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPlaybackPlayControl" value="1">
@@ -412,14 +412,14 @@
                 <span class="help-block">Show playback play control.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Tick Length</label>
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.playbackTickLength" value="50"></splunk-text-input>
                 <span class="help-block">Tick length in milliseconds. Increasing this value may improve performance at the cost of animation smoothness.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Playback Speed</label>
             <div class="controls controls-fill">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.playbackSpeed" value="100"></splunk-text-input>
@@ -428,7 +428,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="i18n">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Language</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.i18nLanguage" value="en">
@@ -440,7 +440,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Google Places">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Google Places Search</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.googlePlacesSearch" value="0">
@@ -450,20 +450,20 @@
                 <span class="help-block ">Enable or disable Google Places API search control.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">API Key User</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKeyUser"></splunk-text-input>
                 <span class="help-block ">Google Places API Key user stored in storage/passwords REST endpoint. See <a target="_blank" href="https://github.com/sghaskell/maps-plus#api-key-storage">docs for help</a> with securely storing API keys. Install  <a target="_blank" href="https://splunkbase.splunk.com/app/4013/">REST storage/passwords Manager for Splunk </a> to manage API keys.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">API Key Realm</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesApiKeyRealm"></splunk-text-input>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Search Bar Position</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.googlePlacesPosition" value="topleft">
@@ -475,7 +475,7 @@
                 <span class="help-block ">Position of Google Places Search Bar (Default: Top Left)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Zoom Level</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.googlePlacesZoomLevel" value="12"></splunk-text-input>
@@ -484,7 +484,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Bing Maps">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Bing Maps</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.bingMaps" value="0">
@@ -494,21 +494,21 @@
                 <span class="help-block ">Enable or disable Bing Maps tiles.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">API Key User</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKeyUser"></splunk-text-input>
                 <span class="help-block ">Bing Maps API Key user stored in storage/passwords REST endpoint. See <a target="_blank" href="https://github.com/sghaskell/maps-plus#api-key-storage">docs for help</a> with securely storing API keys. Install  <a target="_blank" href="https://splunkbase.splunk.com/app/4013/">REST storage/passwords Manager for Splunk </a> to manage API keys.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">API Key Realm</label>
                 <div class="controls controls-block">
                     <splunk-text-input name="{{VIZ_NAMESPACE}}.bingMapsApiKeyRealm"></splunk-text-input>
                     <span class="help-block ">Optional realm in storage/passwords REST endpoint associated with API key user</span> 
                 </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Tile Layer</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.bingMapsTileLayer" value="CanvasLight">
@@ -524,7 +524,7 @@
                 <span class="help-block ">Select tile layer imagery set</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Label Language</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.bingMapsLabelLanguage" value="en-US">
@@ -643,7 +643,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Cluster Colors">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range One Background</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeOneBgColor" value="#B5E28C">
@@ -651,7 +651,7 @@
                 <span class="help-block ">(Default: #B5E28C)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range One Foreground</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeOneFgColor" value="#6ECC39">
@@ -659,14 +659,14 @@
                 <span class="help-block ">(Default: #6ECC39)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range two thereshold</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.warningThreshold" value="55"></splunk-text-input>
                 <span class="help-block ">Number at which cluster group two starts</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range Two Background</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeTwoBgColor" value="#F1D357">
@@ -674,7 +674,7 @@
                 <span class="help-block ">(Default: #F1D357)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range Two Foreground</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeTwoFgColor" value="#F0C20C">
@@ -682,14 +682,14 @@
                 <span class="help-block ">(Default: #F0C20C)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range three threshold</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.criticalThreshold" value="80"></splunk-text-input>
                 <span class="help-block ">Number at which cluster group three starts</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range Three Background</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeBgColor" value="#FD9C73">
@@ -697,7 +697,7 @@
                 <span class="help-block ">(Default: #FD9C73)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Range Three Foreground</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeFgColor" value="#F18017">
@@ -707,7 +707,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Layer Controls">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Layer Control</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.layerControl" value="1">
@@ -717,7 +717,7 @@
                 <span class="help-block ">Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Control Collapsed</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.layerControlCollapsed" value="1">
@@ -729,7 +729,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Overlays">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">KML/KMZ Overlay</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.kmlOverlay"></splunk-text-input>
@@ -738,7 +738,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Measure">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Enable Measurement Plugin</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.measureTool" value="1">
@@ -748,7 +748,7 @@
                 <span class="help-block ">Enable or disable measurement plugin to allow path and area measurement on map. (Default: Enabled)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Localization</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measureLocalization" value="en">
@@ -767,7 +767,7 @@
                 <span class="help-block ">Language (Default: English)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Icon Position</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measureIconPosition" value="topright">
@@ -779,7 +779,7 @@
                 <span class="help-block ">Position of measurement icon on map (Default: Top Right)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Primary Length Unit</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measurePrimaryLengthUnit" value="feet">
@@ -791,7 +791,7 @@
                 <span class="help-block ">Primary unit for length measurement (Default: feet)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Secondary Length Unit</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measureSecondaryLengthUnit" value="miles">
@@ -804,7 +804,7 @@
                 <span class="help-block ">Secondary unit for length measurement (Default: miles)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Primary Area Unit</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measurePrimaryAreaUnit" value="acres">
@@ -817,7 +817,7 @@
                 <span class="help-block ">Primary unit for area measurement (Default: acres)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Secondary Area Unit</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.measureSecondaryAreaUnit" value="sqmiles">
@@ -831,7 +831,7 @@
                 <span class="help-block ">Secondary unit for area measurement (Default: square miles)</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Active Color</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.measureActiveColor" value="#00ff00">
@@ -839,7 +839,7 @@
                 <span class="help-block ">Color of measurement when actively drawing (Default: #00ff00)</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Completed Color</label>
             <div class="controls controls-block">
                 <splunk-color-picker name="{{VIZ_NAMESPACE}}.measureCompletedColor" value="#0066ff">
@@ -849,7 +849,7 @@
         </div>
     </form>
     <form class="splunk-formatter-section" section-label="Antarctic">
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Antarctic Projection</label>
             <div class="controls controls-fill ">
                 <splunk-radio-input name="{{VIZ_NAMESPACE}}.antarcticProj" value="1">
@@ -859,7 +859,7 @@
                 <span class="help-block ">EPSG:3031 projection for Antarctic mapping use cases.</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">Map Tile</label>
             <div class="controls controls-block">
                 <splunk-select name="{{VIZ_NAMESPACE}}.antarcticMapTile" value="https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser">
@@ -876,7 +876,7 @@
             <span class="help-block ">Visit <a target="_blank" href="https://nasa-gibs.github.io/gibs-api-docs/access-basics/#ogc-web-map-tile-service-wmts">NASA GIBS site </a> for advanced configuration options. Leave options blank for default image.</span>
             <br>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">GIBS Layer Identifier</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsLayerId" value="MODIS_Aqua_CorrectedReflectance_TrueColor"></splunk-text-input>
@@ -893,28 +893,28 @@
                 <span class="help-block ">Image Format</span>
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">GIBS Lower Corner</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsLowerCorner" value="-4194304"></splunk-text-input>
                 <span class="help-block ">Lower Corner</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">GIBS Upper Corner</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsUpperCorner" value="4194304"></splunk-text-input>
                 <span class="help-block ">Upper Corner</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">GIBS Tile Matrix Set</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsTileMatrixSet" value="250m"></splunk-text-input>
                 <span class="help-block ">Tile Matrix Set</span> 
             </div>
         </div>
-        <div class="control-group">
+        <splunk-control-group>
             <label class="control-label">GIBS Time</label>
             <div class="controls controls-block">
                 <splunk-text-input name="{{VIZ_NAMESPACE}}.gibsTime"></splunk-text-input>

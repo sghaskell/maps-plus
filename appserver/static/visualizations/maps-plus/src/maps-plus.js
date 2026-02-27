@@ -19,6 +19,7 @@ define([
             'leaflet.markercluster',
             'leaflet-ant-path',
             'simpleheat',
+            'proj4leaflet',
             '../contrib/js/HeatLayer',
             '../contrib/js/leaflet.spin',
             '../contrib/js/leaflet.featuregroup.subgroup-src',

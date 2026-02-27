@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
+var UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
     entry: './src/maps-plus.js',
@@ -26,7 +27,7 @@ module.exports = {
             // Babel transpiles ES6 to ES5 FIRST (before other loaders)
             {
                 test: /\.js$/,
-                exclude: /node_modules\/(?!(leaflet-ant-path)\/).*/,
+                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet)\/).*/,
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -121,12 +122,21 @@ module.exports = {
     ],
     
     plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false
-            }
+        new UglifyJsPlugin({
+            uglifyOptions: {
+                ecma: 5,  // Output ES5-compatible code
+                compress: {
+                    warnings: false
+                },
+                mangle: true,
+                output: {
+                    comments: false
+                }
+            },
+            sourceMap: false,
+            parallel: true  // Faster builds
         })
-    ],
-    
+    ], 
+
     devtool: false
 };

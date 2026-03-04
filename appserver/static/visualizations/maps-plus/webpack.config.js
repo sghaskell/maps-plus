@@ -117,8 +117,7 @@ module.exports = {
     
     externals: [
         'api/SplunkVisualizationBase',
-        'api/SplunkVisualizationUtils',
-        'splunkjs/mvc'
+        'api/SplunkVisualizationUtils'
     ],
     
     plugins: [

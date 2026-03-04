@@ -169,44 +169,11 @@ initialize: function() {
     SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
     this.$el = $(this.el)
     this.isInitializedDom = false
-    this.isSplunkSeven = false
     this.curPage = 0
     this.allDataProcessed = false
-    this.splunkVersion = parseFloat(0.0)
+
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
     //this.tileOptions = {}
-
-    try {
-        // Get version from global tokens
-        this.splunkVersion = parseFloat(mvc.Components.getInstance("env").get('version'))
-    } catch (error) {
-        // Detect version from REST API
-        $.ajax({
-            type: "GET",
-            async: false,
-            context: this,
-            url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/server/info",
-            success: function(s) {                                        
-                var xml = $(s)
-                var that = this
-                $(xml).find('content').children().children().each(function(i, v) {
-                    if(/name="version"/.test(v.outerHTML)) {
-                        that.splunkVersion = parseFloat(v.textContent)
-                        if(that.splunkVersion >= 7.0) {
-                            that.isSplunkSeven = true
-                        }
-                    } 
-                })
-            },
-            error: function(e) {
-                //console.info(e)
-            }
-        })
-    }
-
-    if(this.splunkVersion >= 7.0) {
-        this.isSplunkSeven = true
-    }
 },
 
 // Search data params

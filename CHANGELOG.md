@@ -1,6 +1,37 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.1.0] - 2026-02-27
+
+### Added
+- **Antarctic Projection Support**: EPSG:3031 polar projection for Antarctic mapping use cases
+  - Integrated proj4leaflet library for coordinate system transformations
+  - GBIF Geyser and OSM Bright tile layers for Antarctic region
+  - NASA GIBS (Global Imagery Browse Services) tile layer support with configurable parameters
+  - Comprehensive formatter controls for GIBS layer configuration (layer ID, format, tile matrix, temporal settings)
+- Updated build toolchain to support ES6 dependencies
+  - Configured Babel to transpile proj4leaflet module
+  - Upgraded uglifyjs-webpack-plugin to v1.3.0 for ES6 compatibility
+  - Removed conflicting webpack `-p` flag to prevent double-minification
+
+### Changed
+- Updated ATTRIBUTIONS object with HTTPS URLs for all tile providers
+  - Removed deprecated Stamen tile attributions (Toner, Terrain, Watercolor)
+  - Added proper attributions for OpenTopoMap, Humanitarian OSM, and Esri World Imagery
+  - All tile provider URLs and attribution links now use HTTPS
+- Modified webpack configuration to allow transpilation of specific node_modules (proj4leaflet, leaflet-ant-path)
+
+### Fixed
+- Antarctic projection formatter default now correctly set to disabled (0) instead of enabled (1)
+  - Prevents unintended activation of Antarctic projection on existing visualizations
+  - Ensures backward compatibility with existing dashboards
+- Fixed potential NaN parsing issues in configuration handling
+
+### Technical Notes
+- proj4leaflet adds ~60KB to minified bundle size
+- Antarctic projection optimized for data visualization in polar regions
+- NASA GIBS integration supports daily satellite imagery with temporal controls
+
 ## [4.0.1] - 2026-02-18
 
 ### Fixed

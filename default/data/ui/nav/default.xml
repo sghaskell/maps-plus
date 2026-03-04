@@ -21,6 +21,7 @@
         <view name="features" />
         <view name="drilldown" />
         <view name="png_markers_dark" />
+        <view name="antarctic_projection" />
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

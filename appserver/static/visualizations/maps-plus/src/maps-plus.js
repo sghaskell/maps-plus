@@ -328,7 +328,7 @@ onConfigChange: function(configChanges, previousConfig) {
         showPlaybackPlayControl = this._propertyExists('showPlaybackPlayControl', configChanges) ? this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', configChanges))):this.isArgTrue(parseInt(this._getEscapedProperty('showPlaybackPlayControl', previousConfig))),
         measureIconPosition = this._propertyExists('measureIconPosition', configChanges) ? this._getEscapedProperty('measureIconPosition', configChanges):this._getEscapedProperty('measureIconPosition', previousConfig),
         measureActiveColor = this._propertyExists('measureActiveColor', configChanges) ? this._getEscapedProperty('measureActiveColor', configChanges):this._getEscapedProperty('measureActiveColor', previousConfig),
-        measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig)
+        measureCompletedColor = this._propertyExists('measureCompletedColor', configChanges) ? this._getEscapedProperty('measureCompletedColor', configChanges):this._getEscapedProperty('measureCompletedColor', previousConfig),
         antarcticMapTile = this._propertyExists('antarcticMapTile', configChanges) ? this._getEscapedProperty('antarcticMapTile', configChanges):this._getEscapedProperty('antarcticMapTile', previousConfig),
         gibsLayerId = this._propertyExists('gibsLayerId', configChanges) ? this._getEscapedProperty('gibsLayerId', configChanges):this._getEscapedProperty('gibsLayerId', previousConfig),
         gibsFormat = this._propertyExists('gibsFormat', configChanges) ? this._getEscapedProperty('gibsFormat', configChanges):this._getEscapedProperty('gibsFormat', previousConfig),
@@ -1786,7 +1786,6 @@ updateView: function(data, config) {
         heatmapRadius = parseInt(this._getEscapedProperty('heatmapRadius', config)),
         heatmapBlur = parseInt(this._getEscapedProperty('heatmapBlur', config)),
         heatmapColorGradient = this._stringToJSON(this._getProperty('heatmapColorGradient', config)),
-        splunkVersionCheck = parseInt(this._getEscapedProperty('splunkVersionCheck', config)),
         antarcticProj = parseInt(this._getEscapedProperty('antarcticProj', config)),
         antarcticMapTile = this._getEscapedProperty('antarcticMapTile', config),
         gibsLayerId = this._getEscapedProperty('gibsLayerId', config),

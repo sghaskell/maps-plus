@@ -1,13 +1,13 @@
 <dashboard version="1.1">
-  <label>Antarctic Projection Demo</label>
+  <label>Antarctic Projection</label>
   <row>
     <panel>
       <viz type="leaflet_maps_app.maps-plus">
         <title>Custom Marker Icon</title>
         <search>
           <query>| makeresults count=1
-| eval latitude=-86.665225,longitude=86.699878,description="Antarctica",tooltip="Antarctica",customIcon="inspire22.jpg",markerSize="40,40"
-| table latitude,longitude,description,tooltip,customIcon,markerSize</query>
+| eval latitude=-86.665225,longitude=86.699878,description="Antarctica",tooltip="Antarctica",markerSize="40,40"
+| table latitude,longitude,description,tooltip,markerSize</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -15,6 +15,7 @@
         <option name="drilldown">none</option>
         <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
         <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}</option>
         <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
@@ -30,6 +31,12 @@
         <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
         <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
         <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
+        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
+        <option name="leaflet_maps_app.maps-plus.gibsLayerId">MODIS_Aqua_CorrectedReflectance_TrueColor</option>
+        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
+        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
+        <option name="leaflet_maps_app.maps-plus.gibsTime">2025-02-21</option>
+        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
         <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">14</option>

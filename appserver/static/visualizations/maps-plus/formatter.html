@@ -848,6 +848,72 @@
             </div>
         </div>
     </form>
+    <form class="splunk-formatter-section" section-label="Milsymbol">
+        <div class="control-group">
+            <label class="control-label">Color Mode</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.msColorMode" value="Light">
+                  <option value="Light">Light</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Dark">Dark</option>
+                </splunk-select>
+                <span class="help-block ">Global color style for symbol fill</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Standard Override</label>
+            <div class="controls controls-block">
+                <splunk-select name="{{VIZ_NAMESPACE}}.msStandard" value="">
+                  <option value="">Default</option>
+                  <option value="2525">MIL-STD-2525</option>
+                  <option value="APP6">STANAG APP-6</option>
+                </splunk-select>
+                <span class="help-block ">Global color style for symbol fill</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Icon Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msIconColor" value='{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}'></splunk-text-input>
+                <span class="help-block ">Global icon color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Frame Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msFrameColor" value='{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}'></splunk-text-input>
+                <span class="help-block ">Global frame color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Info Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msInfoColor" value='{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}'></splunk-text-input>
+                <span class="help-block ">Global info color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Info Background Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msInfoBackground"></splunk-text-input>
+                <span class="help-block ">Global info background color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Info Background Frame Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msInfoBackgroundFrame"></splunk-text-input>
+                <span class="help-block ">Global info background frame color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Outline Color</label>
+            <div class="controls controls-block">
+                <splunk-text-input name="{{VIZ_NAMESPACE}}.msOutlineColor"></splunk-text-input>
+                <span class="help-block ">Global outline color settings for civilian, friend, hostile, neutral and unknown symbols</span> 
+            </div>
+        </div>
+    </form>
     <form class="splunk-formatter-section" section-label="Antarctic">
         <div class="control-group">
             <label class="control-label">Antarctic Projection</label>

@@ -5,6 +5,7 @@ define([
             '@mapbox/togeojson',
             'jszip',
             'jszip-utils',
+            'milsymbol',
             'api/SplunkVisualizationBase',
             'api/SplunkVisualizationUtils',
             'load-google-maps-api',
@@ -43,6 +44,7 @@ define([
             toGeoJSON,
             JSZip,
             JSZipUtils,
+            ms,
             SplunkVisualizationBase,
             SplunkVisualizationUtils,
             loadGoogleMapsAPI,
@@ -65,7 +67,7 @@ mapOptions: {},
 tileOptions: {},
 map: {},
 contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
-validMarkerTypes: ["custom", "png", "icon", "svg", "circle"],
+validMarkerTypes: ["custom", "png", "icon", "svg", "circle", "milsymbol"],
 isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
 defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
@@ -154,7 +156,14 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsTime': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.tileSize': 512,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msIconColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msFrameColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msColorMode': "Light",
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
+     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}'
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -746,6 +755,7 @@ validateFields: function(obj) {
                        'featureFillColor',
                        'featureFillOpacity',
                        'featureRadius',
+                       'msStrokeWidth',
                        '_time']
     $.each(obj, function(key, value) {
         if($.inArray(key, validFields) === -1) {
@@ -1762,7 +1772,16 @@ updateView: function(data, config) {
         gibsTileMatrixSet = this._getEscapedProperty('gibsTileMatrixSet', config),
         gibsTime = this._getEscapedProperty('gibsTime', config),
         tileSize = parseInt(this._getEscapedProperty('tileSize', config)),
-        showProgress = parseInt(this._getEscapedProperty('showProgress', config))
+        showProgress = parseInt(this._getEscapedProperty('showProgress', config)),
+        msIconColor = this._stringToJSON(this._getProperty('msIconColor', config)),
+        msFrameColor = this._stringToJSON(this._getProperty('msFrameColor', config)),
+        msInfoColor = this._stringToJSON(this._getProperty('msInfoColor', config)),
+        msColorMode = this._getEscapedProperty('msColorMode', config),
+        msInfoBackground = this._stringToJSON(this._getProperty('msInfoBackground', config)),
+        msInfoBackgroundFrame = this._stringToJSON(this._getProperty('msInfoBackgroundFrame', config)),
+        msStandard = this._getEscapedProperty('msInfoBackgroundFrame', config),
+        msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config))
+
 
     // Auto Fit & Zoom once we've processed all data
     if(this.allDataProcessed) {
@@ -2525,6 +2544,137 @@ updateView: function(data, config) {
             })
         }
 
+        if(markerType == "milsymbol") {
+            msSidc = _.has(userData, "msSidc") ? userData["msSidc"]:""
+            msAdditionalInformation = _.has(userData, "msAdditionalInformation") ? userData["msAdditionalInformation"]:""
+            msAltitudeDepth = _.has(userData, "msAltitudeDepth") ? userData["msAltitudeDepth"]:""
+            msCombatEffectiveness = _.has(userData, "msCombatEffectiveness") ? userData["msCombatEffectiveness"]:""
+            msCommonIdentifier = _.has(userData, "msCommonIdentifier") ? userData["msCommonIdentifier"]:""
+            msCountry = _.has(userData, "msCountry") ? userData["msCountry"]:""
+            msDirection = _.has(userData, "msDirection") ? parseInt(eval(userData["msDirection"])):""
+            msDtg = _.has(userData, "msDtg") ? userData["msDtg"]:""
+            msEngagementBar = _.has(userData, "msEngagementBar") ? userData["msEngagementBar"]:""
+            msEngagementType = _.has(userData, "msEngagementType") ? userData["msEngagementType"]:""
+            msEquipmentTeardownTime = _.has(userData, "msEquipmentTeardownTime") ? userData["msEquipmentTeardownTime"]:""
+            msEvaluationRating = _.has(userData, "msEvaluationRating") ? userData["msEvaluationRating"]:""
+            msGuardedUnit = _.has(userData, "msGuardedUnit") ? userData["msGuardedUnit"]:""
+            msHeadquartersElement = _.has(userData, "msHeadquartersElement") ? userData["msHeadquartersElement"]:""
+            msHigherFormation = _.has(userData, "msHigherFormation") ? userData["msHigherFormation"]:""
+            msHostile = _.has(userData, "msHostile") ? userData["msHostile"]:""
+            msIffSif = _.has(userData, "msIffSif") ? userData["msIffSif"]:""
+            msLocation = _.has(userData, "msLocation") ? userData["msLocation"]:""
+            msPlatformType = _.has(userData, "msPlatformType") ? userData["msPlatformType"]:""
+            msQuantity = _.has(userData, "msQuantity") ? userData["msQuantity"]:""
+            msReinforcedReduced = _.has(userData, "msReinforcedReduced") ? userData["msReinforcedReduced"]:""
+            msSigint = _.has(userData, "msSigint") ? userData["msSigint"]:""
+            msSpecialDesignator = _.has(userData, "msSpecialDesignator") ? userData["msSpecialDesignator"]:""
+            msSignatureEquipment = _.has(userData, "msSignatureEquipment") ? userData["msSignatureEquipment"]:""
+            msSpecialHeadquarters = _.has(userData, "msSpecialHeadquarters") ? userData["msSpecialHeadquarters"]:""
+            msSpeed = _.has(userData, "msSpeed") ? userData["msSpeed"]:""
+            msSpeedLeader = _.has(userData, "msSpeedLeader") ? userData["msSpeedLeader"]:0
+            msStaffComments = _.has(userData, "msStaffComments") ? userData["msStaffComments"]:""
+            msTargetNumber = _.has(userData, "msTargetNumber") ? userData["msTargetNumber"]:""
+            msType = _.has(userData, "msType") ? userData["msType"]:""
+            msUniqueDesignation = _.has(userData, "msUniqueDesignation") ? userData["msUniqueDesignation"]:""
+            msAlternateMedal = _.has(userData, "msAlternateMedal") ? this.isArgTrue(userData["msAlternateMedal"]):false
+            msCivilianColor = _.has(userData, "msCivilianColor") ? this.isArgTrue(userData["msCivilianColor"]):true
+            msColorMode = _.has(userData, "msColorMode") ? userData["msColorMode"]:msColorMode
+            msFill = _.has(userData, "msFill") ? this.isArgTrue(userData["msFill"]):true
+            msFillOpacity = _.has(userData, "msFillOpacity") ? userData["msFillOpacity"]:1
+            msFontfamily = _.has(userData, "msFontfamily") ? userData["msFontfamily"]:"Arial"
+            msFrame = _.has(userData, "msFrame") ? this.isArgTrue(userData["msFrame"]):true
+            msFrameColor = _.has(userData, "msFrameColor") ? _.extend(msFrameColor, this._stringToJSON(userData["msFrameColor"])):msFrameColor
+            msHqStaffLength = _.has(userData, "msHqStaffLength") ? userData["msHqStaffLength"]:""
+            msIcon = _.has(userData, "msIcon") ? this.isArgTrue(userData["msIcon"]):true
+            msInfoBackground = _.has(userData, "msInfoBackground") ? _.extend(_.isUndefined(msInfoBackground) ? {}:msInfoBackground, this._stringToJSON(userData["msInfoBackground"])):msInfoBackground
+            msInfoBackgroundFrame = _.has(userData, "msInfoBackgroundFrame") ? _.extend(_.isUndefined(msInfoBackgroundFrame) ? {}:msInfoBackgroundFrame, this._stringToJSON(userData["msInfoBackgroundFrame"])):msInfoBackgroundFrame
+            msIconColor = _.has(userData, "msIconColor") ? _.extend(_.isUndefined(msIconColor) ? {}:msIconColor, this._stringToJSON(userData["msIconColor"])):msIconColor
+            msInfoColor = _.has(userData, "msInfoColor") ? _.extend(_.isUndefined(msInfoColor) ? {}:msInfoColor, this._stringToJSON(userData["msInfoColor"])):msInfoColor
+            msInfoFields = _.has(userData, "msInfoFields") ? this.isArgTrue(userData["msInfoFields"]):true
+            msInfoSize = _.has(userData, "msInfoSize") ? userData["msInfoSize"]:40
+            msMonoColor = _.has(userData, "msMonoColor") ? userData["msMonoColor"]:""
+            msOutlineColor =_.has(userData, "msOutlineColor") ? _.extend(_.isUndefined(msOutlineColor) ? {}:msOutlineColor, this._stringToJSON(userData["msOutlineColor"])):msOutlineColor
+            msOutlineWidth = _.has(userData, "msOutlineWidth") ? userData["msOutlineWidth"]:0
+            msPadding = _.has(userData, "msPadding") ? userData["msPadding"]:0
+            msSize = _.has(userData, "msSize") ? userData["msSize"]:100
+            msSimpleStatusModifier = _.has(userData, "msSimpleStatusModifier") ? this.isArgTrue(userData["msSimpleStatusModifier"]):false
+            msStandard = _.has(userData, "msStandard") ? userData["msStandard"]:msStandard
+            msSquare = _.has(userData, "msSquare") ? this.isArgTrue(userData["msSquare"]):false
+            msStrokeWidth = _.has(userData, "msStrokeWidth") ? userData["msStrokeWidth"]:3
+
+            console.log(msInfoBackground)
+            
+            var mysymbol = new ms.Symbol(msSidc, {
+                additionalInformation: msAdditionalInformation,
+                altitudeDepth: msAltitudeDepth,
+                combatEffectiveness: msCombatEffectiveness,
+                commonIdentifier: msCommonIdentifier,
+                country: msCountry,
+                direction: isNaN(msDirection) ? "":msDirection,
+                dtg: msDtg,
+                engagementBar: msEngagementBar,
+                engagementType: msEngagementType,
+                equipmentTeardownTime: msEquipmentTeardownTime,
+                evaluationRating: msEvaluationRating,
+                guardedUnit: msGuardedUnit,
+                headquartersElement: msHeadquartersElement,
+                higherFormation: msHigherFormation,
+                hostile: msHostile,
+                iffSif: msIffSif,
+                location: msLocation,
+                platformType: msPlatformType,
+                quantity: msQuantity,
+                reinforcedReduced: msReinforcedReduced,
+                sigint: msSigint,
+                specialDesignator: msSpecialDesignator,
+                signatureEquipment: msSignatureEquipment,
+                specialHeadquarters: msSpecialHeadquarters,
+                speed: msSpeed,
+                speedLeader: msSpeedLeader,
+                staffComments: msStaffComments,
+                targetNumber: msTargetNumber,
+                type: msType,
+                uniqueDesignation: msUniqueDesignation,
+                alternateMedal: msAlternateMedal,
+                civilianColor: msCivilianColor,
+                colorMode: msColorMode,
+                fill: msFill,
+                fillOpacity: msFillOpacity,
+                fontfamily: msFontfamily,
+                frame: msFrame,
+                frameColor: msFrameColor,
+                hqStaffLength: msHqStaffLength,
+                icon: msIcon,
+                infoBackground: msInfoBackground,
+                infoBackgroundFrame: msInfoBackgroundFrame,
+                iconColor: msIconColor,
+                infoColor: msInfoColor,
+                infoFields: msInfoFields,
+                infoSize: msInfoSize,
+                monoColor: msMonoColor,
+                outlineColor: msOutlineColor,
+                outlineWidth: msOutlineWidth,
+                padding: msPadding,
+                size: msSize,
+                simpleStatusModifier: msSimpleStatusModifier,
+                standard: msStandard,
+                square: msSquare,
+                strokeWidth: msStrokeWidth
+                });
+            
+            console.log(mysymbol.getStyle())
+            // Get symbol size to set icon size and anchor
+            var symbolSize = mysymbol.getSize()
+
+            var markerIcon = L.divIcon({
+                html: renderer == "canvas" ? mysymbol.asCanvas():mysymbol.asSVG(),
+                className: "",
+                iconSize: [symbolSize.width, symbolSize.height],
+                iconAnchor: [symbolSize.width/2, symbolSize.height]
+            })
+        }
+
+
         if(markerType == "icon") {
             popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
             className = "icon-only"
@@ -2546,7 +2696,8 @@ updateView: function(data, config) {
         if(!this.validMarkerTypes.includes(markerType)) {
             // throw viz error
             throw new SplunkVisualizationBase.VisualizationError(
-                'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle'
+                'Invalid markerType ' + markerType + ' - valid types: custom, png, icon, svg, circle, milsymbol'
+
             )
         }
 

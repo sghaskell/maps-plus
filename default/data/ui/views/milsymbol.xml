@@ -76,6 +76,15 @@
       <suffix>"</suffix>
       <initialValue>Light</initialValue>
     </input>
+    <input type="dropdown" token="frame" searchWhenChanged="true">
+      <label>Frame</label>
+      <choice value="true">True</choice>
+      <choice value="false">False</choice>
+      <default>True</default>
+      <prefix>msFrame="</prefix>
+      <suffix>"</suffix>
+      <initialValue>true</initialValue>
+    </input>
   </fieldset>
   <row>
     <panel>
@@ -84,7 +93,13 @@
         See the <a href="https://github.com/spatialillusions/milsymbol" target="new">milsymbol documentation</a> and <a href="https://www.spatialillusions.com/milsymbol/documentation.html#mssymbol_arg1-arg2--argn_" target="new">available parameters</a> for detailed usage. Milsymbol supports NATO or US standards (MIL-STD-2525C, MIL-STD-2525D, STANAG APP-6 B, STANAG APP-6 D). 
       </p>
       <p>
-        Milsymbol parameters are accessible as camel cased fields in SPL, prefixed by <b><i>ms</i></b>, with the following letter uppercased. For example, the <b><i>additionalInformation</i></b> modifier is set using the field <b><i>msAdditionalInformation</i></b> in SPL.
+        Milsymbol parameters are accessible as camel cased fields in SPL, prefixed by <b>
+            <i>ms</i>
+          </b>, with the following letter uppercased. For example, the <b>
+            <i>additionalInformation</i>
+          </b> modifier is set using the field <b>
+            <i>msAdditionalInformation</i>
+          </b> in SPL.
       </p>
       <p>
         Use the <a href="https://github.com/sghaskell/maps-plus/#renderer" target="new">canvas renderer</a> if you plan to plot thousands of icons as it will scale in the browser better.
@@ -100,8 +115,8 @@
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults 
-| eval $latitude$, $longitude$, markerType="milsymbol", $msSidc$, $msDirection$, $msSize$, $msQuantity$, $msStaffComments$,$msAdditionalInformation$,$msDirection$,$msType$,$msDtg$,$msLocation$,$msColorMode$
-| table latitude, longitude, markerType, msSidc, msDirection,msSize,msQuantity,msStaffComments,msAdditionalInformation,msDirection,msType,msDtg,msLocation,msColorMode</query>
+| eval $latitude$, $longitude$, markerType="milsymbol", $msSidc$, $msDirection$, $msSize$, $msQuantity$, $msStaffComments$,$msAdditionalInformation$,$msDirection$,$msType$,$msDtg$,$msLocation$,$msColorMode$,$frame$
+| table latitude, longitude, markerType, msSidc, msDirection,msSize,msQuantity,msStaffComments,msAdditionalInformation,msDirection,msType,msDtg,msLocation,msColorMode,msFrame</query>
           <earliest>-24h@h</earliest>
           <latest>now</latest>
           <sampleRatio>1</sampleRatio>
@@ -110,7 +125,7 @@
         <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
         <option name="leaflet_maps_app.maps-plus.animate">1</option>
         <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
+        <option name="leaflet_maps_app.maps-plus.antarcticProj">0</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
         <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
         <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
@@ -145,7 +160,7 @@
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
@@ -159,6 +174,7 @@
         <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
         <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
         <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.msColorMode">Light</option>
         <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
         <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
         <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>

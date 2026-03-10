@@ -1,0 +1,198 @@
+<form version="1.1">
+  <label>Milsymbol</label>
+  <fieldset submitButton="false">
+    <input type="text" token="latitude" searchWhenChanged="true">
+      <label>latitude</label>
+      <prefix>latitude="</prefix>
+      <initialValue>51.205808</initialValue>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="longitude" searchWhenChanged="true">
+      <label>longitude</label>
+      <prefix>longitude="</prefix>
+      <initialValue>-2.168427</initialValue>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msSidc" searchWhenChanged="true">
+      <label>msSidc</label>
+      <prefix>msSidc="</prefix>
+      <initialValue>sfgpewrh--mt</initialValue>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msDirection" searchWhenChanged="true">
+      <label>msDirection</label>
+      <default>(750 * 360) / 6400</default>
+      <prefix>msDirection=</prefix>
+    </input>
+    <input type="text" token="msQuantity" searchWhenChanged="true">
+      <label>msQuantity</label>
+      <default>100</default>
+      <prefix>msQuantity="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msStaffComments" searchWhenChanged="true">
+      <label>msStaffComments</label>
+      <default>for reinforcements</default>
+      <prefix>msStaffComments="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msAdditionalInformation" searchWhenChanged="true">
+      <label>msAdditionalInformation</label>
+      <default>added support for JJ</default>
+      <prefix>msAdditionalInformation="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msType" searchWhenChanged="true">
+      <label>msType</label>
+      <default>machine gun</default>
+      <prefix>msType="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msDtg" searchWhenChanged="true">
+      <label>msDtg</label>
+      <default>30140000ZSEP97</default>
+      <prefix>msDtg="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msLocation" searchWhenChanged="true">
+      <label>msLocation</label>
+      <default>0900000.0E570306.0N</default>
+      <prefix>msLocation="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="text" token="msSize" searchWhenChanged="true">
+      <label>msSize</label>
+      <default>35</default>
+      <prefix>msSize="</prefix>
+      <suffix>"</suffix>
+    </input>
+    <input type="dropdown" token="msColorMode" searchWhenChanged="true">
+      <label>msColorMode</label>
+      <choice value="Light">Light</choice>
+      <choice value="Medium">Medium</choice>
+      <choice value="Dark">Dark</choice>
+      <default>Light</default>
+      <prefix>msColorMode="</prefix>
+      <suffix>"</suffix>
+      <initialValue>Light</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <html>
+      <p>
+        See the <a href="https://github.com/spatialillusions/milsymbol" target="new">milsymbol documentation</a> and <a href="https://www.spatialillusions.com/milsymbol/documentation.html#mssymbol_arg1-arg2--argn_" target="new">available parameters</a> for detailed usage. Milsymbol supports NATO or US standards (MIL-STD-2525C, MIL-STD-2525D, STANAG APP-6 B, STANAG APP-6 D). 
+      </p>
+      <p>
+        Milsymbol parameters are accessible as camel cased fields in SPL, prefixed by <b><i>ms</i></b>, with the following letter uppercased. For example, the <b><i>additionalInformation</i></b> modifier is set using the field <b><i>msAdditionalInformation</i></b> in SPL.
+      </p>
+      <p>
+        Use the <a href="https://github.com/sghaskell/maps-plus/#renderer" target="new">canvas renderer</a> if you plan to plot thousands of icons as it will scale in the browser better.
+      </p>
+      <p>
+        <a href="https://spatialillusions.com" target="new">Spatial Illusions</a> has a handy <a href="https://spatialillusions.com/unitgenerator" target="new">unit generator tool</a> to generate an SIDC (Symbol Identification Code).
+      </p>
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults 
+| eval $latitude$, $longitude$, markerType="milsymbol", $msSidc$, $msDirection$, $msSize$, $msQuantity$, $msStaffComments$,$msAdditionalInformation$,$msDirection$,$msType$,$msDtg$,$msLocation$,$msColorMode$
+| table latitude, longitude, markerType, msSidc, msDirection,msSize,msQuantity,msStaffComments,msAdditionalInformation,msDirection,msType,msDtg,msLocation,msColorMode</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser</option>
+        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
+        <option name="leaflet_maps_app.maps-plus.gibsLayerId">MODIS_Aqua_CorrectedReflectance_TrueColor</option>
+        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
+        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
+        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.tileSize">512</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+</form>

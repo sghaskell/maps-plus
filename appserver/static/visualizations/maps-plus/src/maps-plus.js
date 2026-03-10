@@ -157,13 +157,13 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.tileSize': 512,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapColorGradient': '{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.showProgress': 1,
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.msIconColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msFrameColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msColorMode': "Light",
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}',
-     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '{"Civilian":"black","Friend":"black","Hostile":"black","Neutral":"black","Unknown":"black"}'
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msIconColor': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msFrameColor': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msColorMode': "Light",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoColor': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""'
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

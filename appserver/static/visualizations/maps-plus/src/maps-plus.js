@@ -2601,8 +2601,6 @@ updateView: function(data, config) {
             msStandard = _.has(userData, "msStandard") ? userData["msStandard"]:msStandard
             msSquare = _.has(userData, "msSquare") ? this.isArgTrue(userData["msSquare"]):false
             msStrokeWidth = _.has(userData, "msStrokeWidth") ? userData["msStrokeWidth"]:3
-
-            console.log(msInfoBackground)
             
             var mysymbol = new ms.Symbol(msSidc, {
                 additionalInformation: msAdditionalInformation,
@@ -2662,7 +2660,6 @@ updateView: function(data, config) {
                 strokeWidth: msStrokeWidth
                 });
             
-            console.log(mysymbol.getStyle())
             // Get symbol size to set icon size and anchor
             var symbolSize = mysymbol.getSize()
 

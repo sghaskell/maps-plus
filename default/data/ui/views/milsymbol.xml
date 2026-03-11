@@ -90,7 +90,7 @@
     <panel>
       <html>
       <p>
-        See the <a href="https://github.com/spatialillusions/milsymbol" target="new">milsymbol documentation</a> and <a href="https://www.spatialillusions.com/milsymbol/documentation.html#mssymbol_arg1-arg2--argn_" target="new">available parameters</a> for detailed usage. Milsymbol supports NATO or US standards (MIL-STD-2525C, MIL-STD-2525D, STANAG APP-6 B, STANAG APP-6 D). 
+        See the <a href="https://github.com/spatialillusions/milsymbol" target="new">milsymbol documentation</a> and <a href="https://github.com/spatialillusions/milsymbol/tree/master/docs" target="new">available parameters</a> for detailed usage. Milsymbol supports NATO or US standards (MIL-STD-2525C, MIL-STD-2525D, STANAG APP-6 B, STANAG APP-6 D). 
       </p>
       <p>
         Milsymbol parameters are accessible as camel cased fields in SPL, prefixed by <b>

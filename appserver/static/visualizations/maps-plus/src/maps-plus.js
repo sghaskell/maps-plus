@@ -1125,6 +1125,15 @@ addLayerToControl: function(options) {
             }
         }
 
+        // Fallback for marker types that do not match any icon branch (e.g. milsymbol DivIcon):
+        // build label from layerIcon (FA name) + layerDescription so control never shows undefined.
+        if (_.isUndefined(iconHtml)) {
+            if (options.layerGroup.layerIcon) {
+                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + (styleColor || options.layerGroup.layerIconColor || "#333") + "\"></i> " + (options.layerGroup.layerDescription || "")
+            } else {
+                iconHtml = options.layerGroup.layerDescription || ""
+            }
+        }
         options.control.addOverlay(options.layerGroup.group, iconHtml)
         if(!options.layerGroup.layerVisibility) { 
           options.layerGroup.group.remove()
@@ -1477,6 +1486,179 @@ _createClusterGroup: function(disableClusteringAtZoom,
     return mcg
 },
 
+// ─── Milsymbol zoom-scaling helper ───────────────────────────────────────────
+// Builds a Leaflet divIcon from raw milsymbol userData at a given size.
+// Extracted so the zoomend redraw and the initial render share identical logic.
+_buildMilsymbolIcon: function(userData, overrideSize, renderer, msColorMode, msFrameColor, msIconColor, msInfoColor, msInfoBackground, msInfoBackgroundFrame, msOutlineColor, msStandard) {
+    var msSidc                = _.has(userData, "msSidc")                ? userData["msSidc"]                : ""
+    var msAdditionalInformation = _.has(userData, "msAdditionalInformation") ? userData["msAdditionalInformation"] : ""
+    var msAltitudeDepth       = _.has(userData, "msAltitudeDepth")       ? userData["msAltitudeDepth"]       : ""
+    var msCombatEffectiveness = _.has(userData, "msCombatEffectiveness") ? userData["msCombatEffectiveness"] : ""
+    var msCommonIdentifier    = _.has(userData, "msCommonIdentifier")    ? userData["msCommonIdentifier"]    : ""
+    var msCountry             = _.has(userData, "msCountry")             ? userData["msCountry"]             : ""
+    var msDirection           = _.has(userData, "msDirection")           ? parseInt(eval(userData["msDirection"])) : ""
+    var msDtg                 = _.has(userData, "msDtg")                 ? userData["msDtg"]                 : ""
+    var msEngagementBar       = _.has(userData, "msEngagementBar")       ? userData["msEngagementBar"]       : ""
+    var msEngagementType      = _.has(userData, "msEngagementType")      ? userData["msEngagementType"]      : ""
+    var msEquipmentTeardownTime = _.has(userData, "msEquipmentTeardownTime") ? userData["msEquipmentTeardownTime"] : ""
+    var msEvaluationRating    = _.has(userData, "msEvaluationRating")    ? userData["msEvaluationRating"]    : ""
+    var msGuardedUnit         = _.has(userData, "msGuardedUnit")         ? userData["msGuardedUnit"]         : ""
+    var msHeadquartersElement = _.has(userData, "msHeadquartersElement") ? userData["msHeadquartersElement"] : ""
+    var msHigherFormation     = _.has(userData, "msHigherFormation")     ? userData["msHigherFormation"]     : ""
+    var msHostile             = _.has(userData, "msHostile")             ? userData["msHostile"]             : ""
+    var msIffSif              = _.has(userData, "msIffSif")              ? userData["msIffSif"]              : ""
+    var msLocation            = _.has(userData, "msLocation")            ? userData["msLocation"]            : ""
+    var msPlatformType        = _.has(userData, "msPlatformType")        ? userData["msPlatformType"]        : ""
+    var msQuantity            = _.has(userData, "msQuantity")            ? userData["msQuantity"]            : ""
+    var msReinforcedReduced   = _.has(userData, "msReinforcedReduced")   ? userData["msReinforcedReduced"]   : ""
+    var msSigint              = _.has(userData, "msSigint")              ? userData["msSigint"]              : ""
+    var msSpecialDesignator   = _.has(userData, "msSpecialDesignator")   ? userData["msSpecialDesignator"]   : ""
+    var msSignatureEquipment  = _.has(userData, "msSignatureEquipment")  ? userData["msSignatureEquipment"]  : ""
+    var msSpecialHeadquarters = _.has(userData, "msSpecialHeadquarters") ? userData["msSpecialHeadquarters"] : ""
+    var msSpeed               = _.has(userData, "msSpeed")               ? userData["msSpeed"]               : ""
+    var msSpeedLeader         = _.has(userData, "msSpeedLeader")         ? userData["msSpeedLeader"]         : 0
+    var msStaffComments       = _.has(userData, "msStaffComments")       ? userData["msStaffComments"]       : ""
+    var msTargetNumber        = _.has(userData, "msTargetNumber")        ? userData["msTargetNumber"]        : ""
+    var msType                = _.has(userData, "msType")                ? userData["msType"]                : ""
+    var msUniqueDesignation   = _.has(userData, "msUniqueDesignation")   ? userData["msUniqueDesignation"]   : ""
+    var msAlternateMedal      = _.has(userData, "msAlternateMedal")      ? this.isArgTrue(userData["msAlternateMedal"])      : false
+    var msCivilianColor       = _.has(userData, "msCivilianColor")       ? this.isArgTrue(userData["msCivilianColor"])       : true
+    var resolvedColorMode     = _.has(userData, "msColorMode")           ? userData["msColorMode"]           : msColorMode
+    var msFill                = _.has(userData, "msFill")                ? this.isArgTrue(userData["msFill"])                : true
+    var msFillOpacity         = _.has(userData, "msFillOpacity")         ? userData["msFillOpacity"]         : 1
+    var msFontfamily          = _.has(userData, "msFontfamily")          ? userData["msFontfamily"]          : "Arial"
+    var msFrame               = _.has(userData, "msFrame")               ? this.isArgTrue(userData["msFrame"])               : true
+    var resolvedFrameColor    = _.has(userData, "msFrameColor")          ? _.extend(msFrameColor, this._stringToJSON(userData["msFrameColor"])) : msFrameColor
+    var msHqStaffLength       = _.has(userData, "msHqStaffLength")       ? userData["msHqStaffLength"]       : ""
+    var msIcon                = _.has(userData, "msIcon")                ? this.isArgTrue(userData["msIcon"])                : true
+    var resolvedInfoBackground      = _.has(userData, "msInfoBackground")      ? _.extend(_.isUndefined(msInfoBackground) ? {} : msInfoBackground, this._stringToJSON(userData["msInfoBackground"]))           : msInfoBackground
+    var resolvedInfoBackgroundFrame = _.has(userData, "msInfoBackgroundFrame") ? _.extend(_.isUndefined(msInfoBackgroundFrame) ? {} : msInfoBackgroundFrame, this._stringToJSON(userData["msInfoBackgroundFrame"])) : msInfoBackgroundFrame
+    var resolvedIconColor     = _.has(userData, "msIconColor")           ? _.extend(_.isUndefined(msIconColor) ? {} : msIconColor, this._stringToJSON(userData["msIconColor"]))   : msIconColor
+    var resolvedInfoColor     = _.has(userData, "msInfoColor")           ? _.extend(_.isUndefined(msInfoColor) ? {} : msInfoColor, this._stringToJSON(userData["msInfoColor"]))   : msInfoColor
+    var msOutlineWidth        = _.has(userData, "msOutlineWidth")        ? userData["msOutlineWidth"]        : 0
+    var msPadding             = _.has(userData, "msPadding")             ? userData["msPadding"]             : 0
+    var msSimpleStatusModifier = _.has(userData, "msSimpleStatusModifier") ? this.isArgTrue(userData["msSimpleStatusModifier"]) : false
+    var resolvedStandard      = _.has(userData, "msStandard")            ? userData["msStandard"]            : msStandard
+    var msSquare              = _.has(userData, "msSquare")              ? this.isArgTrue(userData["msSquare"])              : false
+    var msStrokeWidth         = _.has(userData, "msStrokeWidth")         ? userData["msStrokeWidth"]         : 3
+    var resolvedOutlineColor  = _.has(userData, "msOutlineColor")        ? _.extend(_.isUndefined(msOutlineColor) ? {} : msOutlineColor, this._stringToJSON(userData["msOutlineColor"])) : msOutlineColor
+
+    // Suppress modifier text labels at low zoom to prevent crowding.
+    // Per-marker msInfoFields overrides the zoom-based default.
+    // Threshold is proportional to baseSize: labels appear when the rendered
+    // symbol is at least 85% of its native size — i.e. at or above BASE_ZOOM.
+    // This ensures small/medium/large all get the same zoom-level behaviour.
+    var zoomInfoFields
+    if (_.has(userData, "msInfoFields")) {
+        zoomInfoFields = this.isArgTrue(userData["msInfoFields"])
+    } else {
+        var msBaseForThreshold = _.has(userData, "msSize") ? parseFloat(userData["msSize"]) : 35
+        zoomInfoFields = overrideSize >= Math.round(msBaseForThreshold * 0.85)
+    }
+
+    // Scale modifier text (infoSize) proportionally with the rendered symbol size.
+    // milsymbol's infoSize default of 40 is designed for large standalone symbols —
+    // for map overlays it produces text nearly as tall as the symbol frame, which
+    // causes crowding when symbols are geographically close. We use 25 as the native
+    // cap (what you get at base zoom with full-size symbols), and scale down from
+    // there as zoom decreases. Text never grows larger than 25 regardless of zoom.
+    // Per-marker msInfoSize field overrides this calculation entirely.
+    var msBaseForInfoSize = _.has(userData, "msSize") ? parseFloat(userData["msSize"]) : 35
+    var msInfoSize
+    if (_.has(userData, "msInfoSize")) {
+        msInfoSize = userData["msInfoSize"]
+    } else {
+        var infoSizeRatio = overrideSize / msBaseForInfoSize
+        var scaledInfoSize = Math.round(25 * infoSizeRatio)
+        msInfoSize = Math.min(scaledInfoSize, 25)  // cap at 25 — never grows at high zoom
+    }
+
+    var sym = new ms.Symbol(msSidc, {
+        additionalInformation: msAdditionalInformation,
+        altitudeDepth:         msAltitudeDepth,
+        combatEffectiveness:   msCombatEffectiveness,
+        commonIdentifier:      msCommonIdentifier,
+        country:               msCountry,
+        direction:             isNaN(msDirection) ? "" : msDirection,
+        dtg:                   msDtg,
+        engagementBar:         msEngagementBar,
+        engagementType:        msEngagementType,
+        equipmentTeardownTime: msEquipmentTeardownTime,
+        evaluationRating:      msEvaluationRating,
+        guardedUnit:           msGuardedUnit,
+        headquartersElement:   msHeadquartersElement,
+        higherFormation:       msHigherFormation,
+        hostile:               msHostile,
+        iffSif:                msIffSif,
+        location:              msLocation,
+        platformType:          msPlatformType,
+        quantity:              msQuantity,
+        reinforcedReduced:     msReinforcedReduced,
+        sigint:                msSigint,
+        specialDesignator:     msSpecialDesignator,
+        signatureEquipment:    msSignatureEquipment,
+        specialHeadquarters:   msSpecialHeadquarters,
+        speed:                 msSpeed,
+        speedLeader:           msSpeedLeader,
+        staffComments:         msStaffComments,
+        targetNumber:          msTargetNumber,
+        type:                  msType,
+        uniqueDesignation:     msUniqueDesignation,
+        alternateMedal:        msAlternateMedal,
+        civilianColor:         msCivilianColor,
+        colorMode:             resolvedColorMode,
+        fill:                  msFill,
+        fillOpacity:           msFillOpacity,
+        fontfamily:            msFontfamily,
+        frame:                 msFrame,
+        frameColor:            resolvedFrameColor,
+        hqStaffLength:         msHqStaffLength,
+        icon:                  msIcon,
+        infoBackground:        resolvedInfoBackground,
+        infoBackgroundFrame:   resolvedInfoBackgroundFrame,
+        iconColor:             resolvedIconColor,
+        infoColor:             resolvedInfoColor,
+        infoFields:            zoomInfoFields,
+        infoSize:              msInfoSize,
+        monoColor:             _.has(userData, "msMonoColor") ? userData["msMonoColor"] : "",
+        outlineColor:          resolvedOutlineColor,
+        outlineWidth:          msOutlineWidth,
+        padding:               msPadding,
+        size:                  overrideSize,
+        simpleStatusModifier:  msSimpleStatusModifier,
+        standard:              resolvedStandard,
+        square:                msSquare,
+        strokeWidth:           msStrokeWidth
+    })
+
+    var symSize = sym.getSize()
+    return L.divIcon({
+        html:       renderer === "canvas" ? sym.asCanvas() : sym.asSVG(),
+        className:  "",
+        iconSize:   [symSize.width, symSize.height],
+        iconAnchor: [symSize.width / 2, symSize.height]
+    })
+},
+
+// ─── Compute a zoom-proportional milsymbol size ───────────────────────────────
+// Base: the size stored on the marker's userData (or 35 if absent), anchored
+// at zoom 12.  Each zoom step doubles/halves the visual scale.
+// Clamped to [8, 150] so symbols stay visible but never fill the screen.
+_getMilsymbolSizeForZoom: function(baseSize, zoom) {
+    // Anchor: baseSize renders at its native value at zoom 13 (operational level).
+    // Scale factor 1.5 per zoom step gives gentler growth than true map doubling.
+    // Floor and ceiling scale proportionally with baseSize so that the chosen
+    // symbol size (small/medium/large) behaves consistently at all zoom levels —
+    // a user who picks "large" gets proportionally larger symbols throughout,
+    // not just at the native zoom.
+    var BASE_ZOOM = 13
+    var SCALE_FACTOR = 1.4   // gentler per-step growth than 1.5
+    var floor   = Math.round(baseSize * 0.55)   // ~55% of baseSize — min readable shape
+    var ceiling = Math.round(baseSize * 1.5)     // 1.5x baseSize — symbols stay compact at high zoom
+    var size = baseSize * Math.pow(SCALE_FACTOR, zoom - BASE_ZOOM)
+    return Math.min(Math.max(Math.round(size), floor), ceiling)
+},
+
 _addMarker: function(options) {
     if(options.markerType == "circle") {
         var marker = L.circleMarker([parseFloat(options.userData["latitude"]),
@@ -1525,6 +1707,13 @@ _addMarker: function(options) {
 
     if (!_.isUndefined(options.layerFilter[options.layerGroup]) && !_.isUndefined(options.markerIcon)) {                
         options.layerFilter[options.layerGroup].icon = options.markerIcon
+    }
+
+    // Tag milsymbol markers so the zoomend handler can redraw them at the correct size
+    if(options.markerType === "milsymbol") {
+        marker._isMilsymbol = true
+        marker._milsymbolUserData = options.userData
+        marker._milsymbolBaseSize = _.has(options.userData, "msSize") ? parseFloat(options.userData["msSize"]) : 35
     }
 
     // Bind tooltip: default tooltip field, fallback to title field for backwards compatibility
@@ -2275,6 +2464,79 @@ updateView: function(data, config) {
         }       
     } 
 
+    // ─── Milsymbol zoom-scaling: register zoomend handler once per map init ──────
+    // Captures formatter-level color/style config via closure so the redraw has
+    // the same defaults the initial render used.
+    if(!this._milsymbolZoomHandlerRegistered) {
+        this._milsymbolZoomHandlerRegistered = true
+        var self = this
+
+        // Snapshot formatter-level milsymbol style config at registration time.
+        // These are the fallback values used when a row doesn't override them.
+        var _zoomMsColorMode           = msColorMode
+        var _zoomMsFrameColor          = msFrameColor
+        var _zoomMsIconColor           = msIconColor
+        var _zoomMsInfoColor           = msInfoColor
+        var _zoomMsInfoBackground      = msInfoBackground
+        var _zoomMsInfoBackgroundFrame = msInfoBackgroundFrame
+        var _zoomMsOutlineColor        = msOutlineColor
+        var _zoomMsStandard            = msStandard
+        var _zoomRenderer              = renderer
+
+        self.map.on('zoomend', function() {
+            var currentZoom = self.map.getZoom()
+
+            // Walk every layer group in the filter and redraw milsymbol markers
+            _.each(self.layerFilter, function(lg) {
+                // Non-clustered markers live in markerList
+                if(!_.isUndefined(lg.markerList)) {
+                    _.each(lg.markerList, function(marker) {
+                        if(!marker._isMilsymbol || !marker._milsymbolUserData) { return }
+                        var newSize = self._getMilsymbolSizeForZoom(marker._milsymbolBaseSize, currentZoom)
+                        var newIcon = self._buildMilsymbolIcon(
+                            marker._milsymbolUserData,
+                            newSize,
+                            _zoomRenderer,
+                            _zoomMsColorMode,
+                            _zoomMsFrameColor,
+                            _zoomMsIconColor,
+                            _zoomMsInfoColor,
+                            _zoomMsInfoBackground,
+                            _zoomMsInfoBackgroundFrame,
+                            _zoomMsOutlineColor,
+                            _zoomMsStandard
+                        )
+                        marker.setIcon(newIcon)
+                    })
+                }
+
+                // Clustered markers live inside clusterGroup[n].markerList
+                if(!_.isUndefined(lg.clusterGroup)) {
+                    _.each(lg.clusterGroup, function(cg) {
+                        _.each(cg.markerList, function(marker) {
+                            if(!marker._isMilsymbol || !marker._milsymbolUserData) { return }
+                            var newSize = self._getMilsymbolSizeForZoom(marker._milsymbolBaseSize, currentZoom)
+                            var newIcon = self._buildMilsymbolIcon(
+                                marker._milsymbolUserData,
+                                newSize,
+                                _zoomRenderer,
+                                _zoomMsColorMode,
+                                _zoomMsFrameColor,
+                                _zoomMsIconColor,
+                                _zoomMsInfoColor,
+                                _zoomMsInfoBackground,
+                                _zoomMsInfoBackgroundFrame,
+                                _zoomMsOutlineColor,
+                                _zoomMsStandard
+                            )
+                            marker.setIcon(newIcon)
+                        })
+                    })
+                }
+            })
+        })
+    }
+
     // Map Scroll
     (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
 
@@ -2545,130 +2807,24 @@ updateView: function(data, config) {
         }
 
         if(markerType == "milsymbol") {
-            msSidc = _.has(userData, "msSidc") ? userData["msSidc"]:""
-            msAdditionalInformation = _.has(userData, "msAdditionalInformation") ? userData["msAdditionalInformation"]:""
-            msAltitudeDepth = _.has(userData, "msAltitudeDepth") ? userData["msAltitudeDepth"]:""
-            msCombatEffectiveness = _.has(userData, "msCombatEffectiveness") ? userData["msCombatEffectiveness"]:""
-            msCommonIdentifier = _.has(userData, "msCommonIdentifier") ? userData["msCommonIdentifier"]:""
-            msCountry = _.has(userData, "msCountry") ? userData["msCountry"]:""
-            msDirection = _.has(userData, "msDirection") ? parseInt(eval(userData["msDirection"])):""
-            msDtg = _.has(userData, "msDtg") ? userData["msDtg"]:""
-            msEngagementBar = _.has(userData, "msEngagementBar") ? userData["msEngagementBar"]:""
-            msEngagementType = _.has(userData, "msEngagementType") ? userData["msEngagementType"]:""
-            msEquipmentTeardownTime = _.has(userData, "msEquipmentTeardownTime") ? userData["msEquipmentTeardownTime"]:""
-            msEvaluationRating = _.has(userData, "msEvaluationRating") ? userData["msEvaluationRating"]:""
-            msGuardedUnit = _.has(userData, "msGuardedUnit") ? userData["msGuardedUnit"]:""
-            msHeadquartersElement = _.has(userData, "msHeadquartersElement") ? userData["msHeadquartersElement"]:""
-            msHigherFormation = _.has(userData, "msHigherFormation") ? userData["msHigherFormation"]:""
-            msHostile = _.has(userData, "msHostile") ? userData["msHostile"]:""
-            msIffSif = _.has(userData, "msIffSif") ? userData["msIffSif"]:""
-            msLocation = _.has(userData, "msLocation") ? userData["msLocation"]:""
-            msPlatformType = _.has(userData, "msPlatformType") ? userData["msPlatformType"]:""
-            msQuantity = _.has(userData, "msQuantity") ? userData["msQuantity"]:""
-            msReinforcedReduced = _.has(userData, "msReinforcedReduced") ? userData["msReinforcedReduced"]:""
-            msSigint = _.has(userData, "msSigint") ? userData["msSigint"]:""
-            msSpecialDesignator = _.has(userData, "msSpecialDesignator") ? userData["msSpecialDesignator"]:""
-            msSignatureEquipment = _.has(userData, "msSignatureEquipment") ? userData["msSignatureEquipment"]:""
-            msSpecialHeadquarters = _.has(userData, "msSpecialHeadquarters") ? userData["msSpecialHeadquarters"]:""
-            msSpeed = _.has(userData, "msSpeed") ? userData["msSpeed"]:""
-            msSpeedLeader = _.has(userData, "msSpeedLeader") ? userData["msSpeedLeader"]:0
-            msStaffComments = _.has(userData, "msStaffComments") ? userData["msStaffComments"]:""
-            msTargetNumber = _.has(userData, "msTargetNumber") ? userData["msTargetNumber"]:""
-            msType = _.has(userData, "msType") ? userData["msType"]:""
-            msUniqueDesignation = _.has(userData, "msUniqueDesignation") ? userData["msUniqueDesignation"]:""
-            msAlternateMedal = _.has(userData, "msAlternateMedal") ? this.isArgTrue(userData["msAlternateMedal"]):false
-            msCivilianColor = _.has(userData, "msCivilianColor") ? this.isArgTrue(userData["msCivilianColor"]):true
-            msColorMode = _.has(userData, "msColorMode") ? userData["msColorMode"]:msColorMode
-            msFill = _.has(userData, "msFill") ? this.isArgTrue(userData["msFill"]):true
-            msFillOpacity = _.has(userData, "msFillOpacity") ? userData["msFillOpacity"]:1
-            msFontfamily = _.has(userData, "msFontfamily") ? userData["msFontfamily"]:"Arial"
-            msFrame = _.has(userData, "msFrame") ? this.isArgTrue(userData["msFrame"]):true
-            msFrameColor = _.has(userData, "msFrameColor") ? _.extend(msFrameColor, this._stringToJSON(userData["msFrameColor"])):msFrameColor
-            msHqStaffLength = _.has(userData, "msHqStaffLength") ? userData["msHqStaffLength"]:""
-            msIcon = _.has(userData, "msIcon") ? this.isArgTrue(userData["msIcon"]):true
-            msInfoBackground = _.has(userData, "msInfoBackground") ? _.extend(_.isUndefined(msInfoBackground) ? {}:msInfoBackground, this._stringToJSON(userData["msInfoBackground"])):msInfoBackground
-            msInfoBackgroundFrame = _.has(userData, "msInfoBackgroundFrame") ? _.extend(_.isUndefined(msInfoBackgroundFrame) ? {}:msInfoBackgroundFrame, this._stringToJSON(userData["msInfoBackgroundFrame"])):msInfoBackgroundFrame
-            msIconColor = _.has(userData, "msIconColor") ? _.extend(_.isUndefined(msIconColor) ? {}:msIconColor, this._stringToJSON(userData["msIconColor"])):msIconColor
-            msInfoColor = _.has(userData, "msInfoColor") ? _.extend(_.isUndefined(msInfoColor) ? {}:msInfoColor, this._stringToJSON(userData["msInfoColor"])):msInfoColor
-            msInfoFields = _.has(userData, "msInfoFields") ? this.isArgTrue(userData["msInfoFields"]):true
-            msInfoSize = _.has(userData, "msInfoSize") ? userData["msInfoSize"]:40
-            msMonoColor = _.has(userData, "msMonoColor") ? userData["msMonoColor"]:""
-            msOutlineColor =_.has(userData, "msOutlineColor") ? _.extend(_.isUndefined(msOutlineColor) ? {}:msOutlineColor, this._stringToJSON(userData["msOutlineColor"])):msOutlineColor
-            msOutlineWidth = _.has(userData, "msOutlineWidth") ? userData["msOutlineWidth"]:0
-            msPadding = _.has(userData, "msPadding") ? userData["msPadding"]:0
-            msSize = _.has(userData, "msSize") ? userData["msSize"]:100
-            msSimpleStatusModifier = _.has(userData, "msSimpleStatusModifier") ? this.isArgTrue(userData["msSimpleStatusModifier"]):false
-            msStandard = _.has(userData, "msStandard") ? userData["msStandard"]:msStandard
-            msSquare = _.has(userData, "msSquare") ? this.isArgTrue(userData["msSquare"]):false
-            msStrokeWidth = _.has(userData, "msStrokeWidth") ? userData["msStrokeWidth"]:3
-            
-            var mysymbol = new ms.Symbol(msSidc, {
-                additionalInformation: msAdditionalInformation,
-                altitudeDepth: msAltitudeDepth,
-                combatEffectiveness: msCombatEffectiveness,
-                commonIdentifier: msCommonIdentifier,
-                country: msCountry,
-                direction: isNaN(msDirection) ? "":msDirection,
-                dtg: msDtg,
-                engagementBar: msEngagementBar,
-                engagementType: msEngagementType,
-                equipmentTeardownTime: msEquipmentTeardownTime,
-                evaluationRating: msEvaluationRating,
-                guardedUnit: msGuardedUnit,
-                headquartersElement: msHeadquartersElement,
-                higherFormation: msHigherFormation,
-                hostile: msHostile,
-                iffSif: msIffSif,
-                location: msLocation,
-                platformType: msPlatformType,
-                quantity: msQuantity,
-                reinforcedReduced: msReinforcedReduced,
-                sigint: msSigint,
-                specialDesignator: msSpecialDesignator,
-                signatureEquipment: msSignatureEquipment,
-                specialHeadquarters: msSpecialHeadquarters,
-                speed: msSpeed,
-                speedLeader: msSpeedLeader,
-                staffComments: msStaffComments,
-                targetNumber: msTargetNumber,
-                type: msType,
-                uniqueDesignation: msUniqueDesignation,
-                alternateMedal: msAlternateMedal,
-                civilianColor: msCivilianColor,
-                colorMode: msColorMode,
-                fill: msFill,
-                fillOpacity: msFillOpacity,
-                fontfamily: msFontfamily,
-                frame: msFrame,
-                frameColor: msFrameColor,
-                hqStaffLength: msHqStaffLength,
-                icon: msIcon,
-                infoBackground: msInfoBackground,
-                infoBackgroundFrame: msInfoBackgroundFrame,
-                iconColor: msIconColor,
-                infoColor: msInfoColor,
-                infoFields: msInfoFields,
-                infoSize: msInfoSize,
-                monoColor: msMonoColor,
-                outlineColor: msOutlineColor,
-                outlineWidth: msOutlineWidth,
-                padding: msPadding,
-                size: msSize,
-                simpleStatusModifier: msSimpleStatusModifier,
-                standard: msStandard,
-                square: msSquare,
-                strokeWidth: msStrokeWidth
-                });
-            
-            // Get symbol size to set icon size and anchor
-            var symbolSize = mysymbol.getSize()
+            // Resolve the base size from per-row userData (default 35).
+            // The zoomend handler will scale from this value at runtime.
+            var msBaseSize = _.has(userData, "msSize") ? parseFloat(userData["msSize"]) : 35
+            var msInitialSize = this._getMilsymbolSizeForZoom(msBaseSize, this.map.getZoom())
 
-            var markerIcon = L.divIcon({
-                html: renderer == "canvas" ? mysymbol.asCanvas():mysymbol.asSVG(),
-                className: "",
-                iconSize: [symbolSize.width, symbolSize.height],
-                iconAnchor: [symbolSize.width/2, symbolSize.height]
-            })
+            var markerIcon = this._buildMilsymbolIcon(
+                userData,
+                msInitialSize,
+                renderer,
+                msColorMode,
+                msFrameColor,
+                msIconColor,
+                msInfoColor,
+                msInfoBackground,
+                msInfoBackgroundFrame,
+                msOutlineColor,
+                msStandard
+            )
         }
 
 

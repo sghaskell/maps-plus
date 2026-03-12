@@ -409,6 +409,262 @@ Choose the desired `Tile Layer` under `Bing Maps -> Tile Layer`
 
 Optionally set the `Label Language` using `Bing Maps -> Label Language` to localize the tile labels in the desired language. See [Microsoft's documentation](https://msdn.microsoft.com/en-us/library/hh441729.aspx) for more details.
 
+### Military Symbols (Milsymbol)
+Render NATO APP-6 / MIL-STD-2525D compliant tactical symbols on the map using the [milsymbol](https://github.com/spatialillusions/milsymbol) library. Milsymbol markers are driven entirely through SPL — symbol identity, appearance, modifiers, and color are all controlled via search fields, making it straightforward to visualize asset status, affiliation, and echelon directly from operational data.
+
+Set `markerType` to `milsymbol` and provide a valid SIDC via `msSidc` to enable this marker type. All other fields are optional.
+
+#### Required Fields
+
+##### markerType
+`milsymbol`
+
+##### msSidc
+15-character Symbol Identification Code (SIDC) conforming to NATO APP-6 / MIL-STD-2525D. The SIDC encodes the symbol's affiliation (friend, hostile, neutral, unknown), battle dimension (ground, air, sea surface, subsurface, etc.), and function (infantry, armor, aviation, etc.).
+
+Example: `SFGPUCI--------` — Friendly Ground Unit (Infantry)
+
+Refer to the [milsymbol documentation](https://github.com/spatialillusions/milsymbol) and APP-6/2525D references for SIDC construction and function catalogs.
+
+---
+
+#### Symbol Rendering Fields
+
+##### msSize
+Base pixel size of the rendered symbol at the reference zoom level. The symbol scales automatically as the user zooms the map in or out. - **Default** `35`
+
+##### msStandard
+Symbology standard to use for rendering. Accepts `APP6` (NATO APP-6) or `2525` (MIL-STD-2525). - **Default** inherited from format menu global setting
+
+##### msColorMode
+Symbol color palette applied to affiliation fills. Accepts `Light`, `Medium`, or `Dark`. Per-marker override of the format menu global color mode setting. - **Default** inherited from format menu global setting
+
+##### msFrame
+Whether to draw the symbol frame (the geometric shape encoding affiliation — rectangle for friend, diamond for hostile, etc.). Set to `false` to render the function icon only. - **Default** `true`
+
+##### msIcon
+Whether to draw the symbol's function icon inside the frame. Set to `false` to render the frame only. - **Default** `true`
+
+##### msFill
+Whether to fill the symbol frame with the affiliation color. Set to `false` for an outline-only frame. - **Default** `true`
+
+##### msFillOpacity
+Opacity of the symbol frame fill, as a decimal between `0` and `1`. - **Default** `1`
+
+##### msSquare
+Render the symbol frame as a square instead of the standard geometric shape for its affiliation. Useful for certain schematic or planning use cases. - **Default** `false`
+
+##### msPadding
+Padding in pixels added around the symbol bounding box. Increasing this value provides extra whitespace between the symbol and any adjacent labels or markers. - **Default** `0`
+
+##### msStrokeWidth
+Width in pixels of the symbol frame stroke. - **Default** `3`
+
+##### msOutlineWidth
+Width in pixels of an outer outline drawn around the entire symbol. Set to a non-zero value to add a contrasting halo effect that improves readability on complex tile backgrounds. - **Default** `0`
+
+##### msFontfamily
+CSS font family used for all text modifier labels rendered on or around the symbol. - **Default** `Arial`
+
+---
+
+#### Color Override Fields
+
+The following fields accept a JSON object string that maps symbol sub-elements to color values. Each field overrides the corresponding color that would otherwise be determined by the active `msColorMode`. The JSON keys correspond to milsymbol's internal color slot names (e.g. `friend`, `hostile`, `neutral`, `unknown`).
+
+##### msFrameColor
+JSON color map for the symbol frame stroke. Example: `{"friend":"#004080","hostile":"#800000"}`
+
+##### msIconColor
+JSON color map for the function icon rendered inside the frame.
+
+##### msInfoColor
+JSON color map for the text modifier labels.
+
+##### msInfoBackground
+JSON color map for the background fill behind text modifier labels.
+
+##### msInfoBackgroundFrame
+JSON color map for the border drawn around text modifier label backgrounds.
+
+##### msOutlineColor
+JSON color map for the outer outline (halo) drawn around the symbol when `msOutlineWidth` is non-zero.
+
+##### msMonoColor
+Single CSS color string. When set, renders the entire symbol in a single monochrome color, overriding all affiliation color fills. Useful for decluttered or print-friendly displays. - **Default** `""` (disabled)
+
+---
+
+#### Text Modifier Fields
+
+Text modifiers are labels rendered around the symbol frame that convey additional tactical information per APP-6/2525D modifier positions. All fields are optional and default to empty (modifier not rendered).
+
+##### msUniqueDesignation
+Unit or equipment designation (modifier T). Typically the unit's abbreviated title. Example: `1-9 IN`
+
+##### msHigherFormation
+Higher formation label (modifier M). Example: `3ID`
+
+##### msType
+Equipment type label (modifier V). Example: `M1A2`
+
+##### msAdditionalInformation
+Additional information label (modifier H). Free-text field for supplemental data.
+
+##### msAltitudeDepth
+Altitude or depth label (modifier X). Example: `FL250`
+
+##### msCombatEffectiveness
+Combat effectiveness label (modifier K). Example: `85%`
+
+##### msCommonIdentifier
+Common identifier label (modifier AF). Example: `APACHE`
+
+##### msCountry
+Two-letter country code (modifier CC). Example: `US`
+
+##### msDtg
+Date-time group label (modifier W). Example: `010830ZMAR26`
+
+##### msEngagementBar
+Engagement bar modifier. Renders a bar across the top of the symbol indicating engagement status.
+
+##### msEngagementType
+Engagement type qualifier for `msEngagementBar`.
+
+##### msEquipmentTeardownTime
+Equipment teardown time label (modifier AE).
+
+##### msEvaluationRating
+Source evaluation and information rating (modifier J). Example: `B2`
+
+##### msGuardedUnit
+Guarded unit label (modifier P).
+
+##### msHeadquartersElement
+Headquarters element label (modifier AH).
+
+##### msHostile
+Hostile label (modifier N). Rendered for enemy and suspect symbols. Example: `ENY`
+
+##### msIffSif
+IFF/SIF identification label (modifier P1).
+
+##### msLocation
+Location label (modifier Y). Example: `38.9072N 077.0369W`
+
+##### msPlatformType
+Platform type label (modifier AD). Example: `C-130`
+
+##### msQuantity
+Quantity label (modifier C). Example: `12`
+
+##### msReinforcedReduced
+Reinforced/reduced indicator (modifier F). Accepts `+` (reinforced), `-` (reduced), or `+-` (reinforced and reduced).
+
+##### msSigint
+SIGINT mobility indicator (modifier R2).
+
+##### msSignatureEquipment
+Signature equipment label (modifier L).
+
+##### msSpecialDesignator
+Special designator label.
+
+##### msSpecialHeadquarters
+Special headquarters label (modifier S). Example: `ARFOR`
+
+##### msSpeed
+Speed label (modifier Z). Example: `25 KPH`
+
+##### msStaffComments
+Staff comments label (modifier G).
+
+##### msTargetNumber
+Target number label (modifier B). Example: `AF1234`
+
+---
+
+#### Display Behavior Fields
+
+##### msDirection
+Direction of travel or orientation of the symbol in degrees (0–360). Renders as a movement indicator line extending from the symbol. Accepts a numeric value or a simple arithmetic expression (e.g. `180+90`). - **Default** `""` (no direction indicator)
+
+##### msSpeedLeader
+Length of the speed/direction leader line as a multiplier of the symbol size. Requires `msDirection` to be set. - **Default** `0` (no leader line)
+
+##### msInfoFields
+Whether to render text modifier labels for this marker. Accepts `true` or `false`. When not set, the visualization automatically suppresses modifiers at low zoom levels to prevent crowding — labels appear when the rendered symbol reaches approximately 85% of its base size. Set this field explicitly on a per-marker basis to override the zoom-driven automatic behavior. - **Default** automatic (zoom-driven)
+
+##### msInfoSize
+Size of the text modifier labels expressed as a percentage relative to the symbol size, passed directly to milsymbol's `infoSize` option. When not set, the visualization scales modifier text proportionally with the rendered symbol, capped at `25` to prevent oversized labels at high zoom. Set this field explicitly to override the automatic scaling on a per-marker basis.
+
+##### msHqStaffLength
+Length of the headquarters staff line in pixels. Applies to symbols designated as headquarters units. Leave empty for default milsymbol behavior. - **Default** `""` (milsymbol default)
+
+##### msAlternateMedal
+Use the alternate Medal of Honor display style. Accepts `true` or `false`. - **Default** `false`
+
+##### msCivilianColor
+Apply the civilian color scheme (purple) to applicable symbols. Accepts `true` or `false`. - **Default** `true`
+
+##### msSimpleStatusModifier
+Use a simplified status modifier instead of the standard dashed/dotted frame for anticipated or planned symbols. Accepts `true` or `false`. - **Default** `false`
+
+---
+
+#### Example Search
+
+The following search renders a small Combined Arms scenario demonstrating SIDC coding, text modifiers, color modes, directional indicators, headquarters staff, and layer grouping.
+
+```spl
+| makeresults count=1
+| eval latitude="38.9072", longitude="-77.0369",
+       markerType="milsymbol",
+       msSidc="SFGPUCI----E---",
+       msSize="35", msColorMode="Light",
+       msUniqueDesignation="1-9 IN", msHigherFormation="3ID",
+       msDirection="045", msSpeed="15 KPH",
+       msReinforcedReduced="+",
+       layerGroup="Friendly Infantry",
+       layerDescription="Friendly Infantry", layerIcon="shield-halved",
+       layerIconColor="#006eff", layerIconPrefix="fa",
+       description="<b>1-9 Infantry Battalion</b><br>Status: OPCON<br>Strength: 85%"
+| append [| makeresults count=1
+  | eval latitude="38.8500", longitude="-77.0200",
+         markerType="milsymbol",
+         msSidc="SFGPUCA----E---",
+         msSize="35", msColorMode="Light",
+         msUniqueDesignation="2-66 AR", msHigherFormation="3ID",
+         msHqStaffLength="30",
+         layerGroup="Friendly Armor",
+         layerDescription="Friendly Armor", layerIcon="shield-halved",
+         layerIconColor="#006eff", layerIconPrefix="fa",
+         description="<b>2-66 Armor Battalion HQ</b><br>Status: ATTACHED"]
+| append [| makeresults count=1
+  | eval latitude="38.8200", longitude="-76.9800",
+         markerType="milsymbol",
+         msSidc="SHGPUCA----H---",
+         msSize="35", msColorMode="Light",
+         msOutlineWidth="2",
+         msUniqueDesignation="T-80 PLT", msQuantity="4",
+         msEvaluationRating="B2",
+         layerGroup="Hostile Armor",
+         layerDescription="Hostile Armor", layerIcon="triangle-exclamation",
+         layerIconColor="#cc0000", layerIconPrefix="fa",
+         description="<b>Hostile Armor Contact</b><br>Reported: 0345Z<br>Confidence: High"]
+| table latitude, longitude, markerType, msSidc, msSize, msColorMode,
+        msUniqueDesignation, msHigherFormation, msDirection, msSpeed,
+        msReinforcedReduced, msQuantity, msHqStaffLength, msOutlineWidth,
+        msEvaluationRating, layerGroup, layerDescription,
+        layerIcon, layerIconColor, layerIconPrefix, description
+```
+
+---
+
+#### Credits
+Tactical symbol rendering powered by [milsymbol](https://github.com/spatialillusions/milsymbol) by Måns Beckman (Spatial Illusions), licensed under MIT.
+
 
 ### Formatting Options
 #### Map

@@ -1,7 +1,7 @@
 Maps+ for Splunk Changelog
 ==========================
 
-## [4.1.0] - 2026-02-27
+## [4.1.0] - 2026-03-12
 
 ### Added
 - **Antarctic Projection Support**: EPSG:3031 polar projection for Antarctic mapping use cases
@@ -13,6 +13,38 @@ Maps+ for Splunk Changelog
   - Configured Babel to transpile proj4leaflet module
   - Upgraded uglifyjs-webpack-plugin to v1.3.0 for ES6 compatibility
   - Removed conflicting webpack `-p` flag to prevent double-minification
+
+#### Military Symbol (Milsymbol) Marker Support
+- New `markerType` value `milsymbol` renders NATO APP-6 / MIL-STD-2525D compliant tactical symbols directly on the map using the [milsymbol](https://github.com/spatialillusions/milsymbol) library
+- Symbol rendering is driven entirely through SPL fields — no format menu configuration required for symbol appearance
+- **`sidc`** — Symbol Identification Code (15-character SIDC) that defines the symbol's identity, affiliation, battle dimension, and function. Required when `markerType` is `milsymbol`.
+- **`msSize`** — Base pixel size of the rendered milsymbol at the reference zoom level (integer). Controls symbol scale and defaults to a sensible size when omitted.
+- **`infoSize`** — Controls the size of text modifiers (unit designation, higher formation, etc.) rendered around the symbol frame. Passed directly to the milsymbol `infoSize` option.
+- **`colorMode`** — Milsymbol color scheme. Accepts `Light`, `Medium`, or `Dark`. Controls the fill palette used for affiliation colors (friend/hostile/neutral/unknown).
+- **`msTooltip`** — Tooltip text displayed on symbol hover. Distinct from the standard `tooltip` field to allow independent tooltip content for milsymbol markers alongside other marker types in the same panel.
+
+#### Zoom-Responsive Symbol Scaling
+- Milsymbol markers scale automatically with map zoom using a `BASE_ZOOM` reference level and a `SCALE_FACTOR` multiplier
+- At zoom levels above the base, symbols grow proportionally; at lower zoom levels they shrink, maintaining tactical readability across zoom ranges
+- Scaling uses `Math.ceil()` rounding to prevent sub-pixel rendering artifacts
+
+#### Layer Control Integration for Milsymbol Markers
+- Milsymbol markers fully participate in the existing layer control system via the `layerGroup`, `layerDescription`, `layerIcon`, `layerIconColor`, and `layerIconPrefix` fields
+- Fixed a scoping bug in `addLayerToControl()` where the function referenced an `icon` variable from the outer `updateView()` scope, causing a `ReferenceError` when milsymbol markers (which define `layerGroup.layerIcon` independently) attempted to render their layer control entry. The fix simplifies the conditional to test `options.layerGroup.layerIcon` truthiness directly.
+- Layer control entries for milsymbol groups correctly display the configured Font Awesome icon and description label side by side
+
+#### Demo Dashboard — Combined Arms Task Force COP
+- Added `milsymbol_cop_demo.xml` — a comprehensive Common Operating Picture (COP) demonstration dashboard depicting a Combined Arms Task Force (CATF) scenario
+- Scenario includes friendly maneuver units (infantry, armor, mechanized, cavalry), aviation (attack, medevac), fire support (artillery, mortar), sustainment (supply, maintenance), and hostile/unknown contacts
+- Demonstrates multi-echelon symbol rendering (brigade, battalion, company, platoon), color modes, info modifiers, and layer group filtering by unit type and affiliation
+- Dashboard includes token-driven controls for symbol color mode, symbol size, and frame visibility, illustrating how milsymbol parameters can be driven from Splunk dashboard inputs
+
+### Fixed
+- `addLayerToControl()`: Removed cross-scope reference to the `icon` variable from `updateView()`. The function now evaluates `options.layerGroup.layerIcon` in isolation, preventing a `ReferenceError` on any marker type that sets `layerIcon` without going through the standard PNG/SVG/icon marker path. This bug would have manifested as a silent rendering failure for the milsymbol layer control entries.
+
+### Dependencies
+- Added `milsymbol` npm package to `package.json`
+- Milsymbol is bundled into `visualization.js` via the existing Webpack pipeline with no additional Babel or UglifyJS configuration required (the library is ES5-compatible)
 
 ### Changed
 - Updated ATTRIBUTIONS object with HTTPS URLs for all tile providers

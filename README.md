@@ -665,6 +665,126 @@ The following search renders a small Combined Arms scenario demonstrating SIDC c
 #### Credits
 Tactical symbol rendering powered by [milsymbol](https://github.com/spatialillusions/milsymbol) by Måns Beckman (Spatial Illusions), licensed under MIT.
 
+### Antarctic Polar Projection (EPSG:3031)
+
+Maps+ supports polar stereographic projection for Antarctic mapping use cases via the [proj4leaflet](https://github.com/kartena/Proj4Leaflet) library. Enabling Antarctic projection mode switches the map's coordinate reference system to EPSG:3031, which renders the Antarctic continent with accurate geometry — avoiding the extreme distortion introduced by the standard Web Mercator (EPSG:3857) projection at polar latitudes.
+
+When Antarctic projection is active, the standard map tile set is replaced with one of three polar-capable tile providers: GBIF Geyser, GBIF OSM Bright, or NASA GIBS. The NASA GIBS option enables date/time-driven Earth observation imagery sourced from NASA's satellite fleet, making this feature suitable for scientific research, environmental monitoring, and logistics operations in the south polar region.
+
+Antarctic projection is configured entirely through the format menu. No SPL field changes are required — your existing `latitude`, `longitude`, `description`, and marker fields work as normal.
+
+> **Note:** Antarctic projection is mutually exclusive with the standard map view. Enabling it replaces the map's CRS and tile layer. All standard format menu options for Map Tile, Map Tile Override, and Map Attribution Override are ignored while Antarctic projection is active.
+
+---
+
+#### Enabling Antarctic Projection
+
+Open the format menu and navigate to the **Antarctic** section. Set **Antarctic Projection** to `Enabled`. The map will reload in EPSG:3031 polar stereographic projection.
+
+---
+
+#### Formatting Options
+
+All Antarctic projection settings are found under **Format → Antarctic**.
+
+###### Antarctic Projection
+Enable or disable EPSG:3031 polar stereographic projection. When enabled, the standard map tile and CRS are replaced with the polar projection configuration. - **Default** `Disabled`
+
+###### Map Tile
+Select the tile provider for the polar base map. Three options are available:
+
+| Option | Description |
+|---|---|
+| **GBIF Geyser** | GBIF polar tile service with a clean cartographic style. Default selection. |
+| **GBIF OSM Bright** | GBIF polar tile service with an OSM Bright style. |
+| **NASA GIBS** | NASA Global Imagery Browse Services. Enables date/time-driven Earth observation imagery. Requires GIBS-specific settings below. |
+
+**Default** `GBIF Geyser`
+
+---
+
+#### NASA GIBS Settings
+
+The following options apply only when **Map Tile** is set to **NASA GIBS**. They configure which Earth observation product is displayed and over what time period. Refer to the [NASA GIBS API documentation](https://nasa.github.io/gibs-api-docs/) and the [GIBS layer catalog](https://nasa.github.io/gibs-api-docs/available-visualizations/) for available layer identifiers, formats, and tile matrix sets.
+
+###### GIBS Layer Identifier
+The GIBS layer ID identifying which Earth observation product to display. Refer to the GIBS layer catalog for available identifiers.  - **Default** `MODIS_Aqua_CorrectedReflectance_TrueColor`
+
+Example layer identifiers:
+
+| Layer ID | Description |
+|---|---|
+| `MODIS_Aqua_CorrectedReflectance_TrueColor` | MODIS Aqua true color corrected reflectance |
+| `MODIS_Terra_CorrectedReflectance_TrueColor` | MODIS Terra true color corrected reflectance |
+| `MODIS_Terra_Sea_Ice` | MODIS Terra sea ice extent |
+| `NSIDC_EASE2_NH_SeaIce_Age` | NSIDC sea ice age |
+| `VIIRS_SNPP_CorrectedReflectance_TrueColor` | VIIRS SNPP true color corrected reflectance |
+
+###### GIBS Format
+Image format for GIBS tile requests. - **Default** `jpg`
+
+| Value | Use when |
+|---|---|
+| `jpg` | Photographic imagery layers (true color, reflectance) |
+| `png` | Thematic or classified layers that require transparency |
+
+###### GIBS Time
+Date for which GIBS imagery is requested, in `yyyy-mm-dd` format. Leave blank to display imagery from the current day. - **Default** `""` (current day)
+
+Example: `2024-03-15`
+
+###### GIBS Tile Matrix Set
+The GIBS tile matrix set identifier, which determines the spatial resolution of the imagery. - **Default** `250m`
+
+Common values for Antarctic (EPSG:3031) layers:
+
+| Value | Resolution |
+|---|---|
+| `250m` | 250 meters per pixel |
+| `500m` | 500 meters per pixel |
+| `1km` | 1 kilometer per pixel |
+| `2km` | 2 kilometers per pixel |
+
+###### GIBS Lower Corner
+The lower corner of the tile matrix bounding box in EPSG:3031 projected coordinates (meters). This defines the southernmost/westernmost extent of the tile grid. - **Default** `-4194304`
+
+###### GIBS Upper Corner
+The upper corner of the tile matrix bounding box in EPSG:3031 projected coordinates (meters). This defines the northernmost/easternmost extent of the tile grid. - **Default** `4194304`
+
+> The default lower/upper corner values of `-4194304` and `4194304` are the standard extents for the GIBS Antarctic EPSG:3031 tile grid and are correct for all standard GIBS Antarctic layers. Only adjust these values if you are working with a custom GIBS configuration.
+
+---
+
+#### Example Search
+
+The following search plots a set of Antarctic research stations in EPSG:3031 polar projection. Enable Antarctic Projection in the format menu and set Map Tile to GBIF Geyser or NASA GIBS before running.
+
+```spl
+| makeresults count=1
+| eval latitude="-90.0000", longitude="0.0000",
+       description="<b>South Pole</b><br>Amundsen–Scott South Pole Station<br>Elevation: 2,835 m",
+       icon="star", markerColor="red", layerGroup="Stations", layerDescription="Research Stations"
+| append [| makeresults count=1
+  | eval latitude="-77.8500", longitude="166.6667",
+         description="<b>McMurdo Station</b><br>United States Antarctic Program<br>Largest Antarctic station",
+         icon="home", markerColor="blue", layerGroup="Stations", layerDescription="Research Stations"]
+| append [| makeresults count=1
+  | eval latitude="-75.1000", longitude="123.3500",
+         description="<b>Concordia Station</b><br>French-Italian research station<br>Elevation: 3,233 m",
+         icon="home", markerColor="green", layerGroup="Stations", layerDescription="Research Stations"]
+| append [| makeresults count=1
+  | eval latitude="-70.9667", longitude="-11.4333",
+         description="<b>Neumayer Station III</b><br>German research station<br>Operated by AWI",
+         icon="home", markerColor="orange", layerGroup="Stations", layerDescription="Research Stations"]
+| table latitude, longitude, description, icon, markerColor, layerGroup, layerDescription
+```
+
+---
+
+#### Credits
+Polar projection support powered by [proj4leaflet](https://github.com/kartena/Proj4Leaflet), licensed under BSD.  
+NASA GIBS imagery provided by [NASA's Global Imagery Browse Services](https://nasa.github.io/gibs-api-docs/). Use of NASA GIBS imagery is subject to [NASA's data use policy](https://www.earthdata.nasa.gov/engage/open-data-services-and-software/data-and-information-policy).  
+GBIF polar tiles provided by the [Global Biodiversity Information Facility](https://www.gbif.org/).
 
 ### Formatting Options
 #### Map

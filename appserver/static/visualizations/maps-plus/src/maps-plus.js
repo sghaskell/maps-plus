@@ -68,6 +68,75 @@ tileOptions: {},
 map: {},
 contribUri: '/en-US/static/app/leaflet_maps_app/visualizations/maps-plus/contrib',
 validMarkerTypes: ["custom", "png", "icon", "svg", "circle", "milsymbol"],
+// Known valid SPL field names — used by validateFields to isolate drilldown data
+validFields: ['latitude',
+               'longitude',
+               'title',
+               'tooltip',
+               'description',
+               'icon',
+               'customIcon',
+               'customIconShadow',
+               'markerType',
+               'markerColor',
+               'markerPriority',
+               'markerSize',
+               'markerAnchor',
+               'markerVisibility',
+               'iconColor',
+               'shadowAnchor',
+               'shadowSize',
+               'prefix',
+               'extraClasses',
+               'layerDescription',
+               'layerVisibility',
+               'pathLayer',
+               'pathWeight',
+               'pathOpacity',
+               'playback',
+               'layerGroup',
+               'layerPriority',
+               'layerIcon',
+               'layerIconSize',
+               'layerIconColor',
+               'layerIconPrefix',
+               'clusterGroup',
+               'pathColor',
+               'popupAnchor',
+               'heatmapInclude',
+               'heatmapLayer',
+               'heatmapPointIntensity',
+               'heatmapMinOpacity',
+               'heatmapRadius',
+               'heatmapBlur',
+               'heatmapColorGradient',
+               'circleStroke',
+               'circleRadius',
+               'circleColor',
+               'circleWeight',
+               'circleOpacity',
+               'circleFillColor',
+               'circleFillOpacity',
+               'antPath',
+               'antPathDelay',
+               'antPathPulseColor',
+               'antPathPaused',
+               'antPathReverse',
+               'antPathDashArray',
+               'feature',
+               'featureLayer',
+               'featureDescription',
+               'featureTooltip',
+               'featureColor',
+               'featureWeight',
+               'featureOpacity',
+               'featureStroke',
+               'featureFill',
+               'featureFillColor',
+               'featureFillOpacity',
+               'featureRadius',
+               'msStrokeWidth',
+               '_time'],
 isDarkTheme: themeUtils.getCurrentTheme && themeUtils.getCurrentTheme() === 'dark',
 defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.cluster': 1,
@@ -182,7 +251,6 @@ initialize: function() {
     this.allDataProcessed = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
-    //this.tileOptions = {}
 },
 
 // Search data params
@@ -239,15 +307,18 @@ _darkModeInit: function () {
                   '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
                   '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-    var length = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.cssRules.length
+    // Cache stylesheet reference — cssRules[10] is the contextmenu sub-stylesheet
+    // inside visualization.css. Index 10 reflects the current stylesheet structure;
+    // update this offset if the stylesheet order changes.
+    var darkModeStylesheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet
     // delete styles from newest to oldest                                  
-    for(i=length-1; i >= 0; i--) {
-        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.deleteRule(i)
+    for(var i = darkModeStylesheet.cssRules.length - 1; i >= 0; i--) {
+        darkModeStylesheet.deleteRule(i)
     }
 
     // insert dark styles
-    for(i=0; i < styles.length; i++) {
-        $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet.insertRule(styles[i], i)
+    for(var i = 0; i < styles.length; i++) {
+        darkModeStylesheet.insertRule(styles[i], i)
     }
 },
 
@@ -274,6 +345,8 @@ onConfigChange: function(configChanges, previousConfig) {
     const configBase = this.getPropertyNamespaceInfo().propertyNamespace
     let bgRgb,
         bgRgba,
+        fgRgb,
+        fgRgba,
         html,
         mapTile = this._propertyExists('mapTile', configChanges) ? this._getSafeUrlProperty('mapTile', configChanges):this._getSafeUrlProperty('mapTile', previousConfig),
         mapCenterZoom = this._propertyExists('mapCenterZoom', configChanges) ? parseInt(this._getEscapedProperty('mapCenterZoom', configChanges)):parseInt(this._getEscapedProperty('mapCenterZoom', previousConfig)),
@@ -442,10 +515,8 @@ onConfigChange: function(configChanges, previousConfig) {
         bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-one { background-color: ' + bgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleOneBg) { this._clusterStyleOneBg.html(html) }
+        else { this._clusterStyleOneBg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Cluster Foreground Range 1
@@ -454,10 +525,8 @@ onConfigChange: function(configChanges, previousConfig) {
         fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-one div { background-color: ' + fgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleOneFg) { this._clusterStyleOneFg.html(html) }
+        else { this._clusterStyleOneFg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Cluster Background Range 2
@@ -466,10 +535,8 @@ onConfigChange: function(configChanges, previousConfig) {
         bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-two { background-color: ' + bgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleTwoBg) { this._clusterStyleTwoBg.html(html) }
+        else { this._clusterStyleTwoBg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Cluster Foreground Range 2
@@ -478,10 +545,8 @@ onConfigChange: function(configChanges, previousConfig) {
         fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-two div { background-color: ' + fgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleTwoFg) { this._clusterStyleTwoFg.html(html) }
+        else { this._clusterStyleTwoFg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Cluster Background Range 3
@@ -490,10 +555,8 @@ onConfigChange: function(configChanges, previousConfig) {
         bgRgba = 'rgba(' + bgRgb.r + ', ' + bgRgb.g + ', ' + bgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-three { background-color: ' + bgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleThreeBg) { this._clusterStyleThreeBg.html(html) }
+        else { this._clusterStyleThreeBg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Cluster Foreground Range 3
@@ -502,10 +565,8 @@ onConfigChange: function(configChanges, previousConfig) {
         fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
         html = '.marker-cluster-three div { background-color: ' + fgRgba + ';}'
-        $("<style>")
-         .prop("type", "text/css")
-         .html(html)
-         .appendTo("head")
+        if(this._clusterStyleThreeFg) { this._clusterStyleThreeFg.html(html) }
+        else { this._clusterStyleThreeFg = $("<style>").prop("type", "text/css").html(html).appendTo("head") }
     }
 
     // Handle cluster group zoom disable/enable
@@ -689,79 +750,11 @@ onConfigChange: function(configChanges, previousConfig) {
 // to be used as data for _drilldown action
 validateFields: function(obj) {
     var invalidFields = {}
-    var validFields = ['latitude',
-                       'longitude',
-                       'title',
-                       'tooltip',
-                       'description',
-                       'icon',
-                       'customIcon',
-                       'customIconShadow',
-                       'markerType',
-                       'markerColor',
-                       'markerPriority',
-                       'markerSize',
-                       'markerAnchor',
-                       'markerVisibility',
-                       'iconColor',
-                       'shadowAnchor',
-                       'shadowSize',
-                       'prefix',
-                       'extraClasses',
-                       'layerDescription',
-                       'layerVisibility',
-                       'pathLayer',
-                       'pathWeight',
-                       'pathOpacity',
-                       'playback',
-                       'layerGroup',
-                       'layerPriority',
-                       'layerIcon',
-                       'layerIconSize',
-                       'layerIconColor',
-                       'layerIconPrefix',
-                       'clusterGroup',
-                       'pathColor',
-                       'popupAnchor',
-                       'heatmapInclude',
-                       'heatmapLayer',
-                       'heatmapPointIntensity',
-                       'heatmapMinOpacity',
-                       'heatmapRadius',
-                       'heatmapBlur',
-                       'heatmapColorGradient',
-                       'circleStroke',
-                       'circleRadius',
-                       'circleColor',
-                       'circleWeight',
-                       'circleOpacity',
-                       'circleFillColor',
-                       'circleFillOpacity',
-                       'antPath',
-                       'antPathDelay',
-                       'antPathPulseColor',
-                       'antPathPaused',
-                       'antPathReverse',
-                       'antPathDashArray',
-                       'feature',
-                       'featureLayer',
-                       'featureDescription',
-                       'featureTooltip',
-                       'featureColor',
-                       'featureWeight',
-                       'featureOpacity',
-                       'featureStroke',
-                       'featureFill',
-                       'featureFillColor',
-                       'featureFillOpacity',
-                       'featureRadius',
-                       'msStrokeWidth',
-                       '_time']
     $.each(obj, function(key, value) {
-        if($.inArray(key, validFields) === -1) {
+        if($.inArray(key, this.validFields) === -1) {
             invalidFields[key] = value
         }
-    })
+    }.bind(this))
 
     return(invalidFields)
 },
@@ -795,9 +788,24 @@ _propertyExists: function(name, config) {
     return _.has(config, this.getPropertyNamespaceInfo().propertyNamespace + name)
 },
 
+// Helper: returns the value of a config property from configChanges if it was changed,
+// otherwise falls back to previousConfig. Optional transform function applied to the raw string.
+// This eliminates the ~25 identical ternary patterns in onConfigChange:
+//   foo = this._propertyExists('foo', changes) ? this._getEscapedProperty('foo', changes)
+//                                               : this._getEscapedProperty('foo', prev)
+// becomes: foo = this._getConfigValue('foo', changes, prev)
+// With a transform: foo = this._getConfigValue('foo', changes, prev, parseInt)
+_getConfigValue: function(name, configChanges, previousConfig, transform) {
+    var getter = this._getEscapedProperty.bind(this)
+    var raw = this._propertyExists(name, configChanges)
+        ? getter(name, configChanges)
+        : getter(name, previousConfig)
+    return transform ? transform(raw) : raw
+},
+
 // Custom drilldown behavior for markers
 _drilldown: function(drilldownFields, resource) {
-    payload = {
+    var payload = {
         action: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN,
         data: drilldownFields
     }
@@ -813,7 +821,7 @@ convertHex: function(value) {
     // Pass markerColor prefixed with # regardless of given prefix ("#" or "0x")
     var hexRegex = /^(?:#|0x)([a-f\d]{6})$/i
     if (hexRegex.test(value)) {
-        markerColor = "#" + hexRegex.exec(value)[1]
+        var markerColor = "#" + hexRegex.exec(value)[1]
         return(markerColor)
     } else {
         return(value)
@@ -918,7 +926,9 @@ getStoredApiKey: function(options) {
     return deferred.promise()
 },
 
-// Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head
+// Create RGBA string and corresponding HTML to dynamically set marker CSS in HTML head.
+// Uses idempotent update-or-create so repeated calls (e.g. on config change) never
+// accumulate duplicate <style> tags in the document head.
 createMarkerStyle: function(bgHex, fgHex, markerName) {
     var bgRgb = this.hexToRgb(bgHex)
     var fgRgb = this.hexToRgb(fgHex)
@@ -926,10 +936,15 @@ createMarkerStyle: function(bgHex, fgHex, markerName) {
     var fgRgba = 'rgba(' + fgRgb.r + ', ' + fgRgb.g + ', ' + fgRgb.b + ', 0.6)'
 
     var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgRgba + ';} .marker-cluster-' + markerName + ' div { background-color: ' + fgRgba + ';}'
-    $("<style>")
-        .prop("type", "text/css")
-        .html(html)
-        .appendTo("head")
+    var cacheKey = '_markerStyle_' + markerName
+    if(this[cacheKey]) {
+        this[cacheKey].html(html)
+    } else {
+        this[cacheKey] = $("<style>")
+            .prop("type", "text/css")
+            .html(html)
+            .appendTo("head")
+    }
 },
 
 stringToPoint: function(stringPoint) {
@@ -1004,18 +1019,27 @@ drawPath: function(options) {
                 }]
         }
 
+        // Single-pass extraction of the three arrays needed below —
+        // avoids three separate full iterations over the same path array.
+        var pCoordinates = [], pLatlngs = [], pUnixtimes = []
+        _.each(p, function(pt) {
+            pCoordinates.push(pt.coordinates)
+            pLatlngs.push(pt.latlng)
+            pUnixtimes.push(pt.unixtime)
+        })
+
         const geoJSON = {
             "type": "Feature",
             "geometry": {
               "type": "LineString",
-              "coordinates":_.pluck(p, 'latlng')
+              "coordinates": pLatlngs
             },
             "properties": {
                 "title" : p[0]['id'],
                 "prefix": p[0]['prefix'],
                 "icon": p[0]['icon'],
                 "path_options" : { "color" : options.context.convertHex(p[0]['color']) },
-                "time": _.pluck(p, 'unixtime')
+                "time": pUnixtimes
             }
         }
 
@@ -1041,7 +1065,7 @@ drawPath: function(options) {
                 }
             }
             
-            var pl = L.polyline.antPath(_.pluck(p, 'coordinates'), antPathOptions).bindPopup(p[0]['description'])
+            var pl = L.polyline.antPath(pCoordinates, antPathOptions).bindPopup(p[0]['description'])
         } else {
             let pathOptions = { 
                 color: options.context.convertHex(p[0]['color']),
@@ -1059,7 +1083,7 @@ drawPath: function(options) {
             }
 
             // create polyline and bind popup
-            var pl = L.polyline(_.pluck(p, 'coordinates'), pathOptions).bindPopup(p[0]['description'])
+            var pl = L.polyline(pCoordinates, pathOptions).bindPopup(p[0]['description'])
         }
 
         // Apply tooltip to polyline
@@ -1083,7 +1107,7 @@ drawPath: function(options) {
 addLayerToControl: function(options) {
     let name,
         iconHtml,
-        styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined
+        styleColor = _.has(options.layerGroup, 'layerIconColor') ? options.layerGroup.layerIconColor:undefined,
         layerIconSize = _.has(options.layerGroup, 'layerIconSize') ? this.stringToPoint(options.layerGroup.layerIconSize):undefined
 
     // Add Heatmap layer to controls and use layer name for control label
@@ -1489,14 +1513,21 @@ _createClusterGroup: function(disableClusteringAtZoom,
 // ─── Milsymbol zoom-scaling helper ───────────────────────────────────────────
 // Builds a Leaflet divIcon from raw milsymbol userData at a given size.
 // Extracted so the zoomend redraw and the initial render share identical logic.
+// Results are cached per render cycle (cache is reset at the top of updateView)
+// keyed on a JSON hash of the inputs, so identical symbols share one SVG build.
 _buildMilsymbolIcon: function(userData, overrideSize, renderer, msColorMode, msFrameColor, msIconColor, msInfoColor, msInfoBackground, msInfoBackgroundFrame, msOutlineColor, msStandard) {
+    // Cache lookup — avoids redundant ms.Symbol() SVG generation for duplicate rows
+    if(!this._milsymbolIconCache) { this._milsymbolIconCache = {} }
+    var cacheKey = JSON.stringify([userData, overrideSize, renderer, msColorMode])
+    if(this._milsymbolIconCache[cacheKey]) { return this._milsymbolIconCache[cacheKey] }
+
     var msSidc                = _.has(userData, "msSidc")                ? userData["msSidc"]                : ""
     var msAdditionalInformation = _.has(userData, "msAdditionalInformation") ? userData["msAdditionalInformation"] : ""
     var msAltitudeDepth       = _.has(userData, "msAltitudeDepth")       ? userData["msAltitudeDepth"]       : ""
     var msCombatEffectiveness = _.has(userData, "msCombatEffectiveness") ? userData["msCombatEffectiveness"] : ""
     var msCommonIdentifier    = _.has(userData, "msCommonIdentifier")    ? userData["msCommonIdentifier"]    : ""
     var msCountry             = _.has(userData, "msCountry")             ? userData["msCountry"]             : ""
-    var msDirection           = _.has(userData, "msDirection")           ? parseInt(eval(userData["msDirection"])) : ""
+    var msDirection           = _.has(userData, "msDirection")           ? parseFloat(userData["msDirection"])        : ""
     var msDtg                 = _.has(userData, "msDtg")                 ? userData["msDtg"]                 : ""
     var msEngagementBar       = _.has(userData, "msEngagementBar")       ? userData["msEngagementBar"]       : ""
     var msEngagementType      = _.has(userData, "msEngagementType")      ? userData["msEngagementType"]      : ""
@@ -1632,12 +1663,14 @@ _buildMilsymbolIcon: function(userData, overrideSize, renderer, msColorMode, msF
     })
 
     var symSize = sym.getSize()
-    return L.divIcon({
+    var icon = L.divIcon({
         html:       renderer === "canvas" ? sym.asCanvas() : sym.asSVG(),
         className:  "",
         iconSize:   [symSize.width, symSize.height],
         iconAnchor: [symSize.width / 2, symSize.height]
     })
+    this._milsymbolIconCache[cacheKey] = icon
+    return icon
 },
 
 // ─── Compute a zoom-proportional milsymbol size ───────────────────────────────
@@ -1872,6 +1905,10 @@ updateView: function(data, config) {
         config = this.defaultConfig
     }
 
+    // Clear per-render milsymbol icon cache — icons are keyed on a hash of
+    // their inputs and rebuilt fresh each render cycle, but reused within it.
+    this._milsymbolIconCache = {}
+
     // Populate any missing config values with defaults
     _.defaults(config, this.defaultConfig)
 
@@ -2059,9 +2096,9 @@ updateView: function(data, config) {
         }
     }
 
-    pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
-    renderer = this._getEscapedProperty('renderer', config),
-    pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
+    var pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
+        renderer = this._getEscapedProperty('renderer', config),
+        pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
 
     this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile
     this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile]
@@ -2216,7 +2253,6 @@ updateView: function(data, config) {
         
 
         // Create map 
-        //var map = this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
         this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
 
         // Dark Mode Support
@@ -2238,8 +2274,7 @@ updateView: function(data, config) {
                         }
                     }).addTo(map)
                 }).catch(function(err) {
-                    //console.error(err)
-                    console.err("Failed to initialize Google Places search control")
+                    console.error("Failed to initialize Google Places search control", err)
                 })
             }, this))
         }
@@ -2392,7 +2427,6 @@ updateView: function(data, config) {
             }, this)
         }
         
-        //var pathLineLayer = this.pathLineLayer = L.layerGroup()
         var pathLineLayers = this.pathLineLayers = {}
         
         // Store heatmap layers
@@ -2569,21 +2603,6 @@ updateView: function(data, config) {
     // Iterate through each row creating layer groups per icon type
     // and create markers appending to a markerList in each layerfilter object
     _.each(dataRows, function(userData, i) {
-        // if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
-        //     if(!this.isArgTrue(userData["markerVisibility"])) {
-        //         console.log("true -- good")
-        //     } else {
-        //         console.log("skipping")
-        //         return
-        //     }
-            
-        //if (_.has(userData,"markerVisibility") && userData["markerVisibility"] != "marker") {
-        //console.log(this.isArgTrue(userData["markerVisibility"]))
-        //if (_.has(userData,"markerVisibility") && !this.isArgTrue(userData["markerVisibility"])) {
-            // Skip the marker to improve performance of rendering
-            
-        // }
-
                         // Get marker and icon properties	
         var markerType = _.has(userData, "markerType") ? userData["markerType"]:"png",
             markerColor = _.has(userData, "markerColor") ? userData["markerColor"]:"blue",
@@ -2606,7 +2625,7 @@ updateView: function(data, config) {
             circleOpacity = _.has(userData, "circleOpacity") ? parseFloat(userData["circleOpacity"]):1.0,
             circleFillColor = _.has(userData, "circleFillColor") ? userData["circleFillColor"]:circleColor,
             circleFillOpacity = _.has(userData, "circleFillOpacity") ? parseFloat(userData["circleFillOpacity"]):0.2,
-            layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:""
+            layerDescription  = _.has(userData, "layerDescription") ? userData["layerDescription"]:"",
             layerVisibility = _.has(userData, "layerVisibility") ? this.isArgTrue(userData["layerVisibility"]):true,
             description = _.has(userData, "description") ? userData["description"]:null,
             featureDescription = _.has(userData, "featureDescription") ? userData["featureDescription"]:null,
@@ -2755,17 +2774,25 @@ updateView: function(data, config) {
         markerType = _.isNull(customIcon) ? markerType:"custom"
 
         // Create marker
+        // For non-milsymbol types, the icon is identical for every row in the same
+        // layerGroup (same icon, color, size etc.) so we cache it on the layerFilter
+        // entry after the first build and reuse it for all subsequent rows.
+        // milsymbol icons vary per-row (SIDC, modifiers) so they are never cached here.
         if(markerType == "custom") {
-            var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
-            
-            var markerIcon = L.icon({
-                iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
-                shadowUrl: customIconShadow,
-                iconSize: markerSize,
-                iconAnchor: markerAnchor,
-                shadowAnchor: shadowAnchor,
-                popupAnchor: popupAnchor
-            })
+            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
+            if(_cachedIcon) {
+                var markerIcon = _cachedIcon
+            } else {
+                var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+                var markerIcon = L.icon({
+                    iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                    shadowUrl: customIconShadow,
+                    iconSize: markerSize,
+                    iconAnchor: markerAnchor,
+                    shadowAnchor: shadowAnchor,
+                    popupAnchor: popupAnchor
+                })
+            }
         }
 
         if (markerType == "svg") {
@@ -2775,7 +2802,8 @@ updateView: function(data, config) {
             layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
             popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
 
-            var markerIcon = L.VectorMarkers.icon({
+            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
+            var markerIcon = _cachedIcon || L.VectorMarkers.icon({
                 icon: icon,
                 iconColor: iconColor,
                 markerColor: markerColor,
@@ -2793,7 +2821,9 @@ updateView: function(data, config) {
             // Create markerIcon
             layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
             if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
-            var markerIcon = L.AwesomeMarkers.icon({
+
+            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
+            var markerIcon = _cachedIcon || L.AwesomeMarkers.icon({
                 icon: icon,
                 markerColor: markerColor,
                 iconColor: iconColor,
@@ -2831,19 +2861,25 @@ updateView: function(data, config) {
         if(markerType == "icon") {
             popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
             className = "icon-only"
-            var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
-            var markerIcon = L.divIcon({
-                html: divIconHtml,
-                className: className,
-                icon: icon,
-                markerColor: iconColor,
-                iconColor: iconColor,
-                prefix: prefix,
-                extraClasses: extraClasses,
-                popupAnchor: popupAnchor,
-                description: description,
-                iconAnchor: markerAnchor
-            })
+
+            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
+            if(_cachedIcon) {
+                var markerIcon = _cachedIcon
+            } else {
+                var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
+                var markerIcon = L.divIcon({
+                    html: divIconHtml,
+                    className: className,
+                    icon: icon,
+                    markerColor: iconColor,
+                    iconColor: iconColor,
+                    prefix: prefix,
+                    extraClasses: extraClasses,
+                    popupAnchor: popupAnchor,
+                    description: description,
+                    iconAnchor: markerAnchor
+                })
+            }
         }
 
         if(!this.validMarkerTypes.includes(markerType)) {
@@ -2928,6 +2964,11 @@ updateView: function(data, config) {
             this.layerFilter[layerGroup].layerIconColor = layerIconColor
             this.layerFilter[layerGroup].layerIconSize = layerIconSize
             this.layerFilter[layerGroup].layerVisibility = layerVisibility
+            // Cache the built icon for reuse by subsequent rows in this layerGroup.
+            // milsymbol icons vary per-row so they are intentionally excluded here.
+            if(markerType !== "milsymbol" && !this.layerFilter[layerGroup].cachedIcon && !_.isUndefined(markerIcon)) {
+                this.layerFilter[layerGroup].cachedIcon = markerIcon
+            }
         }
 
         if (_.has(userData, "markerVisibility")) {
@@ -2975,22 +3016,22 @@ updateView: function(data, config) {
         var previousTime = new Date()
 
         var paths = _.chain(dataRows)
-            .map(function (d) {            
-                var colorIndex = 0
-                    pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5
-                    pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5
-                    dt = _.has(d, "_time") ? moment(d["_time"]):""
-                    tooltip = _.has(d, "tooltip") ? d["tooltip"]:""
-                    description = _.has(d, "description") ? d["description"]:""
-                    antPath = _.has(d, "antPath") ? d["antPath"]:null
-                    antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000
-                    antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF"
-                    antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false
-                    antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false
-                    antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20"
+            .map(function (d) {
+                var id = undefined,
+                    colorIndex = 0,
+                    pathWeight = _.has(d, "pathWeight") ? d["pathWeight"]:5,
+                    pathOpacity = _.has(d, "pathOpacity") ? d["pathOpacity"]:0.5,
+                    dt = _.has(d, "_time") ? moment(d["_time"]):"",
+                    tooltip = _.has(d, "tooltip") ? d["tooltip"]:"",
+                    description = _.has(d, "description") ? d["description"]:"",
+                    antPath = _.has(d, "antPath") ? d["antPath"]:null,
+                    antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000,
+                    antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF",
+                    antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false,
+                    antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false,
+                    antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20",
                     layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                     layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
-                    layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                     layerVisibility = _.has(d, "layerVisibility") ? d["layerVisibility"]:true,
                     pathLayer = _.has(d, "pathLayer") ? d["pathLayer"]:undefined,
                     playback = _.has(d, "playback") ? d["playback"]:showPlayback,
@@ -2998,8 +3039,8 @@ updateView: function(data, config) {
                     icon = _.has(d, "icon") ? d["icon"]:"play-circle"
 
                 if (pathIdentifier) {
-                    var id = d[pathIdentifier]
-                    var colorIndex = activePaths.indexOf(id)
+                    id = d[pathIdentifier]
+                    colorIndex = activePaths.indexOf(id)
                     if (colorIndex < 0) {
                         colorIndex = activePaths.push(id) - 1
                     }
@@ -3084,7 +3125,6 @@ updateView: function(data, config) {
     }
 
     // Update offset and fetch next chunk of data
-    // if(this.isSplunkSeven) {
     this.offset += dataRows.length
 
     setTimeout(function(that) {

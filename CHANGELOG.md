@@ -1,6 +1,27 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.1.1] - 2026-03-13
+
+### Fixed
+- **Implicit global variable leaks in `updateView()`**: Three variables (`pathSplits`, `renderer`, `pathSplitInterval`) were declared without `var`, leaking as window-level globals. In dashboards with multiple Maps+ visualizations on the same page, these values would bleed across viz instances — most critically, `renderer=canvas` set by one viz could silently override the default SVG renderer in a second viz on the same page.
+- **Broken `var` chain in `updateView()` row iterator**: A missing comma after `layerDescription` in the `_.each(dataRows)` variable declaration chain caused `layerVisibility` and ten subsequent per-row variables (`description`, `featureDescription`, `featureTooltip`, `featureColor`, `featureWeight`, `featureOpacity`, `featureStroke`, `featureFill`, `featureFillColor`, `featureFillOpacity`, `featureRadius`) to leak as implicit globals. The last processed row's values would overwrite all previous rows, causing incorrect layer visibility, feature colors, and fill behavior across multi-layer datasets.
+- **Implicit global `layerIconSize` in `addLayerToControl()`**: A missing comma after `styleColor` in the `let` declaration caused `layerIconSize` to leak as a global. This would cause a `TypeError` (`Cannot read properties of undefined`) when building layer control legend entries for custom image icon markers, silently dropping those entries from the layer control.
+- **Implicit globals `fgRgb` and `fgRgba` in `onConfigChange()`**: Both variables were used in the cluster foreground color handlers but never declared in the `let` block at the top of the function, leaking as window globals on every Format panel interaction.
+- **Unbounded `<style>` tag accumulation**: `onConfigChange()` and `createMarkerStyle()` appended a new `<style>` element to `<head>` on every cluster color change with no deduplication. Repeated Format panel interactions would accumulate stale style tags indefinitely. Both functions now use an idempotent update-or-create pattern, reusing the existing element via `.html()` on subsequent calls.
+- **`eval()` on milsymbol direction field**: `parseInt(eval(userData["msDirection"]))` replaced with `parseFloat()`, eliminating an unnecessary `eval` call on user-supplied SPL field data.
+- **`console.err` typo in Google Places error handler**: `console.err(...)` is not a valid method — Google Places initialization failures were completely silent. Corrected to `console.error()` and the caught error object is now passed through.
+- **Stylesheet DOM node queried repeatedly in `_darkModeInit()`**: The `$('link[rel="stylesheet"]...')` selector was re-evaluated on every iteration of both the delete and insert loops. The reference is now cached once before the loops.
+- **`validFields` array rebuilt on every `validateFields()` call**: The array literal was redeclared inside the function body, allocating a new array on every drilldown event. Promoted to a module-level property alongside `validMarkerTypes`.
+
+### Added
+- `_getConfigValue(name, configChanges, previousConfig, transform)` helper method on the visualization object. Encapsulates the repeated `_propertyExists` ternary pattern used throughout `onConfigChange()` for future use when refactoring that function.
+
+### Technical Notes
+- All fixes are internal — no changes to SPL field names, formatter options, or visualization behavior
+- No bundle size impact
+- Verified against 4.1.0 test dashboards: multi-viz global leak, mixed `layerVisibility`, cluster color accumulation, and `layerIconSize` legend rendering
+
 ## [4.1.0] - 2026-03-12
 
 ### Added

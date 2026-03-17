@@ -1,6 +1,32 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.2.0] - 2026-03-17
+
+### Added
+- **Dark theme auto-tile selection**: When Splunk's dark theme is active and the user has not explicitly chosen a map tile in the Format panel, the visualization now automatically selects CartoDB Dark instead of CartoDB Light. An explicit tile selection always takes precedence — this only applies when `mapTile` is still at its default value. CartoDB Dark attribution resolves through the existing `ATTRIBUTIONS` pipeline with no additional configuration required.
+- **GeoJSON feature polyline support**: Multi-point `feature` layer coordinates now render as a `L.polyline` when `featureFill=false` is set on the SPL row. Previously, all multi-point features rendered as `L.polygon` regardless of fill setting, producing a closed shape with no fill rather than an open line. Single-point features (circle markers) and polygon features where `featureFill` is unset or true are unaffected.
+
+### Changed
+- **Default map tile provider changed from OpenStreetMap to CartoDB Light**: The OpenStreetMap tile servers are a community-funded resource governed by a strict usage policy. Splunk's iframe sandboxing prevents the `Referer` header from being sent with tile requests, which violates OSM's identification requirements and causes tile blocking without notice. CartoDB Light is a drop-in visual replacement — same zoom levels, same coverage, no API key required — with terms of service compatible with embedded visualization use. OpenStreetMap remains available as a selectable option in the Map Tile dropdown for users who self-host or proxy OSM tiles in a compliant configuration.
+
+### Removed
+- **`refreshInterval` config option removed**: The Dashboard Refresh Interval Format panel option and its underlying implementation have been removed. The feature forced a full `location.reload()` of the entire browser window rather than refreshing the individual visualization panel, making it destructive to any other panels on the same dashboard. Splunk's native `<refresh>` tag on the panel search element is the correct replacement — it re-runs the search and calls `updateView()` on the visualization only, with no impact on other panels. Existing dashboards with `refreshInterval` set will silently ignore the stored value after upgrading; add `<refresh>30s</refresh>` (or your desired interval) inside the panel's `<search>` block to restore per-panel refresh behavior.
+
+### Fixed
+- **Path layer control shows raw identifier when `layerDescription` is unset**: When path rows did not include a `layerDescription` field, the layer control legend fell back to the raw `pathIdentifier` field value (typically an IP address, hostname, or ID string). The fallback now renders as `Path: <identifier>` for improved readability in the layer control.
+- **Coordinate dialog inputs unreadable in dark theme**: The `dialog:opened` event handler in `_darkModeInit()` set the dialog container background to black but did not style the `<input type="text">` fields inside the coordinate dialog. Input text was black-on-black. Fields now render with a dark background (`#1a1a1a`), white text, and a visible border.
+
+### Technical Notes
+- Default tile change: existing dashboards with an explicitly saved `mapTile` value are unaffected; the new default applies only to fresh installs and configurations where `mapTile` has never been set
+- Dark theme tile auto-selection compares `mapTile` against the value stored in `defaultConfig` at runtime — not a hardcoded string comparison, so future default tile changes are handled correctly without revisiting this logic
+- Feature polyline branch passes `featureColor`, `featureWeight`, and `featureOpacity` to `L.polyline`; `featureStroke`, `featureFill`, `featureFillColor`, and `featureFillOpacity` are intentionally excluded as they are not meaningful for open polylines
+- CartoDB Light and CartoDB Dark attributions were already present in the `ATTRIBUTIONS` lookup table — no attribution pipeline changes required
+- `refreshInterval` removal touches `maps-plus.js` (defaultConfig, updateView variable declaration, setTimeout block), `formatter.html` (control removed), and `README/savedsearches.conf.spec` (key entry should be removed)
+- Changes span `maps-plus.js` and `formatter.html`; no webpack bundle rebuild required for either file
+- No changes to SPL field names or existing Format panel options beyond those documented above
+- `featureFill` field was already in `validFields` — no drilldown impact
+
 ## [4.1.1] - 2026-03-13
 
 ### Fixed

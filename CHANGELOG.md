@@ -1,6 +1,21 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.3.0] - 2026-03-17
+
+### Added
+- **Marker selection via lasso polygon**: Users can now draw a freehand polygon on the map to select a group of markers and write them to the Splunk dashboard token `$mapmarkers$`. Enable via **Format → Markers → Allow Selecting Markers**. A drawing toolbar appears in the top-left corner of the map when enabled. Drawing, editing, or deleting a selection shape updates the token immediately. The token value is a JSON array containing the complete SPL row for each selected marker — all fields present in the search result are included, not just coordinates. All marker types participate in selection (PNG, SVG, icon, circle, milsymbol, custom). Implemented using [leaflet-draw](https://github.com/Leaflet/Leaflet.draw) for polygon drawing and [Turf.js](https://turfjs.org/) `pointsWithinPolygon` for point-in-polygon evaluation.
+
+### Technical Notes
+- New dependencies: `leaflet-draw@1.0.4`, `@turf/turf` pinned to `7.3.4`. The PR specified `@turf/turf@^5.1.6` but `turf.within` was removed in Turf v6 — updated to `turf.pointsWithinPolygon` (identical signature and return shape) and pinned to the tested version `7.3.4`
+- New config key: `display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers` (int, default `0`)
+- `allDataPoints` GeoJSON FeatureCollection is built during the `_.each(dataRows)` pass when `selectingMarkers` is enabled; each feature stores `properties.row` as the original `dataRows` index for O(1) token payload assembly after polygon evaluation
+- The draw toolbar is initialized once inside the `isInitializedDom` gate and tracked on `selectingMarkersToolbar` to prevent duplicate control registration across `updateView` cycles
+- `$mapmarkers$` token payload includes all SPL fields per row — dashboards with large `description` or `tooltip` HTML fields may produce large token values; this is documented in the README with mitigation guidance
+- Contribution credit: feature authored by [ChrisYounger](https://github.com/ChrisYounger) via PR #24; forward-ported to 4.3.0 codebase via cherry-pick with conflict resolution and Turf API update
+- New contrib assets: `leaflet-draw.css`, draw toolbar spritesheets (`spritesheet.png`, `spritesheet-2x.png`, `spritesheet.svg`)
+- Bundle rebuild required — `leaflet-draw` and `@turf/turf` are webpack bundle dependencies
+
 ## [4.2.0] - 2026-03-17
 
 ### Added

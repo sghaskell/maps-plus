@@ -225,7 +225,7 @@ Stroke width in pixels - **Default** `3`
 Whether to draw stroke along the path. Set it to `false` to disable borders on polygons or circles. 
 
 ##### featureFill 
-Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles.
+Whether to fill the path with color. Set it to `false` to disable filling on polygons or circles. For multi-point features, setting `featureFill=false` renders the coordinates as an open polyline (`L.polyline`) rather than a closed polygon — useful for drawing routes, boundaries, or lines without a fill area. Single-point features (circle markers) are unaffected by this field.
 
 ##### featureFillColor
 Feature fill color - Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), [Hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). - **Default** `featureColor`
@@ -814,8 +814,6 @@ Initial Height Of Map - **Default** `600`
 Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes. - **Default** `Enabled`
 ###### Auto Fit & Zoom Delay (ms)
 Delay in milliseconds before triggering Auto Fit & Zoom. Increase if you get inconsistent behavior - **Default** `500`
-###### Dashboard Refresh Interval
-Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)
 ###### Map Zoom
 Initial Zoom for map - **Default** `6`
 ###### Center Lat

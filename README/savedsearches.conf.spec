@@ -61,7 +61,6 @@ display.visualizations.custom.leaflet_maps_app.maps-plus.measureCompletedColor =
 display.visualizations.custom.leaflet_maps_app.maps-plus.measureLocalization = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.showPathLines = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList = <string>
-display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.pathRenderer = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval = <int>

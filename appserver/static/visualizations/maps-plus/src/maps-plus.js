@@ -149,7 +149,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maxClusterRadius': 80,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maxSpiderfySize': 100,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier': 1,
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTile': 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapTileOverride': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapAttributionOverride': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.layerControl' : 1,
@@ -199,7 +199,6 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.showPathLines': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.pathIdentifier': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.pathColorList': "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.refreshInterval': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplits': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.renderer': "svg",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.pathSplitInterval': 60,
@@ -271,6 +270,9 @@ _darkModeInit: function () {
     // Set dialog to black
     this.map.on('dialog:opened', function(e) {                        
         $('.leaflet-control-dialog').css({'background-color': '#000000'})
+        $('.leaflet-control-dialog input[type="text"]').css({'background-color': '#1a1a1a',
+                                                             'color': '#ffffff',
+                                                             'border': '1px solid #555555'})
         $('.leaflet-control-layers').css({'color': '#fff'})
     })
 
@@ -987,7 +989,7 @@ drawPath: function(options) {
             pathFg.options.name = pathName
             pathFg.options.layerPriority = layerPriority
             pathFg.options.layerType = layerType
-            pathFg.options.layerDescription = layerDescription
+            pathFg.options.layerDescription = layerDescription || ('Path: ' + (pathName || id))
             pathFg.options.layerVisibility = layerVisibility
         }
 
@@ -1982,7 +1984,6 @@ updateView: function(data, config) {
         showPlaybackPlayControl = parseInt(this._getEscapedProperty('showPlaybackPlayControl', config)),
         playbackTickLength = parseFloat(this._getEscapedProperty('playbackTickLength', config)),
         playbackSpeed = parseFloat(this._getEscapedProperty('playbackSpeed', config)),
-        refreshInterval = parseInt(this._getEscapedProperty('refreshInterval', config)) * 1000,
         heatmapEnable = parseInt(this._getEscapedProperty('heatmapEnable', config)),
         heatmapOnly = parseInt(this._getEscapedProperty('heatmapOnly', config)),
         heatmapMinOpacity = parseFloat(this._getEscapedProperty('heatmapMinOpacity', config)),
@@ -2065,13 +2066,6 @@ updateView: function(data, config) {
                                                                   featureLayers: this.featureLayers,
                                                                   context: this})
         }
-
-        // Dashboard refresh
-        if(refreshInterval > 0) {
-            setTimeout(function() {
-                location.reload()
-            }, refreshInterval)
-        }
     } 
     
     // Check for data and retrun if we don't have any
@@ -2100,8 +2094,16 @@ updateView: function(data, config) {
         renderer = this._getEscapedProperty('renderer', config),
         pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
 
-    this.activeTile = (mapTileOverride) ? mapTileOverride:mapTile
-    this.attribution = (mapAttributionOverride) ? mapAttributionOverride:this.ATTRIBUTIONS[mapTile]
+    // Auto-select CartoDB Dark when Splunk dark theme is active and the user
+    // has not explicitly chosen a tile (i.e. mapTile is still the default value).
+    // An explicit user selection in the Format panel always takes precedence.
+    var _defaultTile = this.defaultConfig[this.getPropertyNamespaceInfo().propertyNamespace + 'mapTile']
+    var _effectiveTile = (this.isDarkTheme && mapTile === _defaultTile)
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+        : mapTile
+
+    this.activeTile = (mapTileOverride) ? mapTileOverride : _effectiveTile
+    this.attribution = (mapAttributionOverride) ? mapAttributionOverride : this.ATTRIBUTIONS[_effectiveTile]
 
     // Initialize the DOM
     if (!this.isInitializedDom) {
@@ -2715,6 +2717,12 @@ updateView: function(data, config) {
                     fill: featureFill,
                     fillOpacity: featureFillOpacity,
                     fillColor: featureFillColor})
+            } else if(!this.isArgTrue(featureFill)) {
+                // Polyline: multi-point feature with fill disabled.
+                // featureFill=false in SPL opts into line rendering rather than polygon.
+                feature = L.polyline(latlngs, {color: featureColor,
+                    weight: featureWeight,
+                    opacity: featureOpacity})
             } else {
                 feature = L.polygon(latlngs, {color: featureColor,
                     weight: featureWeight,

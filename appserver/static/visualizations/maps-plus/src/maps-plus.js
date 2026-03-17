@@ -2082,10 +2082,10 @@ updateView: function(data, config) {
     // get data
     var dataRows = data.results
 
-            // check for data
-            if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-                return this
-            }
+    // check for data
+    if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
+        return this
+    }
 
     // Validate we have at least latitude and longitude fields
     if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
@@ -2334,46 +2334,46 @@ updateView: function(data, config) {
             this.map.addLayer(this.tileLayer)    
         }
 
-                // Add map controls which allow user to draw a polygon to select markers
-                // Add map controls for lasso marker selection
-                if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {
-                    var _viz = this;
-                    _viz.selectingMarkersLayer = new L.FeatureGroup();
-                    _viz.selectingMarkersToolbar = new L.Control.Draw({
-                        draw: {
-                            circle: false,
-                            marker: false,
-                            polyline: false,
-                            circlemarker: false
-                        },
-                        edit: {
-                            featureGroup: _viz.selectingMarkersLayer
-                        }
-                    });
-                    _viz.map.addLayer(_viz.selectingMarkersLayer);
-                    _viz.map.addControl(_viz.selectingMarkersToolbar);
-                    _viz.map.on('draw:created draw:deleted draw:edited', function(e) {
-                        if(e.type === 'draw:created') {
-                            _viz.selectingMarkersLayer.addLayer(e.layer)
-                        }
-                        var ptsWithinbuff = turf.within(viz.allDataPoints, viz.selectingMarkersLayer.toGeoJSON());
-                        console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
-                        var selectedPoints = [];
-                        for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
-                            selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
-                        }
-                        var defaultTokenModel = splunkjs.mvc.Components.get('default');
-                        var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
-                        var selected_points = JSON.stringify(selectedPoints);
-                        console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
-                        if (defaultTokenModel) {
-                            defaultTokenModel.set("mapmarkers", selected_points);
-                        }
-                        if (submittedTokenModel) {
-                            submittedTokenModel.set("mapmarkers", selected_points);
-                        }
-                    });
+        // Add map controls which allow user to draw a polygon to select markers
+        // Add map controls for lasso marker selection
+        if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {
+            var _viz = this;
+            _viz.selectingMarkersLayer = new L.FeatureGroup();
+            _viz.selectingMarkersToolbar = new L.Control.Draw({
+                draw: {
+                    circle: false,
+                    marker: false,
+                    polyline: false,
+                    circlemarker: false
+                },
+                edit: {
+                    featureGroup: _viz.selectingMarkersLayer
                 }
+            });
+            _viz.map.addLayer(_viz.selectingMarkersLayer);
+            _viz.map.addControl(_viz.selectingMarkersToolbar);
+            _viz.map.on('draw:created draw:deleted draw:edited', function(e) {
+                if(e.type === 'draw:created') {
+                    _viz.selectingMarkersLayer.addLayer(e.layer)
+                }
+                var ptsWithinbuff = turf.pointsWithinPolygon(_viz.allDataPoints, _viz.selectingMarkersLayer.toGeoJSON());
+                // console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
+                var selectedPoints = [];
+                for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
+                    selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
+                }
+                var defaultTokenModel = splunkjs.mvc.Components.get('default');
+                var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
+                var selected_points = JSON.stringify(selectedPoints);
+                console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
+                if (defaultTokenModel) {
+                    defaultTokenModel.set("mapmarkers", selected_points);
+                }
+                if (submittedTokenModel) {
+                    submittedTokenModel.set("mapmarkers", selected_points);
+                }
+            });
+        }
 
         this.markers = new L.MarkerClusterGroup({ 
             chunkedLoading: true,

@@ -1,6 +1,6 @@
 <form class="splunk-formatter-section" section-label="Map">
         <splunk-control-group label="Map Tile">
-            <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">
+            <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">
                               <option value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">Open Streetmap</option> 
                               <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option> 
                               <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option> 
@@ -70,9 +70,6 @@
         </splunk-control-group>
         <splunk-control-group label="Auto Fit & Zoom Delay (ms)" help="Delay in milliseconds before triggering Auto Fit & Zoom. Increase if you get inconsistent behavior (Default: 500).">
             <splunk-text-input name="{{VIZ_NAMESPACE}}.autoFitAndZoomDelay" value="500"></splunk-text-input>
-        </splunk-control-group>
-        <splunk-control-group label="Dashboard Refresh Interval" help="Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)">
-            <splunk-text-input name="{{VIZ_NAMESPACE}}.refreshInterval" value="0"></splunk-text-input>
         </splunk-control-group>
         <splunk-control-group label="Map Zoom" help="Initial Zoom for map (Default: 6).">
             <splunk-text-input name="{{VIZ_NAMESPACE}}.mapCenterZoom" value="6"></splunk-text-input>

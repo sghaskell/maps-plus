@@ -152,6 +152,12 @@
                                 <option value="0">Disabled</option>
                             </splunk-radio-input>
         </splunk-control-group>
+        <splunk-control-group label="Allow selecting markers" help="Show controls which allow selecting markers. Selected markers are set in token $mapmarkers$">
+            <splunk-radio-input name="{{VIZ_NAMESPACE}}.selectingMarkers" value="0">
+                                <option value="1">Enabled</option>
+                                <option value="0">Disabled</option>
+            </splunk-radio-input>
+        </splunk-control-group>
     </form>
     <form class="splunk-formatter-section" section-label="Heatmap">
         <splunk-control-group label="Enable Heatmap" help="Enable or disable heatmap.">

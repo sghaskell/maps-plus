@@ -326,6 +326,30 @@ When using the `Click` drilldown mouse event, use the `tooltip` field instead of
 #### Usage
 Drilldown is disabled by default. Enable it in the main **Map** section of the format menu.  Simply **double-click** on a marker to activate the drilldown behavior.
 
+### Marker Selection (Lasso)
+Draw a freehand polygon on the map to select a group of markers and write them to a Splunk dashboard token. This enables geographic filtering — lasso a region, then use the token to drive a downstream search, table, or other panel on the same dashboard.
+
+Enable marker selection via the Format menu option **Markers → Allow Selecting Markers → Enabled**. When enabled, a drawing toolbar appears in the top-left corner of the map. Click the polygon tool, draw a shape around the markers you want to select, and finish the shape by clicking back on the starting point. The token `$mapmarkers$` is set automatically with the selected marker data.
+
+#### Token Output
+The `$mapmarkers$` token is set as a JSON array of objects. Each object contains the complete SPL row for a marker within the lasso polygon — all fields present in your search result are included, not just `latitude` and `longitude`. For example:
+
+```
+$mapmarkers$ = [{"latitude":"37.77","longitude":"-122.41","title":"SF","markerColor":"red"}, ...]
+```
+
+Use `spath` or `eval` with `json_extract` in a downstream search to parse individual fields from the token value.
+
+#### Token Payload Size
+The `$mapmarkers$` token contains the **full row data** for every selected marker. If your search includes large `description` or `tooltip` fields with rich HTML content, selecting many markers at once can produce a very large token value. Splunk imposes a token size limit — if you experience truncation or dropped token values, consider removing or shortening `description` and `tooltip` from your `table` command when using marker selection, or use a separate search panel to enrich the data after filtering by a lightweight token field such as a unique ID.
+
+#### Behavior Notes
+- Drawing a new selection shape replaces the previous selection and updates `$mapmarkers$` immediately
+- Deleting or editing an existing shape also updates the token
+- All marker types are supported — PNG, SVG, icon, circle, milsymbol, and custom icons all participate in lasso selection
+- Marker selection is independent of layer visibility — markers in hidden layers are not included in the selection even if their coordinates fall within the lasso polygon
+- Marker selection is not compatible with Antarctic projection mode
+
 ### Layer Controls
 Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and stand-alone markers. 
 
@@ -852,6 +876,8 @@ Increase to increase the distance away that markers appear from the center when 
 Open the tooltip permanently or only on mouseover. Depends on tooltip field in search results.
 ###### Sticky Tooltip
 Tooltip follows mouse instead of fixed position.
+###### Allow Selecting Markers
+Enable a drawing toolbar that allows the user to draw a freehand polygon on the map to select markers. Selected markers are written as a JSON array to the dashboard token `$mapmarkers$`. See [Marker Selection (Lasso)](#marker-selection-lasso) for full details including token payload size considerations. - **Default** `Disabled`
 
 ### Heatmap
 ###### Enable Heatmap

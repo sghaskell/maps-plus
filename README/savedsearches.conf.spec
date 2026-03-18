@@ -30,6 +30,7 @@ display.visualizations.custom.leaflet_maps_app.maps-plus.minZoom = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.maxZoom = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.permanentTooltip = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.stickyTooltip = <int>
+display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesSearch = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyUser = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.googlePlacesApiKeyRealm = <string>

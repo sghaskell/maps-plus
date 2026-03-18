@@ -2365,7 +2365,7 @@ updateView: function(data, config) {
                 var defaultTokenModel = splunkjs.mvc.Components.get('default');
                 var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
                 var selected_points = JSON.stringify(selectedPoints);
-                console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
+                // console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
                 if (defaultTokenModel) {
                     defaultTokenModel.set("mapmarkers", selected_points);
                 }

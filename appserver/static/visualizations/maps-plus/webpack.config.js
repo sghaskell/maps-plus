@@ -123,7 +123,7 @@ module.exports = {
     plugins: [
         new UglifyJsPlugin({
             uglifyOptions: {
-                ecma: 2017,
+                ecma: 8,
                 compress: {
                     warnings: false
                 },

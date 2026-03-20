@@ -238,7 +238,8 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngToken': 0,
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngPrecision': 4
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngPrecision': 4,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.showClickMarker': 1,
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -257,6 +258,7 @@ initialize: function() {
     this.allDataProcessed = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
+    this._clickMarker = null
 },
 
 // Search data params
@@ -760,6 +762,16 @@ onConfigChange: function(configChanges, previousConfig) {
             this.map.getContainer().style.cursor = 'crosshair';
         } else {
             this.map.getContainer().style.cursor = '';
+            if (this._clickMarker) {
+                this.map.removeLayer(this._clickMarker);
+                this._clickMarker = null;
+            }
+        }
+    }
+    if(this._propertyExists('showClickMarker', configChanges)) {
+        if(!this.isArgTrue(parseInt(this._getEscapedProperty('showClickMarker', configChanges))) && this._clickMarker) {
+            this.map.removeLayer(this._clickMarker);
+            this._clickMarker = null;
         }
     }
 },
@@ -2299,6 +2311,19 @@ updateView: function(data, config) {
                 submittedTokenModel.set('clickedLat', lat);
                 submittedTokenModel.set('clickedLng', lng);
                 submittedTokenModel.set('clickedLatLng', lat + ',' + lng);
+            }
+            if (_mapClickSelf.isArgTrue(parseInt(_mapClickSelf._getEscapedProperty('showClickMarker', _mapClickSelf.getCurrentConfig())))) {
+                if (_mapClickSelf._clickMarker) {
+                    _mapClickSelf.map.removeLayer(_mapClickSelf._clickMarker);
+                }
+                _mapClickSelf._clickMarker = L.marker(e.latlng, {
+                    icon: L.divIcon({
+                        className: 'maps-plus-click-marker',
+                        html: '<i class="fa fa-crosshairs"></i>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).addTo(_mapClickSelf.map);
             }
         });
 

@@ -27,14 +27,14 @@ module.exports = {
             // Babel transpiles ES6 to ES5 FIRST (before other loaders)
             {
                 test: /\.js$/,
-                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet)\/).*/,
+                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet|@geoman-io\/leaflet-geoman-free)\/).*/,
                 use: {
                     loader: 'babel-loader',
                     options: {
                         presets: [
                             ['env', {
                                 targets: {
-                                    browsers: ['ie 11']
+                                    browsers: ['last 2 Chrome versions', 'last 2 Firefox versions', 'last 2 Safari versions', 'last 2 Edge versions']
                                 },
                                 modules: false
                             }]
@@ -123,7 +123,7 @@ module.exports = {
     plugins: [
         new UglifyJsPlugin({
             uglifyOptions: {
-                ecma: 5,  // Output ES5-compatible code
+                ecma: 8,
                 compress: {
                     warnings: false
                 },

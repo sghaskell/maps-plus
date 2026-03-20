@@ -13,4 +13,14 @@
 @import url('./contrib/css/leaflet-vector-markers.css');
 @import url('./contrib/css/leaflet-gplaces-autocomplete.css');
 @import url('./contrib/css/leaflet-dark.css');
-@import url('./contrib/css/leaflet-draw.css');
+@import url('./contrib/css/leaflet-geoman.css');
+
+.maps-plus-click-marker {
+    background: transparent;
+    border: none;
+}
+.maps-plus-click-marker i {
+    font-size: 20px;
+    color: #e74c3c;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}

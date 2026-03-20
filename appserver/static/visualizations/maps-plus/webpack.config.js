@@ -27,7 +27,7 @@ module.exports = {
             // Babel transpiles ES6 to ES5 FIRST (before other loaders)
             {
                 test: /\.js$/,
-                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet)\/).*/,
+                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet|@geoman-io\/leaflet-geoman-free)\/).*/,
                 use: {
                     loader: 'babel-loader',
                     options: {

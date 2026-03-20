@@ -27,7 +27,7 @@
     "jszip-utils": "0.0.2",
     "milsymbol": "^3.0.3",
     "@turf/turf": "7.3.4",
-    "@geoman-io/leaflet-geoman-free": "^2.16.0",
+    "@geoman-io/leaflet-geoman-free": "2.11.4",
     "leaflet-measure": "sghaskell/leaflet-measure#master",
     "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",

@@ -37,8 +37,8 @@ define([
             '../contrib/js/jquery.i18n.parser',
             '../contrib/js/jquery.i18n.emitter',
             '../contrib/js/jquery.i18n.emitter.bidi',
-            'leaflet-draw'
-            
+            '@geoman-io/leaflet-geoman-free'
+
         ],
         function(
             $,
@@ -2335,29 +2335,28 @@ updateView: function(data, config) {
         }
 
         // Add map controls which allow user to draw a polygon to select markers
-        // Add map controls for lasso marker selection
         if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {
             var _viz = this;
             _viz.selectingMarkersLayer = new L.FeatureGroup();
-            _viz.selectingMarkersToolbar = new L.Control.Draw({
-                draw: {
-                    circle: false,
-                    marker: false,
-                    polyline: false,
-                    circlemarker: false
-                },
-                edit: {
-                    featureGroup: _viz.selectingMarkersLayer
-                }
-            });
+            _viz.selectingMarkersToolbar = true;
             _viz.map.addLayer(_viz.selectingMarkersLayer);
-            _viz.map.addControl(_viz.selectingMarkersToolbar);
-            _viz.map.on('draw:created draw:deleted draw:edited', function(e) {
-                if(e.type === 'draw:created') {
-                    _viz.selectingMarkersLayer.addLayer(e.layer)
-                }
+            _viz.map.pm.addControls({
+                drawPolygon:      true,
+                drawRectangle:    true,
+                removalMode:      true,
+                drawMarker:       false,
+                drawCircleMarker: false,
+                drawPolyline:     false,
+                drawCircle:       false,
+                drawText:         false,
+                editMode:         false,
+                dragMode:         false,
+                cutPolygon:       false,
+                rotateMode:       false
+            });
+
+            function updateSelectedPoints() {
                 var ptsWithinbuff = turf.pointsWithinPolygon(_viz.allDataPoints, _viz.selectingMarkersLayer.toGeoJSON());
-                // console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
                 var selectedPoints = [];
                 for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
                     selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
@@ -2365,13 +2364,25 @@ updateView: function(data, config) {
                 var defaultTokenModel = splunkjs.mvc.Components.get('default');
                 var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
                 var selected_points = JSON.stringify(selectedPoints);
-                // console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
                 if (defaultTokenModel) {
                     defaultTokenModel.set("mapmarkers", selected_points);
                 }
                 if (submittedTokenModel) {
                     submittedTokenModel.set("mapmarkers", selected_points);
                 }
+            }
+
+            _viz.map.on('pm:create', function(e) {
+                _viz.selectingMarkersLayer.addLayer(e.layer);
+                e.layer.on('pm:remove', function() {
+                    _viz.selectingMarkersLayer.removeLayer(e.layer);
+                    updateSelectedPoints();
+                });
+                updateSelectedPoints();
+            });
+
+            _viz.map.on('pm:edit', function() {
+                updateSelectedPoints();
             });
         }
 

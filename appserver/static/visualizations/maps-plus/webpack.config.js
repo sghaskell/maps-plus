@@ -34,7 +34,7 @@ module.exports = {
                         presets: [
                             ['env', {
                                 targets: {
-                                    browsers: ['ie 11']
+                                    browsers: ['last 2 Chrome versions', 'last 2 Firefox versions', 'last 2 Safari versions', 'last 2 Edge versions']
                                 },
                                 modules: false
                             }]
@@ -123,7 +123,7 @@ module.exports = {
     plugins: [
         new UglifyJsPlugin({
             uglifyOptions: {
-                ecma: 5,  // Output ES5-compatible code
+                ecma: 2017,
                 compress: {
                     warnings: false
                 },

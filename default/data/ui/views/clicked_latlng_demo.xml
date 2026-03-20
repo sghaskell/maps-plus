@@ -12,13 +12,10 @@
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults count=15
-| eval _time=now()
-| eval latitude=case(
-    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2))
-  )
-| eval longitude=case(
-    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2 + 1))
-  )
+| streamstats count as _serial
+| eval _serial=_serial-1
+| eval latitude=mvindex(split("47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3", ","), _serial)
+| eval longitude=mvindex(split("-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0", ","), _serial)
 | eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
 | eval count=mvindex(split("142,287,513,198,76,334,89,210,55,167,301,423,88,256,378", ","), _serial)
 | table latitude, longitude, title, count</query>
@@ -59,7 +56,7 @@
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
@@ -124,21 +121,18 @@
       </table>
     </panel>
     <panel depends="$clickedLatLng$">
-      <title>Nearest Markers</title>
+      <title>Nearest Markers (within 500km)</title>
       <table>
         <search>
           <query>| makeresults count=15
-| eval _time=now()
-| eval lat=case(
-    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2))
-  )
-| eval lng=case(
-    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2 + 1))
-  )
+| streamstats count as _serial
+| eval _serial=_serial-1
+| eval lat=mvindex(split("47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3", ","), _serial)
+| eval lng=mvindex(split("-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0", ","), _serial)
 | eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
 | eval clicked_lat=$clickedLat$, clicked_lng=$clickedLng$
-| eval dlat=toradians(lat-clicked_lat), dlng=toradians(lng-clicked_lng)
-| eval a=pow(sin(dlat/2),2)+cos(toradians(clicked_lat))*cos(toradians(lat))*pow(sin(dlng/2),2)
+| eval dlat=(lat-clicked_lat)*pi()/180, dlng=(lng-clicked_lng)*pi()/180
+| eval a=pow(sin(dlat/2),2)+cos(clicked_lat*pi()/180)*cos(lat*pi()/180)*pow(sin(dlng/2),2)
 | eval distance_km=round(6371*2*asin(sqrt(a)),1)
 | where distance_km &lt; 500
 | sort distance_km

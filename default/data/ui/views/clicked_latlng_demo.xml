@@ -1,0 +1,174 @@
+<form version="1.1">
+  <label>Click Lat/Lng Token Demo</label>
+  <init>
+    <set token="clickedLat">0</set>
+    <set token="clickedLng">0</set>
+    <set token="clickedLatLng">Not yet clicked</set>
+  </init>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <title>Click anywhere on the map to set coordinate tokens</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=15
+| eval _time=now()
+| eval latitude=case(
+    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2))
+  )
+| eval longitude=case(
+    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2 + 1))
+  )
+| eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
+| eval count=mvindex(split("142,287,513,198,76,334,89,210,55,167,301,423,88,256,378", ","), _serial)
+| table latitude, longitude, title, count</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
+        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
+        <option name="leaflet_maps_app.maps-plus.clickLatLngPrecision">4</option>
+        <option name="leaflet_maps_app.maps-plus.clickLatLngToken">1</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
+        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
+        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
+        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
+        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
+        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
+        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
+        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
+        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
+        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
+        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
+        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
+        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
+        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.selectingMarkers">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
+        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
+        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
+        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$clickedLatLng$">
+      <title>Clicked Coordinates</title>
+      <table>
+        <search>
+          <query>| makeresults
+| eval lat="$clickedLat$", lng="$clickedLng$", coordinates="$clickedLatLng$"
+| table lat, lng, coordinates</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel depends="$clickedLatLng$">
+      <title>Nearest Markers</title>
+      <table>
+        <search>
+          <query>| makeresults count=15
+| eval _time=now()
+| eval lat=case(
+    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2))
+  )
+| eval lng=case(
+    _time==_time, mvindex(split("47.6,-122.3,34.05,-118.2,41.8,-87.6,29.7,-95.3,33.4,-112.0,39.9,-75.1,25.7,-80.4,44.9,-93.2,36.1,-115.1,45.5,-122.6,32.7,-117.1,39.7,-104.9,35.2,-80.8,30.3,-97.7,42.3,-71.0", ","), (_serial * 2 + 1))
+  )
+| eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
+| eval clicked_lat=$clickedLat$, clicked_lng=$clickedLng$
+| eval dlat=toradians(lat-clicked_lat), dlng=toradians(lng-clicked_lng)
+| eval a=pow(sin(dlat/2),2)+cos(toradians(clicked_lat))*cos(toradians(lat))*pow(sin(dlng/2),2)
+| eval distance_km=round(6371*2*asin(sqrt(a)),1)
+| where distance_km &lt; 500
+| sort distance_km
+| table title, lat, lng, distance_km
+| rename title as "Location", lat as "Latitude", lng as "Longitude", distance_km as "Distance (km)"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel depends="$clickedLatLng$">
+      <title>Open in Maps</title>
+      <table>
+        <search>
+          <query>| makeresults
+| eval label="Open $clickedLatLng$ in Google Maps"
+| table label</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">row</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link target="_blank">https://www.google.com/maps?q=$clickedLat$,$clickedLng$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

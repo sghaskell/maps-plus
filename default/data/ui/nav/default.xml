@@ -24,6 +24,7 @@
         <view name="antarctic_projection" />
         <view name="milsymbol" />
         <view name="selecting_markers" />
+        <view name="clicked_latlng_demo" />
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

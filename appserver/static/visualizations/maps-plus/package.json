@@ -1,11 +1,11 @@
 {
   "name": "leaflet_maps_app",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {
-    "build": "webpack",
-    "devbuild": "webpack --progress"
+    "build": "webpack && cp node_modules/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css contrib/css/",
+    "devbuild": "webpack --progress && cp node_modules/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css contrib/css/"
   },
   "author": "Splunk",
   "license": "MIT",
@@ -27,7 +27,7 @@
     "jszip-utils": "0.0.2",
     "milsymbol": "^3.0.3",
     "@turf/turf": "7.3.4",
-    "leaflet-draw": "^1.0.4",
+    "@geoman-io/leaflet-geoman-free": "2.11.4",
     "leaflet-measure": "sghaskell/leaflet-measure#master",
     "transform-loader": "^0.2.3",
     "brfs": "^1.4.3",

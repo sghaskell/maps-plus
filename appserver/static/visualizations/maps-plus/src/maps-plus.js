@@ -37,8 +37,8 @@ define([
             '../contrib/js/jquery.i18n.parser',
             '../contrib/js/jquery.i18n.emitter',
             '../contrib/js/jquery.i18n.emitter.bidi',
-            'leaflet-draw'
-            
+            '@geoman-io/leaflet-geoman-free'
+
         ],
         function(
             $,
@@ -236,7 +236,10 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""',
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngToken': 0,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngPrecision': 4,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.showClickMarker': 1,
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -255,6 +258,7 @@ initialize: function() {
     this.allDataProcessed = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
+    this._clickMarker = null
 },
 
 // Search data params
@@ -749,7 +753,26 @@ onConfigChange: function(configChanges, previousConfig) {
         this.measureControl.addTo(this.map)
         this.control.addTo(this.map)
         if(this.isDarkTheme) { this._darkModeUpdate() }
-        
+
+    }
+
+    // Handle clickLatLngToken cursor style change
+    if(this._propertyExists('clickLatLngToken', configChanges)) {
+        if(this.isArgTrue(parseInt(this._getEscapedProperty('clickLatLngToken', configChanges)))) {
+            this.map.getContainer().style.cursor = 'crosshair';
+        } else {
+            this.map.getContainer().style.cursor = '';
+            if (this._clickMarker) {
+                this.map.removeLayer(this._clickMarker);
+                this._clickMarker = null;
+            }
+        }
+    }
+    if(this._propertyExists('showClickMarker', configChanges)) {
+        if(!this.isArgTrue(parseInt(this._getEscapedProperty('showClickMarker', configChanges))) && this._clickMarker) {
+            this.map.removeLayer(this._clickMarker);
+            this._clickMarker = null;
+        }
     }
 },
 
@@ -2013,7 +2036,9 @@ updateView: function(data, config) {
         msInfoBackgroundFrame = this._stringToJSON(this._getProperty('msInfoBackgroundFrame', config)),
         msStandard = this._getEscapedProperty('msInfoBackgroundFrame', config),
         msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config)),
-        selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config))
+        selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config)),
+        clickLatLngToken = parseInt(this._getEscapedProperty('clickLatLngToken', config)),
+        clickLatLngPrecision = parseInt(this._getEscapedProperty('clickLatLngPrecision', config)) || 4
 
 
     // Auto Fit & Zoom once we've processed all data
@@ -2263,6 +2288,45 @@ updateView: function(data, config) {
         // Create map 
         this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
 
+        // Set cursor style and click handler for clickLatLngToken
+        if(this.isArgTrue(clickLatLngToken)) {
+            this.map.getContainer().style.cursor = 'crosshair';
+        }
+        var _mapClickSelf = this;
+        this.map.on('click', function(e) {
+            if(!_mapClickSelf.isArgTrue(parseInt(_mapClickSelf._getEscapedProperty('clickLatLngToken', _mapClickSelf.getCurrentConfig())))) {
+                return;
+            }
+            var precision = parseInt(_mapClickSelf._getEscapedProperty('clickLatLngPrecision', _mapClickSelf.getCurrentConfig())) || 4;
+            var lat = e.latlng.lat.toFixed(precision);
+            var lng = e.latlng.lng.toFixed(precision);
+            var defaultTokenModel = splunkjs.mvc.Components.get('default');
+            var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
+            if (defaultTokenModel) {
+                defaultTokenModel.set('clickedLat', lat);
+                defaultTokenModel.set('clickedLng', lng);
+                defaultTokenModel.set('clickedLatLng', lat + ',' + lng);
+            }
+            if (submittedTokenModel) {
+                submittedTokenModel.set('clickedLat', lat);
+                submittedTokenModel.set('clickedLng', lng);
+                submittedTokenModel.set('clickedLatLng', lat + ',' + lng);
+            }
+            if (_mapClickSelf.isArgTrue(parseInt(_mapClickSelf._getEscapedProperty('showClickMarker', _mapClickSelf.getCurrentConfig())))) {
+                if (_mapClickSelf._clickMarker) {
+                    _mapClickSelf.map.removeLayer(_mapClickSelf._clickMarker);
+                }
+                _mapClickSelf._clickMarker = L.marker(e.latlng, {
+                    icon: L.divIcon({
+                        className: 'maps-plus-click-marker',
+                        html: '<i class="fa fa-crosshairs"></i>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    })
+                }).addTo(_mapClickSelf.map);
+            }
+        });
+
         // Dark Mode Support
         if(this.isDarkTheme) { this._darkModeInit() }
 
@@ -2335,29 +2399,28 @@ updateView: function(data, config) {
         }
 
         // Add map controls which allow user to draw a polygon to select markers
-        // Add map controls for lasso marker selection
         if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {
             var _viz = this;
             _viz.selectingMarkersLayer = new L.FeatureGroup();
-            _viz.selectingMarkersToolbar = new L.Control.Draw({
-                draw: {
-                    circle: false,
-                    marker: false,
-                    polyline: false,
-                    circlemarker: false
-                },
-                edit: {
-                    featureGroup: _viz.selectingMarkersLayer
-                }
-            });
+            _viz.selectingMarkersToolbar = true;
             _viz.map.addLayer(_viz.selectingMarkersLayer);
-            _viz.map.addControl(_viz.selectingMarkersToolbar);
-            _viz.map.on('draw:created draw:deleted draw:edited', function(e) {
-                if(e.type === 'draw:created') {
-                    _viz.selectingMarkersLayer.addLayer(e.layer)
-                }
+            _viz.map.pm.addControls({
+                drawPolygon:      true,
+                drawRectangle:    true,
+                removalMode:      true,
+                drawMarker:       false,
+                drawCircleMarker: false,
+                drawPolyline:     false,
+                drawCircle:       false,
+                drawText:         false,
+                editMode:         false,
+                dragMode:         false,
+                cutPolygon:       false,
+                rotateMode:       false
+            });
+
+            function updateSelectedPoints() {
                 var ptsWithinbuff = turf.pointsWithinPolygon(_viz.allDataPoints, _viz.selectingMarkersLayer.toGeoJSON());
-                // console.log('There are ' + ptsWithinbuff.features.length + ' points within the selected area');
                 var selectedPoints = [];
                 for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
                     selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
@@ -2365,13 +2428,25 @@ updateView: function(data, config) {
                 var defaultTokenModel = splunkjs.mvc.Components.get('default');
                 var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
                 var selected_points = JSON.stringify(selectedPoints);
-                // console.log("Setting token $mapmarkers$ to \"" + selected_points + "\"");
                 if (defaultTokenModel) {
                     defaultTokenModel.set("mapmarkers", selected_points);
                 }
                 if (submittedTokenModel) {
                     submittedTokenModel.set("mapmarkers", selected_points);
                 }
+            }
+
+            _viz.map.on('pm:create', function(e) {
+                _viz.selectingMarkersLayer.addLayer(e.layer);
+                e.layer.on('pm:remove', function() {
+                    _viz.selectingMarkersLayer.removeLayer(e.layer);
+                    updateSelectedPoints();
+                });
+                updateSelectedPoints();
+            });
+
+            _viz.map.on('pm:edit', function() {
+                updateSelectedPoints();
             });
         }
 

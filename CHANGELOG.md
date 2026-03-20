@@ -1,6 +1,25 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.4.0] - 2026-03-20
+
+### Added
+- Replace abandoned leaflet-draw with Leaflet-Geoman (`@geoman-io/leaflet-geoman-free@2.11.4`) for marker selection — actively maintained successor with improved polygon and rectangle drawing
+- `$clickedLatLng$` token support — clicking anywhere on the map sets `$clickedLat$`, `$clickedLng$`, and `$clickedLatLng$` tokens for use in SPL drilldown and proximity queries
+- `showClickMarker` option — displays a crosshair marker at the last clicked map location
+- `clickLatLngPrecision` option — configurable decimal precision for coordinate tokens (default: 4)
+- Demo dashboard `clicked_latlng_demo.xml` showcasing coordinate tokens and haversine proximity query
+
+### Changed
+- Babel transpilation target updated from IE11 to modern evergreen browsers (Chrome, Firefox, Safari, Edge) — reduces bundle size
+
+### Fixed
+- UglifyJS `ecma` option corrected to integer `8` for Webpack 3 schema compliance
+
+### Removed
+- IE11 as a supported transpilation target
+- `leaflet-draw` dependency (replaced by Leaflet-Geoman)
+
 ## [4.3.0] - 2026-03-17
 
 ### Added

@@ -8,6 +8,62 @@
   <fieldset submitButton="false"></fieldset>
   <row>
     <panel>
+      <html>
+        <h2>Click Lat/Lng Token Feature</h2>
+        <p>
+          When enabled, clicking anywhere on the map immediately sets three Splunk dashboard tokens —
+          <code>$$clickedLat$$</code>, <code>$$clickedLng$$</code>, and <code>$$clickedLatLng$$</code> —
+          that can drive searches, filters, and drilldowns elsewhere on the dashboard — no custom
+          JavaScript required.
+        </p>
+        <table style="border-collapse:collapse; margin:10px 0 16px 0;">
+          <tr>
+            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLat$</td>
+            <td style="padding:4px 0;">Latitude of the clicked point (e.g. <code>39.7392</code>)</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLng$</td>
+            <td style="padding:4px 0;">Longitude of the clicked point (e.g. <code>-104.9903</code>)</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLatLng$</td>
+            <td style="padding:4px 0;">Combined coordinate string (e.g. <code>39.7392,-104.9903</code>)</td>
+          </tr>
+        </table>
+        <h3 style="margin-top:16px;">Enabling the feature</h3>
+        <p>
+          Open the visualization format menu (the pencil icon on the map panel) and navigate to the
+          <b>Marker Options</b> section. Three settings control this feature:
+        </p>
+        <ul>
+          <li>
+            <b>Click Lat/Lng Token</b> — Enable this to activate token-setting on map click.
+            When enabled, the map cursor changes to a crosshair to indicate click mode is active.
+          </li>
+          <li>
+            <b>Show Click Marker</b> — When enabled, a red crosshair icon is placed on the map at
+            the last clicked location and replaced on each subsequent click. Disable to set tokens
+            silently without a visual marker.
+          </li>
+          <li>
+            <b>Lat/Lng Decimal Precision</b> — Controls the number of decimal places in the
+            coordinate values (default: 4). Higher precision gives more exact coordinates;
+            lower precision gives rounded values suitable for coarse filtering.
+          </li>
+        </ul>
+        <h3 style="margin-top:16px;">Example use cases</h3>
+        <ul>
+          <li><b>Radius search</b> — use <code>$$clickedLat$$</code> and <code>$$clickedLng$$</code> in a haversine SPL query to find events within N km of the clicked point (demonstrated below)</li>
+          <li><b>Geo-filter</b> — pass coordinates into a lookup or subsearch to filter a table or chart to a specific region</li>
+          <li><b>External map link</b> — use <code>$$clickedLatLng$$</code> in a drilldown link to open Google Maps, OpenStreetMap, or any geo tool (demonstrated below)</li>
+          <li><b>Dynamic SPL</b> — substitute coordinates directly into search queries: <code>| where haversine(lat, lng, $$clickedLat$$, $$clickedLng$$) &lt; 100</code></li>
+          <li><b>Cross-panel context</b> — click a region on the map to update charts, tables, or single-value panels elsewhere on the same dashboard</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
       <title>Click anywhere on the map to set coordinate tokens</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>

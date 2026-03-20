@@ -236,7 +236,9 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""',
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngToken': 0,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngPrecision': 4
 },
 ATTRIBUTIONS: {
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png': '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -749,7 +751,16 @@ onConfigChange: function(configChanges, previousConfig) {
         this.measureControl.addTo(this.map)
         this.control.addTo(this.map)
         if(this.isDarkTheme) { this._darkModeUpdate() }
-        
+
+    }
+
+    // Handle clickLatLngToken cursor style change
+    if(this._propertyExists('clickLatLngToken', configChanges)) {
+        if(this.isArgTrue(parseInt(this._getEscapedProperty('clickLatLngToken', configChanges)))) {
+            this.map.getContainer().style.cursor = 'crosshair';
+        } else {
+            this.map.getContainer().style.cursor = '';
+        }
     }
 },
 
@@ -2013,7 +2024,9 @@ updateView: function(data, config) {
         msInfoBackgroundFrame = this._stringToJSON(this._getProperty('msInfoBackgroundFrame', config)),
         msStandard = this._getEscapedProperty('msInfoBackgroundFrame', config),
         msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config)),
-        selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config))
+        selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config)),
+        clickLatLngToken = parseInt(this._getEscapedProperty('clickLatLngToken', config)),
+        clickLatLngPrecision = parseInt(this._getEscapedProperty('clickLatLngPrecision', config)) || 4
 
 
     // Auto Fit & Zoom once we've processed all data
@@ -2262,6 +2275,32 @@ updateView: function(data, config) {
 
         // Create map 
         this.map = new L.Map(this.el, this.mapOptions).setView([mapCenterLat, mapCenterLon], mapCenterZoom)
+
+        // Set cursor style and click handler for clickLatLngToken
+        if(this.isArgTrue(clickLatLngToken)) {
+            this.map.getContainer().style.cursor = 'crosshair';
+        }
+        var _mapClickSelf = this;
+        this.map.on('click', function(e) {
+            if(!_mapClickSelf.isArgTrue(parseInt(_mapClickSelf._getEscapedProperty('clickLatLngToken', _mapClickSelf.getCurrentConfig())))) {
+                return;
+            }
+            var precision = parseInt(_mapClickSelf._getEscapedProperty('clickLatLngPrecision', _mapClickSelf.getCurrentConfig())) || 4;
+            var lat = e.latlng.lat.toFixed(precision);
+            var lng = e.latlng.lng.toFixed(precision);
+            var defaultTokenModel = splunkjs.mvc.Components.get('default');
+            var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
+            if (defaultTokenModel) {
+                defaultTokenModel.set('clickedLat', lat);
+                defaultTokenModel.set('clickedLng', lng);
+                defaultTokenModel.set('clickedLatLng', lat + ',' + lng);
+            }
+            if (submittedTokenModel) {
+                submittedTokenModel.set('clickedLat', lat);
+                submittedTokenModel.set('clickedLng', lng);
+                submittedTokenModel.set('clickedLatLng', lat + ',' + lng);
+            }
+        });
 
         // Dark Mode Support
         if(this.isDarkTheme) { this._darkModeInit() }

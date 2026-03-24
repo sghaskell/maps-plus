@@ -44,34 +44,25 @@ module.exports = {
                     }
                 }
             },
-            // Pattern A: aliased default imports (var L = require('leaflet'))
+            // Pattern A: inject globals via additionalCode (var require) — keeps modules as
+            // CommonJS so Webpack's AMD transformer rewrites define() calls at build time.
+            // Using ESM import syntax (imports-loader 'default') would make Webpack treat
+            // these as ESM, disabling AMD transformation and causing UMD modules to call
+            // RequireJS's global define() at runtime → "Mismatched anonymous define" errors.
             {
                 test: /leaflet\.spin\.js$/,
                 loader: 'imports-loader',
-                options: { imports: 'default leaflet L' }
+                options: { additionalCode: 'var L = require("leaflet");' }
             },
             {
                 test: /HeatLayer\.js$/,
-                use: [
-                    {
-                        loader: 'imports-loader',
-                        options: { imports: 'default leaflet L' }
-                    },
-                    {
-                        loader: 'imports-loader',
-                        options: { imports: 'default simpleheat simpleheat' }
-                    }
-                ]
+                loader: 'imports-loader',
+                options: { additionalCode: 'var L = require("leaflet"); var simpleheat = require("simpleheat");' }
             },
             {
                 test: /leaflet\.awesome-markers\.js$/,
                 loader: 'imports-loader',
-                options: { imports: 'default leaflet L' }
-            },
-            {
-                test: /leaflet-vector-markers\.js$/,
-                loader: 'imports-loader',
-                options: { imports: 'default leaflet L' }
+                options: { additionalCode: 'var L = require("leaflet");' }
             },
             // Pattern B: disable AMD define
             {
@@ -83,96 +74,56 @@ module.exports = {
             {
                 test: /Modal\.js$/,
                 loader: 'imports-loader',
-                options: { imports: 'default underscore _' }
+                options: { additionalCode: 'var _ = require("underscore");' }
             },
             // Pattern C: multiple jQuery aliases
             {
                 test: /CLDRPluralRuleParser\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.emitter\.bidi\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.emitter\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.fallbacks\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.language\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.messagestore\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
             {
                 test: /jquery\.i18n\.parser\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             },
-            // leaflet-measure: imports-loader + brfs transform (see Task 4 if this fails)
+            // leaflet-measure: imports-loader + brfs transform
             {
                 test: /leaflet-measure\.js$/,
                 use: [
                     {
                         loader: 'imports-loader',
-                        options: { imports: 'default leaflet L' }
+                        options: { additionalCode: 'var L = require("leaflet");' }
                     },
                     'transform-loader?brfs'
                 ]
@@ -180,12 +131,7 @@ module.exports = {
             {
                 test: /LeafletPlayback\.js$/,
                 loader: 'imports-loader',
-                options: {
-                    imports: [
-                        { syntax: 'default', moduleName: 'jquery', name: '$' },
-                        { syntax: 'default', moduleName: 'jquery', name: 'jQuery' }
-                    ]
-                }
+                options: { additionalCode: 'var $ = require("jquery"); var jQuery = require("jquery");' }
             }
         ]
     },

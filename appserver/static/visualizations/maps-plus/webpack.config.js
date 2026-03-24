@@ -218,5 +218,9 @@ module.exports = {
         ]
     },
 
+    performance: {
+        hints: false  // bundle size warnings are not actionable for a Splunk AMD visualization
+    },
+
     devtool: false
 };

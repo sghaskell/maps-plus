@@ -13,8 +13,9 @@ appserver/static/visualizations/google-street-view/src/ export-ignore
 appserver/static/visualizations/google-street-view/webpack.config.js export-ignore
 appserver/static/visualizations/google-street-view/package.json export-ignore
 
-# Superpowers dev docs (not for end users)
+# Dev docs (not for end users)
 docs/ export-ignore
+CLAUDE.md export-ignore
 
 # Build dependencies (never ship to users)
 appserver/static/visualizations/maps-plus/node_modules/ export-ignore

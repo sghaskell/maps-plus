@@ -1558,7 +1558,7 @@ _createClusterGroup: function(disableClusteringAtZoom,
         maxClusterRadius: maxClusterRadius,
         maxSpiderfySize: maxSpiderfySize,
         spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
-        removeOutsideVisibleBounds:false,
+        removeOutsideVisibleBounds: true,
         singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
         animate: (this.isArgTrue(animate)),
         iconCreateFunction: function(cluster) {

@@ -856,6 +856,9 @@ Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs
 Use your own attribution.
 ###### Renderer
 Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.
+###### Result Count Limit
+Maps+ requests all available results from the search job (`count: 0`). The actual number of results returned is controlled by Splunk's `maxresultrows` setting in `limits.conf` (default: 50,000 for most installations). If you are seeing fewer results than expected, increase `maxresultrows` in your Splunk configuration or use SPL to pre-aggregate your data before visualizing.
+
 ###### Progress Indicator
 Display progress spinner for long running searches
 ###### Scroll Wheel Zoom

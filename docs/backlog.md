@@ -28,12 +28,12 @@ OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loa
 - **#36:** Root cause was `onEachFeature` calling `map.getPane(feature.properties.name)` when `name` is undefined (common in GPS track KML exports with unnamed features). `map.getPane(undefined)` returns undefined and `.style.zIndex` throws, stopping all features from rendering. Fixed with a null guard in both the KMZ and KML code paths. Added `.fail()` error handler to `$.ajax` so load failures surface in the console instead of silently disappearing.
 - **#38:** Added URL detection (`/^https?:\/\//`) in the `kmlOverlay` loop — values starting with `http://` or `https://` are used directly, bypassing the app-relative `contrib/kml/` path. Splunk Cloud users can now reference externally-hosted KML/KMZ files. Close #38 as resolved-by.
 
-### #27 — Empty state + marker limit
+### #27 — Empty state + marker limit ✅ CLOSED
 **Type:** Bug / UX
 **Source:** https://github.com/sghaskell/maps-plus/issues/27
-Two sub-issues:
-- When search returns no results, the viz throws an error instead of rendering a blank map.
-- Canvas circle markers hit a display limit (~139); users don't know about `disableRowLimit`. Document it and add a graceful empty-state render path.
+- **Empty state:** `formatData` returns `this` (no `.results`) for zero-result searches, causing `updateView` to return before the map was ever created — user saw a white div. Fixed: `dataRows` now initialized safely from `data.results` if present, else `[]`. Map initializes on first render regardless of data; returns after `isInitializedDom` block if empty.
+- **Field validation error:** Moved `VisualizationError` throw to after `isInitializedDom` block so the error appears on a rendered map rather than a white div.
+- **Marker limit:** `count: 0` in `getInitialDataParams` already requests all results. The limit is Splunk's `maxresultrows` in `limits.conf` (default 50k). Documented in README under new "Result Count Limit" section.
 
 ### #39 — Cluster color by clusterGroup
 **Type:** Enhancement

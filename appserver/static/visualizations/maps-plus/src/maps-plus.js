@@ -2164,28 +2164,17 @@ updateView: function(data, config) {
         }
     } 
     
-    // Check for data and retrun if we don't have any
-    if(!_.has(data, "results")) {
+    // Get data rows — formatData returns `this` (no .results) for empty/unfinished searches.
+    // Use an empty array so the map still initializes and shows a blank tile instead of a white div.
+    var dataRows = _.has(data, 'results') ? data.results : []
+
+    // If the map is already rendered and there's no new data, nothing to update
+    if (dataRows.length === 0 && this.isInitializedDom) {
         return this
     }
 
-    // get data
-    var dataRows = data.results
-
-    // check for data
-    if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-        return this
-    }
-
-    // Validate we have at least latitude and longitude fields
-    if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-        if( !("feature" in dataRows[0])){
-            throw new SplunkVisualizationBase.VisualizationError(
-                'Incorrect Fields Detected - latitude & longitude fields required'
-            )
-        }
-    }
-
+    // renderer is read inside the isInitializedDom block (canvas preferCanvas option), so
+    // it must be declared before that block regardless of whether we have data.
     var pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
         renderer = this._getEscapedProperty('renderer', config),
         pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
@@ -2775,6 +2764,20 @@ updateView: function(data, config) {
                 }
             })
         })
+    }
+
+    // Blank map is now initialized — no data rows to render
+    if (dataRows.length === 0) {
+        return this
+    }
+
+    // Validate we have at least latitude and longitude fields
+    if (!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
+        if (!("feature" in dataRows[0])) {
+            throw new SplunkVisualizationBase.VisualizationError(
+                'Incorrect Fields Detected - latitude & longitude fields required'
+            )
+        }
     }
 
     // Map Scroll

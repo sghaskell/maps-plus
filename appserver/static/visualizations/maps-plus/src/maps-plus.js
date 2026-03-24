@@ -448,11 +448,6 @@ onConfigChange: function(configChanges, previousConfig) {
         this.tileLayer = L.maplibreGL({ style: styleUrl, attribution }).addTo(this.map);
     }
 
-    // Sync zoom animation flag when useOpenFreeMap is toggled
-    if (this._propertyExists('useOpenFreeMap', configChanges)) {
-        this.map._zoomAnimated = !useOpenFreeMap
-    }
-
     // Handle scroll wheel zoom
     if(this._propertyExists('scrollWheelZoom', configChanges)) {
         if(scrollWheelZoom) {
@@ -2461,9 +2456,6 @@ updateView: function(data, config) {
             // Add tile layer to map
             this.map.addLayer(this.tileLayer)
         }
-
-        // MapLibre GL and Leaflet's zoom animation conflict — disable it for OpenFreeMap
-        this.map._zoomAnimated = !this.isArgTrue(useOpenFreeMap)
 
         // Add map controls which allow user to draw a polygon to select markers
         if(this.isArgTrue(selectingMarkers) && !this.hasOwnProperty('selectingMarkersToolbar')) {

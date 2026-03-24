@@ -5,6 +5,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = {
     entry: './src/maps-plus.js',
 
+    mode: 'production',
+
     target: 'web',
 
     resolve: {

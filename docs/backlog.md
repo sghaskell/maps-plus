@@ -22,12 +22,11 @@ OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loa
 
 ## P2 — Next sprint
 
-### #36 + #38 — KML: large file fix + URL support
+### #36 + #38 — KML: large file fix + URL support ✅ CLOSED
 **Type:** Bug + Enhancement
 **Source:** https://github.com/sghaskell/maps-plus/issues/36, https://github.com/sghaskell/maps-plus/issues/38
-Two issues resolved together:
-- **#36:** Large KML files silently fail to render. Test file provided by reporter. Needs investigation into size/parsing threshold in `fetchKmlAndMap`.
-- **#38:** KML is currently hardcoded to load from the app's `contrib/kml/` directory on the Splunk server filesystem (`location.origin + this.contribUri + '/kml/' + file`). Splunk Cloud users have no filesystem access. Fix: detect `http://`/`https://` prefix in `kmlOverlay` field values and use the URL directly, bypassing the app-relative path. Close #38 as resolved-by this change.
+- **#36:** Root cause was `onEachFeature` calling `map.getPane(feature.properties.name)` when `name` is undefined (common in GPS track KML exports with unnamed features). `map.getPane(undefined)` returns undefined and `.style.zIndex` throws, stopping all features from rendering. Fixed with a null guard in both the KMZ and KML code paths. Added `.fail()` error handler to `$.ajax` so load failures surface in the console instead of silently disappearing.
+- **#38:** Added URL detection (`/^https?:\/\//`) in the `kmlOverlay` loop — values starting with `http://` or `https://` are used directly, bypassing the app-relative `contrib/kml/` path. Splunk Cloud users can now reference externally-hosted KML/KMZ files. Close #38 as resolved-by.
 
 ### #27 — Empty state + marker limit
 **Type:** Bug / UX

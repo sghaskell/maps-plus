@@ -1453,21 +1453,26 @@ fetchKmlAndMap: function(url, file, map, paneZIndex) {
                                 weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
                      },
                     onEachFeature: function (feature, layer) {
-                         // Create pane and set zIndex to render multiple KML files over each other based on
-                         // specified precedence in overlay menu 
-                        map.createPane(feature.properties.name)
-                        map.getPane(feature.properties.name).style.zIndex = paneZIndex
-                        layer.options.pane = feature.properties.name
-                        layer.defaultOptions.pane = feature.properties.name
-                        layer.bindPopup(feature.properties.name)
-                        layer.bindTooltip(feature.properties.name)
+                        // Create pane and set zIndex to render multiple KML files over each other based on
+                        // specified precedence in overlay menu.
+                        // Guard: features without a <name> element have name === undefined;
+                        // map.getPane(undefined) returns undefined and crashes on .style.
+                        var name = feature.properties && feature.properties.name
+                        if (!name) { return }
+                        if (!map.getPane(name)) { map.createPane(name) }
+                        map.getPane(name).style.zIndex = paneZIndex
+                        layer.options.pane = name
+                        layer.defaultOptions.pane = name
+                        layer.bindPopup(name)
+                        layer.bindTooltip(name)
                     }
                 }).addTo(map)
             })
         })
     // it's a kml file
     } else {
-        $.ajax({url: url, dataType: 'xml', context: this}).done(function(kml) {
+        $.ajax({url: url, dataType: 'xml', context: this})
+        .done(function(kml) {
             var geojson = toGeoJSON.kml(kml)
             L.geoJson(geojson.features, {
                 style: function (feature) {
@@ -1478,15 +1483,22 @@ fetchKmlAndMap: function(url, file, map, paneZIndex) {
                  },
                  onEachFeature: function (feature, layer) {
                      // Create pane and set zIndex to render multiple KML files over each other based on
-                     // specified precedence in overlay menu 
-                     map.createPane(feature.properties.name)
-                     map.getPane(feature.properties.name).style.zIndex = paneZIndex
-                     layer.options.pane = feature.properties.name
-                     layer.defaultOptions.pane = feature.properties.name
-                     layer.bindPopup(feature.properties.name)
-                     layer.bindTooltip(feature.properties.name)
+                     // specified precedence in overlay menu.
+                     // Guard: features without a <name> element have name === undefined;
+                     // map.getPane(undefined) returns undefined and crashes on .style.
+                     var name = feature.properties && feature.properties.name
+                     if (!name) { return }
+                     if (!map.getPane(name)) { map.createPane(name) }
+                     map.getPane(name).style.zIndex = paneZIndex
+                     layer.options.pane = name
+                     layer.defaultOptions.pane = name
+                     layer.bindPopup(name)
+                     layer.bindTooltip(name)
                 }
             }).addTo(map)
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Maps+: Failed to load KML overlay from ' + url + ' (' + textStatus + ')', errorThrown)
         })
     }
 },
@@ -2612,7 +2624,10 @@ updateView: function(data, config) {
 
             // Loop through each file and load it onto the map
             _.each(kmlFiles.reverse(), function(file, i) {
-                var url = location.origin + this.contribUri + '/kml/' + file
+                // Support external URLs (Splunk Cloud users cannot write to the app filesystem).
+                // If the value starts with http:// or https://, use it directly; otherwise
+                // resolve relative to the app's contrib/kml/ directory.
+                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
                 this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
                 this.paneZIndex = this.paneZIndex - (i+1)
             }, this)

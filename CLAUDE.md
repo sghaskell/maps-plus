@@ -27,7 +27,7 @@ npm run watch
 ```
 
 The build produces:
-- `visualization.js` — AMD module bundle (Webpack + Babel + UglifyJS)
+- `visualization.js` — AMD module bundle (Webpack 5 + Babel 7 + TerserPlugin)
 - `contrib/css/leaflet-geoman.css` — copied from node_modules
 
 There are no tests and no linter configured.

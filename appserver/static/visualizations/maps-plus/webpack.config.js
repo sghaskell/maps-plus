@@ -29,7 +29,7 @@ module.exports = {
             // Babel transpiles ES6+ to ES5 FIRST (before other loaders)
             {
                 test: /\.js$/,
-                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet|@geoman-io\/leaflet-geoman-free)\/).*/,
+                exclude: /node_modules\/(?!(leaflet-ant-path|proj4leaflet|@geoman-io\/leaflet-geoman-free|maplibre-gl|@maplibre\/maplibre-gl-leaflet)\/).*/,
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -143,10 +143,16 @@ module.exports = {
 
     plugins: [
         new CopyPlugin({
-            patterns: [{
-                from: 'node_modules/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css',
-                to: 'contrib/css/leaflet-geoman.css'
-            }]
+            patterns: [
+                {
+                    from: 'node_modules/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css',
+                    to: 'contrib/css/leaflet-geoman.css'
+                },
+                {
+                    from: 'node_modules/maplibre-gl/dist/maplibre-gl.css',
+                    to: 'contrib/css/maplibre-gl.css'
+                }
+            ]
         })
     ],
 

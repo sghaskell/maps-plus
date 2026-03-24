@@ -9,6 +9,9 @@ appserver/static/visualizations/maps-plus/src/ export-ignore
 appserver/static/visualizations/maps-plus/webpack.config.js export-ignore
 appserver/static/visualizations/maps-plus/package.json export-ignore
 appserver/static/visualizations/maps-plus/scripts/ export-ignore
+appserver/static/visualizations/google-street-view/src/ export-ignore
+appserver/static/visualizations/google-street-view/webpack.config.js export-ignore
+appserver/static/visualizations/google-street-view/package.json export-ignore
 
 # Superpowers dev docs (not for end users)
 docs/ export-ignore

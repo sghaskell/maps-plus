@@ -14,6 +14,7 @@
 @import url('./contrib/css/leaflet-gplaces-autocomplete.css');
 @import url('./contrib/css/leaflet-dark.css');
 @import url('./contrib/css/leaflet-geoman.css');
+@import url('./contrib/css/maplibre-gl.css');
 
 .maps-plus-click-marker {
     background: transparent;

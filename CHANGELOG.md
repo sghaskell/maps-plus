@@ -1,6 +1,20 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.5.0] - 2026-03-23
+
+### Added
+- **OpenFreeMap vector tile support**: New tile backend powered by MapLibre GL JS via `@maplibre/maplibre-gl-leaflet`. Enable via **Map → OpenFreeMap Vector Tiles → Enabled**. Four built-in styles: Liberty (default), Bright, Positron, and Fiord. Vector tiles render sharper than raster at all zoom levels with richer cartography.
+- **MapLibre Style URL override**: A free-text field accepting any MapLibre-compatible style JSON URL, overriding the built-in style preset. Compatible with OpenFreeMap, Stadia Maps, MapTiler, Protomaps, and any self-hosted MapLibre style server. Stadia Maps styles (e.g. `https://tiles.stadiamaps.com/styles/alidade_smooth.json`) work without an API key for development use.
+- **Viewport culling for marker clusters**: `removeOutsideVisibleBounds` enabled on all marker cluster groups. Markers outside the visible viewport are removed from the DOM and re-added as they enter, dramatically reducing DOM node count at high zoom levels with large datasets (tested with 25k+ markers). The Antarctic projection path explicitly preserves the previous behavior.
+
+### Changed
+- Build pipeline updated: Webpack 5, Babel 7, TerserPlugin replacing UglifyJS, IE11 support dropped. Bundle targets modern evergreen browsers (Chrome, Firefox, Safari, Edge — last 2 versions).
+- Deploy script (`scripts/deploy.sh`) now syncs `formatter.html`, `visualization.css`, and `contrib/css/maplibre-gl.css` in addition to `visualization.js`.
+
+### Dependencies
+- Added `maplibre-gl` (v4.x) and `@maplibre/maplibre-gl-leaflet` for vector tile rendering.
+
 ## [4.4.0] - 2026-03-20
 
 ### Added

@@ -37,7 +37,9 @@ define([
             '../contrib/js/jquery.i18n.parser',
             '../contrib/js/jquery.i18n.emitter',
             '../contrib/js/jquery.i18n.emitter.bidi',
-            '@geoman-io/leaflet-geoman-free'
+            '@geoman-io/leaflet-geoman-free',
+            'maplibre-gl',
+            '@maplibre/maplibre-gl-leaflet'
 
         ],
         function(
@@ -182,6 +184,9 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKey': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyUser': "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.bingMapsApiKeyRealm': "",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.useOpenFreeMap': '0',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStylePreset': 'liberty',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStyleOverride': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
@@ -396,21 +401,51 @@ onConfigChange: function(configChanges, previousConfig) {
         gibsUpperCorner = this._propertyExists('gibsUpperCorner', configChanges) ? this._getEscapedProperty('gibsUpperCorner', configChanges):this._getEscapedProperty('gibsUpperCorner', previousConfig),
         gibsTileMatrixSet = this._propertyExists('gibsTileMatrixSet', configChanges) ? this._getEscapedProperty('gibsTileMatrixSet', configChanges):this._getEscapedProperty('gibsTileMatrixSet', previousConfig),
         gibsTime = this._propertyExists('gibsTime', configChanges) ? this._getEscapedProperty('gibsTime', configChanges):this._getEscapedProperty('gibsTime', previousConfig),
-        tileSize = this._propertyExists('tileSize', configChanges) ? this._getEscapedProperty('tileSize', configChanges):this._getEscapedProperty('tileSize', previousConfig)
+        tileSize = this._propertyExists('tileSize', configChanges) ? this._getEscapedProperty('tileSize', configChanges):this._getEscapedProperty('tileSize', previousConfig),
+        useOpenFreeMap = this._propertyExists('useOpenFreeMap', configChanges)
+            ? this.isArgTrue(parseInt(this._getEscapedProperty('useOpenFreeMap', configChanges)))
+            : this.isArgTrue(parseInt(this._getEscapedProperty('useOpenFreeMap', previousConfig))),
+        maplibreStylePreset = this._propertyExists('maplibreStylePreset', configChanges)
+            ? this._getEscapedProperty('maplibreStylePreset', configChanges)
+            : this._getEscapedProperty('maplibreStylePreset', previousConfig),
+        maplibreStyleOverride = this._propertyExists('maplibreStyleOverride', configChanges)
+            ? this._getSafeUrlProperty('maplibreStyleOverride', configChanges)
+            : this._getSafeUrlProperty('maplibreStyleOverride', previousConfig)
 
 
-    // Update tile layer
-    if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
-        this.tileLayer.setUrl(mapTile)
+    if (!useOpenFreeMap) {
+        // Update tile layer
+        if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
+            this.tileLayer.setUrl(mapTile)
+        }
+
+        // Handle map tile override
+        if(this._propertyExists('mapTileOverride', configChanges)) {
+            if(mapTileOverride == "") {
+                this.tileLayer.setUrl(mapTile)
+            } else {
+                this.tileLayer.setUrl(mapTileOverride)
+            }
+        }
     }
 
-    // Handle map tile override
-    if(this._propertyExists('mapTileOverride', configChanges)) {
-        if(mapTileOverride == "") {
-            this.tileLayer.setUrl(mapTile)
-        } else {
-            this.tileLayer.setUrl(mapTileOverride)
+    // Handle OpenFreeMap style changes
+    if (useOpenFreeMap && (
+        this._propertyExists('useOpenFreeMap', configChanges) ||
+        this._propertyExists('maplibreStylePreset', configChanges) ||
+        this._propertyExists('maplibreStyleOverride', configChanges) ||
+        this._propertyExists('mapAttributionOverride', configChanges)
+    )) {
+        if (this.tileLayer) {
+            this.tileLayer.remove();
+            this.tileLayer = null;
         }
+        const styleUrl = this._getMaplibreStyleUrl({ maplibreStylePreset, maplibreStyleOverride });
+        const attribution = mapAttributionOverride
+            || '© <a href="https://openfreemap.org">OpenFreeMap</a> '
+            + '© <a href="https://openmaptiles.org">OpenMapTiles</a> '
+            + '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+        this.tileLayer = L.maplibreGL({ style: styleUrl, attribution }).addTo(this.map);
     }
 
     // Handle scroll wheel zoom
@@ -812,6 +847,13 @@ _getSafeUrlProperty: function(name, config) {
     var propertyValue = config[this.getPropertyNamespaceInfo().propertyNamespace + name]
     return SplunkVisualizationUtils.makeSafeUrl(propertyValue)
 
+},
+
+_getMaplibreStyleUrl: function({ maplibreStylePreset, maplibreStyleOverride }) {
+    if (maplibreStyleOverride) {
+        return maplibreStyleOverride
+    }
+    return 'https://tiles.openfreemap.org/styles/' + (maplibreStylePreset || 'liberty')
 },
 
 _propertyExists: function(name, config) {
@@ -1511,7 +1553,7 @@ _createClusterGroup: function(disableClusteringAtZoom,
         maxClusterRadius: maxClusterRadius,
         maxSpiderfySize: maxSpiderfySize,
         spiderfyDistanceMultiplier: spiderfyDistanceMultiplier,
-        removeOutsideVisibleBounds:false,
+        removeOutsideVisibleBounds: true,
         singleMarkerMode: (this.isArgTrue(singleMarkerMode)),
         animate: (this.isArgTrue(animate)),
         iconCreateFunction: function(cluster) {
@@ -1985,6 +2027,9 @@ updateView: function(data, config) {
         bingMapsApiKeyRealm = this._getEscapedProperty('bingMapsApiKeyRealm', config),
         bingMapsTileLayer = this._getEscapedProperty('bingMapsTileLayer', config),
         bingMapsLabelLanguage = this._getEscapedProperty('bingMapsLabelLanguage', config),
+        useOpenFreeMap = parseInt(this._getEscapedProperty('useOpenFreeMap', config)),
+        maplibreStylePreset = this._getEscapedProperty('maplibreStylePreset', config),
+        maplibreStyleOverride = this._getSafeUrlProperty('maplibreStyleOverride', config),
         kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
         rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
         rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
@@ -2351,8 +2396,22 @@ updateView: function(data, config) {
             }, this))
         }
 
-        // Create Bing Map
-        if(this.isArgTrue(bingMaps)) {
+        // Create OpenFreeMap vector tile layer
+        if (this.isArgTrue(useOpenFreeMap)) {
+            if (this.tileLayer) {
+                this.tileLayer.remove();
+                this.tileLayer = null;
+            }
+            const styleUrl = this._getMaplibreStyleUrl({ maplibreStylePreset, maplibreStyleOverride });
+            const attribution = this._getEscapedProperty('mapAttributionOverride', config)
+                || '© <a href="https://openfreemap.org">OpenFreeMap</a> '
+                + '© <a href="https://openmaptiles.org">OpenMapTiles</a> '
+                + '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+            this.tileLayer = L.maplibreGL({
+                style: styleUrl,
+                attribution: attribution
+            }).addTo(this.map);
+        } else if(this.isArgTrue(bingMaps)) {
             if(!_.isEmpty(bingMapsApiKeyUser)) {
                 this.getStoredApiKey({user: bingMapsApiKeyUser,
                                       realm: bingMapsApiKeyRealm,
@@ -2395,7 +2454,7 @@ updateView: function(data, config) {
             this.tileLayer = L.tileLayer(this.activeTile, this.tileOptions)
 
             // Add tile layer to map
-            this.map.addLayer(this.tileLayer)    
+            this.map.addLayer(this.tileLayer)
         }
 
         // Add map controls which allow user to draw a polygon to select markers
@@ -2698,15 +2757,15 @@ updateView: function(data, config) {
     // Map Scroll
     (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
 
-    if(!this.isArgTrue(bingMaps)) {
+    if(!this.isArgTrue(bingMaps) && !this.isArgTrue(useOpenFreeMap)) {
         // Reset Tile If Changed
         if(this.tileLayer._url != this.activeTile) {
             this.tileLayer.setUrl(this.activeTile)
         }
-    }   
+    }
 
     // Reset tile zoom levels if changed
-    if(!_.isNull(this.tileLayer)) {
+    if(!_.isNull(this.tileLayer) && !this.isArgTrue(useOpenFreeMap)) {
         if (this.tileLayer.options.maxZoom != maxZoom) {
             this.tileLayer.options.maxZoom = maxZoom
         }

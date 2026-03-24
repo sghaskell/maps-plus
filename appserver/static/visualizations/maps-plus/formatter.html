@@ -15,6 +15,23 @@
         <splunk-control-group label="Map Attribution Override" help="Use your own attribution.">
             <splunk-text-input name="{{VIZ_NAMESPACE}}.mapAttributionOverride"></splunk-text-input>
         </splunk-control-group>
+        <splunk-control-group label="OpenFreeMap Vector Tiles" help="Enable MapLibre GL vector tile rendering via OpenFreeMap. Replaces the raster Map Tile selection when enabled.">
+            <splunk-select name="{{VIZ_NAMESPACE}}.useOpenFreeMap" value="0">
+                              <option value="0">Disabled</option>
+                              <option value="1">Enabled</option>
+                            </splunk-select>
+        </splunk-control-group>
+        <splunk-control-group label="OpenFreeMap Style" help="Select a built-in OpenFreeMap style. Ignored if MapLibre Style URL is set.">
+            <splunk-select name="{{VIZ_NAMESPACE}}.maplibreStylePreset" value="liberty">
+                              <option value="liberty">Liberty (default, general purpose)</option>
+                              <option value="bright">Bright (high contrast)</option>
+                              <option value="positron">Positron (light/minimal)</option>
+                              <option value="fiord">Fiord (dark)</option>
+                            </splunk-select>
+        </splunk-control-group>
+        <splunk-control-group label="MapLibre Style URL" help="Override the style preset with any MapLibre-compatible style JSON URL. Leave empty to use the preset above.">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.maplibreStyleOverride"></splunk-text-input>
+        </splunk-control-group>
         <splunk-control-group label="Renderer" help="Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.">
             <splunk-radio-input name="{{VIZ_NAMESPACE}}.renderer" value="svg">
                                 <option value="canvas">Canvas</option>

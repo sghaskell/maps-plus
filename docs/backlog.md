@@ -8,10 +8,10 @@ Last updated: 2026-03-23
 
 ## P1 — Fix now
 
-### #30 — Dark mode crash
+### #30 — Dark mode crash ✅ CLOSED
 **Type:** Bug
 **Source:** https://github.com/sghaskell/maps-plus/issues/30
-`_darkModeInit` crashes with `Cannot read properties of undefined (reading 'styleSheet')`. Blocks all Splunk dark theme users. Assigned to sghaskell.
+`_darkModeInit` previously used a hardcoded `cssRules[10]` index to locate the contextmenu sub-stylesheet inside `visualization.css`. Fixed: now walks `cssRules` dynamically to find the first `@import` sub-stylesheet, with a null guard if none is found. Verified non-crashing in Splunk dark theme as of 2026-03-23.
 
 ### #47 — OSM 403 tile access blocked
 **Type:** Bug / Docs

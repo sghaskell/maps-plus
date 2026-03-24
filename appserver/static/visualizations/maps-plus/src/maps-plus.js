@@ -323,11 +323,19 @@ _darkModeInit: function () {
                   '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
                   '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-    // Cache stylesheet reference — cssRules[10] is the contextmenu sub-stylesheet
-    // inside visualization.css. Index 10 reflects the current stylesheet structure;
-    // update this offset if the stylesheet order changes.
-    var darkModeStylesheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet
-    // delete styles from newest to oldest                                  
+    // Find the contextmenu @import sub-stylesheet inside visualization.css by
+    // walking cssRules rather than relying on a hardcoded index.
+    var sheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet
+    var darkModeStylesheet = null
+    for (var r = 0; r < sheet.cssRules.length; r++) {
+        if (sheet.cssRules[r].styleSheet) {
+            darkModeStylesheet = sheet.cssRules[r].styleSheet
+            break
+        }
+    }
+    if (!darkModeStylesheet) return
+
+    // delete styles from newest to oldest
     for(var i = darkModeStylesheet.cssRules.length - 1; i >= 0; i--) {
         darkModeStylesheet.deleteRule(i)
     }

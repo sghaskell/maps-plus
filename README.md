@@ -849,7 +849,7 @@ GBIF polar tiles provided by the [Global Biodiversity Information Facility](http
 ### Formatting Options
 #### Map
 ###### Map Tile
-Select one of six available map tiles
+Select one of six available map tiles. **CartoDB Light (default) and Esri World Imagery are recommended.** OpenStreetMap and Humanitarian OSM tiles may return `403 Access Blocked` errors — OSM enforces usage policy requiring HTTP headers (`Referer`, `User-Agent`) that browser-based tile loading via `<img>` tags cannot send. For an OSM-based experience without these restrictions, use **OpenFreeMap Vector Tiles** instead.
 ###### Map Tile Override
 Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles [here](http://wiki.openstreetmap.org/wiki/Tiles)
 ###### Map Attribution Override

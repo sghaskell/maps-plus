@@ -13,10 +13,10 @@ Last updated: 2026-03-23
 **Source:** https://github.com/sghaskell/maps-plus/issues/30
 `_darkModeInit` previously used a hardcoded `cssRules[10]` index to locate the contextmenu sub-stylesheet inside `visualization.css`. Fixed: now walks `cssRules` dynamically to find the first `@import` sub-stylesheet, with a null guard if none is found. Verified non-crashing in Splunk dark theme as of 2026-03-23.
 
-### #47 — OSM 403 tile access blocked
+### #47 — OSM 403 tile access blocked ✅ CLOSED
 **Type:** Bug / Docs
 **Source:** https://github.com/sghaskell/maps-plus/issues/47
-OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loads tiles as `<img>` tags so custom headers aren't possible. Fix: update default tile URL to a non-rate-limited provider and steer users toward OpenFreeMap (shipped in v4.5.0) in README and Splunkbase description.
+OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loads tiles as `<img>` tags so custom headers aren't possible. Fixed via UI warnings and docs: renamed OSM dropdown options to flag rate-limiting, added help text to Map Tile control group, updated README Map Tile section. Default tile (CartoDB Light) was already non-OSM. Users pointed toward OpenFreeMap for best OSM-based experience.
 
 ---
 

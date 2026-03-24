@@ -12,6 +12,8 @@ The mapping equivalent of a Swiss Army knife for Splunk.
 ##### [Leaflet.FeatureGroup.SubGroup](https://github.com/ghybs/Leaflet.FeatureGroup.SubGroup)
 ##### [leaflet-measure](https://www.npmjs.com/package/leaflet-measure)
 ##### [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu)
+##### [MapLibre GL JS](https://maplibre.org/)
+##### [maplibre-gl-leaflet](https://github.com/maplibre/maplibre-gl-leaflet)
 ##### [leaflet-bing-layer](https://github.com/digidem/leaflet-bing-layer)
 ##### [Leaflet.Dialog](https://github.com/NBTSolutions/Leaflet.Dialog)
 ##### [Leaflet.spin](https://github.com/makinacorpus/Leaflet.Spin)
@@ -432,6 +434,40 @@ If a realm is specified when creating the API Key User, use the optional `API Ke
 Choose the desired `Tile Layer` under `Bing Maps -> Tile Layer`
 
 Optionally set the `Label Language` using `Bing Maps -> Label Language` to localize the tile labels in the desired language. See [Microsoft's documentation](https://msdn.microsoft.com/en-us/library/hh441729.aspx) for more details.
+
+### OpenFreeMap Vector Tiles
+Vector tile rendering powered by [MapLibre GL JS](https://maplibre.org/) via the `@maplibre/maplibre-gl-leaflet` bridge. Vector tiles render sharper than raster tiles at all zoom levels with richer cartography, and are served free with no API key required from [OpenFreeMap](https://openfreemap.org/).
+
+Enable via **Map → OpenFreeMap Vector Tiles → Enabled**. When enabled, the standard Map Tile dropdown is ignored — the OpenFreeMap layer replaces the raster tile layer entirely (same behavior as Bing Maps).
+
+#### OpenFreeMap Style
+Four built-in styles selectable via **Map → OpenFreeMap Style**:
+
+| Style | Description |
+|-------|-------------|
+| **Liberty** (default) | General purpose, balanced cartography |
+| **Bright** | High contrast, vivid colors |
+| **Positron** | Light and minimal, good for data overlays |
+| **Fiord** | Dark theme |
+
+#### MapLibre Style URL
+Override the built-in style preset with any MapLibre-compatible style JSON URL via **Map → MapLibre Style URL**. Leave empty to use the selected preset above.
+
+This field accepts styles from any MapLibre-compatible provider. API keys are embedded directly in the URL by the user.
+
+**Example providers:**
+
+| Provider | Example URL | API Key Required |
+|----------|-------------|-----------------|
+| OpenFreeMap | `https://tiles.openfreemap.org/styles/liberty` | No |
+| Stadia Maps | `https://tiles.stadiamaps.com/styles/alidade_smooth.json` | No (dev/local) |
+| Stadia Maps Dark | `https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json` | No (dev/local) |
+| Stadia Maps Outdoors | `https://tiles.stadiamaps.com/styles/outdoors.json` | No (dev/local) |
+| Stadia Maps OSM Bright | `https://tiles.stadiamaps.com/styles/osm_bright.json` | No (dev/local) |
+| MapTiler | `https://api.maptiler.com/maps/streets/style.json?key=YOUR_KEY` | Yes (free tier) |
+| Protomaps | `https://api.protomaps.com/styles/v2/light.json?key=YOUR_KEY` | Yes (free tier) |
+
+The **Map Attribution Override** field applies to OpenFreeMap — set it to override the default OpenFreeMap/OpenMapTiles/OpenStreetMap attribution string.
 
 ### Military Symbols (Milsymbol)
 Render NATO APP-6 / MIL-STD-2525D compliant tactical symbols on the map using the [milsymbol](https://github.com/spatialillusions/milsymbol) library. Milsymbol markers are driven entirely through SPL — symbol identity, appearance, modifiers, and color are all controlled via search fields, making it straightforward to visualize asset status, affiliation, and echelon directly from operational data.
@@ -862,6 +898,9 @@ Animate cluster separation on zoom - **Requires browser Refresh**
 Re-style single marker icon to marker cluster style (round) - **Requires browser Refresh**
 ###### Disable Clustering At Zoom
 At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.
+
+> **Performance note:** Markers outside the visible viewport are automatically removed from the DOM and re-added as they enter (viewport culling). This keeps performance acceptable at high zoom levels with large datasets (25k+ markers). Some pop-in of markers near the viewport edge is expected during fast panning.
+
 ###### Disable Clustering At Zoom Level
 At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.
 ###### Max Cluster Radius

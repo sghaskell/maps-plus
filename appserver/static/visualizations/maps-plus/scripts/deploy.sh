@@ -2,7 +2,7 @@
 # Copies Maps+ build output into the running Splunk Docker container.
 # Finds the Splunk container by image name — no hardcoded container name.
 
-CONTAINER=$(docker ps -q --filter ancestor=splunk/splunk | head -1)
+CONTAINER=$(docker ps --format '{{.ID}} {{.Image}}' | awk '/splunk\/splunk/{print $1; exit}')
 
 if [ -z "$CONTAINER" ]; then
   echo "Error: No running Splunk container found. Is Docker Desktop running?"

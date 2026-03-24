@@ -66,7 +66,7 @@ Key field-driven behaviors in the source:
 
 ### Build Pipeline
 
-Webpack 3 bundles `src/maps-plus.js` into an AMD `visualization.js` output. Babel targets modern browsers (Chrome, Firefox, Safari, Edge — last 2 versions; IE11 dropped in v4.4.0). UglifyJS minifies with `ecma: 8`.
+Webpack 5 bundles `src/maps-plus.js` into an AMD `visualization.js` output. Babel targets modern browsers (Chrome, Firefox, Safari, Edge — last 2 versions; IE11 dropped in v4.4.0). TerserPlugin minifies with `ecma: 2017`.
 
 The compiled `visualization.js` is committed to the repository and must be rebuilt after source changes.
 

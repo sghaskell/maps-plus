@@ -399,7 +399,17 @@ Click `Format` and selct the `Overlays` tab. Enter a comma separated list of fil
 file1.kml,file2.kmz
 ```
 
-The files will be asynchronously loaded when the map is rendered. 
+You can also reference external KML/KMZ files by full URL:
+
+```
+file1.kml,https://example.com/data/regions.kml,https://example.com/data/zones.kmz
+```
+
+Each file is registered as a named, toggleable entry in the layer control (if enabled). The entry label is the filename without extension.
+
+The files will be asynchronously loaded when the map is rendered.
+
+> **CORS requirement for external URLs:** KML and KMZ files are fetched via browser XHR. External servers must respond with an `Access-Control-Allow-Origin` header that includes the Splunk host's origin (or `*`). Servers that do not send CORS headers will be blocked by the browser — check the browser console for a CORS error if an external overlay fails to appear. Local files placed in `contrib/kml/` are always same-origin and are not affected.
 
 ### i18n Localization
 The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
@@ -1024,7 +1034,7 @@ Collapse or expand layer control widget. If collapsed, mousing over icon will ex
 Overlay control changes require browser refresh
 
 ###### KML/KMZ Overlay
-Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)
+Comma separated list of KML or KMZ filenames (local files in `contrib/kml/`) or full URLs to externally-hosted files (e.g. `file1.kml, https://example.com/regions.kmz`). Each file appears as a named, toggleable entry in the layer control. External URLs require the server to send CORS headers — see the [KML/KMZ Overlay](#kmlkmz-overlay) section for details.
 
 #### Measure
 ###### Enable Measurement Plugin

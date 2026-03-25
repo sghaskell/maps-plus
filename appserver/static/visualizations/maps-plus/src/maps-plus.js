@@ -918,6 +918,22 @@ hexToRgb: function(hex) {
     } : null
 },
 
+// Normalize any CSS color string (hex, rgb, rgba, named) to the browser's
+// canonical form ('#rrggbb' or 'rgba(r,g,b,a)'). Returns null for invalid input.
+parseColor: function(str) {
+    if (!str || !str.trim()) { return null }
+    var ctx = document.createElement('canvas').getContext('2d')
+    // Sentinel approach: invalid assignments leave fillStyle unchanged
+    ctx.fillStyle = 'rgb(1,2,3)'
+    var sentinel = ctx.fillStyle
+    ctx.fillStyle = str.trim()
+    if (ctx.fillStyle === sentinel && str.trim() !== 'rgb(1,2,3)') {
+        console.warn('Maps+: invalid cluster color "' + str + '", ignoring')
+        return null
+    }
+    return ctx.fillStyle
+},
+
 // Convert string '1/0' or 'true/false' to boolean true/false
 isArgTrue: function(arg) {
     if(arg === 1 || arg === 'true' || arg === true) {

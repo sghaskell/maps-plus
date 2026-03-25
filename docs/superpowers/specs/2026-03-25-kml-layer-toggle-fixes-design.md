@@ -20,7 +20,7 @@ Fresh dashboard load: map renders, layer control is not visible. After clicking 
 
 ### Root Cause
 
-`this.control.addTo(this.map)` at line 3246 runs on **every** `updateView` call. Each call to `addTo` on an already-mounted control internally calls `remove()` then re-adds the control, tearing down and rebuilding the DOM on every search refresh or config change. This causes the blink. More critically, on first load Splunk sometimes delivers two rapid `updateView` calls — one with defaults and one with real config — and the repeated remove/re-add cycle leaves the control in an empty or invisible state.
+`this.control.addTo(this.map)` at line 3246 runs on **every** `updateView` call. Each call to `addTo` appends a duplicate copy of the control's DOM node — it does not detect an already-mounted control. This creates duplicate controls on every search refresh. More critically, on first load Splunk sometimes delivers two rapid `updateView` calls — one with defaults and one with real config — and the accumulating duplicate nodes leave the control in an empty or invisible state.
 
 ### Fix
 
@@ -43,9 +43,17 @@ Remove the duplicate block at line 3246 (currently outside `!isInitializedDom`).
 
 When `addOverlay` is called on a control that is already mounted on a map, Leaflet automatically calls `_update()`, which rebuilds the checkbox list in place — no re-mount required. The kmlOverlay block (lines 2695–2721) calls `addOverlay` after init, so entries appear correctly on second and later `updateView` calls.
 
+**`layerControl: false` on first load:**
+
+If `layerControl` is false on the first `updateView` call, the `addTo` is correctly skipped at init and the control is never mounted. If the user later enables it via the formatter, the existing config-change handler at line 655 mounts the control at that point — this path is unaffected by the fix.
+
 **Existing config-change handlers are unaffected:**
 
 Lines 651–655 already handle `layerControl` being toggled via the formatter: `this.control.remove()` when disabled, `this.control.addTo(this.map)` when re-enabled. These are inside the `isInitializedDom` block and run only when the value changes. No changes needed there.
+
+**Known limitation — `layerControlCollapsed` after init:**
+
+`layerControlCollapsed` is applied via `this.control.options.collapsed` before `addTo` at init. The control reads this option during `onAdd`. Moving `addTo` inside `!isInitializedDom` means subsequent changes to `layerControlCollapsed` via the formatter will not re-apply the collapsed state. This is a pre-existing limitation in the collapsed-state config-change handler (lines 760–764) and is out of scope for this fix.
 
 ---
 

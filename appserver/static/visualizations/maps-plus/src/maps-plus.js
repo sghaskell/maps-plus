@@ -2611,7 +2611,14 @@ updateView: function(data, config) {
                 // If the value starts with http:// or https://, use it directly; otherwise
                 // resolve relative to the app's contrib/kml/ directory.
                 var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
-                this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
+                var label = file.split('/').pop().replace(/\.[^.]+$/, '')
+                // Always add to map so KML renders even when layerControl is disabled
+                var fg = L.featureGroup().addTo(this.map)
+                if (this.isArgTrue(layerControl)) {
+                    this.control.addOverlay(fg, label)
+                }
+                this.fetchKmlAndMap(url, file, fg, this.paneZIndex)
+                // Decrement matches existing behavior: each file gets a unique pane z-index
                 this.paneZIndex = this.paneZIndex - (i+1)
             }, this)
         }

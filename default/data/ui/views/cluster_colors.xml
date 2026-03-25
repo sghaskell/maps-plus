@@ -15,7 +15,7 @@
           white on dark backgrounds.
         </p>
         <p>
-          <b>Note:</b> <code>clusterGroupColors</code> is a <b>formatter option</b> set in
+          <b>Note:</b> <b>Cluster Group Colors</b> is a <b>formatter option</b> set in
           Format &#x2192; Cluster Colors. <code>clusterBgColor</code> and <code>clusterFgColor</code>
           are <b>SPL fields</b> returned as columns in your search results.
         </p>
@@ -30,7 +30,7 @@
           </thead>
           <tbody>
             <tr>
-              <td><code>clusterGroupColors</code></td>
+              <td>Cluster Group Colors</td>
               <td>Formatter</td>
               <td>
                 Comma-separated <code>groupName:color</code> pairs. Supports hex, <code>rgba()</code>,
@@ -62,8 +62,8 @@
         </table>
         <p>
           <b>Resolution order:</b>
-          SPL fields &#x279C; <code>clusterGroupColors[groupName]</code> &#x279C;
-          <code>clusterGroupColors[default]</code> &#x279C; threshold fallback (green / yellow / orange).
+          SPL fields &#x279C; Cluster Group Colors[groupName] &#x279C;
+          Cluster Group Colors[default] &#x279C; threshold fallback (green / yellow / orange).
         </p>
         <p>
           <b>Alpha:</b> Hex and named colors automatically derive a 0.6-opacity outer ring and
@@ -81,10 +81,10 @@
       <html>
         <h3>1 — Formatter-Driven Colors</h3>
         <p>
-          Set <code>clusterGroupColors</code> in the Formatter to assign a fixed color to each group.
+          Set <b>Cluster Group Colors</b> in the Formatter to assign a fixed color to each group.
           Your SPL only needs to output the <code>clusterGroup</code> field — no color fields required.
         </p>
-        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <p><b>Formatter &#x2192; Cluster Group Colors</b></p>
         <pre>servers:#E74C3C, routers:#3498DB, switches:#2ECC71, firewalls:#E67E22</pre>
         <p><b>SPL</b></p>
         <pre>| eval clusterGroup=case(
@@ -145,7 +145,7 @@
           In this example the formatter declares <code>assets_prod:#E74C3C</code> (red), but the SPL
           query adds purple override fields. The clusters render purple — SPL always wins.
         </p>
-        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <p><b>Formatter &#x2192; Cluster Group Colors</b></p>
         <pre>assets_prod:#E74C3C</pre>
         <p><b>SPL overrides at query time</b></p>
         <pre>| eval clusterGroup="assets_prod"
@@ -197,7 +197,7 @@
       <html>
         <h3>3 — Color Formats, <code>default</code> Fallback &amp; Contrast Labels</h3>
         <p>
-          <code>clusterGroupColors</code> accepts any valid CSS color. Three formats are supported:
+          <b>Cluster Group Colors</b> accepts any valid CSS color. Three formats are supported:
         </p>
         <table>
           <thead>
@@ -225,7 +225,7 @@
           The reserved key <code>default</code> acts as a catch-all — any <code>clusterGroup</code>
           value not explicitly listed in the mapping will fall back to it.
         </p>
-        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <p><b>Formatter &#x2192; Cluster Group Colors</b></p>
         <pre>dark_hosts:#1A252F,
 staging:rgba(52,152,219,0.4),
 cdn:steelblue,

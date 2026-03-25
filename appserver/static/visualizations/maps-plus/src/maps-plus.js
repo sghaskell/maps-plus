@@ -1436,12 +1436,24 @@ fetchKmlAndMap: function(url, file, fg, paneZIndex) {
 
     // Shared style + feature callbacks — used by both KMZ and KML code paths
     var kmlStyle = function(feature) {
+        var p = feature.properties || {}
         return {
-            stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-            color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties, "stroke") ? feature.properties.stroke : "#FFFFFF",
-            opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-            weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1
+            color:       _.has(p, 'stroke')         ? p['stroke']         : '#3388ff',
+            weight:      _.has(p, 'stroke-width')   ? p['stroke-width']   : 2,
+            opacity:     _.has(p, 'stroke-opacity') ? p['stroke-opacity'] : 1.0,
+            fillColor:   _.has(p, 'fill')           ? p['fill']           : '#3388ff',
+            fillOpacity: _.has(p, 'fill-opacity')   ? p['fill-opacity']   : 0.2
         }
+    }
+
+    // Filter out features whose coordinates contain undefined/NaN values.
+    // JSON.stringify coerces both to null, so a 'null' hit flags invalid geometry.
+    var kmlValidFeatures = function(features) {
+        return (features || []).filter(function(f) {
+            if (!f || !f.geometry || !f.geometry.coordinates) return false
+            var s = JSON.stringify(f.geometry.coordinates)
+            return s && s.indexOf('null') === -1
+        })
     }
 
     var kmlOnEachFeature = function(feature, layer) {
@@ -1471,9 +1483,11 @@ fetchKmlAndMap: function(url, file, fg, paneZIndex) {
                 return kmlFile.async("string")
             })
             .then(function(text) {
-                var kmlText = $.parseXML(text)
-                var geojson = toGeoJSON.kml(kmlText)
-                L.geoJson(geojson.features, {
+                // DOMParser is more lenient than $.parseXML — handles BOM and encoding edge cases
+                var kmlDom = new DOMParser().parseFromString(text.replace(/^\uFEFF/, ''), 'application/xml')
+                if (kmlDom.querySelector('parsererror')) { throw new Error('Maps+: KML parse error inside KMZ: ' + url) }
+                var geojson = toGeoJSON.kml(kmlDom)
+                L.geoJson(kmlValidFeatures(geojson.features), {
                     style: kmlStyle,
                     onEachFeature: kmlOnEachFeature
                 }).addTo(fg)
@@ -1483,10 +1497,17 @@ fetchKmlAndMap: function(url, file, fg, paneZIndex) {
             })
         })
     } else {
-        $.ajax({url: url, dataType: 'xml', context: this})
-        .done(function(kml) {
+        // Fetch as text so jQuery doesn't run its strict XML parser before we can clean the response.
+        // DOMParser handles UTF-8 BOM and encoding edge cases that $.parseXML rejects.
+        $.ajax({url: url, dataType: 'text', context: this})
+        .done(function(responseText) {
+            var kml = new DOMParser().parseFromString(responseText.replace(/^\uFEFF/, ''), 'application/xml')
+            if (kml.querySelector('parsererror')) {
+                console.error('Maps+: Failed to parse KML from ' + url)
+                return
+            }
             var geojson = toGeoJSON.kml(kml)
-            L.geoJson(geojson.features, {
+            L.geoJson(kmlValidFeatures(geojson.features), {
                 style: kmlStyle,
                 onEachFeature: kmlOnEachFeature
             }).addTo(fg)
@@ -2160,7 +2181,9 @@ updateView: function(data, config) {
     
     // Get data rows — formatData returns `this` (no .results) for empty/unfinished searches.
     // Use an empty array so the map still initializes and shows a blank tile instead of a white div.
-    var dataRows = _.has(data, 'results') ? data.results : []
+    // Guard with Array.isArray: SplunkVisualizationBase may set this.results = null, so
+    // _.has returns true but data.results is null, crashing dataRows.length below.
+    var dataRows = (_.has(data, 'results') && Array.isArray(data.results)) ? data.results : []
 
     // If the map is already rendered and there's no new data, nothing to update
     if (dataRows.length === 0 && this.isInitializedDom) {
@@ -2536,6 +2559,10 @@ updateView: function(data, config) {
 
         // Create layer control
         var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
+        if (this.isArgTrue(layerControl)) {
+            this.control.addTo(this.map)
+            if(this.isDarkTheme) { this._darkModeUpdate() }
+        }
 
         let measureControl = this.measureControl
 
@@ -2598,31 +2625,6 @@ updateView: function(data, config) {
             if(this.isDarkTheme) { this._darkModeUpdate() }                    
         }
 
-        // Iterate through KML files and load overlays into layers on map 
-        if(kmlOverlay) {
-            // Create array of kml/kmz files
-            var kmlFiles = kmlOverlay.split(/\s*,\s*/)
-            // Pane zIndex used to facilitate layering of multiple KML/KMZ files
-            var paneZIndex = this.paneZIndex = 400
-
-            // Loop through each file and load it onto the map
-            _.each(kmlFiles.reverse(), function(file, i) {
-                // Support external URLs (Splunk Cloud users cannot write to the app filesystem).
-                // If the value starts with http:// or https://, use it directly; otherwise
-                // resolve relative to the app's contrib/kml/ directory.
-                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
-                var label = file.split('/').pop().replace(/\.[^.]+$/, '')
-                // Always add to map so KML renders even when layerControl is disabled
-                var fg = L.featureGroup().addTo(this.map)
-                if (this.isArgTrue(layerControl)) {
-                    this.control.addOverlay(fg, label)
-                }
-                this.fetchKmlAndMap(url, file, fg, this.paneZIndex)
-                // Decrement matches existing behavior: each file gets a unique pane z-index
-                this.paneZIndex = this.paneZIndex - (i+1)
-            }, this)
-        }
-        
         var pathLineLayers = this.pathLineLayers = {}
         
         // Store heatmap layers
@@ -2689,10 +2691,38 @@ updateView: function(data, config) {
             L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
                 if(_.has(e, 'relatedTarget')) {
                     this.contextMenuTarget = e.relatedTarget
-                }                        
+                }
             }, this)
-        }       
-    } 
+        }
+    }
+
+    // Load KML/KMZ overlays outside !isInitializedDom so they fire on the second
+    // updateView call when real config arrives, even if the first call used defaults.
+    // _loadedKmlOverlay tracks what's on the map — skip if config hasn't changed.
+    if (kmlOverlay !== this._loadedKmlOverlay) {
+        _.each(this._kmlFeatureGroups || [], function(fg) {
+            if (this.control) { this.control.removeLayer(fg) }
+            fg.remove()
+        }, this)
+        this._kmlFeatureGroups = []
+        this._loadedKmlOverlay = kmlOverlay
+
+        if (kmlOverlay) {
+            var kmlFiles = kmlOverlay.split(/\s*,\s*/)
+            var paneZIndex = this.paneZIndex = 400
+            _.each(kmlFiles.reverse(), function(file, i) {
+                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
+                var label = file.split('/').pop().replace(/\.[^.]+$/, '')
+                var fg = L.featureGroup().addTo(this.map)
+                if (this.isArgTrue(layerControl)) {
+                    this.control.addOverlay(fg, label)
+                }
+                this._kmlFeatureGroups.push(fg)
+                this.fetchKmlAndMap(url, file, fg, paneZIndex)
+                paneZIndex = paneZIndex - (i + 1)
+            }, this)
+        }
+    }
 
     // ─── Milsymbol zoom-scaling: register zoomend handler once per map init ──────
     // Captures formatter-level color/style config via closure so the redraw has
@@ -3216,13 +3246,6 @@ updateView: function(data, config) {
         }
     }, this)
     
-    // Enable layer controls and toggle collapse 
-    if (this.isArgTrue(layerControl)) {           
-        this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
-        this.control.addTo(this.map)                
-        if(this.isDarkTheme) { this._darkModeUpdate() }
-    } 
-
     // Clustered
     if (this.isArgTrue(cluster)) {
         this._addClustered(this.map, {layerFilter: this.layerFilter,

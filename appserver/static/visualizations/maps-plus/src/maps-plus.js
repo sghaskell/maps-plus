@@ -1431,71 +1431,65 @@ fitLayerBounds: function (options) {
 },
 
 // Fetch KMZ or KML files and add to map
-fetchKmlAndMap: function(url, file, map, paneZIndex) {
-    // Test if it's a kmz file
-    if(/.*\.kmz/.test(file)) {
-        JSZipUtils.getBinaryContent(url, function (e, d) {
-            var z = new JSZip()
+fetchKmlAndMap: function(url, file, fg, paneZIndex) {
+    var self = this
 
+    // Shared style + feature callbacks — used by both KMZ and KML code paths
+    var kmlStyle = function(feature) {
+        return {
+            stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
+            color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties, "stroke") ? feature.properties.stroke : "#FFFFFF",
+            opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
+            weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1
+        }
+    }
+
+    var kmlOnEachFeature = function(feature, layer) {
+        // Pane is keyed by feature name. If two KML files share a feature name,
+        // they share a pane and the last file to process that name sets the z-index.
+        var name = feature.properties && feature.properties.name
+        if (!name) { return }
+        if (!self.map.getPane(name)) { self.map.createPane(name) }
+        self.map.getPane(name).style.zIndex = paneZIndex
+        layer.options.pane = name
+        layer.defaultOptions.pane = name
+        layer.bindPopup(name)
+        layer.bindTooltip(name)
+    }
+
+    if (/.*\.kmz/.test(file)) {
+        JSZipUtils.getBinaryContent(url, function(e, d) {
+            if (e) {
+                console.error('Maps+: Failed to load KMZ overlay from ' + url, e)
+                return
+            }
+            var z = new JSZip()
             z.loadAsync(d)
             .then(function(zip) {
-                return zip.file(/.*\.kml/)[0].async("string")
+                var kmlFile = zip.file(/.*\.kml/)[0]
+                if (!kmlFile) { throw new Error('Maps+: No .kml file found inside KMZ: ' + url) }
+                return kmlFile.async("string")
             })
-            .then(function (text) {
+            .then(function(text) {
                 var kmlText = $.parseXML(text)
                 var geojson = toGeoJSON.kml(kmlText)
-
                 L.geoJson(geojson.features, {
-                    style: function (feature) {
-                        return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-                                color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-                                opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                                weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-                     },
-                    onEachFeature: function (feature, layer) {
-                        // Create pane and set zIndex to render multiple KML files over each other based on
-                        // specified precedence in overlay menu.
-                        // Guard: features without a <name> element have name === undefined;
-                        // map.getPane(undefined) returns undefined and crashes on .style.
-                        var name = feature.properties && feature.properties.name
-                        if (!name) { return }
-                        if (!map.getPane(name)) { map.createPane(name) }
-                        map.getPane(name).style.zIndex = paneZIndex
-                        layer.options.pane = name
-                        layer.defaultOptions.pane = name
-                        layer.bindPopup(name)
-                        layer.bindTooltip(name)
-                    }
-                }).addTo(map)
+                    style: kmlStyle,
+                    onEachFeature: kmlOnEachFeature
+                }).addTo(fg)
+            })
+            .catch(function(err) {
+                console.error('Maps+: Error processing KMZ overlay from ' + url, err)
             })
         })
-    // it's a kml file
     } else {
         $.ajax({url: url, dataType: 'xml', context: this})
         .done(function(kml) {
             var geojson = toGeoJSON.kml(kml)
             L.geoJson(geojson.features, {
-                style: function (feature) {
-                    return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-                            color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-                            opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                            weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-                 },
-                 onEachFeature: function (feature, layer) {
-                     // Create pane and set zIndex to render multiple KML files over each other based on
-                     // specified precedence in overlay menu.
-                     // Guard: features without a <name> element have name === undefined;
-                     // map.getPane(undefined) returns undefined and crashes on .style.
-                     var name = feature.properties && feature.properties.name
-                     if (!name) { return }
-                     if (!map.getPane(name)) { map.createPane(name) }
-                     map.getPane(name).style.zIndex = paneZIndex
-                     layer.options.pane = name
-                     layer.defaultOptions.pane = name
-                     layer.bindPopup(name)
-                     layer.bindTooltip(name)
-                }
-            }).addTo(map)
+                style: kmlStyle,
+                onEachFeature: kmlOnEachFeature
+            }).addTo(fg)
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
             console.error('Maps+: Failed to load KML overlay from ' + url + ' (' + textStatus + ')', errorThrown)

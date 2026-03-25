@@ -1,8 +1,7 @@
 #!/bin/bash
 # Deploys the entire Maps+ Splunk app to a running Docker container.
-# Copies all app assets (dashboards, KML files, visualizations, etc.)
-# while excluding source files, build tools, and dev artifacts.
-# Finds the Splunk container by image name — no hardcoded container name.
+# Stages app files to a temp dir then uses docker cp — avoids tar pipe path
+# issues on Windows/Git Bash where tar -C can silently mis-package files.
 
 set -e
 
@@ -20,23 +19,30 @@ SPLUNK_APP_PATH="/opt/splunk/etc/apps/leaflet_maps_app"
 
 echo "Deploying to container $CONTAINER..."
 
-tar -c \
-  --exclude='.git' \
-  --exclude='.gitignore' \
-  --exclude='.gitattributes' \
-  --exclude='.worktrees' \
-  --exclude='node_modules' \
-  --exclude='./docs' \
-  --exclude='./build_release.sh' \
-  --exclude='*.tar.gz' \
-  --exclude='./appserver/static/visualizations/maps-plus/src' \
-  --exclude='./appserver/static/visualizations/maps-plus/scripts' \
-  --exclude='./appserver/static/visualizations/maps-plus/package.json' \
-  --exclude='./appserver/static/visualizations/maps-plus/package-lock.json' \
-  --exclude='./appserver/static/visualizations/maps-plus/webpack.config.js' \
-  --exclude='./appserver/static/visualizations/maps-plus/.babelrc' \
-  --exclude='./appserver/static/visualizations/google-street-view/src' \
-  -C "$REPO_ROOT" . | \
-  MSYS_NO_PATHCONV=1 docker exec -u root -i "$CONTAINER" tar -x --overwrite --no-same-owner --no-same-permissions -C "$SPLUNK_APP_PATH"
+# Stage to a temp dir then docker cp — reliable on Windows; tar pipe is not
+# Use a sibling dir of REPO_ROOT — guaranteed to exist; avoids /tmp issues on Windows
+STAGE=$(mktemp -d "$(dirname "$REPO_ROOT")/maps-plus-deploy.XXXXXX")
+trap "rm -rf '$STAGE'" EXIT
+
+# Copy only the directories Splunk actually uses
+for dir in appserver default metadata lookups; do
+  [ -d "$REPO_ROOT/$dir" ] && cp -r "$REPO_ROOT/$dir" "$STAGE/"
+done
+
+# Strip dev-only artifacts from staging area
+find "$STAGE" -name "node_modules" -type d | xargs rm -rf 2>/dev/null || true
+rm -rf \
+  "$STAGE/appserver/static/visualizations/maps-plus/src" \
+  "$STAGE/appserver/static/visualizations/maps-plus/scripts" \
+  "$STAGE/appserver/static/visualizations/maps-plus/package.json" \
+  "$STAGE/appserver/static/visualizations/maps-plus/package-lock.json" \
+  "$STAGE/appserver/static/visualizations/maps-plus/webpack.config.js" \
+  "$STAGE/appserver/static/visualizations/maps-plus/.babelrc" \
+  "$STAGE/appserver/static/visualizations/google-street-view/src" \
+  2>/dev/null || true
+
+# docker cp on Windows needs a Windows-style source path
+STAGE_WIN=$(cygpath -w "$STAGE")
+MSYS_NO_PATHCONV=1 docker cp "$STAGE_WIN/." "$CONTAINER:$SPLUNK_APP_PATH"
 
 echo "Done. Hard-refresh your browser (Ctrl+Shift+R) to pick up changes."

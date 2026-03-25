@@ -2712,7 +2712,7 @@ updateView: function(data, config) {
             var paneZIndex = this.paneZIndex = 400
             _.each(kmlFiles.reverse(), function(file, i) {
                 var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
-                var label = file.split('/').pop().replace(/\.[^.]+$/, '')
+                var label = file.split('/').pop()
                 var fg = L.featureGroup().addTo(this.map)
                 if (this.isArgTrue(layerControl)) {
                     this.control.addOverlay(fg, label)

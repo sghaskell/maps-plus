@@ -188,6 +188,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStylePreset': 'liberty',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStyleOverride': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clusterGroupColors': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.warningThreshold': 55,
@@ -1057,6 +1058,27 @@ createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
     }
 },
 
+// Parse the clusterGroupColors formatter string into a color lookup map.
+// Input format: "servers:#E74C3C, routers:rgba(52,152,219,0.8), default:red"
+// Returns: { servers: '#e74c3c', routers: 'rgba(52, 152, 219, 0.8)', default: '#ff0000' }
+// NOTE: Split on commas NOT inside parentheses so rgba(r,g,b,a) values are not broken.
+parseClusterGroupColors: function(str) {
+    var result = {}
+    if (!str || !str.trim()) { return result }
+    var self = this
+    // Split on ',' only when not inside parentheses (handles rgba(r,g,b,a) values)
+    str.split(/,(?![^(]*\))/).forEach(function(pair) {
+        var idx = pair.indexOf(':')
+        if (idx < 1) { return }
+        var key = pair.substring(0, idx).trim()
+        var val = pair.substring(idx + 1).trim()
+        if (!key || !val) { return }
+        var normalized = self.parseColor(val)
+        if (normalized) { result[key] = normalized }
+    })
+    return result
+},
+
 stringToPoint: function(stringPoint) {
     var point = _.map(stringPoint.split(','), function(val) {
         return parseInt(val)
@@ -1559,6 +1581,9 @@ _createClusterGroup: function(disableClusteringAtZoom,
                               criticalThreshold,
                               warningThreshold,
                               antarcticProj,
+                              cgBgColor,
+                              cgFgColor,
+                              safeGroupName,
                               context) {
 
     // Redefine spiderfy and extend it
@@ -1598,6 +1623,11 @@ _createClusterGroup: function(disableClusteringAtZoom,
         }
     })
 
+    // Inject per-group cluster CSS if colors are configured
+    if (cgBgColor && cgFgColor) {
+        context.createMarkerStyleFromColor(cgBgColor, cgFgColor, safeGroupName)
+    }
+
     var mcg = new L.MarkerClusterGroup({
         chunkedLoading: true,
         maxClusterRadius: maxClusterRadius,
@@ -1608,6 +1638,10 @@ _createClusterGroup: function(disableClusteringAtZoom,
         animate: (this.isArgTrue(animate)),
         iconCreateFunction: function(cluster) {
             var childCount = cluster.getChildCount()
+            // Use per-group color class when configured; fall back to threshold classes
+            if (cgBgColor) {
+                return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster marker-cluster-' + safeGroupName, iconSize: new L.Point(40, 40) })
+            }
             var c = ' marker-cluster-'
             if (childCount >= criticalThreshold) {
                 c += 'three'
@@ -1616,7 +1650,7 @@ _createClusterGroup: function(disableClusteringAtZoom,
             } else {
                 c += 'one'
             }
-            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
+            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) })
         }
     })
 
@@ -2081,6 +2115,7 @@ updateView: function(data, config) {
         maplibreStylePreset = this._getEscapedProperty('maplibreStylePreset', config),
         maplibreStyleOverride = this._getSafeUrlProperty('maplibreStyleOverride', config),
         kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
+        clusterGroupColors = this._getEscapedProperty('clusterGroupColors', config),
         rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
         rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
         warningThreshold = this._getEscapedProperty('warningThreshold', config),
@@ -2235,6 +2270,11 @@ updateView: function(data, config) {
         this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
         this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
         this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
+
+        // Parse per-group color mapping from formatter config.
+        // Declared here (before the per-row processing loop) so it is in scope at the
+        // cluster group creation block below. JavaScript var hoisting ensures availability.
+        var clusterColorMap = this.parseClusterGroupColors(clusterGroupColors)
 
         // Enable all or multiple popups
         if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
@@ -3180,6 +3220,30 @@ updateView: function(data, config) {
             drilldownAction: drilldownAction}
 
         // Create Cluster Group
+        // Resolve per-group color: SPL fields > formatter named entry > formatter default > null
+        // If only one SPL field is provided, use it for both bg and fg.
+        var cgBgColor = null
+        var cgFgColor = null
+        if (_.has(userData, 'clusterBgColor') || _.has(userData, 'clusterFgColor')) {
+            cgBgColor = _.has(userData, 'clusterBgColor') ? this.parseColor(userData['clusterBgColor']) : null
+            cgFgColor = _.has(userData, 'clusterFgColor') ? this.parseColor(userData['clusterFgColor']) : null
+            // Fall back: if one field is missing, use the other for both
+            cgBgColor = cgBgColor || cgFgColor
+            cgFgColor = cgFgColor || cgBgColor
+        } else if (clusterColorMap[clusterGroup]) {
+            cgBgColor = clusterColorMap[clusterGroup]
+            cgFgColor = clusterColorMap[clusterGroup]
+        } else if (clusterColorMap['default']) {
+            cgBgColor = clusterColorMap['default']
+            cgFgColor = clusterColorMap['default']
+        }
+
+        // Sanitize clusterGroup name for use as a CSS class suffix
+        var safeGroupName = clusterGroup.replace(/[^a-zA-Z0-9-_]/g, '-')
+        if (cgBgColor && (safeGroupName === 'one' || safeGroupName === 'two' || safeGroupName === 'three')) {
+            console.warn('Maps+: clusterGroup name "' + clusterGroup + '" conflicts with reserved threshold class names. Colors may not apply correctly.')
+        }
+
         if(_.isUndefined(this.clusterGroups[clusterGroup])) {
             var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                 disableClusteringAtZoomLevel,
@@ -3191,6 +3255,9 @@ updateView: function(data, config) {
                                                 criticalThreshold,
                                                 warningThreshold,
                                                 antarcticProj,
+                                                cgBgColor,
+                                                cgFgColor,
+                                                safeGroupName,
                                                 this)
 
             this.clusterGroups[clusterGroup] = cg

@@ -10,7 +10,7 @@
       <html>
         <h3>Cluster Colors — clusterGroup Color Configuration</h3>
         <p>
-          Assign distinct colors to named marker cluster groups using the <code>clusterGroupColors</code>
+          Assign distinct colors to named marker cluster groups using the <b>Cluster Group Colors</b>
           formatter option, per-row SPL fields, or both together. Count labels automatically switch to
           white on dark backgrounds.
         </p>
@@ -44,7 +44,7 @@
               <td>SPL field</td>
               <td>
                 Per-row override for the outer ring color of this row's <code>clusterGroup</code>.
-                Takes priority over <code>clusterGroupColors</code>.
+                Takes priority over <b>Cluster Group Colors</b>.
                 If only one SPL color field is present the other mirrors it.
               </td>
               <td><code>| eval clusterBgColor="#9B59B6"</code></td>
@@ -54,7 +54,7 @@
               <td>SPL field</td>
               <td>
                 Per-row override for the inner circle color of this row's <code>clusterGroup</code>.
-                Takes priority over <code>clusterGroupColors</code>.
+                Takes priority over <b>Cluster Group Colors</b>.
               </td>
               <td><code>| eval clusterFgColor="#6C3483"</code></td>
             </tr>

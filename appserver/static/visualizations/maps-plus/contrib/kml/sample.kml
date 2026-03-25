@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>US Regions Sample</name>
+    <description>Three broad US region polygons for Maps+ KML overlay testing.</description>
+    <Placemark>
+      <name>Northwest</name>
+      <description>Pacific Northwest and Northern Rockies region</description>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -124.7,49.0,0
+              -110.0,49.0,0
+              -110.0,42.0,0
+              -124.7,42.0,0
+              -124.7,49.0,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northeast</name>
+      <description>New England and Mid-Atlantic region</description>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -80.0,47.0,0
+              -67.0,47.0,0
+              -67.0,37.0,0
+              -80.0,37.0,0
+              -80.0,47.0,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>South</name>
+      <description>Gulf Coast and Southeast region</description>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -106.0,37.0,0
+              -77.0,37.0,0
+              -77.0,25.0,0
+              -106.0,25.0,0
+              -106.0,37.0,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

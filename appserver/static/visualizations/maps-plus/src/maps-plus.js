@@ -1043,6 +1043,20 @@ createMarkerStyle: function(bgHex, fgHex, markerName) {
     }
 },
 
+// Inject a per-group cluster CSS class using pre-normalized color strings from
+// parseColor. Unlike createMarkerStyle, this does NOT call hexToRgb and does NOT
+// override user-supplied alpha with 0.6.
+createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
+    var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div { background-color: ' + fgColor + ';}'
+    var cacheKey = '_markerStyle_' + markerName
+    if (this[cacheKey]) {
+        this[cacheKey].html(html)
+    } else {
+        this[cacheKey] = $('<style>').prop('type', 'text/css').html(html).appendTo('head')
+    }
+},
+
 stringToPoint: function(stringPoint) {
     var point = _.map(stringPoint.split(','), function(val) {
         return parseInt(val)

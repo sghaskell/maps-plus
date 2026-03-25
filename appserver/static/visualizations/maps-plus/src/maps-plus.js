@@ -924,10 +924,10 @@ parseColor: function(str) {
     if (!str || !str.trim()) { return null }
     var ctx = document.createElement('canvas').getContext('2d')
     // Sentinel approach: invalid assignments leave fillStyle unchanged
-    ctx.fillStyle = 'rgb(1,2,3)'
+    ctx.fillStyle = 'rgba(1,2,3,0.004)'
     var sentinel = ctx.fillStyle
     ctx.fillStyle = str.trim()
-    if (ctx.fillStyle === sentinel && str.trim() !== 'rgb(1,2,3)') {
+    if (ctx.fillStyle === sentinel) {
         console.warn('Maps+: invalid cluster color "' + str + '", ignoring')
         return null
     }

@@ -497,7 +497,7 @@ git commit -m "feat: add kml_overlay.xml demo dashboard (5 panels)"
 **Files:**
 - Rebuild: `appserver/static/visualizations/maps-plus/visualization.js`
 
-- [ ] **Step 1: Build and deploy to Splunk**
+- [ ] **Step 1: Deploy to Splunk for testing**
 
 The Splunk Docker container must be running before deploying. If it is not running, start it first, then:
 
@@ -506,7 +506,7 @@ cd appserver/static/visualizations/maps-plus
 npm run deploy
 ```
 
-Expected: Webpack builds without errors; files sync to the Splunk Docker container. If the deploy step fails with a sync/rsync error but the build succeeded, the build artifact (`visualization.js`) is still valid — start the container and re-run `npm run deploy`.
+Expected: Webpack builds without errors; files sync to the Splunk Docker container. If the deploy step fails with a sync/rsync error but the build succeeded, the build artifact is still valid — start the container and re-run `npm run deploy`.
 
 - [ ] **Step 2: Open Splunk and navigate to the demo dashboard**
 
@@ -547,13 +547,21 @@ In a browser, go to the Splunk instance and open **KML Overlay** dashboard (`kml
 
 If one exists, confirm KML still renders and no layer control entry is added. If none exists, skip.
 
-- [ ] **Step 9: Commit the rebuilt `visualization.js` artifact**
+- [ ] **Step 9: Build artifacts, commit, and package with `build_release.sh`**
+
+Run from the repo root (not the visualization subdirectory):
 
 ```bash
-cd appserver/static/visualizations/maps-plus
-git add visualization.js
-git commit -m "build: rebuild visualization.js for KML layer control toggle"
+cd C:\Users\scott\Documents\maps-plus\.worktrees\feature-kml-layer-toggle
+bash build_release.sh
 ```
+
+This script:
+1. Runs `npm run build` to rebuild `visualization.js` and CSS assets
+2. Stages and commits the artifacts with message `chore: build artifacts for v<version> release`
+3. Packages `leaflet_maps_app_<version>.tar.gz` for Splunkbase upload
+
+Expected output ends with `Created: leaflet_maps_app_<version>.tar.gz`.
 
 ---
 

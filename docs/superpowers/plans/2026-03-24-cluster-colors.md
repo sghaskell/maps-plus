@@ -346,19 +346,21 @@ git commit -m "feat: resolve per-group cluster color and update _createClusterGr
 **Files:**
 - Modify: `appserver/static/visualizations/maps-plus/visualization.js` — rebuilt artifact
 
-- [ ] **Step 1: Build**
+- [ ] **Step 1: Build and commit artifacts**
+
+Run from the repo/worktree root:
 
 ```bash
-cd appserver/static/visualizations/maps-plus
-npm run build
+bash build_release.sh
 ```
 
-Expected: build completes with no errors. Bundle written to `visualization.js`.
+This runs `webpack`, stages `visualization.js` and CSS artifacts, and commits them to the current branch. Also produces a `leaflet_maps_app_<version>.tar.gz` tarball — safe to ignore for testing.
 
 - [ ] **Step 2: Deploy to Splunk Docker**
 
 ```bash
-npm run deploy
+cd appserver/static/visualizations/maps-plus
+bash scripts/deploy.sh
 ```
 
 - [ ] **Step 3: Verify formatter field appears**
@@ -406,12 +408,9 @@ Set formatter to `default:#2ECC71`. Use a search with a `clusterGroup` value not
 
 Set formatter to `servers:rgba(231,76,60,0.4), routers:steelblue`. Expected: servers render with 0.4 alpha (visibly more transparent), routers render steelblue.
 
-- [ ] **Step 9: Commit rebuilt bundle**
+- [ ] **Step 9: Confirm artifacts committed**
 
-```bash
-git add appserver/static/visualizations/maps-plus/visualization.js
-git commit -m "build: rebuild visualization.js for cluster colors feature"
-```
+`build_release.sh` (Step 1) already committed `visualization.js` and CSS artifacts to the branch. Verify with `git log --oneline -3` — you should see a `chore: build artifacts for v...` commit.
 
 ---
 

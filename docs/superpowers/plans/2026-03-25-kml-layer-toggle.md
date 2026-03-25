@@ -285,18 +285,22 @@ git commit -m "feat: add bundled sample.kml with 3 US region polygons"
 **Files:**
 - Create: `default/data/ui/views/kml_overlay.xml`
 
-- [ ] **Step 1: Find a stable public KMZ URL**
+- [ ] **Step 1: Find a stable public KMZ URL and record it**
 
-Before writing the dashboard, locate a stable publicly-accessible KMZ file for Panel 3. Candidate sources:
+Locate a stable publicly-accessible KMZ file. Candidate sources:
 - NOAA National Weather Service: search `site:weather.gov filetype:kmz` or check https://www.weather.gov/gis/
 - US Census Bureau TIGER: check https://www.census.gov/geographies/mapping-files.html
 - NASA Earthdata: check https://earthdata.nasa.gov
 
-The URL must be a direct `.kmz` download link accessible without authentication. Confirm it loads in a browser before using it. Record the URL — it will be used for both Panel 3 and Panel 4.
+The URL must be a direct `.kmz` download link accessible without authentication. Confirm it loads in a browser.
 
-- [ ] **Step 2: Write the dashboard file**
+**STOP.** Write the URL down before continuing to Step 2. Do not proceed until you have a confirmed working URL. It will be substituted into the dashboard XML in two places.
 
-Create `default/data/ui/views/kml_overlay.xml`. Before writing the file, **substitute the actual KMZ URL found in Step 1 for every occurrence of `KMZ_URL_HERE`** in the content below. There are two occurrences (Panel 3 and Panel 4). Use the format of existing dashboards (e.g. `default/data/ui/views/cluster_colors.xml`) as a reference for Splunk XML structure. The complete content:
+- [ ] **Step 2: Substitute the KMZ URL into the dashboard template**
+
+In the XML template below, replace **both** occurrences of `KMZ_URL_HERE` with the URL from Step 1 before writing the file. Search for the string `KMZ_URL_HERE` — it appears on two lines (one for Panel 3, one for Panel 4). Replace both before writing.
+
+**Do not write the file until the substitution is done.** Then create `default/data/ui/views/kml_overlay.xml` with this content (with URLs substituted):
 
 ```xml
 <form>
@@ -495,12 +499,14 @@ git commit -m "feat: add kml_overlay.xml demo dashboard (5 panels)"
 
 - [ ] **Step 1: Build and deploy to Splunk**
 
+The Splunk Docker container must be running before deploying. If it is not running, start it first, then:
+
 ```bash
 cd appserver/static/visualizations/maps-plus
 npm run deploy
 ```
 
-Expected: Webpack builds without errors; `rsync` or `cp` syncs to the Splunk Docker container.
+Expected: Webpack builds without errors; files sync to the Splunk Docker container. If the deploy step fails with a sync/rsync error but the build succeeded, the build artifact (`visualization.js`) is still valid — start the container and re-run `npm run deploy`.
 
 - [ ] **Step 2: Open Splunk and navigate to the demo dashboard**
 

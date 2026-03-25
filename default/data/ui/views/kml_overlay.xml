@@ -1,0 +1,170 @@
+<form>
+  <label>KML Overlay</label>
+  <description>Demonstrates KML/KMZ overlay layer control toggle (issue #41). Each map panel shows KML or KMZ overlays registered as named, toggleable entries in the layer control.</description>
+
+  <row>
+    <panel>
+      <title>Panel 1 — Local KML (sample.kml)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
+        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml</option>
+      </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Panel 1: Local KML</h3>
+        <p><b>Source:</b> <code>contrib/kml/sample.kml</code> — bundled with the app.</p>
+        <p><b>What to verify:</b></p>
+        <ul>
+          <li>Three polygons appear on the map (Northwest, Northeast, South).</li>
+          <li>Layer control shows one entry labeled <b>sample</b>.</li>
+          <li>Toggling the entry hides/shows all three polygons.</li>
+          <li>Clicking a polygon shows a popup with its name.</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Panel 2 — Network KML (USGS Earthquakes — past week)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
+        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.kml</option>
+      </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Panel 2: Network KML</h3>
+        <p><b>Source:</b> USGS Earthquake Hazards Program — all earthquakes in the past 7 days.</p>
+        <p><b>What to verify:</b></p>
+        <ul>
+          <li>Earthquake point features appear on the map.</li>
+          <li>Layer control shows one entry labeled <b>all_week</b>.</li>
+          <li>Toggling the entry hides/shows all features.</li>
+          <li>No console errors from the KML fetch.</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Panel 3 — Network KMZ (NOAA Climate Divisions)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
+        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://gis.ncdc.noaa.gov/kml/div.kmz</option>
+      </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Panel 3: Network KMZ</h3>
+        <p><b>Source:</b> NOAA Climate Divisional Database — US climate division polygons (stable static file, ~2.4MB).</p>
+        <p><b>What to verify:</b></p>
+        <ul>
+          <li>KMZ features appear on the map.</li>
+          <li>Layer control shows one entry labeled <b>div</b>.</li>
+          <li>Toggling the entry hides/shows all features.</li>
+          <li>No console errors from the KMZ fetch or JSZip extraction.</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Panel 4 — Mixed: local KML + network KML + network KMZ</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
+        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml, https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.kml, https://gis.ncdc.noaa.gov/kml/div.kmz</option>
+      </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Panel 4: Mixed Sources</h3>
+        <p>Three files loaded simultaneously: one local KML, one network KML, one network KMZ.</p>
+        <p><b>What to verify:</b></p>
+        <ul>
+          <li>All three file types load and render.</li>
+          <li>Layer control shows <b>three separate entries</b>, one per file, each independently toggleable.</li>
+          <li>Toggling one entry does not affect the other two.</li>
+          <li>Entries are labeled by filename (no extension).</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Panel 5 — Scale: USGS Earthquakes past month</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
+        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.kml</option>
+      </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Panel 5: Scale Test</h3>
+        <p><b>Source:</b> USGS — all earthquakes in the past 30 days (typically 8,000–12,000 features).</p>
+        <p><b>What to verify:</b></p>
+        <ul>
+          <li>Map remains responsive while the KML loads in the background.</li>
+          <li>Layer control entry appears immediately (before features finish loading).</li>
+          <li>Features render progressively or in bulk once loaded — no crash.</li>
+          <li>Toggle still works after full load.</li>
+        </ul>
+      </html>
+    </panel>
+  </row>
+
+</form>

@@ -1053,7 +1053,7 @@ createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
     if (this[cacheKey]) {
         this[cacheKey].html(html)
     } else {
-        this[cacheKey] = $('<style>').prop('type', 'text/css').html(html).appendTo('head')
+        this[cacheKey] = $("<style>").prop("type", "text/css").html(html).appendTo("head")
     }
 },
 

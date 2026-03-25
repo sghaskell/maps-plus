@@ -51,13 +51,23 @@ _.each(kmlFiles.reverse(), function(file, i) {
 }, this)
 ```
 
-### Change 2: `fetchKmlAndMap` signature
+### Change 2: `fetchKmlAndMap` signature + pre-existing bug fixes
 
 Replace the `map` parameter with `fg` (featureGroup). Change all `.addTo(map)` calls inside both the KMZ and KML code paths to `.addTo(fg)`. All other `map.*` references — `map.createPane`, `map.getPane`, and `.style.zIndex` — change to `this.map` (the visualization object's map property, always accessible inside any method on `this`).
 
 **Revised signature:** `fetchKmlAndMap(url, file, fg, paneZIndex)`
 
 **How `this.map` stays valid inside async callbacks:** The `L.featureGroup()` is added to `this.map` synchronously before `fetchKmlAndMap` is called. By the time any async callback (JSZip promise or jQuery AJAX `.done()`) fires, `this.map` is fully initialized and stable. No reliance on `fg._map` is needed.
+
+While editing `fetchKmlAndMap`, also fix the following pre-existing bugs:
+
+**Bug A — KMZ errors silently swallowed:** The `e` parameter from `JSZipUtils.getBinaryContent` is never checked, and the `.then()` chain has no `.catch()`. A network failure or malformed KMZ produces no console output. Fix: check `e` at the top of the callback and log + return early; add `.catch()` to the promise chain with a `console.error`.
+
+**Bug B — No null guard on KML-inside-KMZ extraction:** `zip.file(/.*\.kml/)[0].async("string")` throws if the KMZ contains no `.kml` file. Fix: assign to a variable and throw a descriptive error if `undefined`, which the `.catch()` added in Bug A will surface.
+
+**Bug C — Duplicate `style` / `onEachFeature` logic:** Both the KMZ and KML code paths contain identical `style` and `onEachFeature` callbacks (~20 lines each). Extract both into named local variables before the `if/else` block and reference them in both paths.
+
+**Note — Pane name collision (no fix, add comment):** Features across different KML files that share the same `name` property will share a Leaflet pane, and the second file's `paneZIndex` will overwrite the first. This is an edge case; no fix is required, but add an inline comment so future maintainers understand the behavior.
 
 ---
 
@@ -102,4 +112,4 @@ A minimal hand-crafted KML containing three named polygon features covering broa
 
 ## Known Gaps (Out of Scope)
 
-- **KMZ error handling:** The KMZ code path (JSZip `getBinaryContent`) currently has no `.fail()` equivalent. The KML path does have a `.fail()` handler. Adding KMZ error handling is out of scope for this change — the existing asymmetry predates this feature and is unchanged.
+- **Pane name collision:** Features from different KML files that share the same `name` property will share a Leaflet pane; the last file to process that name sets the z-index. Low probability in practice; documented with an inline comment in the code.

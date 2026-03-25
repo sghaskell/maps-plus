@@ -105,7 +105,7 @@
   <row>
     <panel>
       <html><h3>Scenario 3 — Threshold fallback (no clusterGroupColors)</h3>
-        <p><code>clusterGroupColors</code> is empty. No SPL color fields.
+        <p>Formatter option <code>clusterGroupColors</code> is empty. No SPL color fields (<code>clusterBgColor</code>/<code>clusterFgColor</code>).
         <br/><b>Expect:</b> existing green/yellow/orange threshold behavior unchanged.</p>
       </html>
     </panel>

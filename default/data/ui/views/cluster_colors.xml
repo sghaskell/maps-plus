@@ -14,11 +14,16 @@
           formatter option, per-row SPL fields, or both together. Count labels automatically switch to
           white on dark backgrounds.
         </p>
+        <p>
+          <b>Note:</b> <code>clusterGroupColors</code> is a <b>formatter option</b> set in
+          Format &#x2192; Cluster Colors. <code>clusterBgColor</code> and <code>clusterFgColor</code>
+          are <b>SPL fields</b> returned as columns in your search results.
+        </p>
         <table>
           <thead>
             <tr>
-              <th>Option / Field</th>
-              <th>Where</th>
+              <th>Name</th>
+              <th>Type</th>
               <th>Description</th>
               <th>Example</th>
             </tr>

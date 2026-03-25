@@ -1074,9 +1074,28 @@ parseClusterGroupColors: function(str) {
         var val = pair.substring(idx + 1).trim()
         if (!key || !val) { return }
         var normalized = self.parseColor(val)
-        if (normalized) { result[key] = normalized }
+        if (normalized) { result[key] = self.deriveClusterColors(normalized) }
     })
     return result
+},
+
+// Derive outer-ring (bg) and inner-circle (fg) colors from a single normalized color.
+// Hex inputs (#rrggbb) get automatic alpha: 0.6 for outer, 0.8 for inner — matching
+// the Leaflet cluster aesthetic. rgba() inputs with explicit alpha are kept as-is.
+deriveClusterColors: function(normalizedColor) {
+    if (!normalizedColor) { return null }
+    var hexMatch = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+    if (hexMatch) {
+        var r = parseInt(hexMatch[1], 16)
+        var g = parseInt(hexMatch[2], 16)
+        var b = parseInt(hexMatch[3], 16)
+        return {
+            bg: 'rgba(' + r + ',' + g + ',' + b + ',0.6)',
+            fg: 'rgba(' + r + ',' + g + ',' + b + ',0.8)'
+        }
+    }
+    // User supplied rgba() with explicit alpha — honor it for both rings
+    return { bg: normalizedColor, fg: normalizedColor }
 },
 
 stringToPoint: function(stringPoint) {
@@ -3231,11 +3250,11 @@ updateView: function(data, config) {
             cgBgColor = cgBgColor || cgFgColor
             cgFgColor = cgFgColor || cgBgColor
         } else if (clusterColorMap[clusterGroup]) {
-            cgBgColor = clusterColorMap[clusterGroup]
-            cgFgColor = clusterColorMap[clusterGroup]
+            cgBgColor = clusterColorMap[clusterGroup].bg
+            cgFgColor = clusterColorMap[clusterGroup].fg
         } else if (clusterColorMap['default']) {
-            cgBgColor = clusterColorMap['default']
-            cgFgColor = clusterColorMap['default']
+            cgBgColor = clusterColorMap['default'].bg
+            cgFgColor = clusterColorMap['default'].fg
         }
 
         // Sanitize clusterGroup name for use as a CSS class suffix

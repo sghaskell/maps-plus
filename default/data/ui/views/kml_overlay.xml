@@ -1,4 +1,4 @@
-<form version="1.1">
+<dashboard version="1.1">
   <label>KML Overlay</label>
   <description>Demonstrates KML/KMZ overlay layer control toggle (issue #41). Each map panel shows KML or KMZ overlays registered as named, toggleable entries in the layer control.</description>
 
@@ -11,12 +11,12 @@
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml</option>
       </viz>
     </panel>
@@ -44,12 +44,12 @@
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">14</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">14</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">37.4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-122.1</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml</option>
       </viz>
     </panel>
@@ -77,12 +77,12 @@
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kmz</option>
       </viz>
     </panel>
@@ -103,32 +103,32 @@
 
   <row>
     <panel>
-      <title>Panel 4 — Mixed: local KML + network KML + network KMZ</title>
+      <title>Panel 4 — Mixed: local KML + network KML + local KMZ</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">true</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml, https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml, sample.kmz</option>
       </viz>
     </panel>
     <panel>
       <html>
         <h3>Panel 4: Mixed Sources</h3>
-        <p>Three files loaded simultaneously: one local KML, one network KML, one network KMZ.</p>
+        <p>Three files loaded simultaneously: one local KML, one network KML, one local KMZ.</p>
         <p><b>What to verify:</b></p>
         <ul>
           <li>All three file types load and render.</li>
           <li>Layer control shows <b>three separate entries</b>, one per file, each independently toggleable.</li>
           <li>Toggling one entry does not affect the other two.</li>
-          <li>Entries are labeled by filename (no extension).</li>
+          <li>Entries are labeled by filename stem: <b>sample</b>, <b>KML_Samples</b>, <b>sample</b>.</li>
         </ul>
       </html>
     </panel>
@@ -143,19 +143,19 @@
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">cartodb_light</option>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">14</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">14</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">37.4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-122.1</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">false</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">0</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml</option>
       </viz>
     </panel>
     <panel>
       <html>
         <h3>Panel 5: Network KML (layerControl disabled)</h3>
-        <p><b>Source:</b> Same NASA WorldWind KML as Panel 2, but with <code>layerControl</code> set to false.</p>
+        <p><b>Source:</b> Same NASA WorldWind KML as Panel 2, but with <code>layerControl</code> set to <code>0</code>.</p>
         <p><b>What to verify:</b></p>
         <ul>
           <li>KML features render on the map.</li>
@@ -175,11 +175,11 @@
           <earliest>0</earliest>
           <latest>now</latest>
         </search>
-        <option name="leaflet_maps_app.maps-plus.mapZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">false</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">0</option>
       </viz>
     </panel>
     <panel>
@@ -196,4 +196,4 @@
     </panel>
   </row>
 
-</form>
+</dashboard>

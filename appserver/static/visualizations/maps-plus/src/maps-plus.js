@@ -1044,12 +1044,31 @@ createMarkerStyle: function(bgHex, fgHex, markerName) {
     }
 },
 
+// Return '#ffffff' or '#000000' based on WCAG relative luminance of a normalized
+// CSS color string (rgba(r,g,b,a) or #rrggbb).
+_clusterTextColor: function(normalizedColor) {
+    var r, g, b
+    var rgba = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(normalizedColor)
+    if (rgba) {
+        r = parseInt(rgba[1]); g = parseInt(rgba[2]); b = parseInt(rgba[3])
+    } else {
+        var hex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+        if (!hex) { return '#000000' }
+        r = parseInt(hex[1], 16); g = parseInt(hex[2], 16); b = parseInt(hex[3], 16)
+    }
+    var toLinear = function(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
+    var L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+    return L > 0.179 ? '#000000' : '#ffffff'
+},
+
 // Inject a per-group cluster CSS class using pre-normalized color strings from
 // parseColor. Unlike createMarkerStyle, this does NOT call hexToRgb and does NOT
 // override user-supplied alpha with 0.6.
 createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
+    var textColor = this._clusterTextColor(fgColor)
     var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgColor + ';} ' +
-               '.marker-cluster-' + markerName + ' div { background-color: ' + fgColor + ';}'
+               '.marker-cluster-' + markerName + ' div { background-color: ' + fgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div span { color: ' + textColor + ';}'
     var cacheKey = '_markerStyle_' + markerName
     if (this[cacheKey]) {
         this[cacheKey].html(html)
@@ -1303,16 +1322,18 @@ addLayerToControl: function(options) {
         // Fallback for marker types that do not match any icon branch (e.g. milsymbol DivIcon):
         // build label from layerIcon (FA name) + layerDescription so control never shows undefined.
         if (_.isUndefined(iconHtml)) {
+            var label = options.layerGroup.layerDescription || options.layerGroup.name || ""
             if (options.layerGroup.layerIcon) {
-                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + (styleColor || options.layerGroup.layerIconColor || "#333") + "\"></i> " + (options.layerGroup.layerDescription || "")
+                var iconColor = styleColor || options.layerGroup.clusterColor || options.layerGroup.layerIconColor || "#333"
+                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + iconColor + "\"></i> " + label
             } else {
-                iconHtml = options.layerGroup.layerDescription || ""
+                iconHtml = label
             }
         }
         options.control.addOverlay(options.layerGroup.group, iconHtml)
-        if(!options.layerGroup.layerVisibility) { 
+        if(!options.layerGroup.layerVisibility) {
           options.layerGroup.group.remove()
-        } 
+        }
         options.layerGroup.layerExists = true
     }
 
@@ -3072,8 +3093,8 @@ updateView: function(data, config) {
         var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
         var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
         var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
-        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
         var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:clusterGroup !== "default" ? clusterGroup:icon
 
         // When using ionicons use material design by default unless explicitly set
         if(prefix == "ion") { 
@@ -3286,13 +3307,16 @@ updateView: function(data, config) {
         // Create Clustered featuregroup subgroup layer
         if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+                                            'name' : layerGroup,
                                             'iconStyle' : icon,
                                             'layerExists' : false,
-                                            'clusterGroup': []
+                                            'clusterGroup': [],
+                                            'clusterColor': cgFgColor || null
                                             }
         // Create regular feature group
         } else if (_.isUndefined(this.layerFilter[layerGroup])) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+                                            'name' : layerGroup,
                                             'markerList' : [],
                                             'iconStyle' : icon,
                                             'layerExists' : false

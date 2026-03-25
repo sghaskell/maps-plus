@@ -1,0 +1,239 @@
+<dashboard version="1.1">
+  <label>Cluster Colors — Feature Test</label>
+  <description>Validation dashboard for clusterGroup color feature (issue #39). Each panel tests one scenario. All use makeresults — no external data needed.</description>
+
+  <!-- ============================================================
+       SCENARIO 1: Formatter-driven colors
+       Expected: servers = red (#E74C3C), routers = blue (#3498DB),
+                 switches = green (#2ECC71)
+       ============================================================ -->
+  <row>
+    <panel>
+      <html><h3>Scenario 1 — Formatter colors</h3>
+        <p>Three clusterGroups colored via <code>clusterGroupColors</code> formatter option.
+        <br/><b>Expect:</b> servers = red, routers = blue, switches = green. All flat (same shade at all sizes).</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=90
+| streamstats count as i
+| eval latitude=case(i&lt;=30, 41.8 + (i%6-3)*0.4, i&lt;=60, 34.0 + (i%6-3)*0.4, 1=1, 29.8 + (i%6-3)*0.4)
+| eval longitude=case(i&lt;=30, -87.6 + (i%5-2)*0.4, i&lt;=60, -118.2 + (i%5-2)*0.4, 1=1, -95.4 + (i%5-2)*0.4)
+| eval clusterGroup=case(i&lt;=30,"servers",i&lt;=60,"routers",1=1,"switches")
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">servers:#E74C3C, routers:#3498DB, switches:#2ECC71</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SCENARIO 2: SPL field overrides formatter
+       Formatter sets servers=red, but SPL clusterBgColor/FgColor=purple
+       Expected: all clusters render purple regardless of formatter
+       ============================================================ -->
+  <row>
+    <panel>
+      <html><h3>Scenario 2 — SPL field overrides formatter</h3>
+        <p>Formatter sets <code>servers_spl:#E74C3C</code> (red), but SPL fields <code>clusterBgColor</code> and <code>clusterFgColor</code> override to purple.
+        <br/><b>Expect:</b> clusters render purple (#9B59B6), not red.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=40
+| streamstats count as i
+| eval latitude=41.8 + (i%6-3)*0.4
+| eval longitude=-87.6 + (i%5-2)*0.4
+| eval clusterGroup="servers_spl"
+| eval clusterBgColor="#9B59B6"
+| eval clusterFgColor="#8E44AD"
+| table latitude, longitude, clusterGroup, clusterBgColor, clusterFgColor</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">servers_spl:#E74C3C</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.8</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.6</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">10</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SCENARIO 3: Threshold fallback (no clusterGroupColors set)
+       Expected: default green/yellow/orange threshold colors unchanged
+       ============================================================ -->
+  <row>
+    <panel>
+      <html><h3>Scenario 3 — Threshold fallback (no clusterGroupColors)</h3>
+        <p><code>clusterGroupColors</code> is empty. No SPL color fields.
+        <br/><b>Expect:</b> existing green/yellow/orange threshold behavior unchanged.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=90
+| streamstats count as i
+| eval latitude=39.5 + (i%10-5)*1.2
+| eval longitude=-98.35 + (i%9-4)*1.5
+| eval clusterGroup="default"
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors"></option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">5</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
+        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
+        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SCENARIO 4: `default` reserved key fallback
+       Formatter: only `default:#2ECC71` (green). clusterGroup="unknown_group"
+       Expected: unmatched group falls back to green
+       ============================================================ -->
+  <row>
+    <panel>
+      <html><h3>Scenario 4 — <code>default</code> key fallback</h3>
+        <p>Formatter has only <code>default:#2ECC71</code>. clusterGroup value is <code>unknown_group</code> (not in the mapping).
+        <br/><b>Expect:</b> clusters render green via the <code>default</code> fallback.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=40
+| streamstats count as i
+| eval latitude=34.0 + (i%6-3)*0.4
+| eval longitude=-118.2 + (i%5-2)*0.4
+| eval clusterGroup="unknown_group"
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">default:#2ECC71</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">34.0</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-118.2</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">10</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SCENARIO 5: rgba and named colors
+       servers=rgba(231,76,60,0.4) — semi-transparent red
+       routers=steelblue — CSS named color
+       Expected: servers visibly more transparent than routers
+       ============================================================ -->
+  <row>
+    <panel>
+      <html><h3>Scenario 5 — rgba and named CSS colors</h3>
+        <p>Formatter: <code>servers:rgba(231,76,60,0.4)</code> (semi-transparent red), <code>routers:steelblue</code> (named color).
+        <br/><b>Expect:</b> server clusters render at 40% opacity red, router clusters render steelblue at full opacity.</p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=60
+| streamstats count as i
+| eval latitude=case(i&lt;=30, 41.8 + (i%6-3)*0.4, 1=1, 34.0 + (i%6-3)*0.4)
+| eval longitude=case(i&lt;=30, -87.6 + (i%5-2)*0.4, 1=1, -118.2 + (i%5-2)*0.4)
+| eval clusterGroup=if(i&lt;=30,"servers","routers")
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">servers:rgba(231,76,60,0.4), routers:steelblue</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
+        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
+      </viz>
+    </panel>
+  </row>
+
+</dashboard>

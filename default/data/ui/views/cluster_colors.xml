@@ -1,0 +1,265 @@
+<dashboard version="1.1">
+  <label>Cluster Colors</label>
+  <description>Per-clusterGroup color configuration added in v4.5.1. All panels use makeresults — no external data needed.</description>
+
+  <!-- ============================================================
+       OVERVIEW
+       ============================================================ -->
+  <row>
+    <panel>
+      <html>
+        <h3>Cluster Colors — clusterGroup Color Configuration</h3>
+        <p>
+          Assign distinct colors to named marker cluster groups using the <code>clusterGroupColors</code>
+          formatter option, per-row SPL fields, or both together. Count labels automatically switch to
+          white on dark backgrounds.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Option / Field</th>
+              <th>Where</th>
+              <th>Description</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>clusterGroupColors</code></td>
+              <td>Formatter</td>
+              <td>
+                Comma-separated <code>groupName:color</code> pairs. Supports hex, <code>rgba()</code>,
+                and named CSS colors. Use the reserved key <code>default</code> as a catch-all for
+                group names not explicitly listed.
+              </td>
+              <td><code>servers:#E74C3C, routers:steelblue, default:#888</code></td>
+            </tr>
+            <tr>
+              <td><code>clusterBgColor</code></td>
+              <td>SPL field</td>
+              <td>
+                Per-row override for the outer ring color of this row's <code>clusterGroup</code>.
+                Takes priority over <code>clusterGroupColors</code>.
+                If only one SPL color field is present the other mirrors it.
+              </td>
+              <td><code>| eval clusterBgColor="#9B59B6"</code></td>
+            </tr>
+            <tr>
+              <td><code>clusterFgColor</code></td>
+              <td>SPL field</td>
+              <td>
+                Per-row override for the inner circle color of this row's <code>clusterGroup</code>.
+                Takes priority over <code>clusterGroupColors</code>.
+              </td>
+              <td><code>| eval clusterFgColor="#6C3483"</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <b>Resolution order:</b>
+          SPL fields &#x279C; <code>clusterGroupColors[groupName]</code> &#x279C;
+          <code>clusterGroupColors[default]</code> &#x279C; threshold fallback (green / yellow / orange).
+        </p>
+        <p>
+          <b>Alpha:</b> Hex and named colors automatically derive a 0.6-opacity outer ring and
+          0.8-opacity inner circle. <code>rgba()</code> values use your alpha as-is.
+        </p>
+      </html>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SECTION 1: FORMATTER-DRIVEN COLORS
+       ============================================================ -->
+  <row>
+    <panel>
+      <html>
+        <h3>1 — Formatter-Driven Colors</h3>
+        <p>
+          Set <code>clusterGroupColors</code> in the Formatter to assign a fixed color to each group.
+          Your SPL only needs to output the <code>clusterGroup</code> field — no color fields required.
+        </p>
+        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <pre>servers:#E74C3C, routers:#3498DB, switches:#2ECC71, firewalls:#E67E22</pre>
+        <p><b>SPL</b></p>
+        <pre>| eval clusterGroup=case(
+    region="northeast", "servers",
+    region="westcoast", "routers",
+    region="midwest",   "switches",
+    1=1,                "firewalls"
+  )
+| table latitude, longitude, clusterGroup</pre>
+        <p>
+          The map to the right shows four groups spread across the US, each rendered in its assigned color.
+          Zoom in to see individual markers — clusters dissolve and re-form as you zoom.
+        </p>
+      </html>
+    </panel>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=120
+| streamstats count as i
+| eval region=case(i&lt;=30,"northeast",i&lt;=60,"westcoast",i&lt;=90,"midwest",1=1,"southeast")
+| eval latitude=case(region="northeast",40.7+(i%7-3)*0.45,region="westcoast",37.5+(i%7-3)*0.7,region="midwest",41.8+(i%7-3)*0.45,1=1,32.0+(i%7-3)*0.7)
+| eval longitude=case(region="northeast",-74.0+(i%5-2)*0.45,region="westcoast",-121.0+(i%5-2)*0.7,region="midwest",-87.6+(i%5-2)*0.45,1=1,-83.5+(i%5-2)*0.7)
+| eval clusterGroup=case(region="northeast","servers",region="westcoast","routers",region="midwest","switches",1=1,"firewalls")
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">servers:#E74C3C, routers:#3498DB, switches:#2ECC71, firewalls:#E67E22</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SECTION 2: SPL FIELD OVERRIDE
+       ============================================================ -->
+  <row>
+    <panel>
+      <html>
+        <h3>2 — SPL Field Override</h3>
+        <p>
+          Add <code>clusterBgColor</code> and/or <code>clusterFgColor</code> to your SPL results to
+          override the formatter color at query time. Useful when color is data-driven — for example,
+          coloring by environment, severity, or ownership.
+        </p>
+        <p>
+          In this example the formatter declares <code>assets_prod:#E74C3C</code> (red), but the SPL
+          query adds purple override fields. The clusters render purple — SPL always wins.
+        </p>
+        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <pre>assets_prod:#E74C3C</pre>
+        <p><b>SPL overrides at query time</b></p>
+        <pre>| eval clusterGroup="assets_prod"
+| eval clusterBgColor="#9B59B6"
+| eval clusterFgColor="#6C3483"
+| table latitude, longitude, clusterGroup,
+        clusterBgColor, clusterFgColor</pre>
+        <p>
+          <b>Tip:</b> if only one field is present the other mirrors it, so
+          <code>clusterBgColor</code> alone is sufficient when you want a flat color.
+        </p>
+      </html>
+    </panel>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=50
+| streamstats count as i
+| eval latitude=41.8+(i%7-3)*0.45
+| eval longitude=-87.6+(i%6-3)*0.45
+| eval clusterGroup="assets_prod"
+| eval clusterBgColor="#9B59B6"
+| eval clusterFgColor="#6C3483"
+| table latitude, longitude, clusterGroup, clusterBgColor, clusterFgColor</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">assets_prod:#E74C3C</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.8</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.6</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">11</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+      </viz>
+    </panel>
+  </row>
+
+  <!-- ============================================================
+       SECTION 3: COLOR FORMATS, DEFAULT FALLBACK, CONTRAST TEXT
+       ============================================================ -->
+  <row>
+    <panel>
+      <html>
+        <h3>3 — Color Formats, <code>default</code> Fallback &amp; Contrast Labels</h3>
+        <p>
+          <code>clusterGroupColors</code> accepts any valid CSS color. Three formats are supported:
+        </p>
+        <table>
+          <thead>
+            <tr><th>Format</th><th>Example</th><th>Alpha behavior</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Hex</td>
+              <td><code>#E74C3C</code></td>
+              <td>Auto-derived: 0.6 ring / 0.8 inner</td>
+            </tr>
+            <tr>
+              <td>RGBA</td>
+              <td><code>rgba(52,152,219,0.4)</code></td>
+              <td>Used as-is (your value honored)</td>
+            </tr>
+            <tr>
+              <td>Named CSS</td>
+              <td><code>steelblue</code>, <code>crimson</code></td>
+              <td>Auto-derived: 0.6 ring / 0.8 inner</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          The reserved key <code>default</code> acts as a catch-all — any <code>clusterGroup</code>
+          value not explicitly listed in the mapping will fall back to it.
+        </p>
+        <p><b>Formatter &#x2192; clusterGroupColors</b></p>
+        <pre>dark_hosts:#1A252F,
+staging:rgba(52,152,219,0.4),
+cdn:steelblue,
+default:#8E44AD</pre>
+        <p>
+          <b>Contrast labels:</b> <code>dark_hosts</code> uses a near-black color (#1A252F).
+          The cluster count label automatically switches to <b>white</b> for legibility.
+          The <code>unknown_group</code> markers in the Southeast have no explicit mapping and
+          fall through to the <code>default</code> purple.
+        </p>
+      </html>
+    </panel>
+    <panel>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=100
+| streamstats count as i
+| eval region=case(i&lt;=25,"northeast",i&lt;=50,"westcoast",i&lt;=75,"midwest",1=1,"southeast")
+| eval latitude=case(region="northeast",40.7+(i%7-3)*0.45,region="westcoast",37.5+(i%6-3)*0.5,region="midwest",41.8+(i%7-3)*0.45,1=1,32.0+(i%6-3)*0.5)
+| eval longitude=case(region="northeast",-74.0+(i%5-2)*0.45,region="westcoast",-122.0+(i%5-2)*0.5,region="midwest",-87.6+(i%5-2)*0.45,1=1,-84.0+(i%5-2)*0.5)
+| eval clusterGroup=case(region="northeast","dark_hosts",region="westcoast","staging",region="midwest","cdn",1=1,"unknown_group")
+| table latitude, longitude, clusterGroup</query>
+          <earliest>-1m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.clusterGroupColors">dark_hosts:#1A252F, staging:rgba(52,152,219,0.4), cdn:steelblue, default:#8E44AD</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
+        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
+        <option name="leaflet_maps_app.maps-plus.animate">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+      </viz>
+    </panel>
+  </row>
+
+</dashboard>

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds a Splunk app package (leaflet_maps_app.tgz) at the repo root.
+# Builds a Splunk app package (maps-plus-for-splunk_<version>.tgz) at the repo root.
 # Upload via Splunk UI: Apps > Manage Apps > Install app from file.
 # This mirrors the real user install flow and avoids Docker volume issues.
 
@@ -7,7 +7,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
-OUTPUT="$REPO_ROOT/leaflet_maps_app.tgz"
+VERSION=$(grep '^version' "$REPO_ROOT/default/app.conf" | head -1 | sed 's/[^0-9]//g')
+OUTPUT="$REPO_ROOT/maps-plus-for-splunk_${VERSION}.tgz"
 
 echo "Building app package..."
 
@@ -36,5 +37,5 @@ rm -rf \
 
 (cd "$STAGE" && tar -czf "$OUTPUT" leaflet_maps_app)
 
-echo "Done: $OUTPUT"
+echo "Done: $OUTPUT (leaflet_maps_app v${VERSION})"
 echo "Upload via Splunk UI: Apps > Manage Apps > Install app from file"

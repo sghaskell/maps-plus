@@ -2972,8 +2972,23 @@ updateView: function(data, config) {
         "features": []
     };
 
+    // Clear stale markers from all layer groups before re-populating.
+    // Fires once per render cycle (gated by _markersCleared, reset in formatData).
+    // Keeps the same L.featureGroup() objects so layer control visibility is preserved.
+    if (this.isInitializedDom && this.layerFilter && !this._markersCleared) {
+        _.each(this.layerFilter, function(lf) {
+            if (lf.group) { lf.group.clearLayers() }
+            if (lf.markerList) { lf.markerList = [] }
+            if (lf.clusterGroup) {
+                _.each(lf.clusterGroup, function(cg) {
+                    cg.cg.clearLayers()
+                    cg.markerList = []
+                })
+            }
+        })
+        this._markersCleared = true
+    }
 
-   
     /********* BEGIN PROCESSING DATA **********/
 
     // Iterate through each row creating layer groups per icon type

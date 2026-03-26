@@ -21,7 +21,7 @@
     "webpack-cli": "^6.0.0"
   },
   "dependencies": {
-    "@geoman-io/leaflet-geoman-free": "2.11.4",
+    "@geoman-io/leaflet-geoman-free": "2.19.2",
     "@mapbox/togeojson": "^0.16.2",
     "@maplibre/maplibre-gl-leaflet": "^0.0.22",
     "@turf/turf": "7.3.4",

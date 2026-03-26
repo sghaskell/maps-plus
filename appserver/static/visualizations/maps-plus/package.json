@@ -1,6 +1,6 @@
 {
   "name": "leaflet_maps_app",
-  "version": "4.5.0",
+  "version": "4.6.1",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {
@@ -19,6 +19,10 @@
     "imports-loader": "^4.0.1",
     "webpack": "^5.99.0",
     "webpack-cli": "^6.0.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.4",
+    "lodash": "^4.17.23"
   },
   "dependencies": {
     "@geoman-io/leaflet-geoman-free": "2.11.4",

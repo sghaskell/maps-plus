@@ -1,6 +1,12 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.1] - 2026-03-26
+
+### Security
+- **lodash** upgraded from 4.17.21 to 4.17.23 via npm `overrides` (precautionary patch update)
+- **serialize-javascript** upgraded from 6.0.2 to 7.0.5 via npm `overrides` (addresses CVE-2020-7660 — RegExp/Date serialization in webpack build pipeline; build-time only, does not affect the shipped bundle)
+
 ## [4.6.0] - 2026-03-25
 
 ### Added

@@ -19,7 +19,7 @@ trap "rm -rf '$STAGE'" EXIT
 mkdir "$STAGE/leaflet_maps_app"
 
 # Copy only the directories Splunk actually uses
-for dir in appserver default metadata lookups; do
+for dir in appserver default metadata lookups static README; do
   [ -d "$REPO_ROOT/$dir" ] && cp -r "$REPO_ROOT/$dir" "$STAGE/leaflet_maps_app/"
 done
 

@@ -2003,7 +2003,15 @@ _addClustered: function(map, options) {
             lg.group.addTo(map)
             
             if(options.layerControl) {
-                options.context.addLayerToControl({layerGroup: lg, control: options.control})
+                _.each(lg.clusterGroup, function(cg) {
+                    if (!cg.layerExists) {
+                        var dot = cg.clusterColor
+                            ? '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + cg.clusterColor + '"/></svg>'
+                            : ''
+                        options.control.addOverlay(cg.cg, dot + cg.groupName)
+                        cg.layerExists = true
+                    }
+                })
             }
         }
     })
@@ -3362,7 +3370,9 @@ updateView: function(data, config) {
             && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
             this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
                                                             'cg': this.clusterGroups[clusterGroup],
-                                                            'markerList': []})
+                                                            'markerList': [],
+                                                            'clusterColor': cgFgColor || null,
+                                                            'layerExists': false})
         }
 
         if (!_.isUndefined(this.layerFilter[layerGroup])) {

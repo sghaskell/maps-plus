@@ -1,10 +1,22 @@
 <dashboard version="1.1">
   <label>KML Overlay</label>
-  <description>Demonstrates KML/KMZ overlay layer control toggle (issue #41). Each map panel shows KML or KMZ overlays registered as named, toggleable entries in the layer control.</description>
+  <description>Demonstrates KML and KMZ overlay support with toggleable layer control entries.</description>
 
   <row>
     <panel>
-      <title>Panel 1 — Local KML (sample.kml)</title>
+      <html>
+        <h2>KML / KMZ Overlay</h2>
+        <p>Maps+ can load KML and KMZ files as overlay layers on top of your map. Each file is registered as a named, toggleable entry in the layer control widget.</p>
+        <p><b>Local files</b> are served from <code>appserver/static/visualizations/maps-plus/contrib/kml/</code> inside the app. Specify just the filename (e.g. <code>sample.kml</code>).</p>
+        <p><b>Remote files</b> are fetched by URL. Use the full <code>https://</code> address. The Splunk server must be able to reach the URL.</p>
+        <p>Multiple files can be loaded at once by separating them with commas in the <b>KML Overlay</b> formatter option. Each file gets its own toggle in the layer control.</p>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Local KML — sample.kml</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
@@ -21,56 +33,7 @@
       </viz>
     </panel>
     <panel>
-      <html>
-        <h3>Panel 1: Local KML</h3>
-        <p><b>Source:</b> <code>contrib/kml/sample.kml</code> — bundled with the app.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>Three polygons appear on the map (Northwest, Northeast, South).</li>
-          <li>Layer control shows one entry labeled <b>sample</b>.</li>
-          <li>Toggling the entry hides/shows all three polygons.</li>
-          <li>Clicking a polygon shows a popup with its name.</li>
-        </ul>
-      </html>
-    </panel>
-  </row>
-
-  <row>
-    <panel>
-      <title>Panel 2 — Network KML (NASA WorldWind Samples)</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| makeresults count=1 | eval latitude=37.4, longitude=-122.1</query>
-          <earliest>0</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">14</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">37.4</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-122.1</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml</option>
-      </viz>
-    </panel>
-    <panel>
-      <html>
-        <h3>Panel 2: Network KML</h3>
-        <p><b>Source:</b> NASA WorldWind KML Samples — colored polygons and placemarks near NASA Ames Research Center.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>Colored polygon and point features appear on the map.</li>
-          <li>Layer control shows one entry labeled <b>KML_Samples</b>.</li>
-          <li>Toggling the entry hides/shows all features.</li>
-          <li>No console errors from the KML fetch.</li>
-        </ul>
-      </html>
-    </panel>
-  </row>
-
-  <row>
-    <panel>
-      <title>Panel 3 — Local KMZ (sample.kmz)</title>
+      <title>Local KMZ — sample.kmz</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
@@ -86,24 +49,28 @@
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kmz</option>
       </viz>
     </panel>
-    <panel>
-      <html>
-        <h3>Panel 3: Local KMZ</h3>
-        <p><b>Source:</b> <code>contrib/kml/sample.kmz</code> — same 3 US region polygons as Panel 1, packaged as KMZ.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>Three polygons appear on the map (Northwest, Northeast, South).</li>
-          <li>Layer control shows one entry labeled <b>sample</b>.</li>
-          <li>Toggling the entry hides/shows all features.</li>
-          <li>No console errors from the KMZ fetch or JSZip extraction.</li>
-        </ul>
-      </html>
-    </panel>
   </row>
 
   <row>
     <panel>
-      <title>Panel 4 — Mixed: local KML + network KML + local KMZ</title>
+      <title>Remote KML URL — NASA WorldWind Samples</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=1 | eval latitude=37.4, longitude=-122.1</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">14</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">37.4</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-122.1</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>Multiple Overlays — local KML + remote KML + local KMZ</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
           <query>| makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
@@ -118,81 +85,6 @@
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml, https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml, sample.kmz</option>
       </viz>
-    </panel>
-    <panel>
-      <html>
-        <h3>Panel 4: Mixed Sources</h3>
-        <p>Three files loaded simultaneously: one local KML, one network KML, one local KMZ.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>All three file types load and render.</li>
-          <li>Layer control shows <b>three separate entries</b>, one per file, each independently toggleable.</li>
-          <li>Toggling one entry does not affect the other two.</li>
-          <li>Entries are labeled by filename stem: <b>sample</b>, <b>KML_Samples</b>, <b>sample</b>.</li>
-        </ul>
-      </html>
-    </panel>
-  </row>
-
-  <row>
-    <panel>
-      <title>Panel 5 — Backwards compat: KML without layer control</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| makeresults count=1 | eval latitude=37.4, longitude=-122.1</query>
-          <earliest>0</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">14</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">37.4</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-122.1</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">0</option>
-        <option name="leaflet_maps_app.maps-plus.kmlOverlay">https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml</option>
-      </viz>
-    </panel>
-    <panel>
-      <html>
-        <h3>Panel 5: Network KML (layerControl disabled)</h3>
-        <p><b>Source:</b> Same NASA WorldWind KML as Panel 2, but with <code>layerControl</code> set to <code>0</code>.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>KML features render on the map.</li>
-          <li>No layer control widget appears.</li>
-          <li>Confirms backwards compatibility — KML renders even without layer control.</li>
-        </ul>
-      </html>
-    </panel>
-  </row>
-
-  <row>
-    <panel>
-      <title>Panel 6 — Default tile (no mapTile option)</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| makeresults count=1 | eval latitude=39.5, longitude=-98.35</query>
-          <earliest>0</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.5</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">400</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">0</option>
-      </viz>
-    </panel>
-    <panel>
-      <html>
-        <h3>Panel 6: Default tile (no mapTile set)</h3>
-        <p>No <code>mapTile</code> option is configured on this panel.</p>
-        <p><b>What to verify:</b></p>
-        <ul>
-          <li>Map loads using <b>CartoDB Light</b> tiles (light grey basemap).</li>
-          <li>No OpenStreetMap tile requests appear in the browser Network tab.</li>
-          <li>Regression test for issue #47 — default tile must not be OpenStreetMap.</li>
-        </ul>
-      </html>
     </panel>
   </row>
 

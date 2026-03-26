@@ -74,6 +74,16 @@ Manual only (no automated tests in this project):
 5. Toggle a layer group off in the layer control, wait for refresh — confirm it stays hidden
 6. Confirm no duplicate markers appear after multiple refresh cycles
 
+## Branching
+
+Create a feature branch off `develop` for this work:
+
+```bash
+git checkout develop && git checkout -b feature/fix-stale-markers-refresh
+```
+
+Merge back to `develop` via PR when complete. This is not a hotfix — no need to branch off `master`.
+
 ## Out of Scope
 
 - **Geoman token freshness on refresh:** If a user draws a shape that selects markers within a region, the associated Splunk tokens do not auto-update when data refreshes. This is pre-existing behavior and a separate concern.

@@ -1,21 +1,41 @@
 #!/bin/bash
-# Copies Maps+ build output into the running Splunk Docker container.
-# Finds the Splunk container by image name — no hardcoded container name.
+# Builds a Splunk app package (maps-plus-for-splunk_<version>.tgz) at the repo root.
+# Upload via Splunk UI: Apps > Manage Apps > Install app from file.
+# This mirrors the real user install flow and avoids Docker volume issues.
 
-CONTAINER=$(docker ps --format '{{.ID}} {{.Image}}' | awk '/splunk\/splunk/{print $1; exit}')
+set -e
 
-if [ -z "$CONTAINER" ]; then
-  echo "Error: No running Splunk container found. Is Docker Desktop running?"
-  exit 1
-fi
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
+VERSION=$(grep '^version' "$REPO_ROOT/default/app.conf" | head -1 | sed 's/[^0-9]//g')
+OUTPUT="$REPO_ROOT/maps-plus-for-splunk_${VERSION}.tgz"
 
-APP_PATH="/opt/splunk/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus"
+echo "Building app package..."
 
-echo "Deploying to container $CONTAINER..."
-docker cp visualization.js "$CONTAINER:$APP_PATH/visualization.js"
-docker cp visualization.css "$CONTAINER:$APP_PATH/visualization.css"
-docker cp formatter.html "$CONTAINER:$APP_PATH/formatter.html"
-docker cp contrib/css/leaflet-geoman.css "$CONTAINER:$APP_PATH/contrib/css/leaflet-geoman.css"
-docker cp contrib/css/maplibre-gl.css "$CONTAINER:$APP_PATH/contrib/css/maplibre-gl.css"
+# Stage to a sibling dir — guaranteed to exist; avoids /tmp issues on Windows
+STAGE=$(mktemp -d "$(dirname "$REPO_ROOT")/maps-plus-pkg.XXXXXX")
+trap "rm -rf '$STAGE'" EXIT
 
-echo "Done. Hard-refresh your browser (Ctrl+Shift+R) to pick up changes."
+mkdir "$STAGE/leaflet_maps_app"
+
+# Copy only the directories Splunk actually uses
+for dir in appserver default metadata lookups; do
+  [ -d "$REPO_ROOT/$dir" ] && cp -r "$REPO_ROOT/$dir" "$STAGE/leaflet_maps_app/"
+done
+
+# Strip dev-only artifacts
+find "$STAGE" -name "node_modules" -type d | xargs rm -rf 2>/dev/null || true
+rm -rf \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/src" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/scripts" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/package.json" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/package-lock.json" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/webpack.config.js" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/maps-plus/.babelrc" \
+  "$STAGE/leaflet_maps_app/appserver/static/visualizations/google-street-view/src" \
+  2>/dev/null || true
+
+(cd "$STAGE" && tar -czf "$OUTPUT" leaflet_maps_app)
+
+echo "Done: $OUTPUT (leaflet_maps_app v${VERSION})"
+echo "Upload via Splunk UI: Apps > Manage Apps > Install app from file"

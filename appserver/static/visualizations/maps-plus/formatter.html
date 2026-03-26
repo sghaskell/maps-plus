@@ -1,12 +1,12 @@
 <form class="splunk-formatter-section" section-label="Map">
-        <splunk-control-group label="Map Tile">
+        <splunk-control-group label="Map Tile" help="CartoDB and Esri tiles are recommended. OpenStreetMap tiles may return 403 errors — OSM enforces rate limits and requires headers that browser-based tile loading cannot send. Use OpenFreeMap Vector Tiles (below) for the best OSM-based experience.">
             <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">
-                              <option value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">Open Streetmap</option> 
-                              <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option> 
-                              <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option> 
-                              <option value="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png">OpenTopoMap</option> 
-                              <option value="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian OSM</option> 
-                              <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery</option> 
+                              <option value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">OpenStreetMap (may be rate-limited)</option>
+                              <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option>
+                              <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option>
+                              <option value="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png">OpenTopoMap</option>
+                              <option value="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian OSM (may be rate-limited)</option>
+                              <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery</option>
                             </splunk-select>
         </splunk-control-group>
         <splunk-control-group label="Map Tile Override" help="Use your own map tile URL and override defaults. Example: https://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png">
@@ -474,6 +474,9 @@
         <splunk-control-group label="Range Three Foreground" help="(Default: #F18017)">
             <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeFgColor" value="#F18017">
                             </splunk-color-picker>
+        </splunk-control-group>
+        <splunk-control-group label="Cluster Group Colors" help="Map clusterGroup values to colors. Use 'default' as a fallback key. Format: groupName:#hex, groupName:rgba(...), default:red">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.clusterGroupColors" value=""></splunk-text-input>
         </splunk-control-group>
     </form>
     <form class="splunk-formatter-section" section-label="Layer Controls">

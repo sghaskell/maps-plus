@@ -188,6 +188,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStylePreset': 'liberty',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStyleOverride': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clusterGroupColors': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.warningThreshold': 55,
@@ -323,11 +324,28 @@ _darkModeInit: function () {
                   '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
                   '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-    // Cache stylesheet reference — cssRules[10] is the contextmenu sub-stylesheet
-    // inside visualization.css. Index 10 reflects the current stylesheet structure;
-    // update this offset if the stylesheet order changes.
-    var darkModeStylesheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet.cssRules[10].styleSheet
-    // delete styles from newest to oldest                                  
+    // Find the contextmenu @import sub-stylesheet inside visualization.css by
+    // walking cssRules and identifying it by content (.leaflet-contextmenu selector),
+    // rather than relying on a hardcoded index or taking the first @import found.
+    var sheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet
+    var darkModeStylesheet = null
+    for (var r = 0; r < sheet.cssRules.length; r++) {
+        var rule = sheet.cssRules[r]
+        if (rule.styleSheet) {
+            var subSheet = rule.styleSheet
+            for (var s = 0; s < subSheet.cssRules.length; s++) {
+                if (subSheet.cssRules[s].selectorText &&
+                    subSheet.cssRules[s].selectorText.indexOf('leaflet-contextmenu') >= 0) {
+                    darkModeStylesheet = subSheet
+                    break
+                }
+            }
+            if (darkModeStylesheet) break
+        }
+    }
+    if (!darkModeStylesheet) return
+
+    // delete styles from newest to oldest
     for(var i = darkModeStylesheet.cssRules.length - 1; i >= 0; i--) {
         darkModeStylesheet.deleteRule(i)
     }
@@ -910,6 +928,22 @@ hexToRgb: function(hex) {
     } : null
 },
 
+// Normalize any CSS color string (hex, rgb, rgba, named) to the browser's
+// canonical form ('#rrggbb' or 'rgba(r,g,b,a)'). Returns null for invalid input.
+parseColor: function(str) {
+    if (!str || !str.trim()) { return null }
+    var ctx = document.createElement('canvas').getContext('2d')
+    // Sentinel approach: invalid assignments leave fillStyle unchanged
+    ctx.fillStyle = 'rgba(1,2,3,0.004)'
+    var sentinel = ctx.fillStyle
+    ctx.fillStyle = str.trim()
+    if (ctx.fillStyle === sentinel) {
+        console.warn('Maps+: invalid cluster color "' + str + '", ignoring')
+        return null
+    }
+    return ctx.fillStyle
+},
+
 // Convert string '1/0' or 'true/false' to boolean true/false
 isArgTrue: function(arg) {
     if(arg === 1 || arg === 'true' || arg === true) {
@@ -1017,6 +1051,79 @@ createMarkerStyle: function(bgHex, fgHex, markerName) {
             .html(html)
             .appendTo("head")
     }
+},
+
+// Return '#ffffff' or '#000000' based on WCAG relative luminance of a normalized
+// CSS color string (rgba(r,g,b,a) or #rrggbb).
+_clusterTextColor: function(normalizedColor) {
+    var r, g, b
+    var rgba = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(normalizedColor)
+    if (rgba) {
+        r = parseInt(rgba[1]); g = parseInt(rgba[2]); b = parseInt(rgba[3])
+    } else {
+        var hex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+        if (!hex) { return '#000000' }
+        r = parseInt(hex[1], 16); g = parseInt(hex[2], 16); b = parseInt(hex[3], 16)
+    }
+    var toLinear = function(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
+    var L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+    return L > 0.179 ? '#000000' : '#ffffff'
+},
+
+// Inject a per-group cluster CSS class using pre-normalized color strings from
+// parseColor. Unlike createMarkerStyle, this does NOT call hexToRgb and does NOT
+// override user-supplied alpha with 0.6.
+createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
+    var textColor = this._clusterTextColor(fgColor)
+    var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div { background-color: ' + fgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div span { color: ' + textColor + ';}'
+    var cacheKey = '_markerStyle_' + markerName
+    if (this[cacheKey]) {
+        this[cacheKey].html(html)
+    } else {
+        this[cacheKey] = $("<style>").prop("type", "text/css").html(html).appendTo("head")
+    }
+},
+
+// Parse the clusterGroupColors formatter string into a color lookup map.
+// Input format: "servers:#E74C3C, routers:rgba(52,152,219,0.8), default:red"
+// Returns: { servers: '#e74c3c', routers: 'rgba(52, 152, 219, 0.8)', default: '#ff0000' }
+// NOTE: Split on commas NOT inside parentheses so rgba(r,g,b,a) values are not broken.
+parseClusterGroupColors: function(str) {
+    var result = {}
+    if (!str || !str.trim()) { return result }
+    var self = this
+    // Split on ',' only when not inside parentheses (handles rgba(r,g,b,a) values)
+    str.split(/,(?![^(]*\))/).forEach(function(pair) {
+        var idx = pair.indexOf(':')
+        if (idx < 1) { return }
+        var key = pair.substring(0, idx).trim()
+        var val = pair.substring(idx + 1).trim()
+        if (!key || !val) { return }
+        var normalized = self.parseColor(val)
+        if (normalized) { result[key] = self.deriveClusterColors(normalized) }
+    })
+    return result
+},
+
+// Derive outer-ring (bg) and inner-circle (fg) colors from a single normalized color.
+// Hex inputs (#rrggbb) get automatic alpha: 0.6 for outer, 0.8 for inner — matching
+// the Leaflet cluster aesthetic. rgba() inputs with explicit alpha are kept as-is.
+deriveClusterColors: function(normalizedColor) {
+    if (!normalizedColor) { return null }
+    var hexMatch = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+    if (hexMatch) {
+        var r = parseInt(hexMatch[1], 16)
+        var g = parseInt(hexMatch[2], 16)
+        var b = parseInt(hexMatch[3], 16)
+        return {
+            bg: 'rgba(' + r + ',' + g + ',' + b + ',0.6)',
+            fg: 'rgba(' + r + ',' + g + ',' + b + ',0.8)'
+        }
+    }
+    // User supplied rgba() with explicit alpha — honor it for both rings
+    return { bg: normalizedColor, fg: normalizedColor }
 },
 
 stringToPoint: function(stringPoint) {
@@ -1201,8 +1308,12 @@ addLayerToControl: function(options) {
     }
 
     if(!options.layerGroup.layerExists) {
+        // Cluster group with assigned color: render colored SVG dot + name
+        if (options.layerGroup.clusterColor) {
+            var cgLabel = options.layerGroup.layerDescription || options.layerGroup.name || ""
+            iconHtml = '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + options.layerGroup.clusterColor + '"/></svg>' + cgLabel
         // Circle Marker
-        if(_.has(options.layerGroup.circle, "fillColor")) {
+        } else if(_.has(options.layerGroup.circle, "fillColor")) {
             styleColor = options.layerGroup.circle.fillColor
             iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
         } else {
@@ -1224,16 +1335,20 @@ addLayerToControl: function(options) {
         // Fallback for marker types that do not match any icon branch (e.g. milsymbol DivIcon):
         // build label from layerIcon (FA name) + layerDescription so control never shows undefined.
         if (_.isUndefined(iconHtml)) {
+            var label = options.layerGroup.layerDescription || options.layerGroup.name || ""
             if (options.layerGroup.layerIcon) {
-                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + (styleColor || options.layerGroup.layerIconColor || "#333") + "\"></i> " + (options.layerGroup.layerDescription || "")
+                var iconColor = styleColor || options.layerGroup.clusterColor || options.layerGroup.layerIconColor || "#333"
+                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + iconColor + "\"></i> " + label
+            } else if (options.layerGroup.clusterColor) {
+                iconHtml = '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + options.layerGroup.clusterColor + '"/></svg>' + label
             } else {
-                iconHtml = options.layerGroup.layerDescription || ""
+                iconHtml = label
             }
         }
         options.control.addOverlay(options.layerGroup.group, iconHtml)
-        if(!options.layerGroup.layerVisibility) { 
+        if(!options.layerGroup.layerVisibility) {
           options.layerGroup.group.remove()
-        } 
+        }
         options.layerGroup.layerExists = true
     }
 
@@ -1423,62 +1538,89 @@ fitLayerBounds: function (options) {
 },
 
 // Fetch KMZ or KML files and add to map
-fetchKmlAndMap: function(url, file, map, paneZIndex) {
-    // Test if it's a kmz file
-    if(/.*\.kmz/.test(file)) {
-        JSZipUtils.getBinaryContent(url, function (e, d) {
-            var z = new JSZip()
+fetchKmlAndMap: function(url, file, fg, paneZIndex) {
+    var self = this
 
+    // Shared style + feature callbacks — used by both KMZ and KML code paths
+    var kmlStyle = function(feature) {
+        var p = feature.properties || {}
+        return {
+            color:       _.has(p, 'stroke')         ? p['stroke']         : '#3388ff',
+            weight:      _.has(p, 'stroke-width')   ? p['stroke-width']   : 2,
+            opacity:     _.has(p, 'stroke-opacity') ? p['stroke-opacity'] : 1.0,
+            fillColor:   _.has(p, 'fill')           ? p['fill']           : '#3388ff',
+            fillOpacity: _.has(p, 'fill-opacity')   ? p['fill-opacity']   : 0.2
+        }
+    }
+
+    // Filter out features whose coordinates contain undefined/NaN values.
+    // JSON.stringify coerces both to null, so a 'null' hit flags invalid geometry.
+    var kmlValidFeatures = function(features) {
+        return (features || []).filter(function(f) {
+            if (!f || !f.geometry || !f.geometry.coordinates) return false
+            var s = JSON.stringify(f.geometry.coordinates)
+            return s && s.indexOf('null') === -1
+        })
+    }
+
+    var kmlOnEachFeature = function(feature, layer) {
+        // Pane is keyed by feature name. If two KML files share a feature name,
+        // they share a pane and the last file to process that name sets the z-index.
+        var name = feature.properties && feature.properties.name
+        if (!name) { return }
+        if (!self.map.getPane(name)) { self.map.createPane(name) }
+        self.map.getPane(name).style.zIndex = paneZIndex
+        layer.options.pane = name
+        layer.defaultOptions.pane = name
+        layer.bindPopup(name)
+        layer.bindTooltip(name)
+    }
+
+    if (/.*\.kmz/.test(file)) {
+        JSZipUtils.getBinaryContent(url, function(e, d) {
+            if (e) {
+                console.error('Maps+: Failed to load KMZ overlay from ' + url, e)
+                return
+            }
+            var z = new JSZip()
             z.loadAsync(d)
             .then(function(zip) {
-                return zip.file(/.*\.kml/)[0].async("string")
+                var kmlFile = zip.file(/.*\.kml/)[0]
+                if (!kmlFile) { throw new Error('Maps+: No .kml file found inside KMZ: ' + url) }
+                return kmlFile.async("string")
             })
-            .then(function (text) {
-                var kmlText = $.parseXML(text)
-                var geojson = toGeoJSON.kml(kmlText)
-
-                L.geoJson(geojson.features, {
-                    style: function (feature) {
-                        return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-                                color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-                                opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                                weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-                     },
-                    onEachFeature: function (feature, layer) {
-                         // Create pane and set zIndex to render multiple KML files over each other based on
-                         // specified precedence in overlay menu 
-                        map.createPane(feature.properties.name)
-                        map.getPane(feature.properties.name).style.zIndex = paneZIndex
-                        layer.options.pane = feature.properties.name
-                        layer.defaultOptions.pane = feature.properties.name
-                        layer.bindPopup(feature.properties.name)
-                        layer.bindTooltip(feature.properties.name)
-                    }
-                }).addTo(map)
+            .then(function(text) {
+                // DOMParser is more lenient than $.parseXML — handles BOM and encoding edge cases
+                var kmlDom = new DOMParser().parseFromString(text.replace(/^\uFEFF/, ''), 'application/xml')
+                if (kmlDom.querySelector('parsererror')) { throw new Error('Maps+: KML parse error inside KMZ: ' + url) }
+                var geojson = toGeoJSON.kml(kmlDom)
+                L.geoJson(kmlValidFeatures(geojson.features), {
+                    style: kmlStyle,
+                    onEachFeature: kmlOnEachFeature
+                }).addTo(fg)
+            })
+            .catch(function(err) {
+                console.error('Maps+: Error processing KMZ overlay from ' + url, err)
             })
         })
-    // it's a kml file
     } else {
-        $.ajax({url: url, dataType: 'xml', context: this}).done(function(kml) {
+        // Fetch as text so jQuery doesn't run its strict XML parser before we can clean the response.
+        // DOMParser handles UTF-8 BOM and encoding edge cases that $.parseXML rejects.
+        $.ajax({url: url, dataType: 'text', context: this})
+        .done(function(responseText) {
+            var kml = new DOMParser().parseFromString(responseText.replace(/^\uFEFF/, ''), 'application/xml')
+            if (kml.querySelector('parsererror')) {
+                console.error('Maps+: Failed to parse KML from ' + url)
+                return
+            }
             var geojson = toGeoJSON.kml(kml)
-            L.geoJson(geojson.features, {
-                style: function (feature) {
-                    return {stroke: _.has(feature.properties, "stroke") ? feature.properties.stroke : '#FFFFFF',
-                            color: _.has(feature.properties, "fill") ? feature.properties.fill : _.has(feature.properties,"stroke") ? feature.properties.stroke : "#FFFFFF",
-                            opacity: _.has(feature.properties, "fill-opacity") ? feature.properties["fill-opacity"] : 0.5,
-                            weight: _.has(feature.properties, "stroke-width") ? feature.properties["stroke-width"] : 1 }
-                 },
-                 onEachFeature: function (feature, layer) {
-                     // Create pane and set zIndex to render multiple KML files over each other based on
-                     // specified precedence in overlay menu 
-                     map.createPane(feature.properties.name)
-                     map.getPane(feature.properties.name).style.zIndex = paneZIndex
-                     layer.options.pane = feature.properties.name
-                     layer.defaultOptions.pane = feature.properties.name
-                     layer.bindPopup(feature.properties.name)
-                     layer.bindTooltip(feature.properties.name)
-                }
-            }).addTo(map)
+            L.geoJson(kmlValidFeatures(geojson.features), {
+                style: kmlStyle,
+                onEachFeature: kmlOnEachFeature
+            }).addTo(fg)
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Maps+: Failed to load KML overlay from ' + url + ' (' + textStatus + ')', errorThrown)
         })
     }
 },
@@ -1509,6 +1651,9 @@ _createClusterGroup: function(disableClusteringAtZoom,
                               criticalThreshold,
                               warningThreshold,
                               antarcticProj,
+                              cgBgColor,
+                              cgFgColor,
+                              safeGroupName,
                               context) {
 
     // Redefine spiderfy and extend it
@@ -1548,6 +1693,11 @@ _createClusterGroup: function(disableClusteringAtZoom,
         }
     })
 
+    // Inject per-group cluster CSS if colors are configured
+    if (cgBgColor && cgFgColor) {
+        context.createMarkerStyleFromColor(cgBgColor, cgFgColor, safeGroupName)
+    }
+
     var mcg = new L.MarkerClusterGroup({
         chunkedLoading: true,
         maxClusterRadius: maxClusterRadius,
@@ -1558,6 +1708,10 @@ _createClusterGroup: function(disableClusteringAtZoom,
         animate: (this.isArgTrue(animate)),
         iconCreateFunction: function(cluster) {
             var childCount = cluster.getChildCount()
+            // Use per-group color class when configured; fall back to threshold classes
+            if (cgBgColor) {
+                return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster marker-cluster-' + safeGroupName, iconSize: new L.Point(40, 40) })
+            }
             var c = ' marker-cluster-'
             if (childCount >= criticalThreshold) {
                 c += 'three'
@@ -1566,7 +1720,7 @@ _createClusterGroup: function(disableClusteringAtZoom,
             } else {
                 c += 'one'
             }
-            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
+            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) })
         }
     })
 
@@ -2031,6 +2185,7 @@ updateView: function(data, config) {
         maplibreStylePreset = this._getEscapedProperty('maplibreStylePreset', config),
         maplibreStyleOverride = this._getSafeUrlProperty('maplibreStyleOverride', config),
         kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
+        clusterGroupColors = this._getEscapedProperty('clusterGroupColors', config),
         rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
         rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
         warningThreshold = this._getEscapedProperty('warningThreshold', config),
@@ -2144,28 +2299,19 @@ updateView: function(data, config) {
         }
     } 
     
-    // Check for data and retrun if we don't have any
-    if(!_.has(data, "results")) {
+    // Get data rows — formatData returns `this` (no .results) for empty/unfinished searches.
+    // Use an empty array so the map still initializes and shows a blank tile instead of a white div.
+    // Guard with Array.isArray: SplunkVisualizationBase may set this.results = null, so
+    // _.has returns true but data.results is null, crashing dataRows.length below.
+    var dataRows = (_.has(data, 'results') && Array.isArray(data.results)) ? data.results : []
+
+    // If the map is already rendered and there's no new data, nothing to update
+    if (dataRows.length === 0 && this.isInitializedDom) {
         return this
     }
 
-    // get data
-    var dataRows = data.results
-
-    // check for data
-    if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-        return this
-    }
-
-    // Validate we have at least latitude and longitude fields
-    if(!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-        if( !("feature" in dataRows[0])){
-            throw new SplunkVisualizationBase.VisualizationError(
-                'Incorrect Fields Detected - latitude & longitude fields required'
-            )
-        }
-    }
-
+    // renderer is read inside the isInitializedDom block (canvas preferCanvas option), so
+    // it must be declared before that block regardless of whether we have data.
     var pathSplits = parseInt(this._getEscapedProperty('pathSplits', config)),
         renderer = this._getEscapedProperty('renderer', config),
         pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
@@ -2196,6 +2342,11 @@ updateView: function(data, config) {
         this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
         this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
         this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
+
+        // Parse per-group color mapping from formatter config.
+        // Declared here (before the per-row processing loop) so it is in scope at the
+        // cluster group creation block below. JavaScript var hoisting ensures availability.
+        var clusterColorMap = this.parseClusterGroupColors(clusterGroupColors)
 
         // Enable all or multiple popups
         if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
@@ -2533,6 +2684,10 @@ updateView: function(data, config) {
 
         // Create layer control
         var control = this.control = L.control.layers({}, {}, { collapsed: this.isArgTrue(layerControlCollapsed) })
+        if (this.isArgTrue(layerControl)) {
+            this.control.addTo(this.map)
+            if(this.isDarkTheme) { this._darkModeUpdate() }
+        }
 
         let measureControl = this.measureControl
 
@@ -2595,21 +2750,6 @@ updateView: function(data, config) {
             if(this.isDarkTheme) { this._darkModeUpdate() }                    
         }
 
-        // Iterate through KML files and load overlays into layers on map 
-        if(kmlOverlay) {
-            // Create array of kml/kmz files
-            var kmlFiles = kmlOverlay.split(/\s*,\s*/)
-            // Pane zIndex used to facilitate layering of multiple KML/KMZ files
-            var paneZIndex = this.paneZIndex = 400
-
-            // Loop through each file and load it onto the map
-            _.each(kmlFiles.reverse(), function(file, i) {
-                var url = location.origin + this.contribUri + '/kml/' + file
-                this.fetchKmlAndMap(url, file, this.map, this.paneZIndex)
-                this.paneZIndex = this.paneZIndex - (i+1)
-            }, this)
-        }
-        
         var pathLineLayers = this.pathLineLayers = {}
         
         // Store heatmap layers
@@ -2676,10 +2816,38 @@ updateView: function(data, config) {
             L.DomEvent.addListener(this.map, 'contextmenu.show', function(e) {
                 if(_.has(e, 'relatedTarget')) {
                     this.contextMenuTarget = e.relatedTarget
-                }                        
+                }
             }, this)
-        }       
-    } 
+        }
+    }
+
+    // Load KML/KMZ overlays outside !isInitializedDom so they fire on the second
+    // updateView call when real config arrives, even if the first call used defaults.
+    // _loadedKmlOverlay tracks what's on the map — skip if config hasn't changed.
+    if (kmlOverlay !== this._loadedKmlOverlay) {
+        _.each(this._kmlFeatureGroups || [], function(fg) {
+            if (this.control) { this.control.removeLayer(fg) }
+            fg.remove()
+        }, this)
+        this._kmlFeatureGroups = []
+        this._loadedKmlOverlay = kmlOverlay
+
+        if (kmlOverlay) {
+            var kmlFiles = kmlOverlay.split(/\s*,\s*/)
+            var paneZIndex = this.paneZIndex = 400
+            _.each(kmlFiles.reverse(), function(file, i) {
+                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
+                var label = file.split('/').pop()
+                var fg = L.featureGroup().addTo(this.map)
+                if (this.isArgTrue(layerControl)) {
+                    this.control.addOverlay(fg, label)
+                }
+                this._kmlFeatureGroups.push(fg)
+                this.fetchKmlAndMap(url, file, fg, paneZIndex)
+                paneZIndex = paneZIndex - (i + 1)
+            }, this)
+        }
+    }
 
     // ─── Milsymbol zoom-scaling: register zoomend handler once per map init ──────
     // Captures formatter-level color/style config via closure so the redraw has
@@ -2752,6 +2920,20 @@ updateView: function(data, config) {
                 }
             })
         })
+    }
+
+    // Blank map is now initialized — no data rows to render
+    if (dataRows.length === 0) {
+        return this
+    }
+
+    // Validate we have at least latitude and longitude fields
+    if (!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
+        if (!("feature" in dataRows[0])) {
+            throw new SplunkVisualizationBase.VisualizationError(
+                'Incorrect Fields Detected - latitude & longitude fields required'
+            )
+        }
     }
 
     // Map Scroll
@@ -2957,8 +3139,8 @@ updateView: function(data, config) {
         var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
         var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
         var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
-        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
         var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:clusterGroup !== "default" ? clusterGroup:icon
 
         // When using ionicons use material design by default unless explicitly set
         if(prefix == "ion") { 
@@ -3124,6 +3306,30 @@ updateView: function(data, config) {
             drilldownAction: drilldownAction}
 
         // Create Cluster Group
+        // Resolve per-group color: SPL fields > formatter named entry > formatter default > null
+        // If only one SPL field is provided, use it for both bg and fg.
+        var cgBgColor = null
+        var cgFgColor = null
+        if (_.has(userData, 'clusterBgColor') || _.has(userData, 'clusterFgColor')) {
+            cgBgColor = _.has(userData, 'clusterBgColor') ? this.parseColor(userData['clusterBgColor']) : null
+            cgFgColor = _.has(userData, 'clusterFgColor') ? this.parseColor(userData['clusterFgColor']) : null
+            // Fall back: if one field is missing, use the other for both
+            cgBgColor = cgBgColor || cgFgColor
+            cgFgColor = cgFgColor || cgBgColor
+        } else if (clusterColorMap[clusterGroup]) {
+            cgBgColor = clusterColorMap[clusterGroup].bg
+            cgFgColor = clusterColorMap[clusterGroup].fg
+        } else if (clusterColorMap['default']) {
+            cgBgColor = clusterColorMap['default'].bg
+            cgFgColor = clusterColorMap['default'].fg
+        }
+
+        // Sanitize clusterGroup name for use as a CSS class suffix
+        var safeGroupName = clusterGroup.replace(/[^a-zA-Z0-9-_]/g, '-')
+        if (cgBgColor && (safeGroupName === 'one' || safeGroupName === 'two' || safeGroupName === 'three')) {
+            console.warn('Maps+: clusterGroup name "' + clusterGroup + '" conflicts with reserved threshold class names. Colors may not apply correctly.')
+        }
+
         if(_.isUndefined(this.clusterGroups[clusterGroup])) {
             var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                 disableClusteringAtZoomLevel,
@@ -3135,6 +3341,9 @@ updateView: function(data, config) {
                                                 criticalThreshold,
                                                 warningThreshold,
                                                 antarcticProj,
+                                                cgBgColor,
+                                                cgFgColor,
+                                                safeGroupName,
                                                 this)
 
             this.clusterGroups[clusterGroup] = cg
@@ -3144,13 +3353,16 @@ updateView: function(data, config) {
         // Create Clustered featuregroup subgroup layer
         if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+                                            'name' : layerGroup,
                                             'iconStyle' : icon,
                                             'layerExists' : false,
-                                            'clusterGroup': []
+                                            'clusterGroup': [],
+                                            'clusterColor': cgFgColor || null
                                             }
         // Create regular feature group
         } else if (_.isUndefined(this.layerFilter[layerGroup])) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+                                            'name' : layerGroup,
                                             'markerList' : [],
                                             'iconStyle' : icon,
                                             'layerExists' : false
@@ -3163,7 +3375,9 @@ updateView: function(data, config) {
             && typeof _.findWhere(this.layerFilter[layerGroup].clusterGroup, {groupName: clusterGroup}) == 'undefined') {
             this.layerFilter[layerGroup].clusterGroup.push({'groupName': clusterGroup,
                                                             'cg': this.clusterGroups[clusterGroup],
-                                                            'markerList': []})
+                                                            'markerList': [],
+                                                            'clusterColor': cgFgColor || null,
+                                                            'layerExists': false})
         }
 
         if (!_.isUndefined(this.layerFilter[layerGroup])) {
@@ -3189,13 +3403,6 @@ updateView: function(data, config) {
         }
     }, this)
     
-    // Enable layer controls and toggle collapse 
-    if (this.isArgTrue(layerControl)) {           
-        this.control.options.collapsed = this.isArgTrue(layerControlCollapsed)
-        this.control.addTo(this.map)                
-        if(this.isDarkTheme) { this._darkModeUpdate() }
-    } 
-
     // Clustered
     if (this.isArgTrue(cluster)) {
         this._addClustered(this.map, {layerFilter: this.layerFilter,

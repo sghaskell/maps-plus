@@ -382,6 +382,12 @@ Initial visibility of layer in layer control menu. Set to `false` to hide from m
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.
 
+##### clusterBgColor
+Per-row SPL field. Sets the outer ring color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()`, and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it.
+
+##### clusterFgColor
+Per-row SPL field. Sets the inner circle color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()`, and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option.
+
 ### Overlays
 Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.
 
@@ -399,7 +405,17 @@ Click `Format` and selct the `Overlays` tab. Enter a comma separated list of fil
 file1.kml,file2.kmz
 ```
 
-The files will be asynchronously loaded when the map is rendered. 
+You can also reference external KML/KMZ files by full URL:
+
+```
+file1.kml,https://example.com/data/regions.kml,https://example.com/data/zones.kmz
+```
+
+Each file is registered as a named, toggleable entry in the layer control (if enabled). The entry label is the filename without extension.
+
+The files will be asynchronously loaded when the map is rendered.
+
+> **CORS requirement for external URLs:** KML and KMZ files are fetched via browser XHR. External servers must respond with an `Access-Control-Allow-Origin` header that includes the Splunk host's origin (or `*`). Servers that do not send CORS headers will be blocked by the browser — check the browser console for a CORS error if an external overlay fails to appear. Local files placed in `contrib/kml/` are always same-origin and are not affected.
 
 ### i18n Localization
 The app has limited support for localizing portions of the app. Select the `i18n` tab of the format menu to select your language. Current supported languages are English and Japanese. Reach out to me directly if you'd like to contribute translations for your language.
@@ -849,13 +865,16 @@ GBIF polar tiles provided by the [Global Biodiversity Information Facility](http
 ### Formatting Options
 #### Map
 ###### Map Tile
-Select one of six available map tiles
+Select one of six available map tiles. **CartoDB Light (default) and Esri World Imagery are recommended.** OpenStreetMap and Humanitarian OSM tiles may return `403 Access Blocked` errors — OSM enforces usage policy requiring HTTP headers (`Referer`, `User-Agent`) that browser-based tile loading via `<img>` tags cannot send. For an OSM-based experience without these restrictions, use **OpenFreeMap Vector Tiles** instead.
 ###### Map Tile Override
 Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles [here](http://wiki.openstreetmap.org/wiki/Tiles)
 ###### Map Attribution Override
 Use your own attribution.
 ###### Renderer
 Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.
+###### Result Count Limit
+Maps+ requests all available results from the search job (`count: 0`). The actual number of results returned is controlled by Splunk's `maxresultrows` setting in `limits.conf` (default: 50,000 for most installations). If you are seeing fewer results than expected, increase `maxresultrows` in your Splunk configuration or use SPL to pre-aggregate your data before visualizing.
+
 ###### Progress Indicator
 Display progress spinner for long running searches
 ###### Scroll Wheel Zoom
@@ -992,6 +1011,11 @@ Select language used for labels
 #### Cluster Colors
 Cluster color changes require browser refresh
 
+###### Cluster Group Colors
+Comma-separated `groupName:color` pairs that assign a fixed color to each `clusterGroup` value. Accepts hex, `rgba()`, and named CSS colors. Use the reserved key `default` as a catch-all for group names not explicitly listed. Per-row SPL fields `clusterBgColor`/`clusterFgColor` take priority over this setting. - **Default** `` (empty — threshold colors apply)
+
+Example: `servers:#E74C3C, routers:#3498DB, default:#95A5A6`
+
 ###### Range One Background
 - **Default** `#B5E28C`
 ###### Range One Foreground
@@ -1021,7 +1045,7 @@ Collapse or expand layer control widget. If collapsed, mousing over icon will ex
 Overlay control changes require browser refresh
 
 ###### KML/KMZ Overlay
-Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)
+Comma separated list of KML or KMZ filenames (local files in `contrib/kml/`) or full URLs to externally-hosted files (e.g. `file1.kml, https://example.com/regions.kmz`). Each file appears as a named, toggleable entry in the layer control. External URLs require the server to send CORS headers — see the [KML/KMZ Overlay](#kmlkmz-overlay) section for details.
 
 #### Measure
 ###### Enable Measurement Plugin

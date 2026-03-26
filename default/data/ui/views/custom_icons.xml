@@ -169,7 +169,7 @@ extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
         <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
         <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
         <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
         <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
         <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>

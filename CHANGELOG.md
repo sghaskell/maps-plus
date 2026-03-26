@@ -1,6 +1,29 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.0] - 2026-03-25
+
+### Added
+- **Per-cluster-group colors** (#39): New `clusterBgColor` and `clusterFgColor` SPL fields set the outer ring and inner circle colors of cluster icons on a per-row basis. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it. Takes priority over the **Cluster Group Colors** formatter option. Colors are normalized via a new `parseColor` utility that handles hex, `rgba()`, and named CSS colors. Cluster CSS is injected per group using `createMarkerStyleFromColor` — each group gets a unique generated class name to avoid cross-group bleed.
+- **Colored dots in layer control for cluster groups**: Cluster groups with assigned `clusterBgColor` now display a matching SVG circle dot next to the group name in the layer control legend, consistent with circle marker representation.
+- **KML/KMZ overlay with layer control toggle** (#41): KML and KMZ files loaded via the `kmlOverlay` option now register as independently toggleable entries in the layer control widget. Each file's layer name is derived from the full filename to avoid stem collisions across multiple overlays. The `fetchKmlAndMap` function has been refactored to extract shared callbacks and add proper KMZ error handling. The layer control is mounted once at initialization to prevent duplicate DOM nodes across `updateView` cycles. URL-referenced KML files are now fully supported (previously only paths were handled).
+- **Demo dashboard `kml_overlay.xml`**: Five-panel demo covering polygon overlays, multi-file KML, layer toggle interaction, URL-loaded KML, and tile regression.
+- **Demo dashboard `cluster_colors.xml`**: Demonstrates `clusterBgColor`/`clusterFgColor` per cluster group with layer control integration.
+- **`cluster_colors` formatter option**: A new **Cluster Group Colors** formatter panel option provides a default color map for cluster groups without per-row SPL fields.
+
+### Changed
+- **FontAwesome upgraded from 5.8.2 to 7.2.0**: Updated woff2 font files (`fa-solid-900`, `fa-regular-400`, `fa-brands-400`) and CSS. FA7 drops eot/svg/ttf/woff formats — only woff2 is shipped. Font path corrected from `../webfonts/` to `../fonts/` in both `fontawesome-all.min.css` and `fontawesome-v4-shims.min.css`. The v4 compatibility shim (`fa-v4compatibility.woff2`) is included for legacy icon names. `fa` (solid) and `fab` (brands) prefixes are available free; `far` (regular) requires a Font Awesome Pro license.
+- **Awesome-markers icon positioning adjusted for FA7**: `margin-top` increased from 10px to 14px and `font-size: 14px` restored to keep icons vertically centred inside marker pins with FA7's updated glyph metrics.
+- **Demo dashboards updated**: `circle_markers.xml` and `custom_icons.xml` tile URLs updated to CartoDB Light; `google_streetview_drilldown.xml` updated to OpenFreeMap Liberty vector tiles.
+- **Deploy script refactored** (`scripts/deploy.sh`): Now stages files to a sibling temp directory and uses `tar` from that staging dir, matching the user-facing install flow via Splunk UI upload. Eliminates silent mis-packaging caused by the previous `tar` pipe approach on Windows/Git Bash.
+
+### Fixed
+- **Dark mode contextmenu stylesheet detection**: `_darkModeInit` now identifies the contextmenu sub-stylesheet by scanning `cssRules` for a `.leaflet-contextmenu` selector rather than taking the first `@import` found — prevents breakage when stylesheet load order changes.
+- **Crash guard on empty results** (#27): `updateView` no longer throws when `formatData` returns the viz object instead of a data payload for empty searches. `dataRows` now falls back to `[]` and field validation is skipped, preventing a white div or JS error. Note: Splunk's framework displays its own "No results found" overlay before `updateView` is called on empty searches — a blank map tile is not rendered in this case.
+- **Unnamed KML features and URL support for `kmlOverlay`** (#36, #38): KML features without a `<name>` element no longer throw on layer registration. The `kmlOverlay` option now accepts HTTP/HTTPS URLs in addition to relative paths.
+- **OSM tile rate-limiting warning** (#47): A visible warning is shown in the formatter and README when OpenStreetMap is selected as the tile provider, explaining the Splunk iframe `Referer` issue and recommending CartoDB or a self-hosted proxy.
+- **Layer visibility state restored for clustered groups**: `layerVisibility` is now correctly preserved across `updateView` cycles for clustered layer groups, fixing a regression where toggled-off cluster layers would reappear on data refresh.
+
 ## [4.5.0] - 2026-03-23
 
 ### Added

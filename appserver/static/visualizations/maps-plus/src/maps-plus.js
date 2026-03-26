@@ -2119,6 +2119,11 @@ formatData: function(data) {
         return this
     }
 
+    // If the previous render cycle completed, reset the clear flag so the
+    // clear-in-place block in updateView fires once at the start of this cycle.
+    if (this.allDataProcessed) {
+        this._markersCleared = false
+    }
     this.allDataProcessed = false
     return data
 },

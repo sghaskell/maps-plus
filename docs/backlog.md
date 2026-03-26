@@ -63,6 +63,10 @@ Output `$mapCenter$` and `$mapZoom$` Splunk tokens on map pan/zoom. Enables link
 **Source:** https://github.com/sghaskell/maps-plus/issues/43
 Add drilldown token from Geoman-drawn feature context menus. Contributor provided working prototype code. Token name should be user-configurable (currently hardcoded in prototype).
 
+### Measure tool integration with layer control
+**Type:** Enhancement
+When `layerControl` is enabled and a user creates a measurement feature via the measure tool, register it as a named, toggleable entry in the layer control. Remove the entry when the feature is deleted. Gives users visibility and toggle control over their measurement overlays without leaving the map UI.
+
 ### Free geocoder (Nominatim)
 **Type:** Feature gap
 Add an optional search/geocode box powered by Nominatim (no API key required, uses OSM data). Complements existing Google Places Autocomplete (which requires a key).

@@ -325,13 +325,22 @@ _darkModeInit: function () {
                   '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
     // Find the contextmenu @import sub-stylesheet inside visualization.css by
-    // walking cssRules rather than relying on a hardcoded index.
+    // walking cssRules and identifying it by content (.leaflet-contextmenu selector),
+    // rather than relying on a hardcoded index or taking the first @import found.
     var sheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet
     var darkModeStylesheet = null
     for (var r = 0; r < sheet.cssRules.length; r++) {
-        if (sheet.cssRules[r].styleSheet) {
-            darkModeStylesheet = sheet.cssRules[r].styleSheet
-            break
+        var rule = sheet.cssRules[r]
+        if (rule.styleSheet) {
+            var subSheet = rule.styleSheet
+            for (var s = 0; s < subSheet.cssRules.length; s++) {
+                if (subSheet.cssRules[s].selectorText &&
+                    subSheet.cssRules[s].selectorText.indexOf('leaflet-contextmenu') >= 0) {
+                    darkModeStylesheet = subSheet
+                    break
+                }
+            }
+            if (darkModeStylesheet) break
         }
     }
     if (!darkModeStylesheet) return

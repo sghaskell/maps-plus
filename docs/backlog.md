@@ -2,7 +2,7 @@
 
 Triaged list of open issues and feature gaps. Update as items are resolved.
 
-Last updated: 2026-03-23
+Last updated: 2026-03-25
 
 ---
 
@@ -35,14 +35,20 @@ OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loa
 - **Field validation error:** Moved `VisualizationError` throw to after `isInitializedDom` block so the error appears on a rendered map rather than a white div.
 - **Marker limit:** `count: 0` in `getInitialDataParams` already requests all results. The limit is Splunk's `maxresultrows` in `limits.conf` (default 50k). Documented in README under new "Result Count Limit" section.
 
+### Blank map when search returns 0 results (Splunk platform interception)
+**Type:** Bug
+Splunk's dashboard framework intercepts 0-result searches and renders a "No results found." overlay before the custom visualization lifecycle starts — so `formatData` and `updateView` are never called. The fix in #27 (which guards `dataRows` and initializes the map before checking row count) only helps when Splunk does call `updateView`. When it doesn't, the map div never renders.
+**Root cause:** Map initialization is gated entirely on the `updateView`/`formatData` path. It needs to also fire via `reflow()` (which Splunk calls on every panel render regardless of results) or `onDataReceived` override.
+**Fix direction:** Initialize the Leaflet map in `reflow()` when `!isInitializedDom` so the map always renders; let KML overlay loading (which currently runs inside the `!isInitializedDom` block in `updateView`) also trigger from `reflow()` or a shared init method. Needs careful handling of config availability at `reflow()` time.
+
 ### #39 — Cluster color by clusterGroup ✅ CLOSED
 **Type:** Enhancement
 **Source:** https://github.com/sghaskell/maps-plus/issues/39
 Per-`clusterGroup` colors via the **Cluster Group Colors** formatter option (comma-separated `groupName:color` pairs) and optional per-row SPL fields `clusterBgColor`/`clusterFgColor`. Colors are resolved at cluster group creation: SPL fields → named formatter entry → `default` formatter key → existing threshold behavior. Cluster group names now appear as separate named entries in the layer control with a colored dot. Close **#32** as duplicate.
 
-### Layer visibility UI
+### Layer visibility UI ✅ CLOSED
 **Type:** Feature gap (no issue)
-Expose `L.control.layers` so users can toggle individual layer groups on/off from the map UI without rewriting SPL. Resolves **#41** (KML overlay toggle) as a side effect — close #41 as resolved-by.
+Exposed `L.control.layers` so users can toggle individual layer groups on/off from the map UI. KML/KMZ overlays are registered as named, toggleable entries. Closes **#41** as resolved-by.
 
 ---
 
@@ -56,6 +62,10 @@ Output `$mapCenter$` and `$mapZoom$` Splunk tokens on map pan/zoom. Enables link
 **Type:** Enhancement
 **Source:** https://github.com/sghaskell/maps-plus/issues/43
 Add drilldown token from Geoman-drawn feature context menus. Contributor provided working prototype code. Token name should be user-configurable (currently hardcoded in prototype).
+
+### Measure tool integration with layer control
+**Type:** Enhancement
+When `layerControl` is enabled and a user creates a measurement feature via the measure tool, register it as a named, toggleable entry in the layer control. Remove the entry when the feature is deleted. Gives users visibility and toggle control over their measurement overlays without leaving the map UI.
 
 ### Free geocoder (Nominatim)
 **Type:** Feature gap

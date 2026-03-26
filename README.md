@@ -382,6 +382,12 @@ Initial visibility of layer in layer control menu. Set to `false` to hide from m
 ### Cluster Groups
 By default, the visualization renders all markers into a single cluster group. Override this behavior using the ``clusterGroup`` SPL field. Refer to the `Multi-Cluster Groups` dashboard example in the app for details.
 
+##### clusterBgColor
+Per-row SPL field. Sets the outer ring color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()`, and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it.
+
+##### clusterFgColor
+Per-row SPL field. Sets the inner circle color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()`, and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option.
+
 ### Overlays
 Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.
 
@@ -994,6 +1000,11 @@ Select language used for labels
 
 #### Cluster Colors
 Cluster color changes require browser refresh
+
+###### Cluster Group Colors
+Comma-separated `groupName:color` pairs that assign a fixed color to each `clusterGroup` value. Accepts hex, `rgba()`, and named CSS colors. Use the reserved key `default` as a catch-all for group names not explicitly listed. Per-row SPL fields `clusterBgColor`/`clusterFgColor` take priority over this setting. - **Default** `` (empty — threshold colors apply)
+
+Example: `servers:#E74C3C, routers:#3498DB, default:#95A5A6`
 
 ###### Range One Background
 - **Default** `#B5E28C`

@@ -10,6 +10,7 @@
         <view name="custom_icons" />
         <view name="custom_icon_images" />
         <view name="multicluster_groups" />
+        <view name="cluster_colors" />
         <view name="multilayer_groups" />
         <!--    <view name="dashboard5" /> -->
         <!-- </collection> -->

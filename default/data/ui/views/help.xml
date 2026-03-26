@@ -164,6 +164,10 @@ carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n
 <p>Specify unique group that markers belong to.</p>
 <h3 id="clustergroups">Cluster Groups</h3>
 <p>By default, the visualization renders all markers into a single cluster group. Override this behavior using the <code>clusterGroup</code> SPL field. Refer to the <code>Multi-Cluster Groups</code> dashboard example in the app for details.</p>
+<h5 id="clusterbgcolor">clusterBgColor</h5>
+<p>Per-row SPL field. Sets the outer ring color of the cluster icon for this row's <code>clusterGroup</code>. Accepts hex, <code>rgba()</code>, and named CSS colors. Takes priority over the <b>Cluster Group Colors</b> formatter option. If only <code>clusterBgColor</code> is provided, <code>clusterFgColor</code> mirrors it.</p>
+<h5 id="clusterfgcolor">clusterFgColor</h5>
+<p>Per-row SPL field. Sets the inner circle color of the cluster icon for this row's <code>clusterGroup</code>. Accepts hex, <code>rgba()</code>, and named CSS colors. Takes priority over the <b>Cluster Group Colors</b> formatter option.</p>
 <h3 id="overlays">Overlays</h3>
 <p>Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.</p>
 <h5 id="kmlkmzoverlay">KML/KMZ Overlay</h5>

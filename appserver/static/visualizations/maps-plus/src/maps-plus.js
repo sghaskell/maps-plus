@@ -188,6 +188,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStylePreset': 'liberty',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.maplibreStyleOverride': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.kmlOverlay' : "",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.clusterGroupColors': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneBgColor': "#B5E28C",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.rangeOneFgColor': "#6ECC39",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.warningThreshold': 55,
@@ -918,6 +919,22 @@ hexToRgb: function(hex) {
     } : null
 },
 
+// Normalize any CSS color string (hex, rgb, rgba, named) to the browser's
+// canonical form ('#rrggbb' or 'rgba(r,g,b,a)'). Returns null for invalid input.
+parseColor: function(str) {
+    if (!str || !str.trim()) { return null }
+    var ctx = document.createElement('canvas').getContext('2d')
+    // Sentinel approach: invalid assignments leave fillStyle unchanged
+    ctx.fillStyle = 'rgba(1,2,3,0.004)'
+    var sentinel = ctx.fillStyle
+    ctx.fillStyle = str.trim()
+    if (ctx.fillStyle === sentinel) {
+        console.warn('Maps+: invalid cluster color "' + str + '", ignoring')
+        return null
+    }
+    return ctx.fillStyle
+},
+
 // Convert string '1/0' or 'true/false' to boolean true/false
 isArgTrue: function(arg) {
     if(arg === 1 || arg === 'true' || arg === true) {
@@ -1025,6 +1042,79 @@ createMarkerStyle: function(bgHex, fgHex, markerName) {
             .html(html)
             .appendTo("head")
     }
+},
+
+// Return '#ffffff' or '#000000' based on WCAG relative luminance of a normalized
+// CSS color string (rgba(r,g,b,a) or #rrggbb).
+_clusterTextColor: function(normalizedColor) {
+    var r, g, b
+    var rgba = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(normalizedColor)
+    if (rgba) {
+        r = parseInt(rgba[1]); g = parseInt(rgba[2]); b = parseInt(rgba[3])
+    } else {
+        var hex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+        if (!hex) { return '#000000' }
+        r = parseInt(hex[1], 16); g = parseInt(hex[2], 16); b = parseInt(hex[3], 16)
+    }
+    var toLinear = function(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
+    var L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+    return L > 0.179 ? '#000000' : '#ffffff'
+},
+
+// Inject a per-group cluster CSS class using pre-normalized color strings from
+// parseColor. Unlike createMarkerStyle, this does NOT call hexToRgb and does NOT
+// override user-supplied alpha with 0.6.
+createMarkerStyleFromColor: function(bgColor, fgColor, markerName) {
+    var textColor = this._clusterTextColor(fgColor)
+    var html = '.marker-cluster-' + markerName + ' { background-color: ' + bgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div { background-color: ' + fgColor + ';} ' +
+               '.marker-cluster-' + markerName + ' div span { color: ' + textColor + ';}'
+    var cacheKey = '_markerStyle_' + markerName
+    if (this[cacheKey]) {
+        this[cacheKey].html(html)
+    } else {
+        this[cacheKey] = $("<style>").prop("type", "text/css").html(html).appendTo("head")
+    }
+},
+
+// Parse the clusterGroupColors formatter string into a color lookup map.
+// Input format: "servers:#E74C3C, routers:rgba(52,152,219,0.8), default:red"
+// Returns: { servers: '#e74c3c', routers: 'rgba(52, 152, 219, 0.8)', default: '#ff0000' }
+// NOTE: Split on commas NOT inside parentheses so rgba(r,g,b,a) values are not broken.
+parseClusterGroupColors: function(str) {
+    var result = {}
+    if (!str || !str.trim()) { return result }
+    var self = this
+    // Split on ',' only when not inside parentheses (handles rgba(r,g,b,a) values)
+    str.split(/,(?![^(]*\))/).forEach(function(pair) {
+        var idx = pair.indexOf(':')
+        if (idx < 1) { return }
+        var key = pair.substring(0, idx).trim()
+        var val = pair.substring(idx + 1).trim()
+        if (!key || !val) { return }
+        var normalized = self.parseColor(val)
+        if (normalized) { result[key] = self.deriveClusterColors(normalized) }
+    })
+    return result
+},
+
+// Derive outer-ring (bg) and inner-circle (fg) colors from a single normalized color.
+// Hex inputs (#rrggbb) get automatic alpha: 0.6 for outer, 0.8 for inner — matching
+// the Leaflet cluster aesthetic. rgba() inputs with explicit alpha are kept as-is.
+deriveClusterColors: function(normalizedColor) {
+    if (!normalizedColor) { return null }
+    var hexMatch = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/.exec(normalizedColor)
+    if (hexMatch) {
+        var r = parseInt(hexMatch[1], 16)
+        var g = parseInt(hexMatch[2], 16)
+        var b = parseInt(hexMatch[3], 16)
+        return {
+            bg: 'rgba(' + r + ',' + g + ',' + b + ',0.6)',
+            fg: 'rgba(' + r + ',' + g + ',' + b + ',0.8)'
+        }
+    }
+    // User supplied rgba() with explicit alpha — honor it for both rings
+    return { bg: normalizedColor, fg: normalizedColor }
 },
 
 stringToPoint: function(stringPoint) {
@@ -1232,16 +1322,18 @@ addLayerToControl: function(options) {
         // Fallback for marker types that do not match any icon branch (e.g. milsymbol DivIcon):
         // build label from layerIcon (FA name) + layerDescription so control never shows undefined.
         if (_.isUndefined(iconHtml)) {
+            var label = options.layerGroup.layerDescription || options.layerGroup.name || ""
             if (options.layerGroup.layerIcon) {
-                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + (styleColor || options.layerGroup.layerIconColor || "#333") + "\"></i> " + (options.layerGroup.layerDescription || "")
+                var iconColor = styleColor || options.layerGroup.clusterColor || options.layerGroup.layerIconColor || "#333"
+                iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + iconColor + "\"></i> " + label
             } else {
-                iconHtml = options.layerGroup.layerDescription || ""
+                iconHtml = label
             }
         }
         options.control.addOverlay(options.layerGroup.group, iconHtml)
-        if(!options.layerGroup.layerVisibility) { 
+        if(!options.layerGroup.layerVisibility) {
           options.layerGroup.group.remove()
-        } 
+        }
         options.layerGroup.layerExists = true
     }
 
@@ -1529,6 +1621,9 @@ _createClusterGroup: function(disableClusteringAtZoom,
                               criticalThreshold,
                               warningThreshold,
                               antarcticProj,
+                              cgBgColor,
+                              cgFgColor,
+                              safeGroupName,
                               context) {
 
     // Redefine spiderfy and extend it
@@ -1568,6 +1663,11 @@ _createClusterGroup: function(disableClusteringAtZoom,
         }
     })
 
+    // Inject per-group cluster CSS if colors are configured
+    if (cgBgColor && cgFgColor) {
+        context.createMarkerStyleFromColor(cgBgColor, cgFgColor, safeGroupName)
+    }
+
     var mcg = new L.MarkerClusterGroup({
         chunkedLoading: true,
         maxClusterRadius: maxClusterRadius,
@@ -1578,6 +1678,10 @@ _createClusterGroup: function(disableClusteringAtZoom,
         animate: (this.isArgTrue(animate)),
         iconCreateFunction: function(cluster) {
             var childCount = cluster.getChildCount()
+            // Use per-group color class when configured; fall back to threshold classes
+            if (cgBgColor) {
+                return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster marker-cluster-' + safeGroupName, iconSize: new L.Point(40, 40) })
+            }
             var c = ' marker-cluster-'
             if (childCount >= criticalThreshold) {
                 c += 'three'
@@ -1586,7 +1690,7 @@ _createClusterGroup: function(disableClusteringAtZoom,
             } else {
                 c += 'one'
             }
-            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c , iconSize: new L.Point(40, 40) })
+            return new L.DivIcon({ html: '<div><span><b>' + childCount + '</span></div></b>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) })
         }
     })
 
@@ -2051,6 +2155,7 @@ updateView: function(data, config) {
         maplibreStylePreset = this._getEscapedProperty('maplibreStylePreset', config),
         maplibreStyleOverride = this._getSafeUrlProperty('maplibreStyleOverride', config),
         kmlOverlay  = this._getEscapedProperty('kmlOverlay', config),
+        clusterGroupColors = this._getEscapedProperty('clusterGroupColors', config),
         rangeOneBgColor = this._getEscapedProperty('rangeOneBgColor', config),
         rangeOneFgColor = this._getEscapedProperty('rangeOneFgColor', config),
         warningThreshold = this._getEscapedProperty('warningThreshold', config),
@@ -2205,6 +2310,11 @@ updateView: function(data, config) {
         this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
         this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
         this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
+
+        // Parse per-group color mapping from formatter config.
+        // Declared here (before the per-row processing loop) so it is in scope at the
+        // cluster group creation block below. JavaScript var hoisting ensures availability.
+        var clusterColorMap = this.parseClusterGroupColors(clusterGroupColors)
 
         // Enable all or multiple popups
         if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
@@ -2983,8 +3093,8 @@ updateView: function(data, config) {
         var layerIconPrefix = _.has(userData, "layerIconPrefix") ? userData["layerIconPrefix"]:prefix
         var layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:iconColor
         var layerIconSize = _.has(userData, "layerIconSize") ? userData["layerIconSize"]:"20,20"
-        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:icon
         var clusterGroup = _.has(userData, "clusterGroup") ? userData["clusterGroup"]:"default"
+        var layerGroup = _.has(userData, "layerGroup") ? userData["layerGroup"]:clusterGroup !== "default" ? clusterGroup:icon
 
         // When using ionicons use material design by default unless explicitly set
         if(prefix == "ion") { 
@@ -3150,6 +3260,30 @@ updateView: function(data, config) {
             drilldownAction: drilldownAction}
 
         // Create Cluster Group
+        // Resolve per-group color: SPL fields > formatter named entry > formatter default > null
+        // If only one SPL field is provided, use it for both bg and fg.
+        var cgBgColor = null
+        var cgFgColor = null
+        if (_.has(userData, 'clusterBgColor') || _.has(userData, 'clusterFgColor')) {
+            cgBgColor = _.has(userData, 'clusterBgColor') ? this.parseColor(userData['clusterBgColor']) : null
+            cgFgColor = _.has(userData, 'clusterFgColor') ? this.parseColor(userData['clusterFgColor']) : null
+            // Fall back: if one field is missing, use the other for both
+            cgBgColor = cgBgColor || cgFgColor
+            cgFgColor = cgFgColor || cgBgColor
+        } else if (clusterColorMap[clusterGroup]) {
+            cgBgColor = clusterColorMap[clusterGroup].bg
+            cgFgColor = clusterColorMap[clusterGroup].fg
+        } else if (clusterColorMap['default']) {
+            cgBgColor = clusterColorMap['default'].bg
+            cgFgColor = clusterColorMap['default'].fg
+        }
+
+        // Sanitize clusterGroup name for use as a CSS class suffix
+        var safeGroupName = clusterGroup.replace(/[^a-zA-Z0-9-_]/g, '-')
+        if (cgBgColor && (safeGroupName === 'one' || safeGroupName === 'two' || safeGroupName === 'three')) {
+            console.warn('Maps+: clusterGroup name "' + clusterGroup + '" conflicts with reserved threshold class names. Colors may not apply correctly.')
+        }
+
         if(_.isUndefined(this.clusterGroups[clusterGroup])) {
             var cg = this._createClusterGroup(disableClusteringAtZoom,
                                                 disableClusteringAtZoomLevel,
@@ -3161,6 +3295,9 @@ updateView: function(data, config) {
                                                 criticalThreshold,
                                                 warningThreshold,
                                                 antarcticProj,
+                                                cgBgColor,
+                                                cgFgColor,
+                                                safeGroupName,
                                                 this)
 
             this.clusterGroups[clusterGroup] = cg
@@ -3170,13 +3307,16 @@ updateView: function(data, config) {
         // Create Clustered featuregroup subgroup layer
         if (_.isUndefined(this.layerFilter[layerGroup]) && this.isArgTrue(cluster)) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup.subGroup(),
+                                            'name' : layerGroup,
                                             'iconStyle' : icon,
                                             'layerExists' : false,
-                                            'clusterGroup': []
+                                            'clusterGroup': [],
+                                            'clusterColor': cgFgColor || null
                                             }
         // Create regular feature group
         } else if (_.isUndefined(this.layerFilter[layerGroup])) {
             this.layerFilter[layerGroup] = {'group' : L.featureGroup(),
+                                            'name' : layerGroup,
                                             'markerList' : [],
                                             'iconStyle' : icon,
                                             'layerExists' : false

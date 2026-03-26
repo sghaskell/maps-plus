@@ -475,6 +475,9 @@
             <splunk-color-picker name="{{VIZ_NAMESPACE}}.rangeThreeFgColor" value="#F18017">
                             </splunk-color-picker>
         </splunk-control-group>
+        <splunk-control-group label="Cluster Group Colors" help="Map clusterGroup values to colors. Use 'default' as a fallback key. Format: groupName:#hex, groupName:rgba(...), default:red">
+            <splunk-text-input name="{{VIZ_NAMESPACE}}.clusterGroupColors" value=""></splunk-text-input>
+        </splunk-control-group>
     </form>
     <form class="splunk-formatter-section" section-label="Layer Controls">
         <splunk-control-group label="Layer Control" help="Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map.">

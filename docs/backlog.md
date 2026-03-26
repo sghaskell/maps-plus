@@ -35,10 +35,10 @@ OSM now blocks tile requests missing `Referer`/`User-Agent` headers. Leaflet loa
 - **Field validation error:** Moved `VisualizationError` throw to after `isInitializedDom` block so the error appears on a rendered map rather than a white div.
 - **Marker limit:** `count: 0` in `getInitialDataParams` already requests all results. The limit is Splunk's `maxresultrows` in `limits.conf` (default 50k). Documented in README under new "Result Count Limit" section.
 
-### #39 — Cluster color by clusterGroup
+### #39 — Cluster color by clusterGroup ✅ CLOSED
 **Type:** Enhancement
 **Source:** https://github.com/sghaskell/maps-plus/issues/39
-Configurable foreground/background color palettes per `clusterGroup` value. Design proposal in the issue thread. Has been on backlog — acknowledged by maintainer. Close **#32** as duplicate.
+Per-`clusterGroup` colors via the **Cluster Group Colors** formatter option (comma-separated `groupName:color` pairs) and optional per-row SPL fields `clusterBgColor`/`clusterFgColor`. Colors are resolved at cluster group creation: SPL fields → named formatter entry → `default` formatter key → existing threshold behavior. Cluster group names now appear as separate named entries in the layer control with a colored dot. Close **#32** as duplicate.
 
 ### Layer visibility UI
 **Type:** Feature gap (no issue)

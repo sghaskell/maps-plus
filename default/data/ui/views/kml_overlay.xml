@@ -8,7 +8,7 @@
         <h2>KML / KMZ Overlay</h2>
         <p>Maps+ can load KML and KMZ files as overlay layers on top of your map. Each file is registered as a named, toggleable entry in the layer control widget.</p>
         <p><b>Local files</b> are served from <code>appserver/static/visualizations/maps-plus/contrib/kml/</code> inside the app. Specify just the filename (e.g. <code>sample.kml</code>).</p>
-        <p><b>Remote files</b> are fetched by URL. Use the full <code>https://</code> address. The Splunk server must be able to reach the URL.</p>
+        <p><b>Remote files</b> are fetched by URL. Use the full <code>https://</code> address.</p>
         <p>Multiple files can be loaded at once by separating them with commas in the <b>KML Overlay</b> formatter option. Each file gets its own toggle in the layer control.</p>
       </html>
     </panel>
@@ -33,6 +33,17 @@
       </viz>
     </panel>
     <panel>
+      <html>
+        <h3>Local KML</h3>
+        <p>Loads <code>contrib/kml/sample.kml</code> — a bundled file with three US region polygons (Northwest, Northeast, South).</p>
+        <p>The layer control entry is labeled <b>sample.kml</b>. Toggling it hides or shows all polygons. Clicking a polygon shows a popup with its name.</p>
+        <p>Use this pattern for KML files you ship inside the app package.</p>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
       <title>Local KMZ — sample.kmz</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
@@ -48,6 +59,14 @@
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kmz</option>
       </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Local KMZ</h3>
+        <p>Loads <code>contrib/kml/sample.kmz</code> — the same three US region polygons as the KML panel, packaged as a KMZ (zipped KML).</p>
+        <p>Maps+ uses JSZip to extract the KML from the archive automatically. The layer control entry is labeled <b>sample.kmz</b>.</p>
+        <p>KMZ support means you can ship compressed overlays without any extra configuration.</p>
+      </html>
     </panel>
   </row>
 
@@ -70,6 +89,17 @@
       </viz>
     </panel>
     <panel>
+      <html>
+        <h3>Remote KML URL</h3>
+        <p>Loads a KML file directly from an external URL. The full <code>https://</code> address is passed to the <b>KML Overlay</b> option — no local copy needed.</p>
+        <p>This example uses NASA WorldWind KML Samples: colored polygons and placemarks near NASA Ames Research Center in Mountain View, CA.</p>
+        <p>The Splunk server must be able to reach the remote URL. Use this pattern for externally-hosted overlays, such as Splunk Cloud deployments.</p>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
       <title>Multiple Overlays — local KML + remote KML + local KMZ</title>
       <viz type="leaflet_maps_app.maps-plus">
         <search>
@@ -85,6 +115,13 @@
         <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
         <option name="leaflet_maps_app.maps-plus.kmlOverlay">sample.kml, https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/examples/data/KML_Samples.kml, sample.kmz</option>
       </viz>
+    </panel>
+    <panel>
+      <html>
+        <h3>Multiple Overlays</h3>
+        <p>Comma-separate multiple filenames and URLs in the <b>KML Overlay</b> option to load them all at once. Each file gets its own named entry in the layer control — they can be toggled independently.</p>
+        <p>This panel loads three files simultaneously: a local KML, a remote KML URL, and a local KMZ. All three file types are supported in the same field.</p>
+      </html>
     </panel>
   </row>
 

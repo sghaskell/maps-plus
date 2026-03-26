@@ -1299,8 +1299,12 @@ addLayerToControl: function(options) {
     }
 
     if(!options.layerGroup.layerExists) {
+        // Cluster group with assigned color: render colored SVG dot + name
+        if (options.layerGroup.clusterColor) {
+            var cgLabel = options.layerGroup.layerDescription || options.layerGroup.name || ""
+            iconHtml = '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + options.layerGroup.clusterColor + '"/></svg>' + cgLabel
         // Circle Marker
-        if(_.has(options.layerGroup.circle, "fillColor")) {
+        } else if(_.has(options.layerGroup.circle, "fillColor")) {
             styleColor = options.layerGroup.circle.fillColor
             iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + options.layerGroup.circle.fillColor + "\"></i> " + options.layerGroup.layerDescription 
         } else {
@@ -2003,15 +2007,7 @@ _addClustered: function(map, options) {
             lg.group.addTo(map)
             
             if(options.layerControl) {
-                _.each(lg.clusterGroup, function(cg) {
-                    if (!cg.layerExists) {
-                        var dot = cg.clusterColor
-                            ? '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + cg.clusterColor + '"/></svg>'
-                            : ''
-                        options.control.addOverlay(cg.cg, dot + cg.groupName)
-                        cg.layerExists = true
-                    }
-                })
+                options.context.addLayerToControl({layerGroup: lg, control: options.control})
             }
         }
     })

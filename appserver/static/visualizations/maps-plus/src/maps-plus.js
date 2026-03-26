@@ -1326,6 +1326,8 @@ addLayerToControl: function(options) {
             if (options.layerGroup.layerIcon) {
                 var iconColor = styleColor || options.layerGroup.clusterColor || options.layerGroup.layerIconColor || "#333"
                 iconHtml = "<i class=\"legend-toggle-icon fa fa-" + options.layerGroup.layerIcon + "\" style=\"color: " + iconColor + "\"></i> " + label
+            } else if (options.layerGroup.clusterColor) {
+                iconHtml = '<svg width="12" height="12" style="margin-right:4px;vertical-align:middle"><circle cx="6" cy="6" r="6" fill="' + options.layerGroup.clusterColor + '"/></svg>' + label
             } else {
                 iconHtml = label
             }

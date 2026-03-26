@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Maps+ is a Splunk custom visualization app (v4.4.0) providing an interactive Leaflet-based mapping plugin. It is packaged as a standard Splunk app and deployed to a Splunk instance.
+Maps+ is a Splunk custom visualization app (v4.6.0) providing an interactive Leaflet-based mapping plugin. It is packaged as a standard Splunk app and deployed to a Splunk instance.
 
 ## Build Commands
 
@@ -86,6 +86,19 @@ External Splunk modules (e.g., `splunkjs/mvc/...`) are declared as webpack `exte
 | `leaflet-ant-path` | Animated path lines |
 | `proj4leaflet` | Custom map projections |
 | `@mapbox/togeojson` | KML/GPX → GeoJSON conversion |
+
+## Release Checklist
+
+Follow these steps in order when cutting a release:
+
+1. **Bump version** in `default/app.conf` (both `[id]` and `[launcher]` sections)
+2. **Write changelog entry** in `CHANGELOG.md` — read the actual source code for each fix before writing descriptions, never infer from commit messages alone
+3. **Commit** version bump + changelog to `develop`
+4. **Merge `develop` → `master`** with `--no-ff`, tag `vX.Y.Z` on master
+5. **Build package** from the maps-plus viz dir: `bash scripts/deploy.sh`
+6. **Verify package contents**: `tar -tzf maps-plus-for-splunk_XYZ.tgz | head -40` — confirm `leaflet_maps_app/appserver`, `leaflet_maps_app/default`, `leaflet_maps_app/static`, `leaflet_maps_app/README` are all present before uploading
+7. **Review open GitHub issues** against the changelog — close resolved issues with a comment explaining what was fixed and in which version; use `GITHUB_TOKEN` env var for API access
+8. **Write Splunkbase release notes** in `docs/release-notes-X.Y.Z.md` — user-facing language, no implementation detail
 
 ## Development Notes
 

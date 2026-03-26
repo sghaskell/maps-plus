@@ -2,7 +2,7 @@
 
 Triaged list of open issues and feature gaps. Update as items are resolved.
 
-Last updated: 2026-03-25
+Last updated: 2026-03-25 (FA7 stacking added to P3)
 
 ---
 
@@ -87,6 +87,10 @@ WKT geometry layers currently render but clicking them sets no tokens. Add consi
 **Type:** Docs / Won't Fix
 **Source:** https://github.com/sghaskell/maps-plus/issues/46
 Antarctic polar projection (`antarcticProj`) already covers the main custom CRS use case. Document what's available and close as by-design.
+
+### FA7 icon stacking / compositing
+**Type:** Enhancement
+Markers render a single `<i>` tag, so FA7's stacking (`fa-stack`) and layering features aren't naturally driven from SPL. Supporting composite icons would require either: (a) a new `iconHtml` SPL field that injects raw HTML into the marker, or (b) a structured `iconStack` field parsed into multiple `<i>` tags. The SVG+JS version of FA7 (not the webfonts CSS we ship) is required for power transforms and masking. The Icon Wizard (`fa-kit` prefix) requires a paid FA Kit and cannot be self-hosted.
 
 ### #44 — Per-point heatmap color gradient
 **Type:** Enhancement

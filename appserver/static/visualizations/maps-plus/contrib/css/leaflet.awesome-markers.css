@@ -37,9 +37,9 @@ Version: 1.0
 
 .awesome-marker i {
   color: #333;
-  margin-top: 10px;
+  margin-top: 14px;
   display: inline-block;
-  /* font-size: 14px; */
+  font-size: 14px;
 }
 
 .awesome-marker .icon-white {

@@ -1988,7 +1988,18 @@ _addMarker: function(options) {
 
     if(this.isArgTrue(options.drilldown)) {
         var drilldownFields = this.validateFields(options.userData)
-        marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
+        // iOS doesn't fire native dblclick; use a timestamp-based double-tap
+        // detector on touch devices so drilldown works when a tooltip is bound.
+        if(options.drilldownAction === 'dblclick' && L.Browser.touch) {
+            var lastTap = 0
+            marker.on('click', function() {
+                var now = Date.now()
+                if(now - lastTap < 350) { this._drilldown(drilldownFields) }
+                lastTap = now
+            }.bind(this))
+        } else {
+            marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
+        }
     }
 
     // Bind description popup if description exists

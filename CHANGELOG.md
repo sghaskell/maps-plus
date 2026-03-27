@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.2] - 2026-03-26
+
+### Fixed
+- **Stale markers and frozen tooltips on panel auto-refresh** (#10): On Simple XML panels with a `<refresh>` interval, markers accumulated across refresh cycles and tooltips showed values from the initial render. Two root causes: (1) `updateDataParams` was not reset after the first render cycle — Splunk reused the previous chunk offset (e.g. 3 for a 3-row result), so every subsequent refresh fetched 0 rows and `updateView` returned early without updating the map; (2) `clusterColorMap` was declared with `var` inside the `!isInitializedDom` block — on every render after the first, the init block is skipped and the variable was `undefined`, causing a `TypeError` crash in the cluster color resolution logic. Fixed by resetting `offset=0` in `formatData`'s zero-results path and moving `clusterColorMap` outside the init block so it is computed on every render.
+
 ## [4.6.1] - 2026-03-26
 
 ### Security

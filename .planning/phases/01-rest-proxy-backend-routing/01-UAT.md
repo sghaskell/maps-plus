@@ -34,8 +34,28 @@ notes: |
   Gap in 01-02 verification: the plan's offline grep-based checks confirmed stanza presence but never loaded the file into a real splunkd, so both invalid keys reached production.
 
 ### 3. Endpoint returns a tile
-expected: After Splunk restart (required to load the new REST handler), hitting `curl -k -u admin:<pw> "https://<splunk>:8089/services/maps_plus/tile/proxy?url=https%3A%2F%2Ftile.openstreetmap.org%2F0%2F0%2F0.png"` returns HTTP 200 with Content-Type `image/png` and a PNG-signature binary body (~20KB).
-result: [pending]
+expected: Request a tile via the proxy endpoint, receive HTTP 200 + Content-Type image/png + ~20KB PNG binary.
+request_url_corrected: `https://localhost:8089/services/maps_plus/tile/proxy?url=https%3A%2F%2Ftile.openstreetmap.org%2F%7Bz%7D%2F%7Bx%7D%2F%7By%7D.png&z=0&x=0&y=0`
+result: issue
+reported: "FileNotFoundError: [Errno 2] No such file or directory: '' at os.chdir(scriptDir) in /opt/splunk/bin/runScript.py:72"
+severity: blocker
+retry_history: |
+  UAT-1 retry-1: {"error":"No class implements PersistentServerConnectionApplication"} → fixed by subclassing PersistentServerConnectionApplication (commit ec167a1, test 7a422d5, 85 tests passed)
+  UAT-2 retry-2: "__init__() takes 1 positional argument but 3 were given" → fixed by not forwarding (command_line, command_arg) to the zero-arg base __init__ (commit 7e9dae3)
+  UAT-3 retry-3: {"error":"JSON reply had no 'payload' value"} → caused by bytes payload failing json.dumps in the persist pipe (commit da60f26 latin-1 decoded payload as workaround, but next retry showed binary was UTF-8-transcoded on wire → broken-image icon in browser)
+  UAT-4 retry-5: User chose Option A (scripttype=python + BaseRestHandler revert). Commits c2b12f7, 0f89b04, e96239c. 74 tests pass.
+  UAT-5 retry-5 live: FileNotFoundError 'rest/maps_plus' at os.chdir → flattened bin/tile_proxy.py (commit da? → 0b8d480)
+  UAT-5b retry-6 live: **CURRENT — FileNotFoundError: '' at os.chdir** → runScript.py is receiving an EMPTY scriptDir despite script = tile_proxy.py. New hypothesis: scripttype=python expects a different `script` key format entirely (perhaps an absolute path, or no directory component at all, or a different key name like `script.py_file`).
+open_questions:
+  - What is the correct restmap.conf key format for scripttype=python in Splunk 9.x? Is `script = filename.py` supposed to work, or is it a different convention?
+  - Is there a `script.py_file` / `scriptbin` / alternate key we should be using?
+  - Should we go back to scripttype=persist but accept a JSON-wrapped base64 response format (Option B from the earlier decision), coupled with Phase 2 JS that decodes the base64?
+  - Or: is there a third framework — `scripttype = python_standalone` or similar — that supports binary native AND has a different script path resolution?
+next_actions_for_fresh_session:
+  - Consult Splunk 9.x restmap.conf.spec authoritatively for scripttype=python script key semantics
+  - Look at a known-working Splunk app (e.g. Splunk Add-on Builder output, splunk/splunk-app-examples) that uses scripttype=python to return binary — see how they configure script path
+  - Alternative: pivot to Option B (persist + base64) since we already did ~3 hours of persist work and have regression tests in place
+  - Budget: 2026-04-17; phase 02 (JS client) is blocked on this.
 
 ### 4. SSRF defense blocks private IP
 expected: `curl -k -u admin:<pw> "https://<splunk>:8089/services/maps_plus/tile/proxy?url=http%3A%2F%2F127.0.0.1%2Fadmin"` returns HTTP 403 with a sanitized JSON error body (no internal IP or stack trace leak).

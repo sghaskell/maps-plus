@@ -1,73 +1,41 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-17T15:22:57.006Z",
+  "timestamp": "2026-04-17T18:59:39.968Z",
   "phase": "01",
   "phase_name": "rest-proxy-backend-routing",
   "phase_dir": ".planning/phases/01-rest-proxy-backend-routing",
-  "plan": 3,
-  "task": null,
-  "total_tasks": null,
-  "status": "paused",
-  "pause_reason": "UAT Test 3 (endpoint returns a tile) stuck on splunkd scripttype=python script-path resolution bug. Fresh context needed to research Splunk 9.x restmap.conf conventions and pick a resolution path.",
-  "completed_tasks": [
-    {"id": "01-01", "name": "Python REST handler + LRU + first tests", "status": "done", "commit": "e729fd1", "note": "Landed with BaseRestHandler, then refactored to PersistentServerConnectionApplication during UAT-1, then reverted to BaseRestHandler during UAT-4."},
-    {"id": "01-02", "name": "restmap.conf + settings.json + packaging", "status": "done", "commit": "8bca5c2", "note": "Original shipped with wrong restmap keys (handlerfile, handleractions). Fixed during UAT-1/UAT-2."},
-    {"id": "01-03", "name": "DiskCache two-tier + concurrency", "status": "done", "commit": "3c13685", "note": "74 offline tests pass; disk cache not yet live-tested because endpoint itself isn't returning."},
-    {"id": "VERIFICATION", "name": "Automated phase verification", "status": "done", "commit": "7c7680f", "note": "11/11 automated checks passed; 3 items deferred to live Splunk UAT."}
-  ],
+  "activity": "verify-work (UAT)",
   "uat_progress": {
-    "file": ".planning/phases/01-rest-proxy-backend-routing/01-UAT.md",
     "total": 8,
-    "passed": 2,
-    "issue": 1,
-    "pending": 5,
-    "tests_passed": ["1. Release tarball contents", "2. Splunk app install (after 2 restmap.conf fixes)"],
-    "current_test": "3. Endpoint returns a tile (BLOCKED on scriptDir resolution bug)"
+    "passed": 6,
+    "issues": 1,
+    "pending": 1,
+    "current_test": 8
   },
-  "blockers": [
-    {
-      "id": "UAT-5b",
-      "description": "splunkd.log: FileNotFoundError: [Errno 2] No such file or directory: '' at os.chdir(scriptDir) in /opt/splunk/bin/runScript.py:72 when handling GET /services/maps_plus/tile/proxy",
-      "type": "technical",
-      "workaround": "None yet — every attempted restmap.conf script path format has failed.",
-      "history": [
-        "script = rest/maps_plus/tile_proxy.py → scriptDir='rest/maps_plus' chdir failed (relative path not resolvable from /opt/splunk/bin)",
-        "script = tile_proxy.py → scriptDir='' chdir failed (empty dirname, current attempt)"
-      ],
-      "hypotheses": [
-        "scripttype=python may require an absolute script path in Splunk 9.x (e.g. script = $SPLUNK_HOME/etc/apps/leaflet_maps_app/bin/tile_proxy.py)",
-        "The correct key name may differ (e.g. passBinaryArgs, script.path, handler.script)",
-        "scripttype=python may have been deprecated/renamed in Splunk 9.x; maybe python_standalone or another value is required",
-        "Persistent framework may be the only supported path — if so, revisit Option B (persist + base64 + JS-side decode)"
-      ]
-    }
+  "status": "paused",
+  "completed_tests": [
+    {"n": 1, "name": "Release tarball contents", "result": "pass"},
+    {"n": 2, "name": "Splunk app install", "result": "pass"},
+    {"n": 3, "name": "Endpoint returns a tile", "result": "pass", "notes": "Fixed in commit 13fd7cd — dropped 'script' key from restmap.conf (BaseRestHandler path)"},
+    {"n": 4, "name": "SSRF defense blocks private IP", "result": "issue", "severity": "minor", "notes": "Protection works, but HTTP 400 returned instead of 403 (cosmetic / RFC-semantics issue)"},
+    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass", "notes": "Same 400 status, tracked once under Test 4"},
+    {"n": 6, "name": "Two-tier cache — memory hit", "result": "pass", "notes": "1st=269ms, 2nd=112ms for same 6.6kB tile; expectation adjusted from sub-10ms (Splunk REST overhead floor)"},
+    {"n": 7, "name": "Disk cache persists across Splunk restart", "result": "pass", "notes": "1st=222ms, post-restart=145ms; hash-prefix sharded dirs; no .tmp files"}
   ],
+  "remaining_tests": [
+    {"n": 8, "name": "Disabled flag returns 503", "status": "not_started"}
+  ],
+  "blockers": [],
   "human_actions_pending": [
-    {"action": "Reinstall leaflet_maps_app_4.6.1.tar.gz + restart splunkd + retry test 3 after any fix lands", "context": "UAT loop — each attempt requires a full app reinstall cycle", "blocking": true},
-    {"action": "Live splunkd instance available at https://localhost:8089 (Docker container, /opt/splunk)", "context": "Required for all remaining UAT tests 3-8", "blocking": true}
+    {"action": "Run Test 8 (disabled flag) on work macbook", "context": "Last test in the UAT — flip enabled:false via local/settings.json override, restart, verify HTTP 503", "blocking": false}
   ],
   "decisions": [
-    {"decision": "UAT-3 payload: chose Option A (scripttype=python + BaseRestHandler) over Option B (persist + base64 + JS decode)", "rationale": "Simpler, server-only change, native binary, no JS coupling, browser HTTP cache dominates perf anyway", "phase": "01", "reversible": true, "reverse_path": "git log for commits c2b12f7, 0f89b04, e96239c"},
-    {"decision": "Flattened bin/rest/maps_plus/tile_proxy.py → bin/tile_proxy.py during UAT-5", "rationale": "Splunk runScript.py chdir failed on nested relative path. Single-handler app, no need for nested namespace.", "phase": "01", "reversible": true}
+    {"decision": "Dropped `script = tile_proxy.py` from restmap.conf", "rationale": "Per $SPLUNK_HOME/etc/system/README/restmap.conf.spec, the `script` key is for handlers NOT derived from BaseRestHandler. Setting it forced Splunk into the legacy runScript.py codepath which does os.chdir(os.path.dirname(script)) — a bare filename dirnames to '' → FileNotFoundError.", "phase": "01", "commit": "13fd7cd"},
+    {"decision": "Test 6 expected 'sub-10ms' cache hit, adjusted to accept 'noticeably faster'", "rationale": "Splunk REST framework overhead (TLS, auth, routing) imposes a ~100ms floor regardless of cache. 2.4x speedup on identical payload is sufficient evidence the cache is serving.", "phase": "01"}
   ],
   "uncommitted_files": [
-    ".planning/phases/01-rest-proxy-backend-routing/01-UAT.md (in-progress UAT history)"
+    ".planning/phases/01-rest-proxy-backend-routing/01-UAT.md"
   ],
-  "commits_this_session": [
-    "7cc2b31 chore(01): begin phase",
-    "d56566f..e729fd1 feat/test/docs(01-01): Python handler + tests",
-    "2e356e9..8bca5c2 feat/docs(01-02): restmap.conf + settings.json + packaging",
-    "38efb42..3c13685 feat/test/docs(01-03): DiskCache two-tier",
-    "7c7680f docs(01): verification report",
-    "740d462 fix(01-02): restmap.conf script+handler keys (UAT-1)",
-    "3161d04 fix(01-02): drop handleractions (UAT-2)",
-    "7a422d5..6714272 UAT-1 gap-closure: PersistentServerConnectionApplication refactor",
-    "7e9dae3 fix(01-01): don't forward ctor args to base (UAT-2)",
-    "0e428bb chore: gitignore release tarballs",
-    "da60f26 fix(01-01): latin-1 payload workaround (UAT-3, reverted later)",
-    "c2b12f7..e96239c UAT-4 gap-closure: revert to BaseRestHandler / scripttype=python",
-    "<pending>..0b8d480 UAT-5: flatten bin/ layout + update build_release.sh"
-  ],
-  "next_action": "Research Splunk 9.x restmap.conf.spec authoritatively. Look at splunk/splunk-app-examples or Splunk Add-on Builder output for a KNOWN-WORKING scripttype=python app and copy its script-key syntax. If no working example exists, pivot to Option B (persist + base64 + JS-side decode) — we already have the persist refactor commits preserved in git history (ec167a1, 7a422d5, etc.).",
-  "context_notes": "Phase 01 backend is done — 3/3 plans landed, 74 tests pass offline, verification report complete. Only the live splunkd wiring is blocking. UAT has been ITERATIVE: every fix exposes the next issue. Pattern: offline tests + grep-based plan verification didn't catch any of these splunkd-integration bugs. The real gap is that none of the plans ever loaded the module into a running splunkd."
+  "next_action": "Resume UAT Test 8 (disabled flag returns 503). See .planning/phases/01-rest-proxy-backend-routing/01-UAT.md Current Test section for the exact curl + override steps.",
+  "context_notes": "Phase 01 UAT is effectively done — 6 passes, 1 known-minor issue (HTTP 400 vs 403 on SSRF rejection), 1 test remaining. After Test 8 passes the phase is ready for /gsd-secure-phase 1 and then phase 02 (JS client) can unblock. The only open gap of substance is the 400→403 status-code fix in bin/tile_proxy.py. Recommend handling that + Test 8 on the macbook, then running /gsd-secure-phase 1 and /gsd-ship."
 }

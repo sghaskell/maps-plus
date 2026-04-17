@@ -87,6 +87,67 @@ function _resolveSplunkRestRoot() {
 }
 var _DS_REST_ROOT = _resolveSplunkRestRoot();
 
+// Phase 2: DsProxyTileLayer — Leaflet TileLayer subclass that routes
+// getTileUrl through the Phase 1 REST proxy. Used ONLY when
+// _isDashboardStudio is true. Stores the inner upstream template on
+// _innerTemplate so existing equality checks (e.g.
+// `this.tileLayer._url != this.activeTile` at ~line 2955) continue to
+// detect real template changes. Overrides setUrl to update
+// _innerTemplate without breaking Leaflet's redraw lifecycle.
+var DsProxyTileLayer = L.TileLayer.extend({
+    initialize: function (url, options) {
+        this._innerTemplate = url;
+        // Leaflet will store `url` on this._url via its own initialize;
+        // we keep both so _url tracks what maps-plus.js expects.
+        L.TileLayer.prototype.initialize.call(this, url, options);
+    },
+    setUrl: function (url, noRedraw) {
+        this._innerTemplate = url;
+        return L.TileLayer.prototype.setUrl.call(this, url, noRedraw);
+    },
+    getTileUrl: function (coords) {
+        var template = this._innerTemplate || this._url;
+        var normalized = DsTileProxyHelpers.normalizeTileTemplate(template, this.options || {});
+        var extras = {};
+        if (this.options && this.options.subdomains) {
+            // Leaflet default: first subdomain; match client-side D-10 ('a' default).
+            var subs = this.options.subdomains;
+            extras.s = (typeof subs === 'string') ? subs.charAt(0) : (subs && subs[0]) || 'a';
+        }
+        // {r} defaults come from Leaflet's detectRetina / this.options.detectRetina;
+        // send the actual pixelRatio when known.
+        if (this.options && typeof this.options.detectRetina !== 'undefined') {
+            extras.r = (L.Browser && L.Browser.retina) ? '2' : '1';
+        }
+        var restRoot = (this._dsRestRoot) || '/services';
+        return DsTileProxyHelpers.buildTileProxyUrl(restRoot, normalized, {
+            z: this._getZoomForUrl(),
+            x: coords.x,
+            y: coords.y
+        }, extras);
+    }
+});
+
+// Factory: returns either a proxied subclass instance (DS mode) or a
+// plain L.tileLayer call (Classic mode, unchanged).
+function _createMapsPlusTileLayer(viz, template, tileOptions) {
+    if (viz._isDashboardStudio) {
+        var layer = new DsProxyTileLayer(template, tileOptions);
+        // Attach restRoot so getTileUrl can access it without closure-scope.
+        layer._dsRestRoot = viz._dsRestRoot;
+        // Optional instrumentation per D-15: warn on load error with stable prefix.
+        layer.on('tileerror', function (evt) {
+            try {
+                var c = evt && evt.coords;
+                console.warn('[maps-plus:ds-proxy] tile load failed z=' +
+                    (c && c.z) + ' x=' + (c && c.x) + ' y=' + (c && c.y));
+            } catch (e) { /* noop */ }
+        });
+        return layer;
+    }
+    return L.tileLayer(template, tileOptions);
+}
+
 
 return SplunkVisualizationBase.extend({
 maxResults: 0,
@@ -2645,7 +2706,8 @@ updateView: function(data, config) {
             }
 
             // Setup the tile layer with map tile, zoom and attribution
-            this.tileLayer = L.tileLayer(this.activeTile, this.tileOptions)
+            // Phase 2 (DS-JS-02/03): route through proxy subclass in DS mode, plain L.tileLayer in Classic.
+            this.tileLayer = _createMapsPlusTileLayer(this, this.activeTile, this.tileOptions)
 
             // Add tile layer to map
             this.map.addLayer(this.tileLayer)

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 02
-current_plan: context
-status: Phase 02 context captured (5 gray areas, recommended defaults) — ready for /gsd-plan-phase 2
-last_updated: "2026-04-17T23:05:00.000Z"
+current_plan: planned
+status: Phase 02 planned (2 plans, research + threat models + 02-CONTEXT errata for D-07/D-09) — ready to execute
+last_updated: "2026-04-17T23:45:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 0
@@ -30,7 +30,7 @@ progress:
 | Phase | Status | Plans Completed | Notes |
 |-------|--------|-----------------|-------|
 | 1: REST Proxy Backend + Routing | Execution Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 77 unit tests pass (74 baseline + 3 new for 403 mapping). UAT 8/8. Ready for `/gsd-secure-phase 1`. |
-| 2: Maps+ JS Integration + Testing | Context Captured | 0/2 | 02-CONTEXT.md written — 5 gray areas resolved to recommended defaults (TileLayer subclass interception, SplunkVisualizationUtils URL builder, raster-only scope, console.warn failure UX, Jest unit tests + manual UAT matrix). Ready for `/gsd-plan-phase 2`. |
+| 2: Maps+ JS Integration + Testing | Ready to Execute | 0/2 | Both plans authored: 02-01 (DS detection + TileLayer subclass + `src/ds-tile-proxy-helpers.js` pure helpers) and 02-02 (Jest harness + visualization.js rebuild + 02-UAT.md matrix). Research uncovered D-07 query-param route shape and D-09 GIBS template normalization; both captured as errata in 02-CONTEXT.md. Ready for `/gsd-execute-phase 2`. |
 
 ## Milestone Progress
 

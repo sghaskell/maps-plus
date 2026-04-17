@@ -70,22 +70,36 @@ Maps+ runs in Classic Splunk.
   `_isDashboardStudio` is `false`. No exceptions propagate to the viz init path.
 
 ### Proxy URL Construction (Gray Area 2)
-- **D-07:** URL shape matches the Phase 1 handler exactly:
-  `{splunk_root}/servicesNS/-/leaflet_maps_app/maps_plus/tile_proxy/{z}/{x}/{y}?url=<encoded-template>`.
-  Path params carry `{z}/{x}/{y}`; the upstream tile URL template is passed as
-  an encoded `url=` query parameter. Server-side allowlist / SSRF
-  validation is already in place (Phase 1, T1-01-SSRF closed).
+- **D-07 [ERRATA 2026-04-17 per 02-RESEARCH §1]:** URL shape is **query-param**,
+  not path-param. The Phase 1 handler (`bin/tile_proxy.py:776-789`,
+  `default/restmap.conf:13-14`) exposes the route as `.../maps_plus/tile/proxy`
+  and reads `z`, `x`, `y` from the **query string** — not the URL path.
+  The client must build:
+  `{splunk_rest_root}/maps_plus/tile/proxy?url=<encoded-template>&z=<z>&x=<x>&y=<y>[&s=<s>][&r=<r>]`.
+  The `{splunk_rest_root}` prefix (including `servicesNS/{owner}/{app}` shape)
+  must be resolved via the Splunk URL builder (see D-08) and VERIFIED in the
+  running Splunk UAT environment — do not hand-construct. Phase 1 UAT
+  confirmed working examples at `https://localhost:8089/services/maps_plus/tile/proxy?url=...&z=0&x=0&y=0`
+  (`01-UAT.md:33,108`). Server-side allowlist / SSRF validation is already in
+  place (Phase 1, T1-01-SSRF closed).
 - **D-08:** The `{splunk_root}` prefix is resolved via
   `api/SplunkVisualizationUtils` or `splunkjs/mvc/utils` (already an AMD
   dependency: line 11 `'api/SplunkVisualizationUtils'`). This honours
   locale prefixes (`/en-US/`), SSO gateways, and non-root Splunk mounts.
   Never hand-construct `/en-US/splunkd/__raw/...`.
-- **D-09:** The upstream template passed to `url=` is the **verbatim** tile
-  URL string the viz would have passed to `L.tileLayer(...)` in Classic mode
-  — including placeholders like `{s}`, `{r}`, Esri's `{y}/{x}` order, GIBS's
-  `{gibsLayerId}/{gibsTime}/{gibsFormat}`. Server does literal placeholder
-  substitution only (per Phase 1 A-07 lesson: no client-side `{x}`/`{y}`
-  swap).
+- **D-09 [ERRATA 2026-04-17 per 02-RESEARCH §10]:** The upstream template
+  passed to `url=` is NOT fully verbatim — it must be **pre-merged** with
+  Leaflet's per-layer options (`L.Util.template`-equivalent merge) for any
+  tokens beyond `{z}, {x}, {y}, {s}, {r}`. The Phase 1 server
+  (`bin/tile_proxy.py:_resolve_tile` lines 291-316) only substitutes those
+  five tokens. Leaflet's default `getTileUrl` merges `this.options` (e.g.
+  `gibsLayerId`, `gibsTime`, `gibsFormat`, `gibsTileMatrixSet`) before
+  substitution at `node_modules/leaflet/src/layer/tile/TileLayer.js:196`.
+  Therefore the client's `buildTileProxyUrl` must first call
+  `L.Util.template(rawTemplate, layerOptions)` (or an equivalent pre-merge)
+  to resolve every non-{z,x,y,s,r} token, THEN pass the result as `url=`.
+  Esri's `{y}/{x}` template-ordering and preserved `{s}/{r}` behaviour are
+  unchanged (Phase 1 A-07: no client-side x/y swap).
 - **D-10:** Subdomain-sharded templates (`{s}`): the client substitutes `{s}`
   to `a` before handing to the server, matching Phase 1 D-09 default. (Server
   also substitutes, but client-side normalization means the resolved URL

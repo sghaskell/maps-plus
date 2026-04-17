@@ -489,6 +489,11 @@ class DiskCache(object):
         self.max_bytes = int(max_bytes)
         self._lock = threading.Lock()
         self.enabled = False
+        # Cache the resolved base once. realpath() on Windows can be expensive
+        # and, under high concurrency with creating/deleting files in the same
+        # directory, can occasionally return case-inconsistent results. We
+        # resolve once at init so _assert_within_cache_dir has a stable anchor.
+        self._real_base = None
         try:
             os.makedirs(cache_dir, exist_ok=True)
             # Write+delete a probe to confirm the dir is actually writable
@@ -500,6 +505,7 @@ class DiskCache(object):
                 os.remove(probe)
             except OSError:
                 pass
+            self._real_base = os.path.realpath(cache_dir)
             self.enabled = True
         except PermissionError as e:
             logger.info("disk_cache_disabled_permission dir=%s err=%s",
@@ -525,11 +531,29 @@ class DiskCache(object):
 
         Defense-in-depth for T3-01 / S-10. realpath resolves symlinks so an
         attacker who plants a symlink inside cache_dir cannot escape.
+
+        Uses the base realpath cached at __init__ time so concurrent
+        filesystem activity does not disturb the check. On Windows two
+        realpath nuances are handled:
+          - UNC long-path prefix '\\\\?\\' may be prepended by Python when a
+            sibling file is being created/replaced concurrently; normalize it.
+          - NTFS is case-insensitive but case-preserving; compare casefold.
         """
         real_path = os.path.realpath(path)
-        real_base = os.path.realpath(self.cache_dir)
-        if not (real_path == real_base
-                or real_path.startswith(real_base + os.sep)):
+        real_base = self._real_base or os.path.realpath(self.cache_dir)
+        if os.name == "nt":
+            # Strip Windows long-path prefix if present so \\?\C:\x matches C:\x
+            if real_path.startswith("\\\\?\\"):
+                real_path = real_path[4:]
+            if real_base.startswith("\\\\?\\"):
+                real_base = real_base[4:]
+            rp_cmp = real_path.lower()
+            rb_cmp = real_base.lower()
+        else:
+            rp_cmp = real_path
+            rb_cmp = real_base
+        if not (rp_cmp == rb_cmp
+                or rp_cmp.startswith(rb_cmp + os.sep)):
             raise ValueError("path_escape_detected")
 
     # ---- public API ----

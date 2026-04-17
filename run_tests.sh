@@ -19,4 +19,12 @@ else
     exit 1
 fi
 
-PYTHONPATH=tests:bin $PY -m unittest discover -s tests -p 'test_*.py' -v
+# PYTHONPATH separator is ':' on POSIX, ';' on native Windows (Python interpreter
+# parses this string in its own process). Git Bash on Windows runs a POSIX shell
+# but a Windows Python, so we detect OS via uname and pick the right separator.
+case "$(uname -s 2>/dev/null || echo unknown)" in
+    MINGW*|MSYS*|CYGWIN*|Windows_NT*) SEP=';' ;;
+    *) SEP=':' ;;
+esac
+
+PYTHONPATH="tests${SEP}bin" $PY -m unittest discover -s tests -p 'test_*.py' -v

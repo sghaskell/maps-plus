@@ -986,8 +986,13 @@ class TileProxyHandler(
     """
 
     def __init__(self, command_line=None, command_arg=None):
-        # Two-arg constructor required by the persistent-handler framework.
-        super(TileProxyHandler, self).__init__(command_line, command_arg)
+        # Two-arg constructor required by the persistent-handler framework —
+        # splunkd invokes TileProxyHandler(command_line, command_arg). But the
+        # base class's own __init__ takes no args; forwarding them raises
+        # "takes 1 positional argument but 3 were given" at first request.
+        super(TileProxyHandler, self).__init__()
+        self._command_line = command_line
+        self._command_arg = command_arg
 
     def handle(self, in_string):
         # 1. Parse the request envelope.

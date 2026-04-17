@@ -19,7 +19,12 @@ from unittest import mock
 from urllib.error import HTTPError, URLError
 
 from rest.maps_plus import tile_proxy as tp
-from splunk.rest import BaseRestHandler  # stub from tests/splunk/rest.py
+# persistconn stub from tests/splunk/persistconn/application.py - imported
+# here only to confirm it's wiring correctly on PYTHONPATH before the module
+# under test reaches for it.
+from splunk.persistconn.application import (
+    PersistentServerConnectionApplication,
+)
 
 
 SEED = list(tp._FALLBACK_ALLOWED_DOMAINS)
@@ -365,18 +370,31 @@ class TestFetchTile(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 def _make_handler(args=None, settings=None):
-    """Build a TileProxyHandler around the stub BaseRestHandler, injecting
-    args and an override _load_settings result."""
-    h = tp.TileProxyHandler.__new__(tp.TileProxyHandler)
-    # BaseRestHandler.__init__ sets self.args + self.response
-    BaseRestHandler.__init__(h)
-    if args is not None:
-        h.args = dict(args)
+    """Build a (handler, builder, args_dict) tuple for orchestration tests.
+
+    After the UAT-1 refactor TileProxyHandler is a persistent-connection
+    handler: there is no self.args / self.response surface. Tests drive the
+    orchestration by calling `tp._handle_get_internal(builder, args_dict)`
+    directly; for dispatch-level tests, use `handler.handle(json.dumps({
+    'method': 'GET', 'query': [[k, v], ...]}))`.
+    """
+    h = tp.TileProxyHandler(None, None)
+    builder = tp._ResponseBuilder()
+    args_dict = dict(args) if args is not None else {}
     if settings is not None:
-        # Force settings cache
         tp._reset_settings_cache()
         tp._settings_cache = settings
+    # Back-compat shim so the many existing assertions like
+    # `h.response.status`, `h.response.body`, `h.response.headers`
+    # continue to work unchanged - `h.response` now is the builder.
+    h.response = builder
+    h.args = args_dict
     return h
+
+
+def _run_get(h):
+    """Run the GET orchestration against the builder stashed on h.response."""
+    tp._handle_get_internal(h.response, h.args)
 
 
 class TestHandleGetOrchestration(unittest.TestCase):
@@ -392,7 +410,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
     def test_disabled_returns_503(self):
         """A-09: enabled=false -> 503 proxy_disabled."""
         h = _make_handler(args={"url": "x"}, settings={"enabled": False})
-        h.handle_GET()
+        _run_get(h)
         self.assertEqual(h.response.status, 503)
         body = json.loads(h.response.body.decode("utf-8"))
         self.assertEqual(body, {"error": "proxy_disabled"})
@@ -400,7 +418,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
     def test_missing_url_returns_400(self):
         h = _make_handler(args={}, settings={"enabled": True,
                                              "allowed_domains": SEED})
-        h.handle_GET()
+        _run_get(h)
         self.assertEqual(h.response.status, 400)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "missing_param_url"})
@@ -409,7 +427,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
         h = _make_handler(
             args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"},
             settings={"enabled": True, "allowed_domains": SEED})
-        h.handle_GET()
+        _run_get(h)
         self.assertEqual(h.response.status, 400)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "missing_param_zxy"})
@@ -419,7 +437,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
             args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                   "z": "-1", "x": "0", "y": "0"},
             settings={"enabled": True, "allowed_domains": SEED})
-        h.handle_GET()
+        _run_get(h)
         self.assertEqual(h.response.status, 400)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "invalid_params"})
@@ -429,7 +447,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
             args={"url": "http://tile.openstreetmap.org/{z}/{x}/{y}.png",
                   "z": "1", "x": "1", "y": "1"},
             settings={"enabled": True, "allowed_domains": SEED})
-        h.handle_GET()
+        _run_get(h)
         self.assertEqual(h.response.status, 400)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "scheme_not_https"})
@@ -449,7 +467,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
             key, (b"CACHEDPNG", "image/png", "max-age=7200"))
         with mock.patch.object(tp.socket, "getaddrinfo",
                                return_value=_fake_getaddrinfo("8.8.8.8")):
-            h.handle_GET()
+            _run_get(h)
         self.assertEqual(h.response.status, 200)
         self.assertEqual(h.response.body, b"CACHEDPNG")
         self.assertEqual(h.response.headers.get("x-maps-plus-cache"), "hit")
@@ -467,7 +485,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
             with mock.patch.object(
                     tp, "_fetch_tile",
                     return_value=(b"PNGBYTES", "image/png", "max-age=60")):
-                h.handle_GET()
+                _run_get(h)
         self.assertEqual(h.response.status, 200)
         self.assertEqual(h.response.body, b"PNGBYTES")
         self.assertEqual(h.response.headers.get("x-maps-plus-cache"), "miss")
@@ -485,7 +503,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
         with mock.patch.object(tp.socket, "getaddrinfo",
                                return_value=_fake_getaddrinfo("8.8.8.8")):
             with mock.patch.object(tp, "_fetch_tile", side_effect=err):
-                h.handle_GET()
+                _run_get(h)
         self.assertEqual(h.response.status, 502)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "upstream_error"})
@@ -501,7 +519,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
                                return_value=_fake_getaddrinfo("8.8.8.8")):
             with mock.patch.object(tp, "_fetch_tile",
                                    side_effect=socket.timeout("slow")):
-                h.handle_GET()
+                _run_get(h)
         self.assertEqual(h.response.status, 504)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "upstream_timeout"})
@@ -518,7 +536,7 @@ class TestHandleGetOrchestration(unittest.TestCase):
             with mock.patch.object(
                     tp, "_fetch_tile",
                     side_effect=ValueError("upstream_response_too_large")):
-                h.handle_GET()
+                _run_get(h)
         self.assertEqual(h.response.status, 502)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "upstream_oversize"})
@@ -833,7 +851,7 @@ class TestHandleGetTwoTier(unittest.TestCase):
                       "cache_max_memory": 16})
         with mock.patch.object(tp.socket, "getaddrinfo",
                                return_value=_fake_getaddrinfo("8.8.8.8")):
-            h.handle_GET()
+            _run_get(h)
 
         self.assertEqual(h.response.status, 200)
         self.assertEqual(h.response.body, b"FROM_DISK")
@@ -865,7 +883,7 @@ class TestHandleGetTwoTier(unittest.TestCase):
             with mock.patch.object(
                     tp, "_fetch_tile",
                     return_value=(b"NEWPNG", "image/png", "max-age=77")):
-                h.handle_GET()
+                _run_get(h)
 
         self.assertEqual(h.response.status, 200)
         self.assertEqual(h.response.body, b"NEWPNG")
@@ -892,10 +910,170 @@ class TestHandleGetTwoTier(unittest.TestCase):
                 with mock.patch.object(
                         self._injected_disk, "set",
                         side_effect=RuntimeError("disk boom")):
-                    h.handle_GET()
+                    _run_get(h)
         self.assertEqual(h.response.status, 200)
         self.assertEqual(h.response.body, b"BYTES")
         self.assertEqual(h.response.headers.get("x-maps-plus-cache"), "miss")
+
+
+# ---------------------------------------------------------------------------
+# 11. TileProxyHandler.handle() dispatch — persistent-handler entry point
+# (UAT-1 gap-closure). Covers the JSON request envelope, method routing, and
+# return-dict shape.
+# ---------------------------------------------------------------------------
+
+class TestHandleDispatch(unittest.TestCase):
+
+    def setUp(self):
+        tp._reset_settings_cache()
+        tp._reset_memory_cache()
+
+    def tearDown(self):
+        tp._reset_settings_cache()
+        tp._reset_memory_cache()
+
+    def test_subclass_is_persistent_connection_application(self):
+        """Regression guard for UAT-1: the handler MUST inherit from
+        PersistentServerConnectionApplication or splunkd rejects it with
+        'No class implements PersistentServerConnectionApplication'."""
+        self.assertTrue(issubclass(tp.TileProxyHandler,
+                                   PersistentServerConnectionApplication))
+
+    def test_constructor_accepts_two_args(self):
+        """Persistent-handler framework calls TileProxyHandler(command_line,
+        command_arg). Two-arg constructor must not raise."""
+        h = tp.TileProxyHandler("cmd", "arg")
+        self.assertIsNotNone(h)
+
+    def test_get_dispatch_returns_persist_dict(self):
+        """handle() returns {'payload', 'status', 'headers'} on a GET with
+        a missing url param (400 path - lets us avoid mocking getaddrinfo)."""
+        tp._reset_settings_cache()
+        tp._settings_cache = {"enabled": True,
+                              "allowed_domains": SEED,
+                              "upstream_timeout_seconds": 10,
+                              "cache_max_memory": 16}
+        h = tp.TileProxyHandler(None, None)
+        in_string = json.dumps({"method": "GET", "query": []})
+        response = h.handle(in_string)
+        self.assertIsInstance(response, dict)
+        self.assertEqual(set(response.keys()),
+                         {"payload", "status", "headers"})
+        self.assertEqual(response["status"], 400)
+        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+                         {"error": "missing_param_url"})
+        self.assertEqual(response["headers"].get("content-type"),
+                         "application/json")
+
+    def test_get_routing_full_flow(self):
+        """GET with all params routes through the full orchestration."""
+        tp._reset_settings_cache()
+        tp._settings_cache = {"enabled": True,
+                              "allowed_domains": SEED,
+                              "upstream_timeout_seconds": 10,
+                              "cache_max_memory": 16}
+        h = tp.TileProxyHandler(None, None)
+        in_string = json.dumps({
+            "method": "GET",
+            "query": [
+                ["url", "https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                ["z", "3"], ["x", "4"], ["y", "5"],
+            ],
+        })
+        with mock.patch.object(tp.socket, "getaddrinfo",
+                               return_value=_fake_getaddrinfo("8.8.8.8")):
+            with mock.patch.object(
+                    tp, "_fetch_tile",
+                    return_value=(b"PNG", "image/png", "max-age=60")):
+                response = h.handle(in_string)
+        self.assertEqual(response["status"], 200)
+        self.assertEqual(response["payload"], b"PNG")
+        self.assertEqual(response["headers"].get("content-type"), "image/png")
+        self.assertEqual(response["headers"].get("x-maps-plus-cache"),
+                         "miss")
+
+    def test_non_get_method_returns_405(self):
+        """POST/PUT/DELETE etc. -> 405 method_not_allowed, never reaches
+        orchestration. Prevents side-effect triggering via non-GET verbs."""
+        h = tp.TileProxyHandler(None, None)
+        for method in ("POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"):
+            in_string = json.dumps({"method": method, "query": []})
+            response = h.handle(in_string)
+            self.assertEqual(response["status"], 405, method)
+            self.assertEqual(
+                json.loads(response["payload"].decode("utf-8")),
+                {"error": "method_not_allowed"},
+                method)
+
+    def test_malformed_json_returns_400(self):
+        """Malformed in_string -> sanitized 400 invalid_request, never
+        raises into splunkd (which would otherwise emit a 500 traceback)."""
+        h = tp.TileProxyHandler(None, None)
+        response = h.handle("{not json")
+        self.assertEqual(response["status"], 400)
+        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+                         {"error": "invalid_request"})
+
+    def test_query_as_dict_accepted(self):
+        """Some test harnesses / call sites may deliver 'query' as a dict
+        rather than a list of pairs; _parse_query handles both."""
+        tp._reset_settings_cache()
+        tp._settings_cache = {"enabled": False}
+        h = tp.TileProxyHandler(None, None)
+        in_string = json.dumps({"method": "GET", "query": {"url": "x"}})
+        response = h.handle(in_string)
+        # enabled=False short-circuits before query parsing matters; the key
+        # point is that handle() doesn't raise on dict-shaped query.
+        self.assertEqual(response["status"], 503)
+        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+                         {"error": "proxy_disabled"})
+
+    def test_default_method_is_get(self):
+        """If 'method' is absent we default to GET (matches Splunk's own
+        behavior for browser hits)."""
+        tp._reset_settings_cache()
+        tp._settings_cache = {"enabled": True,
+                              "allowed_domains": SEED,
+                              "upstream_timeout_seconds": 10,
+                              "cache_max_memory": 16}
+        h = tp.TileProxyHandler(None, None)
+        in_string = json.dumps({"query": []})   # no method key
+        response = h.handle(in_string)
+        self.assertEqual(response["status"], 400)
+        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+                         {"error": "missing_param_url"})
+
+
+# ---------------------------------------------------------------------------
+# 12. _parse_query helper — exhaustive cases.
+# ---------------------------------------------------------------------------
+
+class TestParseQuery(unittest.TestCase):
+
+    def test_list_of_pairs(self):
+        q = [["url", "https://x/"], ["z", "3"]]
+        self.assertEqual(tp._parse_query(q),
+                         {"url": "https://x/", "z": "3"})
+
+    def test_dict_input(self):
+        self.assertEqual(tp._parse_query({"z": "1"}), {"z": "1"})
+
+    def test_none_input(self):
+        self.assertEqual(tp._parse_query(None), {})
+
+    def test_empty_list(self):
+        self.assertEqual(tp._parse_query([]), {})
+
+    def test_last_value_wins_on_duplicate_key(self):
+        q = [["z", "1"], ["z", "9"]]
+        self.assertEqual(tp._parse_query(q), {"z": "9"})
+
+    def test_ignores_malformed_entry(self):
+        # Single-element entries become empty string; empty entries skipped.
+        q = [["url", "x"], [], ["lone"], None]
+        out = tp._parse_query(q)
+        self.assertEqual(out.get("url"), "x")
+        self.assertEqual(out.get("lone"), "")
 
 
 if __name__ == "__main__":

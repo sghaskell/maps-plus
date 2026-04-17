@@ -39,7 +39,8 @@ define([
             '../contrib/js/jquery.i18n.emitter.bidi',
             '@geoman-io/leaflet-geoman-free',
             'maplibre-gl',
-            '@maplibre/maplibre-gl-leaflet'
+            '@maplibre/maplibre-gl-leaflet',
+            './ds-tile-proxy-helpers'
 
         ],
         function(
@@ -56,9 +57,35 @@ define([
             loadGoogleMapsAPI,
             moment,
             Modal,
-            themeUtils
+            themeUtils,
+            DsTileProxyHelpers
         ) {
 
+// Phase 2: resolve Splunk REST root for the DS tile proxy.
+// Priority:
+//   1. splunkjs/mvc/utils.make_full_url if available via window.require
+//   2. Fallback: relative '/services' (correct for default Splunk Web mounts;
+//      UAT will verify against non-root / SSO deployments)
+// Runtime resolution avoids hard-coding '/en-US/splunkd/' per D-08.
+function _resolveSplunkRestRoot() {
+    try {
+        if (typeof window !== 'undefined' && window.require) {
+            var utilsMod;
+            try { utilsMod = window.require('splunkjs/mvc/utils'); } catch (e1) { utilsMod = null; }
+            if (utilsMod && typeof utilsMod.make_full_url === 'function') {
+                // make_full_url('/') returns the Splunk Web root with locale prefix;
+                // strip the web path and swap for /services (REST root at same host).
+                // Example: 'https://host/en-US/' -> 'https://host/services'
+                var webRoot = utilsMod.make_full_url('/');
+                if (typeof webRoot === 'string' && webRoot.length > 0) {
+                    return webRoot.replace(/\/(en-US|[a-zA-Z]{2}-[a-zA-Z]{2})\/?$/, '/').replace(/\/+$/, '') + '/services';
+                }
+            }
+        }
+    } catch (e) { /* fall through */ }
+    return '/services';
+}
+var _DS_REST_ROOT = _resolveSplunkRestRoot();
 
 
 return SplunkVisualizationBase.extend({
@@ -265,6 +292,11 @@ initialize: function() {
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
     this._clickMarker = null
+
+    // Phase 2 (DS-JS-01): detect Dashboard Studio runtime.
+    // Truthy check on documented Splunk global; fails closed to Classic.
+    this._isDashboardStudio = DsTileProxyHelpers.isDashboardStudio(typeof window !== 'undefined' ? window : null)
+    this._dsRestRoot = _DS_REST_ROOT
 },
 
 // Search data params

@@ -35,7 +35,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import splunk.persistconn.application
+import splunk.rest
 
 logger = logging.getLogger('splunk.modules.maps_plus.tile_proxy')
 
@@ -399,8 +399,9 @@ def _fetch_tile(resolved_url, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
 # ---------------------------------------------------------------------------
 
 class LRUCache(object):
-    """Bounded LRU cache. Eviction by count, not memory. Thread-safe under
-    scripttype=persist which may dispatch requests on multiple threads."""
+    """Bounded LRU cache. Eviction by count, not memory. Thread-safe because
+    splunkd may dispatch requests on multiple threads within a single
+    Python worker."""
 
     def __init__(self, maxsize=DEFAULT_CACHE_MAX_MEMORY):
         if maxsize < 1:
@@ -728,77 +729,22 @@ def _reset_disk_cache():
 
 
 # ---------------------------------------------------------------------------
-# Response builder - adapter between our orchestration logic and the
-# persistent-handler return-dict contract. Mimics the old
-# handler.response.setStatus/setHeader/write surface so the existing
-# orchestration sequence stays intact and unit-testable.
-# ---------------------------------------------------------------------------
-
-class _ResponseBuilder(object):
-    """Collects status, headers, and body bytes for a single response."""
-
-    def __init__(self):
-        self.status = 200
-        self.headers = {}
-        self._body = b""
-
-    def setStatus(self, code):
-        self.status = int(code)
-
-    def setHeader(self, name, value):
-        # Header names are compared case-insensitively; normalize to lower.
-        self.headers[str(name).lower()] = str(value)
-
-    def write(self, data):
-        if data is None:
-            return
-        if isinstance(data, bytes):
-            self._body += data
-        else:
-            self._body += str(data).encode("utf-8")
-
-    @property
-    def body(self):
-        return self._body
-
-    def to_persist_response(self):
-        """Return the dict shape expected by
-        splunk.persistconn.application.PersistentServerConnectionApplication.handle:
-            {'payload': str, 'status': int, 'headers': dict}
-
-        `payload` MUST be JSON-serializable (i.e. a string) — bytes cause
-        splunkd to drop the key and log 'JSON reply had no payload value'
-        (UAT-3). For binary responses (PNG tiles), we latin-1 decode first,
-        which losslessly maps each byte 0x00-0xFF to a single-codepoint Unicode
-        str. Whether splunkd writes that str back as the original bytes on
-        the HTTP wire depends on its internal response encoder; verified
-        empirically in UAT-3 retest.
-        """
-        body = self._body
-        if isinstance(body, bytes):
-            body = body.decode("latin-1")
-        return {
-            "payload": body,
-            "status": self.status,
-            "headers": dict(self.headers),
-        }
-
-
-# ---------------------------------------------------------------------------
 # Error response helpers
 # ---------------------------------------------------------------------------
 
-def _write_json_error(builder, status, short_code):
+def _write_json_error(response, status, short_code):
     """Uniform sanitized error response (T1-11, D-13).
 
     Body is always {"error":"<short_code>"} - never echoes upstream body or
     exception stringification. Content-Type set to application/json.
+    `response` duck-types setStatus / setHeader / write — BaseRestHandler's
+    self.response satisfies this surface, as does the test MockResponse.
     """
     body = json.dumps({"error": short_code}).encode("utf-8")
-    builder.setStatus(status)
-    builder.setHeader("content-type", "application/json")
-    builder.setHeader("cache-control", "no-store")
-    builder.write(body)
+    response.setStatus(status)
+    response.setHeader("content-type", "application/json")
+    response.setHeader("cache-control", "no-store")
+    response.write(body)
 
 
 def _host_for_log(resolved_url):
@@ -810,50 +756,21 @@ def _host_for_log(resolved_url):
         return "?"
 
 
-# ---------------------------------------------------------------------------
-# Request parsing (persistent-handler contract)
-# ---------------------------------------------------------------------------
+def _handle_get_internal(response, args):
+    """Run the tile-proxy GET orchestration, writing into `response`.
 
-def _parse_query(query):
-    """Normalize the persistent-handler 'query' field into a flat {k: v} dict.
-
-    Splunk delivers query params as a list of [key, value] pairs. We collapse
-    to a dict preserving the LAST value per key (Splunk's convention for
-    /services/... GETs). Accepts dict input too, for flexibility under test.
-    """
-    out = {}
-    if query is None:
-        return out
-    if isinstance(query, dict):
-        for k, v in query.items():
-            out[str(k)] = v if v is None else str(v)
-        return out
-    if isinstance(query, (list, tuple)):
-        for pair in query:
-            if not pair:
-                continue
-            if isinstance(pair, (list, tuple)) and len(pair) >= 2:
-                out[str(pair[0])] = (pair[1] if pair[1] is None
-                                     else str(pair[1]))
-            elif isinstance(pair, (list, tuple)) and len(pair) == 1:
-                out[str(pair[0])] = ""
-    return out
-
-
-def _handle_get_internal(builder, args):
-    """Run the tile-proxy GET orchestration, writing into `builder`.
-
-    `args` is a flat {name: str-or-None} dict (output of _parse_query).
-    This function mirrors the pre-refactor handle_GET body exactly, but
-    against a _ResponseBuilder instead of self.response, so the persistent-
-    handler dispatcher can convert the result to the required dict shape.
+    `args` is a flat {name: str-or-None} dict — on the live handler this is
+    `self.args` populated by BaseRestHandler from the query string. `response`
+    is `self.response` (duck-typed: setStatus / setHeader / write). This
+    helper is split out so unit tests drive it directly against MockResponse
+    without constructing a full BaseRestHandler instance.
     """
     # 1. Load settings (cached).
     settings = _load_settings()
 
     # 2. Enabled check (A-09, T1-09).
     if not settings.get("enabled", True):
-        _write_json_error(builder, 503, "proxy_disabled")
+        _write_json_error(response, 503, "proxy_disabled")
         return
 
     # 3. Required query params.
@@ -865,23 +782,23 @@ def _handle_get_internal(builder, args):
     r = args.get("r")
 
     if not url_tmpl:
-        _write_json_error(builder, 400, "missing_param_url")
+        _write_json_error(response, 400, "missing_param_url")
         return
     if z is None or x is None or y is None:
-        _write_json_error(builder, 400, "missing_param_zxy")
+        _write_json_error(response, 400, "missing_param_zxy")
         return
 
     # 4. Resolve template (injection checks inside _resolve_tile).
     try:
         resolved = _resolve_tile(url_tmpl, z, x, y, s=s, r=r)
     except ValueError:
-        _write_json_error(builder, 400, "invalid_params")
+        _write_json_error(response, 400, "invalid_params")
         return
 
     # 5. Validate the resolved URL (SSRF defense).
     ok, err = _validate_url(resolved, settings.get("allowed_domains", []))
     if not ok:
-        _write_json_error(builder, 400, err or "invalid_url")
+        _write_json_error(response, 400, err or "invalid_url")
         return
 
     # 6. Cache lookup - two-tier (memory LRU -> disk LRU -> upstream).
@@ -890,11 +807,11 @@ def _handle_get_internal(builder, args):
     cached = cache.get(key)
     if cached is not None:
         data, ct, cc = cached
-        builder.setStatus(200)
-        builder.setHeader("content-type", ct)
-        builder.setHeader("cache-control", cc)
-        builder.setHeader("x-maps-plus-cache", "hit")
-        builder.write(data)
+        response.setStatus(200)
+        response.setHeader("content-type", ct)
+        response.setHeader("cache-control", cc)
+        response.setHeader("x-maps-plus-cache", "hit")
+        response.write(data)
         return
 
     # 6b. Disk cache (L2). Promotes to memory on hit.
@@ -911,11 +828,11 @@ def _handle_get_internal(builder, args):
                 cache.set(key, (data, ct, cc))  # L2 -> L1 promote
             except Exception:
                 logger.exception("memory_cache_promote_failed")
-            builder.setStatus(200)
-            builder.setHeader("content-type", ct)
-            builder.setHeader("cache-control", cc)
-            builder.setHeader("x-maps-plus-cache", "disk-hit")
-            builder.write(data)
+            response.setStatus(200)
+            response.setHeader("content-type", ct)
+            response.setHeader("cache-control", cc)
+            response.setHeader("x-maps-plus-cache", "disk-hit")
+            response.write(data)
             return
 
     # 7. Upstream fetch (timeout-bounded, size-capped, no-redirect).
@@ -926,24 +843,24 @@ def _handle_get_internal(builder, args):
     except urllib.error.HTTPError as e:
         logger.warning("upstream_http_error code=%s host=%s",
                        getattr(e, "code", "?"), _host_for_log(resolved))
-        _write_json_error(builder, 502, "upstream_error")
+        _write_json_error(response, 502, "upstream_error")
         return
     except (socket.timeout, urllib.error.URLError):
         logger.warning("upstream_timeout host=%s", _host_for_log(resolved))
-        _write_json_error(builder, 504, "upstream_timeout")
+        _write_json_error(response, 504, "upstream_timeout")
         return
     except ValueError as e:
         # Size cap or other sanitized validation error from _fetch_tile
         code = str(e) if str(e) in ("upstream_response_too_large",) \
             else "upstream_error"
         logger.warning("upstream_oversize host=%s", _host_for_log(resolved))
-        _write_json_error(builder, 502, "upstream_oversize"
+        _write_json_error(response, 502, "upstream_oversize"
                           if code == "upstream_response_too_large"
                           else "upstream_error")
         return
     except Exception:
         logger.exception("unexpected_error host=%s", _host_for_log(resolved))
-        _write_json_error(builder, 500, "internal_error")
+        _write_json_error(response, 500, "internal_error")
         return
 
     # 8. Populate cache - both tiers. Disk write is best-effort; any
@@ -962,77 +879,47 @@ def _handle_get_internal(builder, args):
             logger.warning("disk_cache_set_raised err=%s",
                            type(e).__name__)
 
-    # 9. Write success response. Bytes pass-through (T1-10 Pitfall 2).
-    builder.setStatus(200)
-    builder.setHeader("content-type", ct)
-    builder.setHeader("cache-control", cc)
-    builder.setHeader("x-maps-plus-cache", "miss")
-    builder.write(data)
+    # 9. Write success response. BaseRestHandler's self.response.write()
+    # accepts raw bytes and streams them unchanged to the HTTP wire — no
+    # latin-1 workaround required (that hack was for scripttype=persist,
+    # reverted in UAT-4).
+    response.setStatus(200)
+    response.setHeader("content-type", ct)
+    response.setHeader("cache-control", cc)
+    response.setHeader("x-maps-plus-cache", "miss")
+    response.write(data)
 
 
 # ---------------------------------------------------------------------------
-# REST handler - persistent-connection dispatcher
+# REST handler - scripttype=python / BaseRestHandler
 # ---------------------------------------------------------------------------
 
-class TileProxyHandler(
-        splunk.persistconn.application.PersistentServerConnectionApplication):
-    """Splunk persistent REST handler for /services/maps_plus/tile/proxy.
+class TileProxyHandler(splunk.rest.BaseRestHandler):
+    """Splunk REST handler for /services/maps_plus/tile/proxy.
 
-    Contract (Splunk 9.x):
-      - splunkd invokes TileProxyHandler(command_line, command_arg) once per
-        long-running process worker.
-      - splunkd then calls handle(in_string) for each inbound request, where
-        in_string is JSON-encoded with keys: method, path_info, query,
-        headers, payload, session, connection, etc.
-      - handle() MUST return a dict {'payload', 'status', 'headers'}.
+    Contract (Splunk 9.x, scripttype=python):
+      - splunkd dispatches each HTTP method to `handle_<METHOD>`
+        (e.g. GET -> handle_GET). No manual envelope parsing required.
+      - `self.args` is a dict of query-string params (str -> str).
+      - `self.response` exposes setStatus(int), setHeader(name, value), and
+        write(bytes_or_str). write() streams raw bytes on the HTTP wire
+        unchanged — this is the whole reason UAT-4 reverted away from
+        scripttype=persist (persist framework JSON-encodes the return dict,
+        which corrupts binary payloads — verified live in UAT-3/retry-3).
 
-    restmap.conf stanza uses `scripttype = persist` (see default/restmap.conf).
-    Inheriting from BaseRestHandler here is WRONG under that stanza - splunkd
-    emits "No class implements PersistentServerConnectionApplication" at
-    request time (UAT-1 gap-closure, discovered during phase 01 testing).
-
-    All orchestration logic lives in _handle_get_internal() so unit tests can
-    drive it directly with a _ResponseBuilder, and the handle() dispatcher
-    itself stays thin and easy to reason about.
+    All orchestration logic lives in `_handle_get_internal(response, args)`
+    so unit tests can drive it directly against the MockResponse stub from
+    tests/splunk/rest.py, and the method body here stays a thin wrapper.
     """
 
-    def __init__(self, command_line=None, command_arg=None):
-        # Two-arg constructor required by the persistent-handler framework —
-        # splunkd invokes TileProxyHandler(command_line, command_arg). But the
-        # base class's own __init__ takes no args; forwarding them raises
-        # "takes 1 positional argument but 3 were given" at first request.
-        super(TileProxyHandler, self).__init__()
-        self._command_line = command_line
-        self._command_arg = command_arg
-
-    def handle(self, in_string):
-        # 1. Parse the request envelope.
+    def handle_GET(self):
         try:
-            request = (in_string if isinstance(in_string, dict)
-                       else json.loads(in_string))
-        except (ValueError, TypeError):
-            builder = _ResponseBuilder()
-            _write_json_error(builder, 400, "invalid_request")
-            return builder.to_persist_response()
-
-        method = str(request.get("method", "GET")).upper()
-
-        # 2. Dispatch. Only GET is supported; everything else is 405 so an
-        # attacker cannot trigger side effects via POST/PUT/DELETE paths.
-        builder = _ResponseBuilder()
-        if method == "GET":
-            args = _parse_query(request.get("query"))
-            try:
-                _handle_get_internal(builder, args)
-            except Exception:
-                # Defense in depth - no orchestration path should raise, but
-                # if one does, the user sees a sanitized 500 rather than a
-                # traceback-shaped payload (T1-11).
-                logger.exception("handle_get_unhandled_exception")
-                # Reset any partial state on the builder
-                builder = _ResponseBuilder()
-                _write_json_error(builder, 500, "internal_error")
-        else:
-            _write_json_error(builder, 405, "method_not_allowed")
-
-        return builder.to_persist_response()
+            _handle_get_internal(self.response, self.args)
+        except Exception:
+            # Defense in depth - no orchestration path should raise, but
+            # if one does, the user sees a sanitized 500 rather than a
+            # traceback-shaped payload (T1-11). The response may be partially
+            # written before the exception; we still overlay the 500 envelope
+            # (splunkd will not have flushed at this point in practice).
+            logger.exception("handle_get_unhandled_exception")
+            _write_json_error(self.response, 500, "internal_error")

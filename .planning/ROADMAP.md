@@ -4,6 +4,15 @@
 
 ### Phase 1: REST Proxy Backend + Routing
 
+**Goal:** Same-origin Splunk REST endpoint that resolves, validates, fetches, caches, and streams raster tiles back to Leaflet running inside a Dashboard Studio iframe — bypassing DS CSP — with 4-layer SSRF defense, response-size cap, and two-tier (memory + optional disk) LRU caching.
+
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Python REST handler (bin/rest/maps_plus/tile_proxy.py) + pure-function library + unittest suite (first tests in project, stdlib only, Splunk stub harness)
+- [ ] 01-02-PLAN.md — restmap.conf [script:] stanza + default/settings.json allowlist seed + deploy.sh / build_release.sh updates to ship bin/ and configs
+- [ ] 01-03-PLAN.md — DiskCache class (atomic writes, LRU prune by mtime, concurrency lock, Splunk Cloud fallback, path confinement) + two-tier handle_GET integration + concurrency/disk tests
+
 **Plan 1.1 — Python REST Handler (`bin/rest/maps_plus/tile_proxy.py`)**
 - Implement `BaseRestHandler` GET endpoint at `/services/rest/maps_plus/tile/proxy`
 - Template substitution logic for `{z}`, `{x}`, `{y}`, `{s}`, `{r}`

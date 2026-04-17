@@ -10,7 +10,7 @@
 
 Plans:
 - [x] 01-01-PLAN.md — Python REST handler (bin/rest/maps_plus/tile_proxy.py) + pure-function library + unittest suite (first tests in project, stdlib only, Splunk stub harness) — SUMMARY: 01-01-SUMMARY.md (49/49 tests pass)
-- [ ] 01-02-PLAN.md — restmap.conf [script:] stanza + default/settings.json allowlist seed + deploy.sh / build_release.sh updates to ship bin/ and configs
+- [x] 01-02-PLAN.md — restmap.conf [script:] stanza + default/settings.json allowlist seed + deploy.sh / build_release.sh updates to ship bin/ and configs
 - [ ] 01-03-PLAN.md — DiskCache class (atomic writes, LRU prune by mtime, concurrency lock, Splunk Cloud fallback, path confinement) + two-tier handle_GET integration + concurrency/disk tests
 
 **Plan 1.1 — Python REST Handler (`bin/rest/maps_plus/tile_proxy.py`)**

@@ -8,8 +8,12 @@ imports cleanly with `PYTHONPATH=tests:bin`.
 
 import io
 import json
+import os
 import socket
+import struct
+import tempfile
 import threading
+import time
 import unittest
 from unittest import mock
 from urllib.error import HTTPError, URLError
@@ -518,6 +522,380 @@ class TestHandleGetOrchestration(unittest.TestCase):
         self.assertEqual(h.response.status, 502)
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "upstream_oversize"})
+
+
+# ---------------------------------------------------------------------------
+# 8. DiskCache — size-capped, atomic-write, LRU-pruned, path-confined on-disk
+# cache added in Plan 01-03.
+# ---------------------------------------------------------------------------
+
+class TestDiskCache(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cache_dir = os.path.join(self.tmp.name, "cache")
+        self.cache = tp.DiskCache(self.cache_dir, max_bytes=500 * 1024)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_enabled_on_writable_dir(self):
+        self.assertTrue(self.cache.enabled)
+
+    def test_disabled_on_permission_error(self):
+        """T3-05 / audit A-06: PermissionError on makedirs -> enabled=False;
+        get returns None and set is a silent no-op."""
+        with mock.patch.object(tp.os, "makedirs",
+                               side_effect=PermissionError("ro")):
+            cache = tp.DiskCache(
+                os.path.join(self.tmp.name, "noperm"), max_bytes=1024)
+        self.assertFalse(cache.enabled)
+        self.assertIsNone(cache.get("x" * 64))
+        # Must not raise
+        cache.set("x" * 64, (b"", "image/png", "max-age=60"))
+
+    def test_disabled_on_readonly_fs_erofs(self):
+        """T3-05: OSError(errno.EROFS) -> enabled=False (Splunk Cloud path)."""
+        err = OSError("read-only filesystem")
+        err.errno = tp.errno.EROFS
+        with mock.patch.object(tp.os, "makedirs", side_effect=err):
+            cache = tp.DiskCache(
+                os.path.join(self.tmp.name, "rofs"), max_bytes=1024)
+        self.assertFalse(cache.enabled)
+
+    def test_roundtrip_preserves_content_type_and_cache_control(self):
+        key = "b" * 64
+        self.cache.set(key, (b"HELLO", "image/webp", "max-age=42"))
+        got = self.cache.get(key)
+        self.assertEqual(got, (b"HELLO", "image/webp", "max-age=42"))
+
+    def test_sharded_path_by_first_two_hex(self):
+        key = "abcdef" + "0" * 58
+        self.cache.set(key, (b"DATA", "image/png", "max-age=60"))
+        expected = os.path.join(self.cache_dir, "ab", key + ".tile")
+        self.assertTrue(os.path.exists(expected),
+                        "expected sharded file at %s" % expected)
+
+    def test_atomic_write_no_tmp_leftovers(self):
+        """T3-02: after several set() calls, no .tmp files remain."""
+        for i in range(5):
+            k = (hex(i)[2:].rjust(64, "0"))
+            self.cache.set(k, (b"x" * 1024, "image/png", "max-age=60"))
+        leftovers = []
+        for root, _dirs, files in os.walk(self.cache_dir):
+            for n in files:
+                if n.startswith(".tmp"):
+                    leftovers.append(os.path.join(root, n))
+        self.assertEqual(leftovers, [])
+
+    def test_get_missing_returns_none(self):
+        self.assertIsNone(self.cache.get("deadbeef" * 8))
+
+    def test_corrupt_file_returns_none(self):
+        """Corrupt cache file -> get returns None, never raises."""
+        key = "c" * 64
+        path = self.cache._path_for(key)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(b"xyz")   # 3 bytes, not our 4-byte magic header
+        self.assertIsNone(self.cache.get(key))
+
+    def test_wrong_magic_header_returns_none(self):
+        key = "d" * 64
+        path = self.cache._path_for(key)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            # 4-byte wrong magic + valid-looking length fields
+            f.write(b"XXXX")
+            f.write(struct.pack(">I", 9))
+            f.write(b"image/png")
+            f.write(struct.pack(">I", 0))
+            f.write(b"")
+            f.write(b"data")
+        self.assertIsNone(self.cache.get(key))
+
+    def test_path_escape_rejected(self):
+        """T3-01 / S-10: _assert_within_cache_dir raises ValueError on paths
+        outside cache_dir, regardless of how they were constructed."""
+        with self.assertRaises(ValueError):
+            self.cache._assert_within_cache_dir("/etc/passwd")
+        with self.assertRaises(ValueError):
+            self.cache._assert_within_cache_dir(
+                os.path.join(self.tmp.name, "outside.tile"))
+
+    def test_assert_within_cache_dir_accepts_valid_path(self):
+        valid = self.cache._path_for("e" * 64)
+        # Does not raise
+        self.cache._assert_within_cache_dir(valid)
+
+    def test_lru_prune_removes_oldest_when_over_cap(self):
+        """T3-04: prune enforces size cap by mtime LRU."""
+        cache = tp.DiskCache(
+            os.path.join(self.tmp.name, "prunecache"), max_bytes=300 * 1024)
+        for i in range(10):
+            k = hex(i)[2:].rjust(64, "0")
+            cache.set(k, (b"x" * 100 * 1024, "image/png", "max-age=60"))
+            # Ensure mtime differences on filesystems with 1s resolution
+            time.sleep(0.01)
+        total = 0
+        for root, _dirs, files in os.walk(cache.cache_dir):
+            for n in files:
+                total += os.path.getsize(os.path.join(root, n))
+        # Allow slack: prune fires *after* each write, so one in-flight entry
+        # may push us slightly above the cap before eviction catches up.
+        self.assertLessEqual(total, 400 * 1024,
+                             "total=%d exceeded allowance" % total)
+        # Earliest-written keys should be gone
+        oldest_path = cache._path_for("0" * 64)
+        self.assertFalse(os.path.exists(oldest_path))
+
+    def test_touch_on_get_updates_mtime(self):
+        key = "f" * 64
+        self.cache.set(key, (b"D", "image/png", "max-age=60"))
+        path = self.cache._path_for(key)
+        old = os.stat(path).st_mtime
+        time.sleep(0.05)
+        self.cache.get(key)
+        new = os.stat(path).st_mtime
+        self.assertGreater(new, old)
+
+    def test_content_type_default_when_none(self):
+        key = "9" * 64
+        self.cache.set(key, (b"D", None, None))
+        got = self.cache.get(key)
+        self.assertIsNotNone(got)
+        _, ct, cc = got
+        self.assertEqual(ct, "application/octet-stream")
+        self.assertEqual(cc, tp.DEFAULT_CACHE_CONTROL)
+
+    def test_set_when_disabled_is_noop(self):
+        with mock.patch.object(tp.os, "makedirs",
+                               side_effect=PermissionError("ro")):
+            cache = tp.DiskCache(
+                os.path.join(self.tmp.name, "disabled"), max_bytes=1024)
+        # Neither raises nor writes anything
+        cache.set("x" * 64, (b"DATA", "image/png", "max-age=60"))
+        self.assertIsNone(cache.get("x" * 64))
+
+    def test_set_rejects_non_bytes_data(self):
+        with self.assertRaises(TypeError):
+            self.cache.set("a" * 64, ("not-bytes", "image/png", "max-age=60"))
+
+
+# ---------------------------------------------------------------------------
+# 9. DiskCache concurrency — exercises the threading.Lock around
+# set + _prune under multi-thread contention.
+# ---------------------------------------------------------------------------
+
+class TestDiskCacheConcurrency(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cache_dir = os.path.join(self.tmp.name, "cache")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_concurrent_set_same_key(self):
+        """T3-03: 8 threads racing on the same key — no exceptions; the
+        final file is valid (one of the values written)."""
+        cache = tp.DiskCache(self.cache_dir, max_bytes=10 * 1024 * 1024)
+        key = "x" * 64
+        errors = []
+
+        def worker(seed):
+            try:
+                for _ in range(20):
+                    payload = bytes([seed % 256]) * 1024
+                    cache.set(key, (payload, "image/png", "max-age=60"))
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(i,))
+                   for i in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        self.assertEqual(errors, [])
+        got = cache.get(key)
+        self.assertIsNotNone(got)
+        data, ct, cc = got
+        # Data must be exactly 1024 bytes of a single byte value
+        self.assertEqual(len(data), 1024)
+        self.assertEqual(len(set(data)), 1)
+
+    def test_concurrent_set_unique_keys(self):
+        """8 threads x 50 unique keys = 400 writes, no exceptions,
+        on-disk size stays within cap."""
+        cache = tp.DiskCache(self.cache_dir, max_bytes=2 * 1024 * 1024)
+        errors = []
+
+        def worker(tid):
+            try:
+                for i in range(50):
+                    k = ("%02x" % tid) + ("%062d" % i)   # 64 hex chars
+                    cache.set(k, (b"x" * 2048, "image/png", "max-age=60"))
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(i,))
+                   for i in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        self.assertEqual(errors, [])
+        total = 0
+        file_count = 0
+        for root, _dirs, files in os.walk(cache.cache_dir):
+            for n in files:
+                if not n.endswith(".tile"):
+                    continue
+                file_count += 1
+                total += os.path.getsize(os.path.join(root, n))
+        # Allow slack: one in-flight item may push us briefly above max.
+        self.assertLessEqual(total, 2 * 1024 * 1024 + 8 * 2048)
+        self.assertLessEqual(file_count, 400)
+
+    def test_prune_under_contention(self):
+        """Concurrent writes with active prune — cache size stays bounded
+        and no OSError(file-not-found) leaks out of set()."""
+        cache = tp.DiskCache(self.cache_dir, max_bytes=200 * 1024)
+        errors = []
+
+        def worker(tid):
+            try:
+                for i in range(20):
+                    k = ("%02x" % tid) + ("%062d" % i)
+                    cache.set(k, (b"x" * 10 * 1024,
+                                  "image/png", "max-age=60"))
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(i,))
+                   for i in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        self.assertEqual(errors, [])
+        # Final size bounded by max_bytes + a few in-flight items
+        total = 0
+        for root, _dirs, files in os.walk(cache.cache_dir):
+            for n in files:
+                if n.endswith(".tile"):
+                    total += os.path.getsize(os.path.join(root, n))
+        self.assertLessEqual(total, 300 * 1024)
+
+
+# ---------------------------------------------------------------------------
+# 10. TileProxyHandler.handle_GET — two-tier cache integration (memory + disk)
+# ---------------------------------------------------------------------------
+
+class TestHandleGetTwoTier(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.cache_dir = os.path.join(self.tmp.name, "cache")
+        tp._reset_settings_cache()
+        tp._reset_memory_cache()
+        tp._reset_disk_cache()
+        # Inject a real DiskCache pointed at the tmpdir so the handler's
+        # _get_disk_cache() returns it regardless of settings.disk_cache_enabled.
+        self._injected_disk = tp.DiskCache(self.cache_dir,
+                                           max_bytes=10 * 1024 * 1024)
+        tp._disk_cache = self._injected_disk
+
+    def tearDown(self):
+        tp._reset_settings_cache()
+        tp._reset_memory_cache()
+        tp._reset_disk_cache()
+        self.tmp.cleanup()
+
+    def _resolved_url(self, z=7, x=7, y=7):
+        return tp._resolve_tile(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png", z, x, y)
+
+    def test_disk_hit_promotes_to_memory(self):
+        """Pre-populate disk only; call handle_GET; expect disk-hit header
+        AND the entry now also lives in the memory cache (L2 -> L1 promote)."""
+        resolved = self._resolved_url()
+        key = tp._make_cache_key(resolved)
+        self._injected_disk.set(
+            key, (b"FROM_DISK", "image/png", "max-age=123"))
+
+        h = _make_handler(
+            args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "z": "7", "x": "7", "y": "7"},
+            settings={"enabled": True, "allowed_domains": SEED,
+                      "upstream_timeout_seconds": 10,
+                      "cache_max_memory": 16})
+        with mock.patch.object(tp.socket, "getaddrinfo",
+                               return_value=_fake_getaddrinfo("8.8.8.8")):
+            h.handle_GET()
+
+        self.assertEqual(h.response.status, 200)
+        self.assertEqual(h.response.body, b"FROM_DISK")
+        self.assertEqual(h.response.headers.get("x-maps-plus-cache"),
+                         "disk-hit")
+        self.assertEqual(h.response.headers.get("content-type"), "image/png")
+        self.assertEqual(h.response.headers.get("cache-control"),
+                         "max-age=123")
+
+        # Memory should now contain the promoted entry
+        mem = tp._get_memory_cache()
+        self.assertEqual(mem.get(key),
+                         (b"FROM_DISK", "image/png", "max-age=123"))
+
+    def test_miss_writes_both_tiers(self):
+        """Cold caches; mock _fetch_tile; after handle_GET, both memory
+        and disk contain the key."""
+        resolved = self._resolved_url(z=8, x=8, y=8)
+        key = tp._make_cache_key(resolved)
+
+        h = _make_handler(
+            args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "z": "8", "x": "8", "y": "8"},
+            settings={"enabled": True, "allowed_domains": SEED,
+                      "upstream_timeout_seconds": 10,
+                      "cache_max_memory": 16})
+        with mock.patch.object(tp.socket, "getaddrinfo",
+                               return_value=_fake_getaddrinfo("8.8.8.8")):
+            with mock.patch.object(
+                    tp, "_fetch_tile",
+                    return_value=(b"NEWPNG", "image/png", "max-age=77")):
+                h.handle_GET()
+
+        self.assertEqual(h.response.status, 200)
+        self.assertEqual(h.response.body, b"NEWPNG")
+        self.assertEqual(h.response.headers.get("x-maps-plus-cache"), "miss")
+
+        mem = tp._get_memory_cache()
+        self.assertEqual(mem.get(key), (b"NEWPNG", "image/png", "max-age=77"))
+        disk_got = self._injected_disk.get(key)
+        self.assertEqual(disk_got, (b"NEWPNG", "image/png", "max-age=77"))
+
+    def test_disk_cache_set_failure_does_not_break_response(self):
+        """T3-05 safety net: disk.set raises -> response still succeeds."""
+        h = _make_handler(
+            args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "z": "9", "x": "9", "y": "9"},
+            settings={"enabled": True, "allowed_domains": SEED,
+                      "upstream_timeout_seconds": 10,
+                      "cache_max_memory": 16})
+        with mock.patch.object(tp.socket, "getaddrinfo",
+                               return_value=_fake_getaddrinfo("8.8.8.8")):
+            with mock.patch.object(
+                    tp, "_fetch_tile",
+                    return_value=(b"BYTES", "image/png", "max-age=5")):
+                with mock.patch.object(
+                        self._injected_disk, "set",
+                        side_effect=RuntimeError("disk boom")):
+                    h.handle_GET()
+        self.assertEqual(h.response.status, 200)
+        self.assertEqual(h.response.body, b"BYTES")
+        self.assertEqual(h.response.headers.get("x-maps-plus-cache"), "miss")
 
 
 if __name__ == "__main__":

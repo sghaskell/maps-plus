@@ -16,11 +16,11 @@ progress:
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 01 Execution Complete
+## Status: Phase 01 UAT Complete — Ready for /gsd-secure-phase 1
 
-- **Last updated:** 2026-04-17
+- **Last updated:** 2026-04-17 (UAT Test 8 passed on work macbook)
 - **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy)
-- **Current phase:** 01 (complete — awaiting verification)
+- **Current phase:** 01 (UAT complete: 7 pass, 1 minor issue)
 - **Current plan:** (all 3 plans of phase 01 complete)
 - **Workflow mode:** YOLO execution
 - **Git workflow:** feature branch `feature/dashboard-studio-tile-proxy-v2`
@@ -68,4 +68,20 @@ progress:
 
 ## Next Action
 
-Run `/gsd-verify-phase 1` to verify Phase 01 completion before advancing to Phase 02 (JS client integration).
+1. Commit UAT results + build_release.sh macOS-xattr fix + .nvmrc
+2. (Optional cleanup) Fix HTTP 400→403 in bin/tile_proxy.py for SSRF rejections
+3. Run `/gsd-secure-phase 1` to close Phase 01
+4. Then Phase 02 (JS client integration) unblocks
+
+## UAT Summary (Phase 01)
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | Release tarball contents | pass |
+| 2 | Splunk app install | pass |
+| 3 | Endpoint returns a tile | pass (fixed via 13fd7cd) |
+| 4 | SSRF defense blocks private IP | issue (minor — 400 vs 403) |
+| 5 | SSRF defense blocks non-allowlisted host | pass |
+| 6 | Two-tier cache — memory hit | pass |
+| 7 | Disk cache persists across Splunk restart | pass |
+| 8 | Disabled flag returns 503 | pass |

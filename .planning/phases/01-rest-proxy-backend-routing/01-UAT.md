@@ -1,22 +1,17 @@
 ---
-status: testing
+status: complete
 phase: 01-rest-proxy-backend-routing
 source:
   - 01-01-SUMMARY.md
   - 01-02-SUMMARY.md
   - 01-03-SUMMARY.md
 started: 2026-04-17T07:15:00Z
-updated: 2026-04-17T09:30:00Z
+updated: 2026-04-17T20:11:00Z
 ---
 
 ## Current Test
 
-number: 8
-name: Disabled flag returns 503
-expected: |
-  Setting `enabled: false` in default/settings.json (or via local/settings.json override),
-  restart splunkd, hit the endpoint — returns HTTP 503 with a "service disabled" JSON body.
-awaiting: user response
+(UAT complete — no active test)
 
 ## Tests
 
@@ -88,14 +83,40 @@ notes: |
 
 ### 8. Disabled flag returns 503
 expected: Setting `enabled: false` in default/settings.json (or via local/settings.json override), restart splunkd, hit the endpoint — returns HTTP 503 with a "service disabled" JSON body.
-result: [pending]
+result: pass
+executed_on: 2026-04-17 (work macbook, splunk/splunk:10.2.0 container under Rosetta, tarball leaflet_maps_app_4.6.1.tar.gz)
+request_url: `https://localhost:8089/services/maps_plus/tile/proxy?url=https%3A%2F%2Ftile.openstreetmap.org%2F%7Bz%7D%2F%7Bx%7D%2F%7By%7D.png&z=0&x=0&y=0`
+override_file: local/settings.json with `{"maps_plus": {"tile_proxy": {"enabled": false}}}`
+observed:
+  http_status: 503
+  content_type: application/json
+  body: '{"error": "proxy_disabled"}'
+  size_bytes: 27
+negative_control:
+  description: Removed local/settings.json override, restarted splunkd, re-ran same curl.
+  http_status: 200
+  content_type: image/png
+  size_bytes: 6924
+  notes: Confirms the 503 is driven by the enabled flag, not a restart artifact.
+notes: |
+  Test execution confirms the early-return in bin/tile_proxy.py handle_GET (~L772):
+    if not settings.get("enabled", True):
+        _write_json_error(response, 503, "proxy_disabled")
+        return
+  Body is sanitized (no internal paths, stack, or config leak). JSON shape is
+  stable: just {"error": "proxy_disabled"}. No separate "message" or "detail"
+  field — minimal surface area for info leaks, matching the design intent.
+  The override was placed in local/settings.json (AppCert-compliant path); the
+  default/settings.json shipped with the app was not modified, so
+  `splunk reload` isn't needed on uninstall — local/ just vanishes with the app
+  and default returns to enabled=true.
 
 ## Summary
 
 total: 8
-passed: 6
+passed: 7
 issues: 1
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 

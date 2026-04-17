@@ -75,7 +75,21 @@ if [ ! -f "$STAGE/leaflet_maps_app/default/restmap.conf" ]; then
     exit 1
 fi
 
-(cd "$STAGE" && tar -czf "$SCRIPT_DIR/${OUTPUT}" leaflet_maps_app)
+# Strip macOS-specific metadata from the archive. On macOS 14+, every file has
+# a com.apple.provenance xattr. bsdtar stores xattrs as PaxHeader entries
+# (LIBARCHIVE.xattr.com.apple.provenance) which Splunk's `splunk install app`
+# archive validator misreads as an extra top-level subdirectory, rejecting the
+# archive with: "archive contains more than one immediate subdirectory". GNU
+# tar on Linux tolerates these entries (emits "Ignoring unknown extended header
+# keyword" warnings) but Splunk's validator does not.
+#
+# The four flags below are bsdtar-specific (no-ops on GNU tar, which doesn't
+# write xattrs by default anyway):
+#   --no-mac-metadata : skip ._ AppleDouble files
+#   --no-xattrs       : skip xattrs (including com.apple.provenance)
+#   --no-acls         : skip POSIX ACLs
+#   --no-fflags       : skip BSD file flags
+(cd "$STAGE" && tar --no-mac-metadata --no-xattrs --no-acls --no-fflags -czf "$SCRIPT_DIR/${OUTPUT}" leaflet_maps_app)
 
 echo ""
 echo "Created: ${OUTPUT}"

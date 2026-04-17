@@ -764,10 +764,21 @@ class _ResponseBuilder(object):
     def to_persist_response(self):
         """Return the dict shape expected by
         splunk.persistconn.application.PersistentServerConnectionApplication.handle:
-            {'payload': str|bytes, 'status': int, 'headers': dict}
+            {'payload': str, 'status': int, 'headers': dict}
+
+        `payload` MUST be JSON-serializable (i.e. a string) — bytes cause
+        splunkd to drop the key and log 'JSON reply had no payload value'
+        (UAT-3). For binary responses (PNG tiles), we latin-1 decode first,
+        which losslessly maps each byte 0x00-0xFF to a single-codepoint Unicode
+        str. Whether splunkd writes that str back as the original bytes on
+        the HTTP wire depends on its internal response encoder; verified
+        empirically in UAT-3 retest.
         """
+        body = self._body
+        if isinstance(body, bytes):
+            body = body.decode("latin-1")
         return {
-            "payload": self._body,
+            "payload": body,
             "status": self.status,
             "headers": dict(self.headers),
         }

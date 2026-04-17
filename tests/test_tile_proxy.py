@@ -960,7 +960,7 @@ class TestHandleDispatch(unittest.TestCase):
         self.assertEqual(set(response.keys()),
                          {"payload", "status", "headers"})
         self.assertEqual(response["status"], 400)
-        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+        self.assertEqual(json.loads(response["payload"]),
                          {"error": "missing_param_url"})
         self.assertEqual(response["headers"].get("content-type"),
                          "application/json")
@@ -987,7 +987,9 @@ class TestHandleDispatch(unittest.TestCase):
                     return_value=(b"PNG", "image/png", "max-age=60")):
                 response = h.handle(in_string)
         self.assertEqual(response["status"], 200)
-        self.assertEqual(response["payload"], b"PNG")
+        # to_persist_response() latin-1 decodes bytes → str so JSON can
+        # serialize the envelope. b"PNG" round-trips to "PNG".
+        self.assertEqual(response["payload"], "PNG")
         self.assertEqual(response["headers"].get("content-type"), "image/png")
         self.assertEqual(response["headers"].get("x-maps-plus-cache"),
                          "miss")
@@ -1001,7 +1003,7 @@ class TestHandleDispatch(unittest.TestCase):
             response = h.handle(in_string)
             self.assertEqual(response["status"], 405, method)
             self.assertEqual(
-                json.loads(response["payload"].decode("utf-8")),
+                json.loads(response["payload"]),
                 {"error": "method_not_allowed"},
                 method)
 
@@ -1011,7 +1013,7 @@ class TestHandleDispatch(unittest.TestCase):
         h = tp.TileProxyHandler(None, None)
         response = h.handle("{not json")
         self.assertEqual(response["status"], 400)
-        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+        self.assertEqual(json.loads(response["payload"]),
                          {"error": "invalid_request"})
 
     def test_query_as_dict_accepted(self):
@@ -1025,7 +1027,7 @@ class TestHandleDispatch(unittest.TestCase):
         # enabled=False short-circuits before query parsing matters; the key
         # point is that handle() doesn't raise on dict-shaped query.
         self.assertEqual(response["status"], 503)
-        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+        self.assertEqual(json.loads(response["payload"]),
                          {"error": "proxy_disabled"})
 
     def test_default_method_is_get(self):
@@ -1040,7 +1042,7 @@ class TestHandleDispatch(unittest.TestCase):
         in_string = json.dumps({"query": []})   # no method key
         response = h.handle(in_string)
         self.assertEqual(response["status"], 400)
-        self.assertEqual(json.loads(response["payload"].decode("utf-8")),
+        self.assertEqual(json.loads(response["payload"]),
                          {"error": "missing_param_url"})
 
 

@@ -1,10 +1,13 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-17T20:55:00.000Z",
+  "timestamp": "2026-04-17T21:05:00.000Z",
   "phase": "01",
   "phase_name": "rest-proxy-backend-routing",
   "phase_dir": ".planning/phases/01-rest-proxy-backend-routing",
-  "activity": "verify-work (UAT)",
+  "activity": "secure-phase (threat verification)",
+  "status": "paused",
+  "paused_mid_workflow": "/gsd-secure-phase 1",
+  "paused_at_step": "Step 4 — Present Threat Plan (awaiting user choice 1/2/3 before spawning gsd-security-auditor)",
   "uat_progress": {
     "total": 8,
     "passed": 8,
@@ -12,34 +15,62 @@
     "pending": 0,
     "current_test": null
   },
-  "status": "complete",
+  "threat_register": {
+    "total": 24,
+    "mitigate": 21,
+    "accept": 3,
+    "accepted_threats": [
+      {"id": "T1-07-RateLimitAmp", "plan": "01-01", "rationale": "Per-session rate limiting deferred (D-05/D-06). Mitigated indirectly by LRU cache reducing upstream load."},
+      {"id": "T2-04-AllowlistWeakening", "plan": "01-02", "rationale": "Users editing local/settings.json is an intended operation (D-01). FS permissions + AppCert scope protect against unauthorized edits. Defense-in-depth: _validate_url IP-block still blocks private IPs even if a private IP is added to the allowlist."},
+      {"id": "T3-08-MtimeUpdateRace", "plan": "01-03", "rationale": "os.utime() touch-on-read is best-effort. Concurrent reads racing on utime is benign (both set near-current time). No lock needed."}
+    ],
+    "by_plan": {
+      "01-01": ["T1-01-SSRF", "T1-02-InjectionZXY", "T1-03-ResponseSize", "T1-04-Redirect", "T1-05-CachePoisoning", "T1-07-RateLimitAmp", "T1-08-UnauthAccess", "T1-09-Disabled", "T1-10-BinaryEncoding", "T1-11-ErrorLeak"],
+      "01-02": ["T2-01-AuthBypass", "T2-02-WrongStanza", "T2-03-Python2Fallback", "T2-04-AllowlistWeakening", "T2-05-MissingFromPackage", "T2-06-SystemFileWrite"],
+      "01-03": ["T3-01-PathTraversal", "T3-02-TornWrite", "T3-03-ConcurrencyRace", "T3-04-DiskExhaustion", "T3-05-CloudFilesystem", "T3-06-SerializationFormat", "T3-07-SymlinkEscape", "T3-08-MtimeUpdateRace"]
+    },
+    "threat_flags_in_summaries": 0,
+    "self_reported_mitigation_verified_in_summaries": 21,
+    "notes": "All 21 mitigate threats were self-reported as implemented in each SUMMARY's 'Threat Mitigations Implemented (grep-verifiable)' section. No new ## Threat Flags raised during execution. Three accept threats have documented rationales and will be recorded in SECURITY.md Accepted Risks log."
+  },
   "completed_tests": [
     {"n": 1, "name": "Release tarball contents", "result": "pass"},
     {"n": 2, "name": "Splunk app install", "result": "pass"},
-    {"n": 3, "name": "Endpoint returns a tile", "result": "pass", "notes": "Fixed in commit 13fd7cd — dropped 'script' key from restmap.conf (BaseRestHandler path)"},
-    {"n": 4, "name": "SSRF defense blocks private IP", "result": "pass", "notes": "Re-run after 400→403 fix: HTTP 403 + {\"error\":\"host_not_allowed\"} (29B JSON, sanitized). Verified live against splunkd."},
-    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass", "notes": "Re-run at 403: HTTP 403 + {\"error\":\"host_not_allowed\"}. Negative-control regression check (valid OSM tile) still returns 200 + image/png 6924B."},
-    {"n": 6, "name": "Two-tier cache — memory hit", "result": "pass", "notes": "1st=269ms, 2nd=112ms for same 6.6kB tile; expectation adjusted from sub-10ms (Splunk REST overhead floor)"},
-    {"n": 7, "name": "Disk cache persists across Splunk restart", "result": "pass", "notes": "1st=222ms, post-restart=145ms; hash-prefix sharded dirs; no .tmp files"},
-    {"n": 8, "name": "Disabled flag returns 503", "result": "pass", "notes": "503 + {\"error\": \"proxy_disabled\"} (27B JSON, sanitized). Negative control (override removed) returns 200 + 6924B PNG. Executed on work macbook against splunk/splunk:10.2.0 container (Rosetta)."}
+    {"n": 3, "name": "Endpoint returns a tile", "result": "pass", "notes": "Fixed in commit 13fd7cd"},
+    {"n": 4, "name": "SSRF defense blocks private IP", "result": "pass", "notes": "Fixed in 3b4dc25 — HTTP 403 + sanitized body"},
+    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass"},
+    {"n": 6, "name": "Two-tier cache — memory hit", "result": "pass"},
+    {"n": 7, "name": "Disk cache persists across Splunk restart", "result": "pass"},
+    {"n": 8, "name": "Disabled flag returns 503", "result": "pass"}
   ],
   "remaining_tests": [],
   "blockers": [],
-  "human_actions_pending": [],
+  "human_actions_pending": [
+    {"action": "User chooses Option 1 (verify all open threats via auditor subagent) vs Option 2 (accept-all — not recommended) vs Option 3 (cancel)", "context": "Paused at /gsd-secure-phase 1 Step 4 to let user lower reasoning effort and clear context before the verification subagent spawns.", "blocking": true}
+  ],
   "decisions": [
-    {"decision": "Dropped `script = tile_proxy.py` from restmap.conf", "rationale": "Per $SPLUNK_HOME/etc/system/README/restmap.conf.spec, the `script` key is for handlers NOT derived from BaseRestHandler. Setting it forced Splunk into the legacy runScript.py codepath which does os.chdir(os.path.dirname(script)) — a bare filename dirnames to '' → FileNotFoundError.", "phase": "01", "commit": "13fd7cd"},
-    {"decision": "Test 6 expected 'sub-10ms' cache hit, adjusted to accept 'noticeably faster'", "rationale": "Splunk REST framework overhead (TLS, auth, routing) imposes a ~100ms floor regardless of cache. 2.4x speedup on identical payload is sufficient evidence the cache is serving.", "phase": "01"},
-    {"decision": "build_release.sh now strips macOS xattrs via bsdtar --no-mac-metadata --no-xattrs --no-acls --no-fflags", "rationale": "macOS 14+ attaches com.apple.provenance xattr to every file. bsdtar serializes xattrs as PaxHeader entries which Splunk's `splunk install app` archive validator misreads as a second top-level subdirectory, rejecting the archive. GNU tar tolerates these entries but Splunk's validator does not.", "phase": "01", "commit": "d45b39c"},
-    {"decision": "HTTP 403 vs 400 status-code split for SSRF rejections", "rationale": "RFC 9110 §15.5.4: 400 is for client-malformed requests the client could fix; 403 is for server-side policy refusals. _validate_url's six error codes split cleanly into two classes: policy (host_not_allowed, invalid_ip, private_ip_blocked → 403) and syntax (scheme_not_https, invalid_chars, dns_failed → 400). Encoded as _SSRF_POLICY_CODES set in handle_GET step 5. dns_failed kept at 400 for now (arguably 502, but out of scope for the UAT gap fix).", "phase": "01", "uncommitted": true}
+    {"decision": "Dropped `script = tile_proxy.py` from restmap.conf", "rationale": "Per restmap.conf.spec, `script` is for handlers NOT derived from BaseRestHandler. Setting it forced runScript.py codepath which does os.chdir(dirname(script)) → FileNotFoundError('').", "phase": "01", "commit": "13fd7cd"},
+    {"decision": "build_release.sh strips macOS xattrs via bsdtar --no-mac-metadata --no-xattrs --no-acls --no-fflags", "rationale": "macOS 14+ com.apple.provenance xattr becomes a PaxHeader entry that Splunk's archive validator misreads as a second top-level directory.", "phase": "01", "commit": "d45b39c"},
+    {"decision": "HTTP 403 vs 400 split for SSRF rejections", "rationale": "RFC 9110 §15.5.4: 400 for client-malformed, 403 for server-side policy refusal. _validate_url codes split: policy (host_not_allowed, invalid_ip, private_ip_blocked → 403) vs syntax (scheme_not_https, invalid_chars, dns_failed → 400). Encoded as _SSRF_POLICY_CODES set in handle_GET step 5.", "phase": "01", "commit": "3b4dc25"}
   ],
   "open_issues": [],
-  "uncommitted_files": [
-    ".planning/phases/01-rest-proxy-backend-routing/01-UAT.md",
-    ".planning/HANDOFF.json",
-    ".planning/STATE.md",
-    "bin/tile_proxy.py",
-    "tests/test_tile_proxy.py"
-  ],
-  "next_action": "Commit UAT close-out + 403 fix + tests. Then run /gsd-secure-phase 1 to close phase 01.",
-  "context_notes": "Phase 01 UAT complete (8/8 pass, 0 open issues). The 400→403 SSRF status-code fix landed in bin/tile_proxy.py with three new integration tests; the full suite passes 77/77. Re-ran Tests 4 and 5 against the live splunkd-10.2.0 container (splunk-10-dev-3, Rosetta) and both now return HTTP 403 with sanitized JSON bodies. Regression check: valid OSM tile still returns 200 image/png 6924B. Phase 02 (JS client integration) unblocks immediately after /gsd-secure-phase 1."
+  "uncommitted_files": [],
+  "infrastructure_state": {
+    "splunk_container": {
+      "name": "splunk-10-dev-3",
+      "image": "splunk/splunk:10.2.0",
+      "status": "running, healthy",
+      "ports": "8000 (web, http), 8089 (mgmt, https)",
+      "admin_password": "A00mast3r",
+      "installed_app": "leaflet_maps_app v4.6.1",
+      "notes": "Container contains the fixed tile_proxy.py (md5 17166d088adb85e379943261f1842598) — deployed via docker cp, not a full reinstall. Handler is scripttype=python so no splunkd restart needed for Python file changes. If a clean-install verification is wanted on resume, rebuild tarball and re-run `docker exec -u splunk splunk-10-dev-3 /opt/splunk/bin/splunk install app ... -update 1`."
+    },
+    "node_env": {
+      "manager": "fnm",
+      "pinned": "24.14.0 via appserver/static/visualizations/maps-plus/.nvmrc",
+      "activate_with": "eval \"$(fnm env --shell zsh)\" && fnm use 24.14.0"
+    }
+  },
+  "next_action": "On resume: re-invoke /gsd-secure-phase 1. It will land at Step 4 again with the full threat register displayed. User picks Option 1 (verify) → spawn gsd-security-auditor to grep-verify 21 mitigate threats against bin/tile_proxy.py, default/restmap.conf, default/settings.json, build_release.sh, scripts/deploy.sh. Then Step 6 writes .planning/phases/01-rest-proxy-backend-routing/01-SECURITY.md.",
+  "context_notes": "Phase 01 is code-complete: 77/77 unit tests, 8/8 UAT tests, 0 open issues, 3 new commits ahead of origin (8afd921, d45b39c, 3b4dc25). The only remaining gate before /gsd-validate-phase 1 and /gsd-verify-work 1 is /gsd-secure-phase 1 — which is paused here at the user gate. User paused to lower Cursor reasoning effort and clear context before the auditor subagent runs (to save budget on what should be mechanical grep-verification work). The auditor should be straightforward: each SUMMARY's 'Threat Mitigations Implemented' table cites exact function names / grep-able patterns in bin/tile_proxy.py, and the threat model's mitigation_plan column names the specific identifiers the auditor should search for."
 }

@@ -9,7 +9,8 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": false,
-    "auto_advance": true
+    "auto_advance": true,
+    "_auto_chain_active": false
   },
   "splunk_version_floor": "9.0"
 }

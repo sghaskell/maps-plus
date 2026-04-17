@@ -18,10 +18,29 @@ trap "rm -rf '$STAGE'" EXIT
 
 mkdir "$STAGE/leaflet_maps_app"
 
-# Copy only the directories Splunk actually uses
-for dir in appserver default metadata lookups static README; do
+# Copy only the directories Splunk actually uses.
+# bin/ added in Phase 1 (Dashboard Studio tile proxy) — hosts the Python
+# REST handler registered by default/restmap.conf.
+for dir in appserver default metadata lookups static bin README; do
   [ -d "$REPO_ROOT/$dir" ] && cp -r "$REPO_ROOT/$dir" "$STAGE/leaflet_maps_app/"
 done
+
+# Phase 1 explicit safety copies — defensive re-copy of the two new config
+# files so a stale/missing default/ copy is caught early. The for-loop above
+# already covers them when default/ exists, but listing them explicitly lets
+# the packaging audit (CLAUDE.md release checklist step 6) grep this script
+# for restmap.conf and settings.json.
+if [ -f "$REPO_ROOT/default/restmap.conf" ]; then
+    cp "$REPO_ROOT/default/restmap.conf" "$STAGE/leaflet_maps_app/default/restmap.conf"
+fi
+if [ -f "$REPO_ROOT/default/settings.json" ]; then
+    cp "$REPO_ROOT/default/settings.json" "$STAGE/leaflet_maps_app/default/settings.json"
+fi
+
+# Explicitly exclude dev-only artifacts that may have slipped into bin/
+# (e.g. __pycache__ from local test runs).
+find "$STAGE/leaflet_maps_app/bin" -name "__pycache__" -type d 2>/dev/null | xargs rm -rf 2>/dev/null || true
+find "$STAGE/leaflet_maps_app/bin" -name "*.pyc" -type f 2>/dev/null | xargs rm -f 2>/dev/null || true
 
 # Strip dev-only artifacts
 find "$STAGE" -name "node_modules" -type d | xargs rm -rf 2>/dev/null || true

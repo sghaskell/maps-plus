@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 current_plan: complete
-status: Phase 01 complete — ready for /gsd-verify-phase 1
-last_updated: "2026-04-17T21:05:00.000Z"
+status: Phase 01 secured (24/24 threats closed) — ready for /gsd-validate-phase 1 or /gsd-verify-work 1
+last_updated: "2026-04-17T22:00:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 0
@@ -16,9 +16,9 @@ progress:
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 01 — /gsd-secure-phase paused mid-workflow at Step 4 (user gate)
+## Status: Phase 01 — THREAT-SECURE (24/24 closed, 0 open)
 
-- **Last updated:** 2026-04-17 (paused at secure-phase Step 4 awaiting user option 1/2/3)
+- **Last updated:** 2026-04-17 (secure-phase complete — 01-SECURITY.md written)
 - **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy)
 - **Current phase:** 01 (UAT complete: 8 pass, 0 issues)
 - **Current plan:** (all 3 plans of phase 01 complete)
@@ -59,6 +59,7 @@ progress:
 | 01-01-SUMMARY.md | 2026-04-17 | Plan 01-01 — Python REST handler + 49 unit tests |
 | 01-02-SUMMARY.md | 2026-04-17 | Plan 01-02 — restmap.conf + settings.json + packaging |
 | 01-03-SUMMARY.md | 2026-04-17 | Plan 01-03 — DiskCache (atomic writes, LRU prune, Cloud fallback) + 22 new tests (71 total) |
+| 01-SECURITY.md | 2026-04-17 | Phase 01 threat verification — 24/24 closed, ASVS L2, 3 accepted risks documented |
 
 ## Decisions
 
@@ -69,9 +70,9 @@ progress:
 
 ## Next Action
 
-1. Resume with `/gsd-resume-work` (reads `.planning/phases/01-rest-proxy-backend-routing/.continue-here.md`) — lands back at `/gsd-secure-phase 1` Step 4 with the full threat register pre-computed in `HANDOFF.json`.
-2. Pick Option 1 (verify via auditor) → auditor writes `01-SECURITY.md` → commit → route to `/gsd-validate-phase 1` or `/gsd-verify-work 1`.
-3. Then Phase 02 (JS client integration) unblocks.
+1. `/gsd-validate-phase 1` — audit Nyquist test coverage against UAT criteria (77 unit tests + 8 UAT tests already pass; validator confirms gap-freedom).
+2. `/gsd-verify-work 1` — optional final conversational UAT replay (the 8-test UAT already passed 8/8).
+3. Then Phase 02 (Maps+ JS client integration) unblocks.
 
 ## UAT Summary (Phase 01)
 

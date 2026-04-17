@@ -449,6 +449,50 @@ class TestHandleGetOrchestration(unittest.TestCase):
         self.assertEqual(json.loads(h.response.body.decode("utf-8")),
                          {"error": "scheme_not_https"})
 
+    # -- SSRF policy rejections return 403 (not 400) -------------------------
+    # Per RFC 9110 §15.5.4, policy-based refusals get 403; 400 is reserved for
+    # syntactically-bad requests the client could fix. UAT Test 4/5 (Phase 01)
+    # surfaced this status-code mismatch; these tests lock the correct mapping.
+
+    def test_host_not_allowed_returns_403(self):
+        h = _make_handler(
+            args={"url": "https://evil.example.com/{z}/{x}/{y}.png",
+                  "z": "1", "x": "1", "y": "1"},
+            settings={"enabled": True, "allowed_domains": SEED})
+        _run_get(h)
+        self.assertEqual(h.response.status, 403)
+        self.assertEqual(json.loads(h.response.body.decode("utf-8")),
+                         {"error": "host_not_allowed"})
+
+    def test_private_ip_on_allowlisted_host_returns_403(self):
+        """Allowlisted hostname but DNS resolves to a private IP (DNS rebinding
+        / internal-network attack). Layer-4 SSRF defense must return 403."""
+        h = _make_handler(
+            args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "z": "1", "x": "1", "y": "1"},
+            settings={"enabled": True, "allowed_domains": SEED})
+        with mock.patch.object(tp.socket, "getaddrinfo",
+                               return_value=_fake_getaddrinfo("127.0.0.1")):
+            _run_get(h)
+        self.assertEqual(h.response.status, 403)
+        self.assertEqual(json.loads(h.response.body.decode("utf-8")),
+                         {"error": "private_ip_blocked"})
+
+    def test_cloud_metadata_ip_returns_403(self):
+        """AWS/GCP metadata IP (169.254.169.254) resolution must return 403,
+        not 400 — this is the canonical SSRF target."""
+        h = _make_handler(
+            args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "z": "1", "x": "1", "y": "1"},
+            settings={"enabled": True, "allowed_domains": SEED})
+        with mock.patch.object(
+                tp.socket, "getaddrinfo",
+                return_value=_fake_getaddrinfo("169.254.169.254")):
+            _run_get(h)
+        self.assertEqual(h.response.status, 403)
+        self.assertEqual(json.loads(h.response.body.decode("utf-8")),
+                         {"error": "private_ip_blocked"})
+
     def test_cache_hit_sets_hit_header(self):
         h = _make_handler(
             args={"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",

@@ -5,7 +5,7 @@ milestone_name: milestone
 current_phase: 01
 current_plan: complete
 status: Phase 01 complete — ready for /gsd-verify-phase 1
-last_updated: "2026-04-17T08:00:00.000Z"
+last_updated: "2026-04-17T20:55:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 0
@@ -16,11 +16,11 @@ progress:
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 01 UAT Complete — Ready for /gsd-secure-phase 1
+## Status: Phase 01 UAT Complete (8/8 pass, 0 open issues) — Ready for /gsd-secure-phase 1
 
-- **Last updated:** 2026-04-17 (UAT Test 8 passed on work macbook)
+- **Last updated:** 2026-04-17 (UAT Test 4/5 re-run passed after 400→403 SSRF status-code fix)
 - **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy)
-- **Current phase:** 01 (UAT complete: 7 pass, 1 minor issue)
+- **Current phase:** 01 (UAT complete: 8 pass, 0 issues)
 - **Current plan:** (all 3 plans of phase 01 complete)
 - **Workflow mode:** YOLO execution
 - **Git workflow:** feature branch `feature/dashboard-studio-tile-proxy-v2`
@@ -29,7 +29,7 @@ progress:
 
 | Phase | Status | Plans Completed | Notes |
 |-------|--------|-----------------|-------|
-| 1: REST Proxy Backend + Routing | Execution Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 71 unit tests pass. Ready for `/gsd-verify-phase 1`. |
+| 1: REST Proxy Backend + Routing | Execution Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 77 unit tests pass (74 baseline + 3 new for 403 mapping). UAT 8/8. Ready for `/gsd-secure-phase 1`. |
 | 2: Maps+ JS Integration + Testing | Not Started | — | Depends on Phase 1 verification |
 
 ## Milestone Progress
@@ -65,13 +65,12 @@ progress:
 - **Custom length-prefixed binary cache format (Plan 01-03):** 4-byte magic header `MP01` + 4-byte BE length-prefixed content-type + 4-byte BE length-prefixed cache-control + raw bytes. Rejected `pickle` due to RCE risk (T3-06) if an attacker could write to the cache dir.
 - **Cache `realpath(cache_dir)` once at `__init__` (Plan 01-03):** Under Windows concurrency, `os.path.realpath` can return the `\\?\` UNC long-path form, which broke the prefix check. Cached anchor + UNC-prefix normalization resolves it without weakening the S-10 guard.
 - **Two-tier write-through on miss (Plan 01-03):** Handler writes to memory LRU always, disk best-effort (exceptions logged + swallowed). User response never blocked by disk failure (T3-05 safety net).
+- **HTTP 403 vs 400 status-code split (UAT Test 4 fix):** SSRF policy rejections (`host_not_allowed`, `invalid_ip`, `private_ip_blocked`) return 403 per RFC 9110 §15.5.4; client-malformed codes (`scheme_not_https`, `invalid_chars`, `dns_failed`) remain 400. The split is encoded as `_SSRF_POLICY_CODES` set in `bin/tile_proxy.py` handle_GET step 5; lock-tested by three new integration tests in `tests/test_tile_proxy.py`.
 
 ## Next Action
 
-1. Commit UAT results + build_release.sh macOS-xattr fix + .nvmrc
-2. (Optional cleanup) Fix HTTP 400→403 in bin/tile_proxy.py for SSRF rejections
-3. Run `/gsd-secure-phase 1` to close Phase 01
-4. Then Phase 02 (JS client integration) unblocks
+1. `/gsd-secure-phase 1` — close Phase 01 (no open issues, no blockers)
+2. Then Phase 02 (JS client integration) unblocks
 
 ## UAT Summary (Phase 01)
 
@@ -80,8 +79,8 @@ progress:
 | 1 | Release tarball contents | pass |
 | 2 | Splunk app install | pass |
 | 3 | Endpoint returns a tile | pass (fixed via 13fd7cd) |
-| 4 | SSRF defense blocks private IP | issue (minor — 400 vs 403) |
-| 5 | SSRF defense blocks non-allowlisted host | pass |
+| 4 | SSRF defense blocks private IP | pass (fixed — 400→403 for policy rejections) |
+| 5 | SSRF defense blocks non-allowlisted host | pass (re-verified at 403) |
 | 6 | Two-tier cache — memory hit | pass |
 | 7 | Disk cache persists across Splunk restart | pass |
 | 8 | Disabled flag returns 503 | pass |

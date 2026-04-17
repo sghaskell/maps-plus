@@ -796,9 +796,32 @@ def _handle_get_internal(response, args):
         return
 
     # 5. Validate the resolved URL (SSRF defense).
+    #
+    # Status-code mapping is intentionally split by error *class*, not by
+    # validation layer:
+    #
+    #   - Client-malformed input (400): the request itself is syntactically
+    #     bad — the client could fix it by sending a well-formed URL.
+    #       * invalid_chars     — control chars / userinfo / null bytes
+    #       * scheme_not_https  — http://, ftp://, etc.
+    #       * dns_failed        — host does not resolve (arguably 502, but
+    #                             kept at 400 for now: no upstream contacted)
+    #
+    #   - Policy rejection (403): the request is well-formed but this server
+    #     refuses to proxy it. No amount of client-side fix-up would help.
+    #       * host_not_allowed  — not on allowlist
+    #       * invalid_ip        — unparseable/unrecognized IP family
+    #       * private_ip_blocked — SSRF defense caught a private/loopback/
+    #                              link-local/cloud-metadata IP
+    #
+    # UAT Test 4/5 (Phase 01) identified the original blanket-400 as a
+    # policy-vs-syntax confusion. 403 is the correct code for the SSRF
+    # policy-rejection cases under RFC 9110 §15.5.4.
+    _SSRF_POLICY_CODES = {"host_not_allowed", "invalid_ip", "private_ip_blocked"}
     ok, err = _validate_url(resolved, settings.get("allowed_domains", []))
     if not ok:
-        _write_json_error(response, 400, err or "invalid_url")
+        status = 403 if err in _SSRF_POLICY_CODES else 400
+        _write_json_error(response, status, err or "invalid_url")
         return
 
     # 6. Cache lookup - two-tier (memory LRU -> disk LRU -> upstream).

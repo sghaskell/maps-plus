@@ -1,14 +1,14 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-17T20:11:00.000Z",
+  "timestamp": "2026-04-17T20:55:00.000Z",
   "phase": "01",
   "phase_name": "rest-proxy-backend-routing",
   "phase_dir": ".planning/phases/01-rest-proxy-backend-routing",
   "activity": "verify-work (UAT)",
   "uat_progress": {
     "total": 8,
-    "passed": 7,
-    "issues": 1,
+    "passed": 8,
+    "issues": 0,
     "pending": 0,
     "current_test": null
   },
@@ -17,8 +17,8 @@
     {"n": 1, "name": "Release tarball contents", "result": "pass"},
     {"n": 2, "name": "Splunk app install", "result": "pass"},
     {"n": 3, "name": "Endpoint returns a tile", "result": "pass", "notes": "Fixed in commit 13fd7cd — dropped 'script' key from restmap.conf (BaseRestHandler path)"},
-    {"n": 4, "name": "SSRF defense blocks private IP", "result": "issue", "severity": "minor", "notes": "Protection works, but HTTP 400 returned instead of 403 (cosmetic / RFC-semantics issue)"},
-    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass", "notes": "Same 400 status, tracked once under Test 4"},
+    {"n": 4, "name": "SSRF defense blocks private IP", "result": "pass", "notes": "Re-run after 400→403 fix: HTTP 403 + {\"error\":\"host_not_allowed\"} (29B JSON, sanitized). Verified live against splunkd."},
+    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass", "notes": "Re-run at 403: HTTP 403 + {\"error\":\"host_not_allowed\"}. Negative-control regression check (valid OSM tile) still returns 200 + image/png 6924B."},
     {"n": 6, "name": "Two-tier cache — memory hit", "result": "pass", "notes": "1st=269ms, 2nd=112ms for same 6.6kB tile; expectation adjusted from sub-10ms (Splunk REST overhead floor)"},
     {"n": 7, "name": "Disk cache persists across Splunk restart", "result": "pass", "notes": "1st=222ms, post-restart=145ms; hash-prefix sharded dirs; no .tmp files"},
     {"n": 8, "name": "Disabled flag returns 503", "result": "pass", "notes": "503 + {\"error\": \"proxy_disabled\"} (27B JSON, sanitized). Negative control (override removed) returns 200 + 6924B PNG. Executed on work macbook against splunk/splunk:10.2.0 container (Rosetta)."}
@@ -29,18 +29,17 @@
   "decisions": [
     {"decision": "Dropped `script = tile_proxy.py` from restmap.conf", "rationale": "Per $SPLUNK_HOME/etc/system/README/restmap.conf.spec, the `script` key is for handlers NOT derived from BaseRestHandler. Setting it forced Splunk into the legacy runScript.py codepath which does os.chdir(os.path.dirname(script)) — a bare filename dirnames to '' → FileNotFoundError.", "phase": "01", "commit": "13fd7cd"},
     {"decision": "Test 6 expected 'sub-10ms' cache hit, adjusted to accept 'noticeably faster'", "rationale": "Splunk REST framework overhead (TLS, auth, routing) imposes a ~100ms floor regardless of cache. 2.4x speedup on identical payload is sufficient evidence the cache is serving.", "phase": "01"},
-    {"decision": "build_release.sh now strips macOS xattrs via bsdtar --no-mac-metadata --no-xattrs --no-acls --no-fflags", "rationale": "macOS 14+ attaches com.apple.provenance xattr to every file. bsdtar serializes xattrs as PaxHeader entries which Splunk's `splunk install app` archive validator misreads as a second top-level subdirectory, rejecting the archive. GNU tar tolerates these entries but Splunk's validator does not.", "phase": "01", "uncommitted": true}
+    {"decision": "build_release.sh now strips macOS xattrs via bsdtar --no-mac-metadata --no-xattrs --no-acls --no-fflags", "rationale": "macOS 14+ attaches com.apple.provenance xattr to every file. bsdtar serializes xattrs as PaxHeader entries which Splunk's `splunk install app` archive validator misreads as a second top-level subdirectory, rejecting the archive. GNU tar tolerates these entries but Splunk's validator does not.", "phase": "01", "commit": "d45b39c"},
+    {"decision": "HTTP 403 vs 400 status-code split for SSRF rejections", "rationale": "RFC 9110 §15.5.4: 400 is for client-malformed requests the client could fix; 403 is for server-side policy refusals. _validate_url's six error codes split cleanly into two classes: policy (host_not_allowed, invalid_ip, private_ip_blocked → 403) and syntax (scheme_not_https, invalid_chars, dns_failed → 400). Encoded as _SSRF_POLICY_CODES set in handle_GET step 5. dns_failed kept at 400 for now (arguably 502, but out of scope for the UAT gap fix).", "phase": "01", "uncommitted": true}
   ],
-  "open_issues": [
-    {"severity": "minor", "issue": "SSRF rejection returns HTTP 400 instead of 403", "artifact": "bin/tile_proxy.py", "fix": "change status raised on host_not_allowed from 400 to 403", "blocks_phase_close": false}
-  ],
+  "open_issues": [],
   "uncommitted_files": [
     ".planning/phases/01-rest-proxy-backend-routing/01-UAT.md",
     ".planning/HANDOFF.json",
     ".planning/STATE.md",
-    "build_release.sh",
-    "appserver/static/visualizations/maps-plus/.nvmrc"
+    "bin/tile_proxy.py",
+    "tests/test_tile_proxy.py"
   ],
-  "next_action": "Commit UAT+build_release.sh fix. Optionally fix 400→403 SSRF status code in bin/tile_proxy.py. Then run /gsd-secure-phase 1 to close phase 01.",
-  "context_notes": "Phase 01 UAT complete (7 pass, 1 minor issue). Only remaining cleanup before phase close is the 400→403 SSRF status code fix. Phase 02 (JS client integration) can unblock immediately after /gsd-secure-phase 1."
+  "next_action": "Commit UAT close-out + 403 fix + tests. Then run /gsd-secure-phase 1 to close phase 01.",
+  "context_notes": "Phase 01 UAT complete (8/8 pass, 0 open issues). The 400→403 SSRF status-code fix landed in bin/tile_proxy.py with three new integration tests; the full suite passes 77/77. Re-ran Tests 4 and 5 against the live splunkd-10.2.0 container (splunk-10-dev-3, Rosetta) and both now return HTTP 403 with sanitized JSON bodies. Regression check: valid OSM tile still returns 200 image/png 6924B. Phase 02 (JS client integration) unblocks immediately after /gsd-secure-phase 1."
 }

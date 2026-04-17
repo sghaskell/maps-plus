@@ -2,3 +2,9 @@ formatter.html.updated
 appserver/static/visualizations/maps-plus/node_modules
 .superpowers/
 .worktrees/
+
+# Python bytecode (introduced by Plan 01-01 tile_proxy handler + tests)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/

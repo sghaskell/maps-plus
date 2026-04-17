@@ -1,0 +1,23 @@
+{
+  "_comment": "Maps+ Dashboard Studio tile-proxy defaults. Users override in local/settings.json. Deleting keys falls back to in-code defaults in bin/rest/maps_plus/tile_proxy.py.",
+  "maps_plus": {
+    "tile_proxy": {
+      "enabled": true,
+      "upstream_timeout_seconds": 10,
+      "cache_max_memory": 256,
+      "disk_cache_enabled": true,
+      "disk_cache_max_mb": 500,
+      "allowed_domains": [
+        "tile.openstreetmap.org",
+        "*.tile.openstreetmap.org",
+        "*.basemaps.cartocdn.com",
+        "server.arcgisonline.com",
+        "tile.gbif.org",
+        "gibs.earthdata.nasa.gov",
+        "*.tile.openstreetmap.fr",
+        "*.tile.opentopomap.org",
+        "tiles.stadiamaps.com"
+      ]
+    }
+  }
+}

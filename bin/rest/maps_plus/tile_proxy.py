@@ -1,0 +1,580 @@
+"""Splunk REST handler - Dashboard Studio tile proxy.
+
+GET /services/maps_plus/tile/proxy?url=<tmpl>&z=<int>&x=<int>&y=<int>&s=<str>&r=<str>
+Fetches the resolved upstream tile and streams bytes back with pass-through
+Content-Type. SSRF-protected via scheme+host+injection+IP checks.
+Stdlib only - no third-party dependencies (PROJECT constraint).
+
+Plan 01-01 of the Dashboard Studio tile proxy phase. Implements:
+  - Pure functions: _validate_url, _host_allowed, _resolve_tile,
+    _make_cache_key, _fetch_tile
+  - LRUCache (thread-safe OrderedDict-backed)
+  - No-redirect urllib opener (SSRF defense against redirect chains)
+  - TileProxyHandler (subclass of splunk.rest.BaseRestHandler)
+  - Lazy settings loader with hardcoded fallback defaults
+
+Plan 01-02 ships default/settings.json + restmap.conf; this module is
+resilient when those are absent (fallback defaults below).
+Plan 01-03 adds a DiskCache layer behind the in-memory LRU.
+"""
+
+import collections
+import hashlib
+import ipaddress
+import json
+import logging
+import os
+import re
+import socket
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import splunk.rest
+
+logger = logging.getLogger('splunk.modules.maps_plus.tile_proxy')
+
+# ---------------------------------------------------------------------------
+# Module-level constants (Plan 01-03 will import some of these)
+# ---------------------------------------------------------------------------
+
+MAX_TILE_BYTES = 512 * 1024              # 512KB response-size cap (T1-03, A-03)
+DEFAULT_TIMEOUT_SECONDS = 10             # D-08
+DEFAULT_SUBDOMAIN = "a"                  # {s} default
+DEFAULT_PIXEL_RATIO = "1"                # {r} default - NOT "" (A-02, Pitfall 5)
+DEFAULT_CACHE_CONTROL = "public, max-age=86400"   # D-16
+DEFAULT_CACHE_MAX_MEMORY = 256           # LRU entry cap
+
+# Fallback allowlist used when settings.json is missing or unreadable. Plan 01-02
+# ships a default/settings.json mirroring this list; keeping in-code defaults
+# ensures the handler never fails open (D-02: empty list = deny-all, but we
+# never WANT an empty list in practice - we want a sensible OOTB list).
+_FALLBACK_ALLOWED_DOMAINS = [
+    "tile.openstreetmap.org",
+    "*.tile.openstreetmap.org",
+    "*.basemaps.cartocdn.com",
+    "server.arcgisonline.com",
+    "tile.gbif.org",
+    "gibs.earthdata.nasa.gov",
+    "*.tile.openstreetmap.fr",
+    "*.tile.opentopomap.org",
+    "tiles.stadiamaps.com",
+]
+
+# Injection sequences rejected in the URL and in z/x/y inputs. The tuple is
+# checked with a substring match on the full URL before urlparse, so encoded
+# variants of newline/null are also caught.
+_INJECTION_CHARS = (
+    "@", "..", "\n", "\r", "\x00",
+    "%00", "%0a", "%0A", "%0d", "%0D",
+    "#",
+)
+
+_WILDCARD_RE = re.compile(r"^\*\.")
+
+# AWS/GCP/Azure metadata IP - belt-and-suspenders over ip.is_link_local
+_METADATA_IP = "169.254.169.254"
+
+
+# ---------------------------------------------------------------------------
+# Settings loader
+# ---------------------------------------------------------------------------
+
+_settings_cache = None
+_settings_lock = threading.Lock()
+
+
+def _get_app_dir():
+    """Return $SPLUNK_HOME/etc/apps/leaflet_maps_app, or None if SPLUNK_HOME
+    is not set (unit test environment)."""
+    splunk_home = os.environ.get("SPLUNK_HOME")
+    if not splunk_home:
+        return None
+    return os.path.join(splunk_home, "etc", "apps", "leaflet_maps_app")
+
+
+def _read_settings_file(path):
+    """Return parsed JSON dict, or {} on any error (with a warning log)."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, IOError):
+        # Expected when a settings file is absent; no log - _load_settings
+        # logs once at module init if BOTH default and local are missing.
+        return {}
+    except (ValueError, TypeError) as exc:
+        logger.warning("settings_parse_error path=%s err=%s", path, type(exc).__name__)
+        return {}
+
+
+def _hardcoded_defaults():
+    return {
+        "enabled": True,
+        "allowed_domains": list(_FALLBACK_ALLOWED_DOMAINS),
+        "upstream_timeout_seconds": DEFAULT_TIMEOUT_SECONDS,
+        "cache_max_memory": DEFAULT_CACHE_MAX_MEMORY,
+        "cache_control": DEFAULT_CACHE_CONTROL,
+    }
+
+
+def _load_settings():
+    """Load settings.json, merging default over hardcoded fallback and local over default.
+
+    Reads (in order):
+      $SPLUNK_HOME/etc/apps/leaflet_maps_app/default/settings.json  (Plan 01-02 ships)
+      $SPLUNK_HOME/etc/apps/leaflet_maps_app/local/settings.json    (user override)
+
+    Cached after first load. Call `_reset_settings_cache()` in tests to force reload.
+    """
+    global _settings_cache
+    if _settings_cache is not None:
+        return _settings_cache
+    with _settings_lock:
+        if _settings_cache is not None:
+            return _settings_cache
+
+        merged = _hardcoded_defaults()
+        app_dir = _get_app_dir()
+        if app_dir:
+            default_path = os.path.join(app_dir, "default", "settings.json")
+            local_path = os.path.join(app_dir, "local", "settings.json")
+            default_data = _read_settings_file(default_path)
+            local_data = _read_settings_file(local_path)
+            # Navigate to maps_plus.tile_proxy if nested, else use root
+            for src in (default_data, local_data):
+                if isinstance(src, dict):
+                    node = src.get("maps_plus", {}).get("tile_proxy", src)
+                    if isinstance(node, dict):
+                        for k in ("enabled", "allowed_domains",
+                                  "upstream_timeout_seconds",
+                                  "cache_max_memory", "cache_control"):
+                            if k in node:
+                                merged[k] = node[k]
+        _settings_cache = merged
+        return _settings_cache
+
+
+def _reset_settings_cache():
+    """Test helper - forces next _load_settings() to re-read disk."""
+    global _settings_cache
+    with _settings_lock:
+        _settings_cache = None
+
+
+# ---------------------------------------------------------------------------
+# Pure function: host allowlist matcher
+# ---------------------------------------------------------------------------
+
+def _host_allowed(host, allowed_domains):
+    """Leftmost-wildcard matcher.
+
+    '*.foo.com' matches 'a.foo.com', 'x.y.foo.com', and bare 'foo.com'.
+    Empty allowed_domains = deny-all (D-02).
+    Case-insensitive on both sides.
+    """
+    host = (host or "").lower()
+    if not host:
+        return False
+    for pattern in (allowed_domains or []):
+        p = (pattern or "").lower()
+        if not p:
+            continue
+        if _WILDCARD_RE.match(p):
+            suffix = p[2:]   # strip leading "*."
+            if not suffix:
+                continue
+            if host == suffix or host.endswith("." + suffix):
+                return True
+        elif host == p:
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Pure function: URL validation (SSRF defense)
+# ---------------------------------------------------------------------------
+
+def _validate_url(url, allowed_domains):
+    """Return (True, None) on success; (False, short_code) on failure.
+
+    Error codes:
+      scheme_not_https, invalid_chars, host_not_allowed,
+      dns_failed, invalid_ip, private_ip_blocked
+
+    4-layer defense (S-01..S-04):
+      1. Scheme must be exactly 'https'
+      2. Reject injection chars in full URL (before urlparse)
+      3. Host allowlist with leftmost-wildcard (empty = deny-all)
+      4. DNS resolve + reject any loopback/private/link-local/reserved/multicast
+         IP, plus explicit 169.254.169.254 cloud metadata check
+    """
+    if not isinstance(url, str) or not url:
+        return False, "invalid_chars"
+
+    # Layer 2 (injection chars) - check on full URL BEFORE urlparse to catch
+    # embedded nulls/newlines/userinfo-syntax (@) before parsing can normalize
+    for bad in _INJECTION_CHARS:
+        if bad in url:
+            return False, "invalid_chars"
+
+    # Layer 1 (scheme)
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except ValueError:
+        return False, "invalid_chars"
+    if parsed.scheme != "https":
+        return False, "scheme_not_https"
+
+    # Layer 3 (host allowlist)
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return False, "host_not_allowed"
+    if not _host_allowed(host, allowed_domains):
+        return False, "host_not_allowed"
+
+    # Layer 4 (DNS + private-IP block)
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except (socket.gaierror, OSError):
+        return False, "dns_failed"
+
+    for info in infos:
+        try:
+            ip_str = info[4][0]
+        except (IndexError, TypeError):
+            continue
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except (ValueError, TypeError):
+            return False, "invalid_ip"
+        if (ip.is_loopback or ip.is_private or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast
+                or str(ip) == _METADATA_IP):
+            return False, "private_ip_blocked"
+
+    return True, None
+
+
+# ---------------------------------------------------------------------------
+# Pure function: template resolution
+# ---------------------------------------------------------------------------
+
+def _check_zxy_value(name, val):
+    """Raise ValueError if val is not a non-negative integer string (no
+    injection chars). Returns the int value."""
+    sv = str(val)
+    for bad in _INJECTION_CHARS:
+        if bad in sv:
+            raise ValueError("invalid_chars_in_" + name)
+    # Also reject raw whitespace/control that isn't in the injection tuple
+    if any(c in sv for c in (" ", "\t", "/")):
+        raise ValueError("invalid_chars_in_" + name)
+    try:
+        iv = int(sv)
+    except (TypeError, ValueError):
+        raise ValueError("not_integer_" + name)
+    if iv < 0:
+        raise ValueError("negative_" + name)
+    return iv
+
+
+def _resolve_tile(template, z, x, y, s=DEFAULT_SUBDOMAIN, r=DEFAULT_PIXEL_RATIO):
+    """Substitute {z}/{x}/{y}/{s}/{r} literally.
+
+    NO auto-swap of {x} and {y} based on URL content (audit A-07). Esri's
+    /{z}/{y}/{x} convention is respected by the template itself - the server
+    does not rewrite it.
+
+    Raises ValueError if z/x/y are not coercible to non-negative integers
+    OR contain any of: @ # .. \\n \\r \\x00 space tab /.
+    """
+    if not isinstance(template, str):
+        raise ValueError("template_not_string")
+
+    iz = _check_zxy_value("z", z)
+    ix = _check_zxy_value("x", x)
+    iy = _check_zxy_value("y", y)
+
+    s_val = str(s) if s else DEFAULT_SUBDOMAIN
+    r_val = str(r) if r else DEFAULT_PIXEL_RATIO
+
+    resolved = (template
+                .replace("{z}", str(iz))
+                .replace("{x}", str(ix))
+                .replace("{y}", str(iy))
+                .replace("{s}", s_val)
+                .replace("{r}", r_val))
+    return resolved
+
+
+# ---------------------------------------------------------------------------
+# Pure function: cache key
+# ---------------------------------------------------------------------------
+
+def _make_cache_key(resolved_url):
+    """SHA-256 hex digest of normalized URL (lowercase scheme+host).
+
+    Returns full 64 hex chars, no truncation (A-11). Keys are opaque so
+    path-traversal chars in the input URL can never escape a cache dir
+    (T1-05).
+    """
+    p = urllib.parse.urlparse(resolved_url)
+    normalized = urllib.parse.urlunparse((
+        p.scheme.lower(),
+        p.netloc.lower(),
+        p.path,
+        p.params,
+        p.query,
+        "",
+    ))
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# No-redirect opener (SSRF defense T1-04)
+# ---------------------------------------------------------------------------
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Disables all redirects. An allowlisted host could otherwise 302 to an
+    internal IP, bypassing our allowlist check (Pitfall 4)."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+    # Explicit method overrides so all 3xx codes become HTTPError at open time.
+    def http_error_301(self, req, fp, code, msg, headers):
+        raise urllib.error.HTTPError(req.full_url, code, msg, headers, fp)
+
+    http_error_302 = http_error_301
+    http_error_303 = http_error_301
+    http_error_307 = http_error_301
+    http_error_308 = http_error_301
+
+
+_opener = urllib.request.build_opener(_NoRedirectHandler())
+
+
+# ---------------------------------------------------------------------------
+# Pure function: upstream fetch
+# ---------------------------------------------------------------------------
+
+def _fetch_tile(resolved_url, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    """Fetch an upstream tile.
+
+    Returns (data: bytes, content_type: str, cache_control: str).
+
+    Raises:
+      urllib.error.HTTPError (e.g. 403, 429, 5xx) - caller maps to 502
+      urllib.error.URLError / socket.timeout - caller maps to 504
+      ValueError('upstream_response_too_large') - response exceeded 512KB
+    """
+    req = urllib.request.Request(
+        resolved_url,
+        headers={"User-Agent": "SplunkMapsPlus/1.0 tile-proxy"},
+    )
+    with _opener.open(req, timeout=timeout_seconds) as resp:
+        # Size cap - read MAX+1 and reject if exceeded (S-06)
+        data = resp.read(MAX_TILE_BYTES + 1)
+        if len(data) > MAX_TILE_BYTES:
+            raise ValueError("upstream_response_too_large")
+
+        headers = resp.headers
+        ct = headers.get("content-type", "application/octet-stream")
+        cc = headers.get("cache-control", DEFAULT_CACHE_CONTROL)
+        return data, ct, cc
+
+
+# ---------------------------------------------------------------------------
+# LRUCache - thread-safe, OrderedDict-backed (D-10)
+# ---------------------------------------------------------------------------
+
+class LRUCache(object):
+    """Bounded LRU cache. Eviction by count, not memory. Thread-safe under
+    scripttype=persist which may dispatch requests on multiple threads."""
+
+    def __init__(self, maxsize=DEFAULT_CACHE_MAX_MEMORY):
+        if maxsize < 1:
+            raise ValueError("maxsize_must_be_positive")
+        self._cache = collections.OrderedDict()
+        self._maxsize = maxsize
+        self._lock = threading.Lock()
+
+    def get(self, key):
+        with self._lock:
+            if key not in self._cache:
+                return None
+            self._cache.move_to_end(key)
+            return self._cache[key]
+
+    def set(self, key, value):
+        with self._lock:
+            if key in self._cache:
+                self._cache.move_to_end(key)
+            self._cache[key] = value
+            while len(self._cache) > self._maxsize:
+                self._cache.popitem(last=False)
+
+    def __len__(self):
+        with self._lock:
+            return len(self._cache)
+
+    def clear(self):
+        with self._lock:
+            self._cache.clear()
+
+
+# Lazy module-level cache instance. Plan 01-03 may wrap this with a disk tier.
+_memory_cache = None
+_memory_cache_lock = threading.Lock()
+
+
+def _get_memory_cache():
+    global _memory_cache
+    if _memory_cache is None:
+        with _memory_cache_lock:
+            if _memory_cache is None:
+                maxsize = _load_settings().get("cache_max_memory",
+                                               DEFAULT_CACHE_MAX_MEMORY)
+                try:
+                    _memory_cache = LRUCache(maxsize=int(maxsize))
+                except (TypeError, ValueError):
+                    _memory_cache = LRUCache(maxsize=DEFAULT_CACHE_MAX_MEMORY)
+    return _memory_cache
+
+
+def _reset_memory_cache():
+    """Test helper - clears the module-level cache instance."""
+    global _memory_cache
+    with _memory_cache_lock:
+        _memory_cache = None
+
+
+# ---------------------------------------------------------------------------
+# Error response helpers
+# ---------------------------------------------------------------------------
+
+def _write_json_error(handler, status, short_code):
+    """Uniform sanitized error response (T1-11, D-13).
+
+    Body is always {"error":"<short_code>"} - never echoes upstream body or
+    exception stringification. Content-Type set to application/json.
+    """
+    body = json.dumps({"error": short_code}).encode("utf-8")
+    handler.response.setStatus(status)
+    handler.response.setHeader("content-type", "application/json")
+    handler.response.setHeader("cache-control", "no-store")
+    handler.response.write(body)
+
+
+def _host_for_log(resolved_url):
+    """Extract hostname for structured logging - never log full URL to avoid
+    leaking query-string secrets a user may have added to local settings."""
+    try:
+        return urllib.parse.urlparse(resolved_url).hostname or "?"
+    except Exception:
+        return "?"
+
+
+# ---------------------------------------------------------------------------
+# REST handler - thin orchestrator
+# ---------------------------------------------------------------------------
+
+class TileProxyHandler(splunk.rest.BaseRestHandler):
+    """Splunk REST handler for GET /services/maps_plus/tile/proxy.
+
+    Orchestration only - all logic lives in the pure functions above so it
+    can be unit tested without a Splunk install.
+    """
+
+    def handle_GET(self):
+        # 1. Load settings (cached).
+        settings = _load_settings()
+
+        # 2. Enabled check (A-09, T1-09).
+        if not settings.get("enabled", True):
+            _write_json_error(self, 503, "proxy_disabled")
+            return
+
+        # 3. Required query params.
+        url_tmpl = self.args.get("url")
+        z = self.args.get("z")
+        x = self.args.get("x")
+        y = self.args.get("y")
+        s = self.args.get("s")
+        r = self.args.get("r")
+
+        if not url_tmpl:
+            _write_json_error(self, 400, "missing_param_url")
+            return
+        if z is None or x is None or y is None:
+            _write_json_error(self, 400, "missing_param_zxy")
+            return
+
+        # 4. Resolve template (injection checks inside _resolve_tile).
+        try:
+            resolved = _resolve_tile(url_tmpl, z, x, y, s=s, r=r)
+        except ValueError:
+            _write_json_error(self, 400, "invalid_params")
+            return
+
+        # 5. Validate the resolved URL (SSRF defense).
+        ok, err = _validate_url(resolved, settings.get("allowed_domains", []))
+        if not ok:
+            _write_json_error(self, 400, err or "invalid_url")
+            return
+
+        # 6. Cache lookup.
+        key = _make_cache_key(resolved)
+        cache = _get_memory_cache()
+        cached = cache.get(key)
+        if cached is not None:
+            data, ct, cc = cached
+            self.response.setStatus(200)
+            self.response.setHeader("content-type", ct)
+            self.response.setHeader("cache-control", cc)
+            self.response.setHeader("x-maps-plus-cache", "hit")
+            self.response.write(data)
+            return
+
+        # 7. Upstream fetch (timeout-bounded, size-capped, no-redirect).
+        timeout = int(settings.get("upstream_timeout_seconds",
+                                   DEFAULT_TIMEOUT_SECONDS))
+        try:
+            data, ct, cc = _fetch_tile(resolved, timeout_seconds=timeout)
+        except urllib.error.HTTPError as e:
+            logger.warning("upstream_http_error code=%s host=%s",
+                           getattr(e, "code", "?"), _host_for_log(resolved))
+            _write_json_error(self, 502, "upstream_error")
+            return
+        except (socket.timeout, urllib.error.URLError):
+            logger.warning("upstream_timeout host=%s", _host_for_log(resolved))
+            _write_json_error(self, 504, "upstream_timeout")
+            return
+        except ValueError as e:
+            # Size cap or other sanitized validation error from _fetch_tile
+            code = str(e) if str(e) in ("upstream_response_too_large",) \
+                else "upstream_error"
+            logger.warning("upstream_oversize host=%s", _host_for_log(resolved))
+            _write_json_error(self, 502, "upstream_oversize"
+                              if code == "upstream_response_too_large"
+                              else "upstream_error")
+            return
+        except Exception:
+            logger.exception("unexpected_error host=%s", _host_for_log(resolved))
+            _write_json_error(self, 500, "internal_error")
+            return
+
+        # 8. Populate cache.
+        try:
+            cache.set(key, (data, ct, cc))
+        except Exception:
+            # Cache failure must never break the response path.
+            logger.exception("cache_set_error")
+
+        # 9. Write success response. Bytes pass-through (T1-10 Pitfall 2).
+        self.response.setStatus(200)
+        self.response.setHeader("content-type", ct)
+        self.response.setHeader("cache-control", cc)
+        self.response.setHeader("x-maps-plus-cache", "miss")
+        self.response.write(data)

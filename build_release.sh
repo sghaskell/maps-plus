@@ -42,7 +42,7 @@ fi
 #
 # Phase 1: bin/ now contains the Python REST handler (tile proxy) and must
 # ship in the release tarball. `git archive HEAD` includes every tracked
-# file by default, so bin/rest/maps_plus/tile_proxy.py and
+# file by default, so bin/tile_proxy.py and
 # default/restmap.conf + default/settings.json flow through automatically.
 # We stage the archive into a temp dir first so we can strip dev-only
 # artifacts (tests/, run_tests.sh, .planning/) before re-tarring.
@@ -66,8 +66,8 @@ find "$STAGE/leaflet_maps_app/bin" -name "__pycache__" -type d 2>/dev/null | xar
 find "$STAGE/leaflet_maps_app/bin" -name "*.pyc" -type f 2>/dev/null | xargs rm -f 2>/dev/null || true
 
 # Verify the Phase 1 artifacts made it into the stage before we tar.
-if [ ! -f "$STAGE/leaflet_maps_app/bin/rest/maps_plus/tile_proxy.py" ]; then
-    echo "ERROR: bin/rest/maps_plus/tile_proxy.py missing from release stage" >&2
+if [ ! -f "$STAGE/leaflet_maps_app/bin/tile_proxy.py" ]; then
+    echo "ERROR: bin/tile_proxy.py missing from release stage" >&2
     exit 1
 fi
 if [ ! -f "$STAGE/leaflet_maps_app/default/restmap.conf" ]; then
@@ -81,5 +81,5 @@ echo ""
 echo "Created: ${OUTPUT}"
 echo "Verify contents before upload (CLAUDE.md release checklist step 6):"
 echo "  tar -tzf ${OUTPUT} | head -40"
-echo "  tar -tzf ${OUTPUT} | grep -E 'bin/rest/maps_plus/tile_proxy.py|default/restmap.conf|default/settings.json'"
+echo "  tar -tzf ${OUTPUT} | grep -E 'bin/tile_proxy.py|default/restmap.conf|default/settings.json'"
 echo "Upload via: Splunk UI → Apps → Manage Apps → Install app from file"

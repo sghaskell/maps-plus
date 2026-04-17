@@ -35,6 +35,12 @@ Plans:
 
 ### Phase 2: Maps+ JavaScript Integration + Testing
 
+**Plans:** 2 plans
+
+Plans:
+- [x] 02-01-PLAN.md — DS detection + DsProxyTileLayer subclass + pure helpers in `src/ds-tile-proxy-helpers.js` — SUMMARY: 02-01-SUMMARY.md (6 edits, all 6 verify checks pass)
+- [x] 02-02-PLAN.md — Jest harness (20/20 tests pass) + visualization.js rebuild (+0.05%) + 02-UAT.md 34-row matrix — SUMMARY: 02-02-SUMMARY.md
+
 **Plan 2.1 — DS Detection + Tile Interception (`src/maps-plus.js`)**
 - Add `_isDashboardStudio` detection via `window.__SPLUNK_DASHBOARD_STUDIO__`
 - Override Leaflet tile creation for all raster tile layers when in DS mode

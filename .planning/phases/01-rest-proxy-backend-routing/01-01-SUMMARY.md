@@ -344,3 +344,83 @@ smoke test would have caught this in minutes; we caught it in UAT instead.
 Future work: add a docker-based "load the app into splunkd and hit the
 endpoint" smoke test to the release checklist before UAT.
 
+## Gap-Closure (UAT-4) — scripttype python rationale
+
+UAT-3 retry-3 verified live in the browser that
+`scripttype = persist` cannot deliver binary PNG tiles correctly:
+
+1. The persist framework JSON-encodes `handle()`'s return dict. `payload`
+   must be a JSON-serializable value — bytes are dropped ("JSON reply had
+   no payload value"), which motivated the UAT-3 latin-1 workaround.
+2. latin-1 decoding loselessly maps 0x00-0xFF → single-codepoint str, so
+   the payload *survives the JSON hop* inside splunkd.
+3. **However**, splunkd then UTF-8-transcodes the str on the HTTP response
+   wire, which corrupts any byte ≥ 0x80. The browser sees a mangled PNG
+   and renders the broken-image icon.
+
+The only fix that works without monkey-patching splunkd's response encoder
+is to leave the persist framework. Under `scripttype = python` /
+`splunk.rest.BaseRestHandler`, `self.response.write()` writes raw bytes
+directly to the HTTP socket, unchanged. This trades the persist worker's
+long-lived Python interpreter (~50 ms subprocess spin-up per cold request)
+for correctness; cache hits stay sub-millisecond thanks to Plan 01-03's
+two-tier cache, so the cost is effectively invisible end-to-end.
+
+### Changes
+
+- **`bin/rest/maps_plus/tile_proxy.py`**
+  - `import splunk.persistconn.application` → `import splunk.rest`
+  - `class TileProxyHandler(PersistentServerConnectionApplication)` →
+    `class TileProxyHandler(splunk.rest.BaseRestHandler)`
+  - Removed `handle(self, in_string)` (persist envelope parser),
+    `_ResponseBuilder` class (dict-shape adapter), `_parse_query` helper,
+    and the `__init__(command_line, command_arg)` override.
+  - Added `handle_GET(self)` — thin wrapper that calls
+    `_handle_get_internal(self.response, self.args)` with a defensive
+    try/except that writes a sanitized 500 on orchestration-level bugs.
+  - `_write_json_error` and `_handle_get_internal` renamed their first
+    parameter from `builder` to `response`. Implementation logic is
+    byte-identical; `self.response` from BaseRestHandler duck-types the
+    same setStatus / setHeader / write surface `_ResponseBuilder` did.
+- **`default/restmap.conf`**: `scripttype = persist` → `scripttype = python`.
+  All other stanza keys unchanged (match, script, handler, python.version,
+  requireAuthentication).
+- **`tests/splunk/persistconn/`** — deleted entirely (no longer imported).
+- **`tests/test_tile_proxy.py`**:
+  - `TestHandleDispatch` class removed (dispatch layer no longer exists).
+  - `TestParseQuery` class removed (`_parse_query` no longer exists).
+  - `_make_handler` / `_run_get` adapted to build a real TileProxyHandler
+    and drive it via the MockResponse stub on `h.response`.
+  - Added `TestHandlerFrameworkContract` with three UAT-4 regression guards:
+    * `test_subclass_is_base_rest_handler` — locks the base class.
+    * `test_response_write_accepts_raw_bytes` — end-to-end `handle_GET`
+      with a spy on `self.response.write`; asserts the captured write
+      argument is `isinstance(_, bytes)` and byte-equal to the upstream
+      PNG. If a future change reintroduces latin-1 transcoding it will
+      fail with a TypeError mismatch.
+    * `test_handle_get_method_exists` — guards against accidental rename.
+
+### Verification
+
+`bash run_tests.sh` → **`Ran 74 tests in 4.237s — OK`** (was 85; net −11
+after deleting 10 persist-dispatch tests and 6 _parse_query tests, adding
+3 framework-contract tests). All pre-UAT-4 pure-function and orchestration
+tests still pass unchanged.
+
+### Commits
+
+- `fix(01-01): revert to BaseRestHandler for native binary response` —
+  tile_proxy.py + restmap.conf (handler class + scripttype flip).
+- `test(01-01): adapt tests to BaseRestHandler; drop persist dispatch layer`
+  — test_tile_proxy.py + tests/splunk/persistconn/ removal.
+- `docs(01-01): append Gap-Closure (UAT-4) — scripttype python rationale` —
+  this section.
+
+### Lesson carried forward
+
+The persist framework is fine for JSON-in / JSON-out handlers, wrong for
+binary responses. Future handlers that stream non-text payloads must use
+`scripttype = python` / BaseRestHandler. The framework-contract test class
+added here is the enforcement mechanism — any refactor that flips the base
+class trips `test_subclass_is_base_rest_handler` before ever reaching UAT.
+

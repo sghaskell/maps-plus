@@ -243,3 +243,104 @@ purely advisory.
 - Commit 213493d (Task 2): FOUND (tile_proxy.py 580 lines)
 - Commit e3f843f (Task 3): FOUND (test suite 49 tests + run_tests.sh portability)
 - `./run_tests.sh` → `Ran 49 tests in 0.005s — OK`
+
+## Gap-Closure (UAT-1): TileProxyHandler framework mismatch
+
+### Bug
+
+UAT test 3 (hit `/services/maps_plus/tile/proxy?url=...`) failed at the first
+real request. splunkd emitted:
+
+> Error starting: No class implements PersistentServerConnectionApplication
+
+Root cause: `TileProxyHandler` inherited from `splunk.rest.BaseRestHandler`
+(an old-style single-request handler), but `default/restmap.conf` registers
+the endpoint with `scripttype = persist` — the modern long-running handler
+framework. The two are incompatible: under `persist`, splunkd scans the
+loaded module for a subclass of `splunk.persistconn.application.Persistent`
+`ServerConnectionApplication` and dispatches via a `handle(in_string)` entry
+point that takes a JSON-encoded request envelope and returns
+`{'payload': bytes|str, 'status': int, 'headers': dict}`.
+
+Plan 01-01's RESEARCH.md documented BaseRestHandler based on Splunk community
+examples that were written for `scripttype = python` endpoints. The
+`scripttype = persist` choice made in Plan 01-02 (correct — matches the
+long-running design of the LRU cache) silently invalidated that base class.
+Neither plan's verification step loaded the handler into a live splunkd, so
+the mismatch reached UAT.
+
+### Fix
+
+1. **Handler refactor** — `TileProxyHandler` now inherits from
+   `splunk.persistconn.application.PersistentServerConnectionApplication`.
+   - Two-arg constructor `__init__(self, command_line, command_arg)`.
+   - Entry point `handle(self, in_string)` parses the JSON request envelope,
+     dispatches `GET` to the existing orchestration logic, returns `405
+     method_not_allowed` for all other verbs, and returns `400
+     invalid_request` for malformed JSON.
+   - Orchestration body extracted into `_handle_get_internal(builder, args)`
+     so every assertion in the pre-existing unit suite continues to apply
+     verbatim — only the "how we drive it" changes.
+   - New `_ResponseBuilder` class collects status + headers + body and
+     converts to the persist-contract dict via `to_persist_response()`.
+     Payload stays as raw `bytes` (PNG tiles work end-to-end without
+     base64); Splunk 9.x accepts bytes in `payload` per the framework docs.
+   - New `_parse_query(query)` helper normalizes the `list-of-[k,v]-pairs`
+     shape splunkd delivers into a flat dict. Also accepts dict input for
+     test / internal-call flexibility.
+
+2. **All Rule-1/2/3 deviations preserved.** SSRF defenses, size cap, two-tier
+   cache, sanitized errors, no-redirect opener, injection-char rejection,
+   enabled-flag short-circuit — all unchanged. `_handle_get_internal` is the
+   original `handle_GET` body with `self.response.X(...)` rewritten as
+   `builder.X(...)`.
+
+3. **Splunk stub extended** — added `tests/splunk/persistconn/__init__.py` and
+   `tests/splunk/persistconn/application.py` providing a minimal
+   `PersistentServerConnectionApplication` base class so
+   `import splunk.persistconn.application` resolves offline. The pre-existing
+   `tests/splunk/rest.py` is now unused by the production code path but kept
+   in-tree as a reference (no imports reach for it).
+
+4. **Test suite refactor** — `_make_handler` no longer wraps the legacy
+   `BaseRestHandler` stub. It constructs `TileProxyHandler(None, None)`, a
+   `_ResponseBuilder`, and stashes both on the handler as `h.response` /
+   `h.args` so the ~15 existing orchestration-test assertions
+   (`h.response.status`, `h.response.body`, `h.response.headers[...]`) run
+   unchanged. A new `_run_get(h)` helper calls
+   `tp._handle_get_internal(h.response, h.args)` in place of the removed
+   `h.handle_GET()`.
+
+5. **New dispatch tests added** (`TestHandleDispatch`, 7 cases):
+   - `test_subclass_is_persistent_connection_application` — regression guard
+     that catches this exact UAT-1 bug.
+   - `test_constructor_accepts_two_args` — framework contract.
+   - `test_get_dispatch_returns_persist_dict` — return-shape check.
+   - `test_get_routing_full_flow` — end-to-end via `handle()`.
+   - `test_non_get_method_returns_405` — POST/PUT/DELETE/PATCH/HEAD/OPTIONS.
+   - `test_malformed_json_returns_400` — sanitized `invalid_request`.
+   - `test_query_as_dict_accepted` — shape tolerance.
+   - `test_default_method_is_get` — defaulting behavior.
+
+   Plus `TestParseQuery` (6 cases) exercising every branch of
+   `_parse_query`.
+
+### Verification
+
+`./run_tests.sh` → **`Ran 85 tests in 4.161s — OK`** (was 49; added 36).
+Subclass guard + 405 + 400 + full-flow dispatch tests all pass. All 49
+pre-refactor tests still pass byte-identically.
+
+### Commits
+
+- `fix(01-01): TileProxyHandler -> PersistentServerConnectionApplication` — tile_proxy.py refactor (new base class, `handle()` dispatch, `_handle_get_internal`, `_ResponseBuilder`, `_parse_query`).
+- `test(01-01): adapt suite + add persist-dispatch tests` — test_tile_proxy.py + tests/splunk/persistconn/ stub.
+
+### Lessons / Gap for downstream plans
+
+The verification step in Plans 01-01 and 01-02 was entirely offline (grep /
+import smoke / unit tests). A live splunkd conf-parse plus handler-load
+smoke test would have caught this in minutes; we caught it in UAT instead.
+Future work: add a docker-based "load the app into splunkd and hit the
+endpoint" smoke test to the release checklist before UAT.
+

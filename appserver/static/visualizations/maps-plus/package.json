@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack",
     "deploy": "npm run build && bash scripts/deploy.sh",
-    "watch": "webpack --watch"
+    "watch": "webpack --watch",
+    "test": "jest"
   },
   "author": "Splunk",
   "license": "MIT",
@@ -14,9 +15,11 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "babel-jest": "^29.7.0",
     "babel-loader": "^9.2.1",
     "copy-webpack-plugin": "^12.0.0",
     "imports-loader": "^4.0.1",
+    "jest": "^29.7.0",
     "webpack": "^5.99.0",
     "webpack-cli": "^6.0.0"
   },

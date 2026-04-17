@@ -19,6 +19,7 @@ Plan 01-03 adds a DiskCache layer behind the in-memory LRU.
 """
 
 import collections
+import errno
 import hashlib
 import ipaddress
 import json
@@ -26,7 +27,10 @@ import logging
 import os
 import re
 import socket
+import struct
+import tempfile
 import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -45,6 +49,8 @@ DEFAULT_SUBDOMAIN = "a"                  # {s} default
 DEFAULT_PIXEL_RATIO = "1"                # {r} default - NOT "" (A-02, Pitfall 5)
 DEFAULT_CACHE_CONTROL = "public, max-age=86400"   # D-16
 DEFAULT_CACHE_MAX_MEMORY = 256           # LRU entry cap
+DEFAULT_DISK_CACHE_MAX_MB = 500          # DS-CL-02 disk LRU cap
+_DISK_CACHE_FORMAT_VERSION = b"MP01"     # 4-byte magic header for disk cache files
 
 # Fallback allowlist used when settings.json is missing or unreadable. Plan 01-02
 # ships a default/settings.json mirroring this list; keeping in-code defaults
@@ -115,6 +121,8 @@ def _hardcoded_defaults():
         "upstream_timeout_seconds": DEFAULT_TIMEOUT_SECONDS,
         "cache_max_memory": DEFAULT_CACHE_MAX_MEMORY,
         "cache_control": DEFAULT_CACHE_CONTROL,
+        "disk_cache_enabled": False,
+        "disk_cache_max_mb": DEFAULT_DISK_CACHE_MAX_MB,
     }
 
 
@@ -148,7 +156,8 @@ def _load_settings():
                     if isinstance(node, dict):
                         for k in ("enabled", "allowed_domains",
                                   "upstream_timeout_seconds",
-                                  "cache_max_memory", "cache_control"):
+                                  "cache_max_memory", "cache_control",
+                                  "disk_cache_enabled", "disk_cache_max_mb"):
                             if k in node:
                                 merged[k] = node[k]
         _settings_cache = merged
@@ -451,6 +460,250 @@ def _reset_memory_cache():
 
 
 # ---------------------------------------------------------------------------
+# DiskCache (Plan 01-03) - size-capped, atomic-write, LRU-pruned, path-confined,
+# concurrency-safe, Cloud-resilient on-disk cache.
+# ---------------------------------------------------------------------------
+
+class DiskCache(object):
+    """Size-capped, atomically-written, path-confined LRU disk cache.
+
+    File format:
+        [magic 4B]
+        [ct_len 4B BE]  [content_type utf8]
+        [cc_len 4B BE]  [cache_control utf8]
+        [data ... raw bytes]
+
+    Cache path: <cache_dir>/<key[:2]>/<key>.tile  (sharded by first 2 hex chars)
+
+    Key threat mitigations:
+      - T3-01 PathTraversal: _assert_within_cache_dir via realpath check (S-10).
+      - T3-02 TornWrite:     tempfile.mkstemp + os.replace (atomic).
+      - T3-03 ConcurrencyRace: single threading.Lock around set + prune.
+      - T3-04 DiskExhaustion: _prune_locked enforces max_bytes cap via LRU mtime.
+      - T3-05 CloudFilesystem: PermissionError / EROFS on makedirs -> enabled=False.
+      - T3-06 SerializationFormat: custom length-prefixed binary - no pickle.
+    """
+
+    def __init__(self, cache_dir, max_bytes=DEFAULT_DISK_CACHE_MAX_MB * 1024 * 1024):
+        self.cache_dir = cache_dir
+        self.max_bytes = int(max_bytes)
+        self._lock = threading.Lock()
+        self.enabled = False
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            # Write+delete a probe to confirm the dir is actually writable
+            # (on some Cloud images makedirs succeeds on a tmpfs but open fails).
+            probe = os.path.join(cache_dir, ".writeprobe")
+            with open(probe, "wb") as f:
+                f.write(b"ok")
+            try:
+                os.remove(probe)
+            except OSError:
+                pass
+            self.enabled = True
+        except PermissionError as e:
+            logger.info("disk_cache_disabled_permission dir=%s err=%s",
+                        cache_dir, type(e).__name__)
+            self.enabled = False
+        except OSError as e:
+            if getattr(e, "errno", None) == errno.EROFS:
+                logger.info("disk_cache_disabled_readonly_fs dir=%s", cache_dir)
+            else:
+                logger.info("disk_cache_disabled reason=%s dir=%s",
+                            type(e).__name__, cache_dir)
+            self.enabled = False
+
+    # ---- path helpers ----
+
+    def _path_for(self, key):
+        # key is an opaque 64-hex SHA-256 digest from _make_cache_key; we
+        # still shard by first 2 hex chars to cap dir entry counts.
+        return os.path.join(self.cache_dir, key[:2], key + ".tile")
+
+    def _assert_within_cache_dir(self, path):
+        """Raise ValueError if path, after realpath(), escapes cache_dir.
+
+        Defense-in-depth for T3-01 / S-10. realpath resolves symlinks so an
+        attacker who plants a symlink inside cache_dir cannot escape.
+        """
+        real_path = os.path.realpath(path)
+        real_base = os.path.realpath(self.cache_dir)
+        if not (real_path == real_base
+                or real_path.startswith(real_base + os.sep)):
+            raise ValueError("path_escape_detected")
+
+    # ---- public API ----
+
+    def get(self, key):
+        """Return (bytes, content_type, cache_control) or None on miss/error.
+
+        Updates file mtime on hit (LRU touch). Corrupt files return None
+        rather than raising (graceful degradation). IOError / OSError also
+        degrade to None - the cache is an optimization, never a hard
+        dependency.
+        """
+        if not self.enabled:
+            return None
+        path = self._path_for(key)
+        try:
+            self._assert_within_cache_dir(path)
+            with open(path, "rb") as f:
+                header = f.read(4)
+                if header != _DISK_CACHE_FORMAT_VERSION:
+                    return None
+                ct_len_bytes = f.read(4)
+                if len(ct_len_bytes) < 4:
+                    return None
+                ct_len = struct.unpack(">I", ct_len_bytes)[0]
+                if ct_len > 256:
+                    return None
+                content_type = f.read(ct_len).decode("utf-8", "replace")
+                cc_len_bytes = f.read(4)
+                if len(cc_len_bytes) < 4:
+                    return None
+                cc_len = struct.unpack(">I", cc_len_bytes)[0]
+                if cc_len > 256:
+                    return None
+                cache_control = f.read(cc_len).decode("utf-8", "replace")
+                data = f.read(MAX_TILE_BYTES + 1)
+                if len(data) > MAX_TILE_BYTES:
+                    return None
+            # LRU touch - best-effort; ignore errors
+            try:
+                now = time.time()
+                os.utime(path, (now, now))
+            except OSError:
+                pass
+            return (data, content_type, cache_control)
+        except (FileNotFoundError, IsADirectoryError, ValueError):
+            return None
+        except OSError:
+            return None
+
+    def set(self, key, value):
+        """Atomically write value=(bytes, content_type, cache_control).
+
+        Uses tempfile.mkstemp + os.replace for torn-write safety (T3-02).
+        Prunes LRU to stay under max_bytes (T3-04). Never raises on disk
+        failure - caller sees logged warning, response continues (T3-05).
+        """
+        if not self.enabled:
+            return
+        data, content_type, cache_control = value
+        if not isinstance(data, bytes):
+            raise TypeError("data_must_be_bytes")
+        ct_bytes = (content_type or "application/octet-stream").encode("utf-8")[:256]
+        cc_bytes = (cache_control or DEFAULT_CACHE_CONTROL).encode("utf-8")[:256]
+        path = self._path_for(key)
+        # Raise for path-traversal BEFORE the lock/write - cheap check, and
+        # we never want to create dirs for an escape-attempting key.
+        self._assert_within_cache_dir(path)
+        with self._lock:
+            try:
+                subdir = os.path.dirname(path)
+                os.makedirs(subdir, exist_ok=True)
+                # Write to a unique tmp file in the SAME dir then atomic replace
+                # (same-dir is required for os.replace to be atomic on Windows).
+                tmp_fd, tmp_path = tempfile.mkstemp(
+                    prefix=".tmp_", suffix=".tile", dir=subdir)
+                try:
+                    with os.fdopen(tmp_fd, "wb") as f:
+                        f.write(_DISK_CACHE_FORMAT_VERSION)
+                        f.write(struct.pack(">I", len(ct_bytes)))
+                        f.write(ct_bytes)
+                        f.write(struct.pack(">I", len(cc_bytes)))
+                        f.write(cc_bytes)
+                        f.write(data)
+                        f.flush()
+                        try:
+                            os.fsync(f.fileno())
+                        except OSError:
+                            pass
+                    os.replace(tmp_path, path)   # atomic (POSIX + Win py3.3+)
+                except Exception:
+                    # Clean up orphan tmp; don't hide the original exception
+                    try:
+                        os.remove(tmp_path)
+                    except OSError:
+                        pass
+                    raise
+                self._prune_locked()
+            except (PermissionError, OSError) as e:
+                logger.warning("disk_cache_set_failed key=%s err=%s",
+                               key[:8], type(e).__name__)
+
+    def _prune_locked(self):
+        """Caller must hold self._lock. Removes oldest-mtime files until
+        total size <= self.max_bytes. LRU by filesystem mtime."""
+        entries = []
+        total = 0
+        try:
+            for root, _dirs, files in os.walk(self.cache_dir):
+                for name in files:
+                    if not name.endswith(".tile"):
+                        continue
+                    p = os.path.join(root, name)
+                    try:
+                        st = os.stat(p)
+                    except OSError:
+                        continue
+                    entries.append((st.st_mtime, st.st_size, p))
+                    total += st.st_size
+        except OSError:
+            return
+        if total <= self.max_bytes:
+            return
+        entries.sort()   # ascending mtime = oldest first
+        for _mtime, size, p in entries:
+            if total <= self.max_bytes:
+                break
+            try:
+                os.remove(p)
+                total -= size
+            except OSError:
+                continue
+
+
+# Lazy module-level disk cache instance. None means "not yet constructed or
+# disk_cache_enabled=False in settings".
+_disk_cache = None
+_disk_cache_init_lock = threading.Lock()
+
+
+def _get_disk_cache():
+    """Return module-level DiskCache, or None if disk caching is disabled.
+
+    Lazy-init so unit tests that don't touch disk never create a cache dir.
+    """
+    global _disk_cache
+    if _disk_cache is not None:
+        return _disk_cache
+    with _disk_cache_init_lock:
+        if _disk_cache is not None:
+            return _disk_cache
+        settings = _load_settings()
+        if not settings.get("disk_cache_enabled", False):
+            return None
+        splunk_home = os.environ.get("SPLUNK_HOME", ".")
+        cache_dir = os.path.join(
+            splunk_home, "var", "run", "maps_plus", "tile_cache")
+        max_mb = settings.get("disk_cache_max_mb", DEFAULT_DISK_CACHE_MAX_MB)
+        try:
+            max_bytes = int(max_mb) * 1024 * 1024
+        except (TypeError, ValueError):
+            max_bytes = DEFAULT_DISK_CACHE_MAX_MB * 1024 * 1024
+        _disk_cache = DiskCache(cache_dir, max_bytes=max_bytes)
+        return _disk_cache
+
+
+def _reset_disk_cache():
+    """Test helper - clears the module-level disk cache instance."""
+    global _disk_cache
+    with _disk_cache_init_lock:
+        _disk_cache = None
+
+
+# ---------------------------------------------------------------------------
 # Error response helpers
 # ---------------------------------------------------------------------------
 
@@ -524,7 +777,7 @@ class TileProxyHandler(splunk.rest.BaseRestHandler):
             _write_json_error(self, 400, err or "invalid_url")
             return
 
-        # 6. Cache lookup.
+        # 6. Cache lookup - two-tier (memory LRU -> disk LRU -> upstream).
         key = _make_cache_key(resolved)
         cache = _get_memory_cache()
         cached = cache.get(key)
@@ -536,6 +789,27 @@ class TileProxyHandler(splunk.rest.BaseRestHandler):
             self.response.setHeader("x-maps-plus-cache", "hit")
             self.response.write(data)
             return
+
+        # 6b. Disk cache (L2). Promotes to memory on hit.
+        disk = _get_disk_cache()
+        if disk is not None and disk.enabled:
+            try:
+                disk_hit = disk.get(key)
+            except Exception:
+                logger.exception("disk_cache_get_raised")
+                disk_hit = None
+            if disk_hit is not None:
+                data, ct, cc = disk_hit
+                try:
+                    cache.set(key, (data, ct, cc))  # L2 -> L1 promote
+                except Exception:
+                    logger.exception("memory_cache_promote_failed")
+                self.response.setStatus(200)
+                self.response.setHeader("content-type", ct)
+                self.response.setHeader("cache-control", cc)
+                self.response.setHeader("x-maps-plus-cache", "disk-hit")
+                self.response.write(data)
+                return
 
         # 7. Upstream fetch (timeout-bounded, size-capped, no-redirect).
         timeout = int(settings.get("upstream_timeout_seconds",
@@ -565,12 +839,21 @@ class TileProxyHandler(splunk.rest.BaseRestHandler):
             _write_json_error(self, 500, "internal_error")
             return
 
-        # 8. Populate cache.
+        # 8. Populate cache - both tiers. Disk write is best-effort; any
+        # failure is logged and swallowed so the user response is never
+        # blocked by a disk problem (T3-05 safety net).
         try:
             cache.set(key, (data, ct, cc))
         except Exception:
             # Cache failure must never break the response path.
             logger.exception("cache_set_error")
+
+        if disk is not None and disk.enabled:
+            try:
+                disk.set(key, (data, ct, cc))
+            except Exception as e:
+                logger.warning("disk_cache_set_raised err=%s",
+                               type(e).__name__)
 
         # 9. Write success response. Bytes pass-through (T1-10 Pitfall 2).
         self.response.setStatus(200)

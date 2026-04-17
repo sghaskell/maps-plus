@@ -18,7 +18,7 @@ import unittest
 from unittest import mock
 from urllib.error import HTTPError, URLError
 
-from rest.maps_plus import tile_proxy as tp
+import tile_proxy as tp
 # BaseRestHandler stub from tests/splunk/rest.py — imported here only to
 # confirm it wires correctly on PYTHONPATH before the module under test
 # reaches for it, and to back the subclass regression test below.

@@ -33,6 +33,30 @@ describe('isDashboardStudio', () => {
     });
     expect(h.isDashboardStudio(trap)).toBe(false);
   });
+
+  test('detects DS via about:srcdoc location.href (legacy iframe adapter)', () => {
+    const win = { location: { href: 'about:srcdoc' } };
+    expect(h.isDashboardStudio(win)).toBe(true);
+  });
+
+  test('detects DS via about:srcdoc document.URL', () => {
+    const win = { location: { href: 'http://other' }, document: { URL: 'about:srcdoc' } };
+    expect(h.isDashboardStudio(win)).toBe(true);
+  });
+
+  test('detects DS via null origin in iframe', () => {
+    const parent = {};
+    const win = { parent: parent, location: { href: 'http://x', origin: 'null' } };
+    expect(h.isDashboardStudio(win)).toBe(true);
+  });
+
+  test('does not flag normal Splunk Classic same-window contexts', () => {
+    const win = {
+      location: { href: 'http://localhost:8000/en-US/app/search/dash', origin: 'http://localhost:8000' }
+    };
+    win.parent = win;
+    expect(h.isDashboardStudio(win)).toBe(false);
+  });
 });
 
 describe('SERVER_RESOLVED_TOKENS', () => {

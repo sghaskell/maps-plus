@@ -13,6 +13,7 @@ define([
             'moment',
             '../contrib/js/Modal',
             '../contrib/js/theme-utils',
+            './ds-tile-proxy-helpers',
             'spin.js',
             'leaflet-bing-layer',
 			'leaflet-contextmenu',
@@ -39,8 +40,7 @@ define([
             '../contrib/js/jquery.i18n.emitter.bidi',
             '@geoman-io/leaflet-geoman-free',
             'maplibre-gl',
-            '@maplibre/maplibre-gl-leaflet',
-            './ds-tile-proxy-helpers'
+            '@maplibre/maplibre-gl-leaflet'
 
         ],
         function(
@@ -62,30 +62,68 @@ define([
         ) {
 
 // Phase 2: resolve Splunk REST root for the DS tile proxy.
-// Priority:
-//   1. splunkjs/mvc/utils.make_full_url if available via window.require
-//   2. Fallback: relative '/services' (correct for default Splunk Web mounts;
-//      UAT will verify against non-root / SSO deployments)
-// Runtime resolution avoids hard-coding '/en-US/splunkd/' per D-08.
-function _resolveSplunkRestRoot() {
+//
+// In Dashboard Studio, the viz runs in a sandboxed iframe with origin 'null'
+// (srcdoc). Relative URLs resolve against that null origin and fail. We must
+// emit an absolute URL whose origin is the Splunk Web host.
+//
+// Resolution strategy (fail-safe — never throws during module top-level eval):
+//   1. Detect the origin from this module's own <script src> — the bundle was
+//      loaded from http(s)://<splunkweb-host>/static/@.../visualization.js, so
+//      we can recover the host from document.currentScript.src or by scanning
+//      loaded <script> tags for one whose src includes this bundle's path.
+//   2. Build the REST URL as `<origin>/en-US/splunkd/__raw/services`. The
+//      `/en-US/splunkd/__raw/` prefix is Splunk Web's proxy path for
+//      authenticated REST calls from browsers. Phase 1 UAT confirmed this
+//      shape works (01-UAT.md:33,108).
+//   3. If origin detection fails (unexpected), fall back to relative
+//      '/services' — which at least works in Classic contexts; DS will
+//      error visibly (T2-03: blank tiles + stable-prefix console.warn).
+//
+// NOTE: we do NOT call `window.require('splunkjs/mvc/utils')` here.
+// Synchronous `require(name)` throws in RequireJS if the module is not
+// pre-cached, and DS does not pre-cache splunkjs/mvc modules. That throw
+// propagated through RequireJS's own error path and was not caught by our
+// try/catch, poisoning viz initialize().
+function _detectSplunkOrigin() {
     try {
-        if (typeof window !== 'undefined' && window.require) {
-            var utilsMod;
-            try { utilsMod = window.require('splunkjs/mvc/utils'); } catch (e1) { utilsMod = null; }
-            if (utilsMod && typeof utilsMod.make_full_url === 'function') {
-                // make_full_url('/') returns the Splunk Web root with locale prefix;
-                // strip the web path and swap for /services (REST root at same host).
-                // Example: 'https://host/en-US/' -> 'https://host/services'
-                var webRoot = utilsMod.make_full_url('/');
-                if (typeof webRoot === 'string' && webRoot.length > 0) {
-                    return webRoot.replace(/\/(en-US|[a-zA-Z]{2}-[a-zA-Z]{2})\/?$/, '/').replace(/\/+$/, '') + '/services';
+        // Preferred: the script tag that loaded this bundle (currentScript is
+        // set during script parse; usable inside our define() factory because
+        // Webpack defers our code into that script's execution).
+        if (typeof document !== 'undefined') {
+            var cs = document.currentScript;
+            if (cs && cs.src) {
+                var u = new URL(cs.src);
+                if (u.origin && u.origin !== 'null') { return u.origin; }
+            }
+            // Fallback: find any <script> whose src path contains our bundle.
+            var scripts = document.getElementsByTagName('script');
+            for (var i = 0; i < scripts.length; i++) {
+                var src = scripts[i].src || '';
+                if (src.indexOf('/visualizations/maps-plus/visualization.js') !== -1) {
+                    var u2 = new URL(src);
+                    if (u2.origin && u2.origin !== 'null') { return u2.origin; }
                 }
             }
         }
     } catch (e) { /* fall through */ }
+    return '';
+}
+function _resolveSplunkRestRoot() {
+    var origin = _detectSplunkOrigin();
+    if (origin) {
+        return origin + '/en-US/splunkd/__raw/services';
+    }
     return '/services';
 }
 var _DS_REST_ROOT = _resolveSplunkRestRoot();
+// Splunk Web origin (e.g. 'http://localhost:8000') — cached once at module
+// load. In DS the viz runs in an iframe with origin 'null', so
+// `location.origin` returns the string 'null' which breaks contribUri URLs
+// (seen at UAT-2 as '.../maps-plus-ds-uat/null/en-US/static/...'). In
+// Classic the iframe hosts the viz at the Splunk Web origin, so the
+// detected origin matches `location.origin` — no regression.
+var _SPLUNK_ORIGIN = _detectSplunkOrigin();
 
 // Phase 2: DsProxyTileLayer — Leaflet TileLayer subclass that routes
 // getTileUrl through the Phase 1 REST proxy. Used ONLY when
@@ -2434,7 +2472,7 @@ updateView: function(data, config) {
     // Initialize the DOM
     if (!this.isInitializedDom) {
         // Set defaul icon image path
-        L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/'
+        L.Icon.Default.imagePath = (_SPLUNK_ORIGIN || location.origin) + this.contribUri + '/images/'
 
         // Create layer filter object
         var layerFilter = this.layerFilter = {}
@@ -2869,10 +2907,26 @@ updateView: function(data, config) {
         this.isInitializedDom = true         
         this.allDataProcessed = false
 
-        // Load localization file and init locale
+        // Load localization file and init locale.
+        // In Dashboard Studio the viz runs in a sandboxed srcdoc iframe with
+        // origin 'null'; the i18n JSON XHR is blocked by CORS regardless of
+        // URL. jquery.i18n's internal $.getJSON().then(...) chain has no
+        // error handler and surfaces an unhandled rejection ("Cannot read
+        // properties of undefined (reading 'default')") which the DS viz
+        // adapter treats as a fatal updateView error. We skip the load entirely
+        // in DS mode — UI strings fall back to the English source literals.
         var i18n = $.i18n()
         i18n.locale = i18nLanguage
-        i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
+        if (!this._isDashboardStudio) {
+            try {
+                var i18nPromise = i18n.load((_SPLUNK_ORIGIN || location.origin) + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
+                if (i18nPromise && typeof i18nPromise.fail === 'function') {
+                    i18nPromise.fail(function () { /* noop */ })
+                } else if (i18nPromise && typeof i18nPromise.catch === 'function') {
+                    i18nPromise.catch(function () { /* noop */ })
+                }
+            } catch (i18nErr) { /* noop */ }
+        }
         
         if(this.isArgTrue(showProgress)) {
             this.map.spin(true)
@@ -2941,7 +2995,7 @@ updateView: function(data, config) {
             var kmlFiles = kmlOverlay.split(/\s*,\s*/)
             var paneZIndex = this.paneZIndex = 400
             _.each(kmlFiles.reverse(), function(file, i) {
-                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
+                var url = /^https?:\/\//.test(file) ? file : (_SPLUNK_ORIGIN || location.origin) + this.contribUri + '/kml/' + file
                 var label = file.split('/').pop()
                 var fg = L.featureGroup().addTo(this.map)
                 if (this.isArgTrue(layerControl)) {
@@ -3279,9 +3333,9 @@ updateView: function(data, config) {
             if(_cachedIcon) {
                 var markerIcon = _cachedIcon
             } else {
-                var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+                var customIconShadow = _.has(userData, "customIconShadow") ? (_SPLUNK_ORIGIN || location.origin) + this.contribUri + '/images/' + userData["customIconShadow"]:""
                 var markerIcon = L.icon({
-                    iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                    iconUrl: (_SPLUNK_ORIGIN || location.origin) + this.contribUri + '/images/' + customIcon,
                     shadowUrl: customIconShadow,
                     iconSize: markerSize,
                     iconAnchor: markerAnchor,

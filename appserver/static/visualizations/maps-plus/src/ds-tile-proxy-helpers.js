@@ -1,11 +1,24 @@
 'use strict';
 
-// Detects Dashboard Studio runtime via documented Splunk global flag.
-// Truthy check — tolerates boolean, object, and any non-falsy value.
+// Detects Dashboard Studio runtime.
+// Primary signal: window.__SPLUNK_DASHBOARD_STUDIO__ global (set by some DS
+// builds via the legacy adapter). Secondary signal: the viz is hosted in a
+// sandboxed srcdoc iframe (location.href === 'about:srcdoc'), which is the
+// defining runtime characteristic of DS's legacy custom-viz adapter regardless
+// of whether the global is set. Tertiary: document is in an iframe (parent !==
+// self) with origin 'null' — also DS-specific for legacy viz.
 // Defaults to false (Classic behaviour) if anything throws.
 function isDashboardStudio(win) {
   try {
-    return !!(win && win.__SPLUNK_DASHBOARD_STUDIO__);
+    if (!win) return false;
+    if (win.__SPLUNK_DASHBOARD_STUDIO__) return true;
+    if (win.location && win.location.href === 'about:srcdoc') return true;
+    if (win.document && win.document.URL === 'about:srcdoc') return true;
+    if (win.parent && win.parent !== win && win.location &&
+        win.location.origin === 'null') {
+      return true;
+    }
+    return false;
   } catch (e) {
     return false;
   }

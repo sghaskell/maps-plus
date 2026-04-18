@@ -4,24 +4,23 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 current_plan: complete
-status: Phase 02 execution complete (2 plans, all tasks done, 20 Jest tests + 77 Python regression tests pass, 02-UAT.md authored) — awaiting human UAT
+status: Phase 02 complete — UAT-1 pass, UAT-2 blocked on cross-origin cookie (null-origin srcdoc iframe). Phase 03 (DS parent-frame auth bridge) required for DS tile rendering. See .planning/phases/02-maps-plus-js-integration-testing/02-UAT.md for full details.
 last_updated: "2026-04-17T00:00:00.000Z"
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 2
   total_plans: 5
   completed_plans: 5
-  percent: 100
+  percent: 66
 ---
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 02 — EXECUTION COMPLETE (awaiting human UAT)
+## Status: Phase 02 — COMPLETE; Phase 03 REQUIRED for DS tile rendering
 
-- **Last updated:** 2026-04-17 (Phase 02 execution complete)
-- **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy)
-- **Current phase:** 02 — code complete, bundle rebuilt, Jest green, UAT matrix authored
-- **Current plan:** (all 2 plans of Phase 02 complete)
+- **Last updated:** 2026-04-17 (Phase 02 UAT complete — UAT-1 pass, UAT-2 blocked on cross-origin cookie)
+- **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy) — in progress, awaiting Phase 03
+- **Current phase:** 02 complete (client wiring + 4 in-UAT defects fixed + detection hardened). Next: Phase 03 (parent-frame auth bridge).
 - **Workflow mode:** interactive (auto_advance enabled)
 - **Git workflow:** feature branch `feature/dashboard-studio-tile-proxy-v2`
 
@@ -30,7 +29,8 @@ progress:
 | Phase | Status | Plans Completed | Notes |
 |-------|--------|-----------------|-------|
 | 1: REST Proxy Backend + Routing | Execution + Secure Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 77 unit tests pass. UAT 8/8. 01-SECURITY.md closed 24/24 threats. |
-| 2: Maps+ JS Integration + Testing | Execution Complete | 2/2 | 02-01 (DS detection + DsProxyTileLayer subclass + `src/ds-tile-proxy-helpers.js`) and 02-02 (Jest harness 20/20 + visualization.js rebuild +0.05% + 02-UAT.md 34 rows) both complete. 77/77 Python regression tests still pass. Ready for `/gsd-verify-work 2` after human UAT. |
+| 2: Maps+ JS Integration + Testing | Complete (UAT-1 pass, UAT-2 blocked on external boundary) | 2/2 | All Phase 02 code goals met. 4 defects found and fixed during UAT (AMD positional-binding; sync `window.require`; `location.origin='null'` in srcdoc; jquery.i18n fatal promise rejection; DS detection widened to cover `about:srcdoc`). 24/24 Jest + 77/77 Python tests pass. UAT-2 uncovered that the browser withholds `SameSite=Lax` session cookies on null-origin subresource requests — not solvable in client code alone. See `02-UAT.md` for full diagnosis. |
+| 3: DS Parent-Frame Auth Bridge | Planned | 0/? | postMessage RPC between DS iframe and top-level window to proxy authenticated tile fetches. Design sketch in `02-UAT.md § Follow-ups`. Required for UAT-2..UAT-7 to complete. |
 
 ## Milestone Progress
 
@@ -70,10 +70,24 @@ progress:
 
 ## Next Action
 
-1. Run `.planning/phases/02-maps-plus-js-integration-testing/02-UAT.md` against a live Splunk+DS instance (34 test rows, human tester).
-2. `/gsd-verify-work 2` — conversational UAT replay once rows are filled in.
-3. `/gsd-secure-phase 2` — re-verify T2-01..T2-06 against committed code (optional; automated unit tests already assert each).
-4. `/gsd-complete-milestone 1` once UAT passes.
+**Immediate:** Clear agent context, then begin Phase 03 planning (DS parent-frame
+auth bridge). Phase 03 design sketch lives in
+`.planning/phases/02-maps-plus-js-integration-testing/02-UAT.md § Follow-ups
+captured during UAT` — use that as the starting input to `/gsd-plan 3`.
+
+**Blocked until Phase 03 lands:**
+- UAT-2..UAT-7 re-run against DS dashboards (tile rendering, SSRF end-to-end,
+  disabled flag, cache hit, GIBS)
+- `/gsd-verify-work 2` full replay
+- `/gsd-secure-phase 2` (automated unit tests already cover T2-01..T2-06;
+  secure-phase replay is optional)
+- `/gsd-complete-milestone 1`
+
+**Phase 02 work committed to `feature/dashboard-studio-tile-proxy-v2`:**
+- Plan 02-01 (DS detection + `DsProxyTileLayer`) — committed
+- Plan 02-02 (Jest harness + bundle rebuild + 02-UAT.md + matrix) — committed
+- 4 in-UAT defect fixes (AMD wiring, `_detectSplunkOrigin`, i18n DS-skip,
+  widened DS detection) — about to commit alongside this STATE update
 
 ## UAT Summary (Phase 01)
 

@@ -1,46 +1,116 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-18T03:13:59Z",
-  "phase": "02",
-  "phase_name": "maps-plus-js-integration-testing",
-  "phase_dir": ".planning/phases/02-maps-plus-js-integration-testing",
+  "timestamp": "2026-04-18T07:00:17.884Z",
+  "phase": "03",
+  "phase_name": "DS Parent-Frame Auth Bridge",
+  "phase_dir": ".planning/phases/03-ds-parent-frame-auth-bridge",
   "plan": null,
   "task": null,
   "total_tasks": 0,
-  "status": "paused",
+  "status": "paused_before_planning",
   "completed_tasks": [
-    {"id": "p01-t1", "name": "Plan 02-01 Task 1 — ds-tile-proxy-helpers.js", "status": "done", "commit": "4fb0de8"},
-    {"id": "p01-t2", "name": "Plan 02-01 Task 2 — wire DsTileProxyHelpers into AMD", "status": "done", "commit": "d9ff3b8"},
-    {"id": "p01-t3", "name": "Plan 02-01 Task 3 — DsProxyTileLayer subclass + factory swap", "status": "done", "commit": "d1a4b8c"},
-    {"id": "p01-summary", "name": "Plan 02-01 SUMMARY", "status": "done", "commit": "2ee6979"},
-    {"id": "p02-t1", "name": "Plan 02-02 Task 1 — Jest + babel-jest harness", "status": "done", "commit": "cfc1a55"},
-    {"id": "p02-t2", "name": "Plan 02-02 Task 2 — 20 Jest tests, all pass", "status": "done", "commit": "2465a0c"},
-    {"id": "p02-t3", "name": "Plan 02-02 Task 3 — visualization.js rebuild +0.05%", "status": "done", "commit": "4dc39b4"},
-    {"id": "p02-t4", "name": "Plan 02-02 Task 4 — 02-UAT-MATRIX.md (34 rows)", "status": "done", "commit": "447eccd"},
-    {"id": "p02-summary", "name": "Plan 02-02 SUMMARY", "status": "done", "commit": "eb6208a"},
-    {"id": "regression", "name": "Phase 1 Python regression — 77/77 pass", "status": "done", "commit": null},
-    {"id": "roadmap", "name": "STATE+ROADMAP marked Phase 02 execution complete", "status": "done", "commit": "f0ce4e5"},
-    {"id": "uat-rename", "name": "Renamed 02-UAT.md → 02-UAT-MATRIX.md to free session filename", "status": "done", "commit": "6f2f206"}
+    {
+      "id": 1,
+      "name": "Read required context (STATE, .continue-here, 02-UAT, 02-01-SUMMARY, 02-CONTEXT, CLAUDE.md)",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 2,
+      "name": "Discover Phase 3 missing from ROADMAP.md (would have blocked /gsd-plan-phase 3 at step 3)",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 3,
+      "name": "Run gsd-add-phase to create Phase 3 skeleton + directory",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 4,
+      "name": "Relocate Phase 3 section under Milestone 1 (gsd-tools appended it at the bottom below Milestone 2)",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 5,
+      "name": "Flesh out Phase 3 goal, 2-plan outline, security properties, out-of-scope in ROADMAP.md from 02-UAT.md design sketch",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 6,
+      "name": "Add DS-AUTH-01..06 requirement IDs + traceability row in REQUIREMENTS.md",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 7,
+      "name": "Add Accumulated Context / Roadmap Evolution section to STATE.md documenting why Phase 3 was added",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 8,
+      "name": "Create .cursor/rules/project.mdc pointing to CLAUDE.md so GSD subagents find project operating rules at the expected path",
+      "status": "done",
+      "commit": "7714728"
+    },
+    {
+      "id": 9,
+      "name": "Commit + push all 3 local commits to origin/feature/dashboard-studio-tile-proxy-v2",
+      "status": "done",
+      "commit": "7714728"
+    }
   ],
   "remaining_tasks": [
-    {"id": "uat-session", "name": "/gsd-verify-work 2 — conversational UAT session against live Splunk+DS", "status": "not_started"},
-    {"id": "secure-phase-2", "name": "/gsd-secure-phase 2 — re-verify T2-01..T2-06 against committed code", "status": "not_started"},
-    {"id": "complete-milestone-1", "name": "/gsd-complete-milestone 1 once UAT passes + threats closed", "status": "not_started"}
+    {
+      "id": 10,
+      "name": "Run /gsd-discuss-phase 3 to gather CONTEXT.md (design decisions for parent shim load point, ping handshake vs timeout, rate-limit window, URL-shape regex sharing)",
+      "status": "not_started"
+    },
+    {
+      "id": 11,
+      "name": "Run /gsd-plan-phase 3 (will find CONTEXT.md, prompt for research — say yes — then plan)",
+      "status": "not_started"
+    },
+    {
+      "id": 12,
+      "name": "Execute + verify + UAT-replay Phase 3",
+      "status": "not_started"
+    }
   ],
-  "blockers": [
-    {"description": "Conversational UAT requires a running Splunk + Dashboard Studio instance with the rebuilt visualization.js deployed", "type": "human_action", "workaround": "Use splunk-10-dev-3 container (already healthy on macOS Studio); upload leaflet_maps_app_4.6.1.tar.gz via Splunk UI"}
-  ],
-  "human_actions_pending": [
-    {"action": "ROTATE GitHub Personal Access Token", "context": "A GitHub PAT (sghaskell, classic, prefix ghp_FQWr********) was previously embedded in the 'github' remote URL where any `git remote -v` output exposed it. The git config has been cleaned (token removed from URL, stored in macOS Keychain instead) and 18 commits pushed successfully. Rotate the token at https://github.com/settings/tokens BEFORE bringing up any new device.", "blocking": true},
-    {"action": "Run UAT against live Splunk+DS instance", "context": "Phase 02 code is complete and bundle is rebuilt; the 34-row matrix at .planning/phases/02-maps-plus-js-integration-testing/02-UAT-MATRIX.md is the authoritative checklist. The conversational /gsd-verify-work 2 session was about to start when the session was paused.", "blocking": true},
-    {"action": "On new MacBook: install Docker Desktop, Node 20+, Python 3.9+, and clone the repo per .planning/NEW-MACHINE-BOOTSTRAP.md", "context": "User is migrating to a new work MacBook. Bootstrap prompt was authored as part of this pause.", "blocking": false}
-  ],
+  "blockers": [],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "Phase 02 ran in sequential-inline mode (no subagents)", "rationale": "gsd-sdk CLI not installed on this machine; 2 plans were strictly sequential anyway; surgical edits with strong grep-based acceptance criteria. All 6 verification checks of 02-01 + all 4 acceptance items of 02-02 passed.", "phase": "02"},
-    {"decision": "Renamed 02-UAT.md → 02-UAT-MATRIX.md", "rationale": "The authored 34-row tester checklist had a different shape than the /gsd-verify-work session file template. Renaming preserves it as the offline matrix and frees the canonical filename for the conversational session file.", "phase": "02"},
-    {"decision": "Removed embedded GitHub PAT from git remote URL", "rationale": "Token was visible to anyone running `git remote -v` (including this AI session, terminal recordings, screen-shares). Re-stored in macOS Keychain via osxkeychain helper. Token still must be rotated.", "phase": "02"}
+    {
+      "decision": "Use gsd-add-phase (not gsd-insert-phase) for Phase 3",
+      "rationale": "Phase 3 is planned work at the end of Milestone 1, discovered late — not urgent mid-milestone insertion. gsd-insert-phase explicit anti-pattern: 'Don't use this for planned work at end of milestone (use /gsd-add-phase).' Confirmed the tool uses integer numbering (Phase 3, not 2.1).",
+      "phase": "03"
+    },
+    {
+      "decision": "Option B for CLAUDE.md vs .cursor/rules/ — keep both, pointer rule",
+      "rationale": "GSD subagent prompts say 'Read .cursor/rules/ if exists' — none reference CLAUDE.md. Cursor already auto-injects CLAUDE.md as workspace rule. Created thin pointer file so both paths lead to the same source of truth (CLAUDE.md). Zero migration churn. Option A (full migration) deferred.",
+      "phase": "03"
+    },
+    {
+      "decision": "Commit Phase 3 bootstrap separately from Phase 3 planning output",
+      "rationale": "Two distinct logical units: 'Phase 3 defined as a roadmap entity' vs. 'Phase 3 broken down into executable plans'. Keeping them in separate commits means if planner output needs rework, roadmap/requirements plumbing stays intact.",
+      "phase": "03"
+    },
+    {
+      "decision": "Push all 3 local commits before planning (not just the bootstrap commit)",
+      "rationale": "Opening brief listed unpushed commits as non-blocking cleanup. Pushing before planning makes the remote a legitimate restore point; deferring creates a 4th unpushed commit for no reason. Branch is tracked, fast-forward only, no force push needed.",
+      "phase": "03"
+    },
+    {
+      "decision": "Run /gsd-discuss-phase 3 before /gsd-plan-phase 3 (not /gsd-plan-phase 3 alone)",
+      "rationale": "plan-phase.md step 4 explicitly says 'Do NOT invoke discuss-phase as a nested Skill/Task call' — it will route to top-level command and exit. Running discuss-phase first avoids wasted steps and produces a higher-fidelity CONTEXT.md for the planner to work from. Phase 3 has real design decisions to lock (load point, feature detection, rate-limit, regex sharing).",
+      "phase": "03"
+    }
   ],
   "uncommitted_files": [],
-  "next_action": "Run `/gsd-verify-work 2` to start conversational UAT. The session file does NOT exist yet; the workflow will create .planning/phases/02-maps-plus-js-integration-testing/02-UAT.md fresh from SUMMARY.md extraction. The 34-row matrix at 02-UAT-MATRIX.md is the offline reference.",
-  "context_notes": "Phase 02 execution complete (10 commits on this branch covering helpers, subclass, Jest, rebuild, UAT matrix, STATE/ROADMAP). 20/20 Jest tests + 77/77 Python regression tests green. Bundle delta +0.05%. User pausing to migrate to new MacBook before running conversational UAT. Branch feature/dashboard-studio-tile-proxy-v2 is fully synced to origin (github remote)."
+  "next_action": "In a fresh context, run /gsd-discuss-phase 3 to gather CONTEXT.md. The design sketch in .planning/phases/02-maps-plus-js-integration-testing/02-UAT.md § Follow-ups is the starting input — interactively refine the postMessage protocol, parent-shim load point, Jest harness approach, and fallback strategy. After CONTEXT.md lands, run /gsd-plan-phase 3 (research recommended; UI-SPEC not needed — no UI surface).",
+  "context_notes": "Phase 2 closed complete; Phase 2 UAT-2 uncovered a browser security boundary (SameSite=Lax on null-origin cross-site subresources) that no client-side code can fix. Phase 3 is the parent-frame auth bridge that closes that gap via postMessage RPC with narrow security properties. The Phase 3 entry is now real (ROADMAP + REQUIREMENTS + STATE synced, directory exists, rules pointer in place, all committed + pushed). Ready to discuss + plan from a clean context slate. Critical anti-patterns from opening brief preserved verbatim in .continue-here.md — they MUST survive context clearing."
 }

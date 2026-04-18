@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 02
-current_plan: complete
-status: Phase 02 complete — UAT-1 pass, UAT-2 blocked on cross-origin cookie (null-origin srcdoc iframe). Phase 03 (DS parent-frame auth bridge) required for DS tile rendering. See .planning/phases/02-maps-plus-js-integration-testing/02-UAT.md for full details.
-last_updated: "2026-04-17T00:00:00.000Z"
+current_phase: "02 complete (client wiring + 4 in-UAT defects fixed + detection hardened). Next: Phase 03 (parent-frame auth bridge)."
+status: Ready to execute
+last_updated: "2026-04-18T07:59:01.241Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 5
+  total_plans: 7
   completed_plans: 5
-  percent: 66
+  percent: 71
 ---
 
 # Project State — Maps+ Dashboard Studio Compatibility
@@ -76,14 +75,18 @@ auth bridge). Phase 03 design sketch lives in
 captured during UAT` — use that as the starting input to `/gsd-plan 3`.
 
 **Blocked until Phase 03 lands:**
+
 - UAT-2..UAT-7 re-run against DS dashboards (tile rendering, SSRF end-to-end,
   disabled flag, cache hit, GIBS)
+
 - `/gsd-verify-work 2` full replay
 - `/gsd-secure-phase 2` (automated unit tests already cover T2-01..T2-06;
   secure-phase replay is optional)
+
 - `/gsd-complete-milestone 1`
 
 **Phase 02 work committed to `feature/dashboard-studio-tile-proxy-v2`:**
+
 - Plan 02-01 (DS detection + `DsProxyTileLayer`) — committed
 - Plan 02-02 (Jest harness + bundle rebuild + 02-UAT.md + matrix) — committed
 - 4 in-UAT defect fixes (AMD wiring, `_detectSplunkOrigin`, i18n DS-skip,

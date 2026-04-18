@@ -147,8 +147,8 @@ If you choose Option B, also change the remote URL in Step 3c.
 ### 3a. Pick a location
 
 ```bash
-mkdir -p ~/Documents/splunk_dev/mod-viz
-cd ~/Documents/splunk_dev/mod-viz
+mkdir -p ~/Documents/code
+cd ~/Documents/code
 ```
 
 ### 3b. Clone
@@ -221,7 +221,7 @@ Run the two test suites that are currently the project's quality gate.
 ### 5a. JavaScript tests (Jest, ~1 second)
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus/appserver/static/visualizations/maps-plus
+cd ~/Documents/code/maps-plus/appserver/static/visualizations/maps-plus
 npm test
 ```
 
@@ -237,7 +237,7 @@ verification depends on these 20 tests being green.
 ### 5b. Python tests (stdlib unittest, ~1 second)
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus
+cd ~/Documents/code/maps-plus
 bash run_tests.sh
 ```
 
@@ -250,7 +250,7 @@ OK
 ### 5c. Build verification
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus/appserver/static/visualizations/maps-plus
+cd ~/Documents/code/maps-plus/appserver/static/visualizations/maps-plus
 npm run build
 ```
 
@@ -317,7 +317,7 @@ password you set in Step 6b.
 ### 7a. Build the release tarball
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus
+cd ~/Documents/code/maps-plus
 bash build_release.sh
 ```
 
@@ -355,7 +355,7 @@ docker logs splunk-10-dev 2>&1 | grep -i maps_plus | tail -20
 This is the actual handoff. Read these files in order:
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus
+cd ~/Documents/code/maps-plus
 
 cat .planning/HANDOFF.json
 cat .planning/phases/02-maps-plus-js-integration-testing/.continue-here.md
@@ -434,7 +434,7 @@ When the new MacBook's environment is fully set up, this single command
 should print all green:
 
 ```bash
-cd ~/Documents/splunk_dev/mod-viz/maps-plus && \
+cd ~/Documents/code/maps-plus && \
   echo "=== branch ===" && git branch --show-current && \
   echo "=== git remotes (no tokens visible) ===" && git remote -v | grep -v ghp_ && \
   echo "=== node ===" && node --version && \

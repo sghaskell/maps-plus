@@ -393,17 +393,20 @@ Target **OWASP ASVS L1** mindset; STRIDE mapping per orchestrator note:
 
 **Step 2.6 note:** No shell probes run for Node/Splunk versions [GAP — orchestrator may run if needed].
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact Splunk-supported hook** for global-ish JS in the Maps+ app without `web.conf` — `[ui]` spec excerpt lacks explicit JS include; is the intended mechanism **`appserver/templates`** override, **`application.js` auto-load**, or another?  
    - *Known:* `[ui]` keys from Splunk docs [CITED: Appconf].  
    - *Unknown:* DS view page includes which app static files.  
-   - *Recommendation:* Empirical matrix task in Plan 03-01.
+   - *Recommendation:* Empirical matrix task in Plan 03-01.  
+   - **Resolution:** Closed by **Plan 03-01 Task T03-01-W0** (empirical load-point matrix on `splunk-10-dev`) plus **T03-01-W2** wiring; winning mechanism is recorded in `default/app.conf` `# maps-plus:phase03-load-matrix=` / `# maps-plus:phase03-load-winner=`.
 
 2. **Locale / gateway prefixes** other than `/en-US/splunkd/__raw/services` — does `_detectSplunkOrigin()` + fixed string remain valid on customer SSO deployments?  
-   - *Recommendation:* UAT + one customer doc review [ASSUMED risk].
+   - *Recommendation:* UAT + one customer doc review [ASSUMED risk].  
+   - **Resolution:** Residual deployment risk accepted; **Plan 03-02 Task T03-02-W4** (UAT-2..UAT-7 replay on `splunk-10-dev`) is the verification surface. Unexpected REST prefix mismatches are handled by fail-closed `PROXY_URL_SHAPE` updates per D-04 UAT feedback (document in `03-02-SUMMARY.md` if observed).
 
-3. **Does REQUIREMENTS.md DS-AUTH-05 text (`blobBase64`) get amended** to match D-03 `tileData` / `Blob`? Planner doc hygiene [VERIFIED: mismatch exists in `REQUIREMENTS.md:49`].
+3. **Does REQUIREMENTS.md DS-AUTH-05 text (`blobBase64`) get amended** to match D-03 `tileData` / `Blob`? Planner doc hygiene [VERIFIED: mismatch exists in `REQUIREMENTS.md:49`].  
+   - **Resolution:** Tracked as documentation hygiene **outside** Phase 3 executable code — amend `REQUIREMENTS.md` DS-AUTH-05 row in a small follow-up doc commit when convenient; Phase 3 code and plans already lock D-NN-3 / D-03 (`tileData` + `Blob`).
 
 ## Assumptions Log
 

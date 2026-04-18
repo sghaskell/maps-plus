@@ -1,0 +1,44 @@
+---
+description: Maps+ project operating rules, build conventions, and release workflow
+alwaysApply: true
+---
+
+# Maps+ Project Rules
+
+Project operating rules, build conventions, key dependencies, and release
+workflow for this Splunk custom visualization app live in `CLAUDE.md` at the
+repository root.
+
+**Agents: read @CLAUDE.md before performing any build, deploy, or release
+task.** Critical items that are easy to miss otherwise:
+
+- `npm install --ignore-scripts` is mandatory inside the viz dir (a
+  `node-sass` transitive dep in the `leaflet-measure` fork fails to build on
+  modern Node otherwise)
+- The compiled `visualization.js` bundle is committed to the repo and MUST
+  be rebuilt after every change to `src/maps-plus.js`
+- Build and deploy commands run from `appserver/static/visualizations/maps-plus`, not the repo root
+- The Splunk app ID is `leaflet_maps_app` (not `maps-plus`)
+- Release checklist (version bump → changelog → develop → master merge →
+  tag → package verification → GitHub issue triage → Splunkbase notes) is
+  pinned in `CLAUDE.md`; do not skip steps
+
+## Planning artifacts
+
+This project uses the GSD (Get Shit Done) workflow for milestone, phase, and
+plan tracking. Planning lives in `.planning/`:
+
+- `.planning/STATE.md` — current phase/plan/milestone cursor
+- `.planning/ROADMAP.md` — phases under each milestone
+- `.planning/REQUIREMENTS.md` — requirement IDs with traceability
+- `.planning/phases/NN-slug/` — per-phase artifacts (CONTEXT, RESEARCH, PLAN, UAT, SUMMARY)
+
+GSD subagents (researcher, planner, executor, checker) read these during
+phase operations. Keep doc references in `CLAUDE.md` consistent with the
+canonical sources above when they overlap.
+
+## When `CLAUDE.md` and this file disagree
+
+`CLAUDE.md` is the source of truth for build/deploy/release detail. This
+file is a pointer to ensure both Cursor's rule loader and GSD subagents
+find the project operating rules.

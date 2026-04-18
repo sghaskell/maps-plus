@@ -89,6 +89,25 @@ captured during UAT` — use that as the starting input to `/gsd-plan 3`.
 - 4 in-UAT defect fixes (AMD wiring, `_detectSplunkOrigin`, i18n DS-skip,
   widened DS detection) — about to commit alongside this STATE update
 
+## Accumulated Context
+
+### Roadmap Evolution
+
+- **Phase 3 added (2026-04-17): DS parent-frame auth bridge.** Discovered during
+  Phase 02 UAT-2. The null-origin `about:srcdoc` iframe that Splunk Dashboard
+  Studio uses for custom visualizations causes the browser to withhold Splunk's
+  `SameSite=Lax` session cookie on cross-site subresource requests — every
+  `/en-US/splunkd/__raw/services/maps_plus/tile/proxy?...` request from Leaflet
+  arrives cookieless and Splunkweb redirects to login. Not solvable in client
+  code alone; requires a top-level-window shim that bridges tile fetches over
+  `postMessage`. Design sketch captured in
+  `.planning/phases/02-maps-plus-js-integration-testing/02-UAT.md § Follow-ups`;
+  6 new requirement IDs (DS-AUTH-01..DS-AUTH-06) added to REQUIREMENTS.md; 2
+  plans anticipated (`03-01` parent shim + load-point wiring, `03-02` iframe
+  override + Jest RPC harness + UAT re-run). Phase 02 is closed complete —
+  the bridge is scope that could not have been anticipated before UAT revealed
+  the browser boundary.
+
 ## UAT Summary (Phase 01)
 
 | # | Test | Result |

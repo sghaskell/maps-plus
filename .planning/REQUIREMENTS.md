@@ -32,6 +32,35 @@
 | DS-JS-03 | Preserve existing tile provider settings from format menu — don't hardcode which providers are proxied, instead wrap any external tile URL transparently | Must | The proxy accepts any `https://` URL template; no whitelist needed for basic operation |
 | DS-JS-04 | When in Classic Splunk mode, behavior is identical to current implementation — zero changes to existing dashboards | Must | No feature flag, no config toggle required for backward compatibility |
 
+### DS Parent-Frame Auth Bridge (DS-AUTH) — Phase 3
+
+Discovered during Phase 02 UAT-2: the null-origin `about:srcdoc` iframe that
+Splunk Dashboard Studio uses for custom visualizations causes the browser to
+withhold Splunk's `SameSite=Lax` session cookie on cross-site subresource
+requests, so tiles reach Splunkweb cookieless and are redirected to login.
+The bridge provides the single narrow channel needed to close that gap.
+
+| ID | Requirement | Priority | Notes |
+|----|-------------|----------|-------|
+| DS-AUTH-01 | Parent-window shim loaded in the Splunk Web top frame that handles tile-fetch postMessage requests from DS-hosted Maps+ iframes | Must | Load point (`app.conf` static JS vs. `web.conf` `custom_javascript_url` vs. nav XML) to be determined during Phase 3 planning by testing which fires on pages hosting DS dashboards; shim has the session cookie because it's same-origin with Splunk Web |
+| DS-AUTH-02 | postMessage RPC protocol between iframe and parent uses exactly one request type (`maps-plus:fetch-tile`) and one response type (`maps-plus:tile-result`); optional ping/pong for feature detection; no generic RPC surface | Must | Allow-list of message types is frozen — extending it requires a new phase with its own threat model. Grep of `parent-auth-bridge.js` and iframe code shows only the pinned type literals. |
+| DS-AUTH-03 | Bidirectional exact-origin validation — parent validates `event.origin` equals the Splunk Web origin it serves; iframe validates `event.origin` equals the top-frame origin derived from the existing `_detectSplunkOrigin` helper | Must | No substring matches, no wildcards. Jest harness asserts wrong-origin messages are dropped without side effects on both ends. |
+| DS-AUTH-04 | URL-shape allow-list of one — parent only fetches URLs matching the Phase 02 proxy URL template `/<restRoot>/maps_plus/tile/proxy?url=…&z=…&x=…&y=…[&s=…][&r=…]`; all non-conforming URLs rejected before any fetch is dispatched | Must | Encoded as a single validated regex shared between iframe and parent (or pinned via Jest across both sides). Non-conforming URLs produce `{ ok: false, code: 'url_shape_rejected' }` with no outbound request. |
+| DS-AUTH-05 | No tokens, session IDs, search data, or user identifiers in postMessage payloads in either direction; only tile coordinates, URL, and tile bytes flow | Must | Payload schemas: request `{ type, requestId, url, z, x, y, s?, r? }`; response `{ type, requestId, ok, blobBase64\|status\|code, contentType? }`. Enforced by code review + Jest structural assertion. |
+| DS-AUTH-06 | Graceful fallback when parent shim is absent — iframe logs one-line `[maps-plus:ds-proxy]` warning and shows blank tiles; no retry storm, no exception bubbling to DS adapter | Must | Feature-detected via ping handshake or first-fetch timeout. Manual UAT: disable parent shim → DS dashboard loads without crash, exactly one console warning, Leaflet shows blank tiles. |
+
+**Security properties (cross-cutting across DS-AUTH-01..06):**
+
+- Phase 1 server-side SSRF allow-list remains authoritative for all outbound
+  tile fetches — the bridge only performs authenticated same-origin `fetch`
+  against the already-validated Phase 2 proxy URL.
+- Tile bytes flow iframe-ward only. The iframe cannot steer the parent to
+  arbitrary URLs; it can only request tiles that match the one pinned URL
+  shape for the already-registered Phase 1 endpoint.
+- Rate limit per iframe on the parent side (target ~500 requests/second,
+  matching worst-case Leaflet pan/zoom fan-out) to prevent a compromised
+  iframe from using the parent as an authenticated fan-out proxy.
+
 ### Configuration (DS-CFG)
 
 | ID | Requirement | Priority | Notes |
@@ -46,6 +75,7 @@
 | DS-TP-01 through DS-TP-05 | `bin/rest/maps_plus/tile_proxy.py` (handler), `restmap.conf` (routing) | Phase 1, Plan A |
 | DS-CL-01 through DS-CL-03 | `bin/rest/maps_plus/tile_proxy.py` (cache module) | Phase 1, Plan A |
 | DS-JS-01 through DS-JS-04 | `src/maps-plus.js` (DS detection, tile intercept), `webpack.config.js` (rebuild) | Phase 1, Plan B |
+| DS-AUTH-01 through DS-AUTH-06 | `appserver/static/parent-auth-bridge.js` (new, parent-window shim), `src/maps-plus.js` (iframe-side `DsProxyTileLayer.createTile` override), Splunk Web load-point config (`app.conf` / `web.conf` / nav XML — TBD in Phase 3 planning) | Phase 3, Plans 03-01 + 03-02 |
 | DS-CFG-01 through DS-CFG-02 | `default/settings.json`, local settings template | Phase 1, Plan A |
 
 ## Out of Scope (Phase 1)

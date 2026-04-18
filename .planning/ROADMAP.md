@@ -55,6 +55,32 @@ Plans:
 - Test with custom tile URL overrides from format menu
 - Manual test against each of the 24 existing example dashboards (regression check)
 
+### Phase 3: DS Parent-Frame Auth Bridge
+
+**Goal:** Unblock Dashboard Studio tile rendering by bridging the null-origin `about:srcdoc` iframe through the top-level Splunk Web window. The browser withholds Splunk's `SameSite=Lax` session cookie on cross-site subresource requests from origin `null`, so tiles fetched by Leaflet `<img src>` inside DS arrive cookieless and Splunkweb redirects every request to login. A parent-window shim loaded in the Splunk Web top frame performs the authenticated fetch (same-origin, cookie present) on behalf of the iframe, over a narrow `postMessage` RPC with a single frozen message type, bidirectional origin validation, a one-URL-shape allow-list, and no token or search-data flow. Phase 1's server-side SSRF defense remains the trust boundary for outbound fetches; the bridge only closes the authentication gap the browser enforces.
+
+**Requirements:** DS-AUTH-01 through DS-AUTH-06
+**Depends on:** Phase 2 (client-side DS detection, `DsProxyTileLayer`, proxy URL construction)
+**Plans:** 2 plans anticipated
+
+Plans:
+- [ ] 03-01-PLAN.md — Parent-window shim (`parent-auth-bridge.js`) + Splunk Web load wiring. Determine and wire the correct load point (`app.conf` `application_namespace` static JS vs. nav XML vs. `web.conf` `custom_javascript_url`) by testing which fires on pages that host DS dashboards. Shim: origin-validated postMessage listener, one message type (`maps-plus:fetch-tile`), URL-shape allow-list of one (`/<restRoot>/maps_plus/tile/proxy?url=…&z=…&x=…&y=…`), per-iframe rate limit (~500/s), authenticated `fetch` with `credentials: 'same-origin'`, response returned as base64 bytes + content-type. Zero server-side changes.
+- [ ] 03-02-PLAN.md — Iframe-side `DsProxyTileLayer.createTile` override + Jest cross-window RPC harness + UAT re-run. Override `createTile` (not just `getTileUrl`) so the iframe sends a `postMessage` request and assigns the returned bytes as a `blob:` URL to `img.src`. Feature-detect parent shim presence with a ping handshake; on absence log once and fall through to blank tiles (no retry storm). Jest harness uses `new MessageEvent(...)` with faked `origin`/`source` to exercise both ends of the protocol (origin-validation positive/negative, URL-shape allow-list, rate-limit, ping handshake, blob reconstruction). Manual re-run of UAT-2 through UAT-7 against DS dashboards in `splunk-10-dev`.
+
+**Security properties to preserve across both plans:**
+- Bidirectional exact-origin validation (no substring matches, no wildcards)
+- One message type only — any extension is a new phase with its own threat model
+- No tokens, session IDs, search data, or user identifiers in postMessage payloads
+- Tile bytes flow iframe-ward only; iframe cannot steer the parent to arbitrary URLs
+- Phase 1 SSRF allow-list remains authoritative for outbound tile fetches
+- Bridge absence → graceful blank-tile fallback, no crash, no retry storm
+
+**Explicitly out of scope:**
+- Extending the RPC surface beyond `maps-plus:fetch-tile` (future need = new phase)
+- Changing Splunk's session cookie to `SameSite=None; Secure` (not shippable from an app)
+- Cross-browser auth-bridge variants (stick to Chrome/Firefox/Safari/Edge last 2 per CLAUDE.md)
+- Vector tiles / KML / Bing — remain deferred to Milestone 2 as before
+
 ---
 
 ## Milestone 2: Phase 2 — Vector Tiles + KML Proxy (Future)
@@ -68,7 +94,5 @@ Plans:
 - Route external KML file AJAX requests through `$.ajax` → proxy endpoint
 - Preserve KMZ ZIP extraction logic (JSZip handles decompression client-side)
 - KML tile/image references within KML files — handle via same mechanism or documented limitation
-
----
 
 *This roadmap will be updated at the end of Milestone 1 based on testing results and discovered edge cases.*

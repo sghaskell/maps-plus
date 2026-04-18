@@ -1,76 +1,46 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-17T21:05:00.000Z",
-  "phase": "01",
-  "phase_name": "rest-proxy-backend-routing",
-  "phase_dir": ".planning/phases/01-rest-proxy-backend-routing",
-  "activity": "secure-phase (threat verification)",
+  "timestamp": "2026-04-18T03:13:59Z",
+  "phase": "02",
+  "phase_name": "maps-plus-js-integration-testing",
+  "phase_dir": ".planning/phases/02-maps-plus-js-integration-testing",
+  "plan": null,
+  "task": null,
+  "total_tasks": 0,
   "status": "paused",
-  "paused_mid_workflow": "/gsd-secure-phase 1",
-  "paused_at_step": "Step 4 — Present Threat Plan (awaiting user choice 1/2/3 before spawning gsd-security-auditor)",
-  "uat_progress": {
-    "total": 8,
-    "passed": 8,
-    "issues": 0,
-    "pending": 0,
-    "current_test": null
-  },
-  "threat_register": {
-    "total": 24,
-    "mitigate": 21,
-    "accept": 3,
-    "accepted_threats": [
-      {"id": "T1-07-RateLimitAmp", "plan": "01-01", "rationale": "Per-session rate limiting deferred (D-05/D-06). Mitigated indirectly by LRU cache reducing upstream load."},
-      {"id": "T2-04-AllowlistWeakening", "plan": "01-02", "rationale": "Users editing local/settings.json is an intended operation (D-01). FS permissions + AppCert scope protect against unauthorized edits. Defense-in-depth: _validate_url IP-block still blocks private IPs even if a private IP is added to the allowlist."},
-      {"id": "T3-08-MtimeUpdateRace", "plan": "01-03", "rationale": "os.utime() touch-on-read is best-effort. Concurrent reads racing on utime is benign (both set near-current time). No lock needed."}
-    ],
-    "by_plan": {
-      "01-01": ["T1-01-SSRF", "T1-02-InjectionZXY", "T1-03-ResponseSize", "T1-04-Redirect", "T1-05-CachePoisoning", "T1-07-RateLimitAmp", "T1-08-UnauthAccess", "T1-09-Disabled", "T1-10-BinaryEncoding", "T1-11-ErrorLeak"],
-      "01-02": ["T2-01-AuthBypass", "T2-02-WrongStanza", "T2-03-Python2Fallback", "T2-04-AllowlistWeakening", "T2-05-MissingFromPackage", "T2-06-SystemFileWrite"],
-      "01-03": ["T3-01-PathTraversal", "T3-02-TornWrite", "T3-03-ConcurrencyRace", "T3-04-DiskExhaustion", "T3-05-CloudFilesystem", "T3-06-SerializationFormat", "T3-07-SymlinkEscape", "T3-08-MtimeUpdateRace"]
-    },
-    "threat_flags_in_summaries": 0,
-    "self_reported_mitigation_verified_in_summaries": 21,
-    "notes": "All 21 mitigate threats were self-reported as implemented in each SUMMARY's 'Threat Mitigations Implemented (grep-verifiable)' section. No new ## Threat Flags raised during execution. Three accept threats have documented rationales and will be recorded in SECURITY.md Accepted Risks log."
-  },
-  "completed_tests": [
-    {"n": 1, "name": "Release tarball contents", "result": "pass"},
-    {"n": 2, "name": "Splunk app install", "result": "pass"},
-    {"n": 3, "name": "Endpoint returns a tile", "result": "pass", "notes": "Fixed in commit 13fd7cd"},
-    {"n": 4, "name": "SSRF defense blocks private IP", "result": "pass", "notes": "Fixed in 3b4dc25 — HTTP 403 + sanitized body"},
-    {"n": 5, "name": "SSRF defense blocks non-allowlisted host", "result": "pass"},
-    {"n": 6, "name": "Two-tier cache — memory hit", "result": "pass"},
-    {"n": 7, "name": "Disk cache persists across Splunk restart", "result": "pass"},
-    {"n": 8, "name": "Disabled flag returns 503", "result": "pass"}
+  "completed_tasks": [
+    {"id": "p01-t1", "name": "Plan 02-01 Task 1 — ds-tile-proxy-helpers.js", "status": "done", "commit": "4fb0de8"},
+    {"id": "p01-t2", "name": "Plan 02-01 Task 2 — wire DsTileProxyHelpers into AMD", "status": "done", "commit": "d9ff3b8"},
+    {"id": "p01-t3", "name": "Plan 02-01 Task 3 — DsProxyTileLayer subclass + factory swap", "status": "done", "commit": "d1a4b8c"},
+    {"id": "p01-summary", "name": "Plan 02-01 SUMMARY", "status": "done", "commit": "2ee6979"},
+    {"id": "p02-t1", "name": "Plan 02-02 Task 1 — Jest + babel-jest harness", "status": "done", "commit": "cfc1a55"},
+    {"id": "p02-t2", "name": "Plan 02-02 Task 2 — 20 Jest tests, all pass", "status": "done", "commit": "2465a0c"},
+    {"id": "p02-t3", "name": "Plan 02-02 Task 3 — visualization.js rebuild +0.05%", "status": "done", "commit": "4dc39b4"},
+    {"id": "p02-t4", "name": "Plan 02-02 Task 4 — 02-UAT-MATRIX.md (34 rows)", "status": "done", "commit": "447eccd"},
+    {"id": "p02-summary", "name": "Plan 02-02 SUMMARY", "status": "done", "commit": "eb6208a"},
+    {"id": "regression", "name": "Phase 1 Python regression — 77/77 pass", "status": "done", "commit": null},
+    {"id": "roadmap", "name": "STATE+ROADMAP marked Phase 02 execution complete", "status": "done", "commit": "f0ce4e5"},
+    {"id": "uat-rename", "name": "Renamed 02-UAT.md → 02-UAT-MATRIX.md to free session filename", "status": "done", "commit": "6f2f206"}
   ],
-  "remaining_tests": [],
-  "blockers": [],
+  "remaining_tasks": [
+    {"id": "uat-session", "name": "/gsd-verify-work 2 — conversational UAT session against live Splunk+DS", "status": "not_started"},
+    {"id": "secure-phase-2", "name": "/gsd-secure-phase 2 — re-verify T2-01..T2-06 against committed code", "status": "not_started"},
+    {"id": "complete-milestone-1", "name": "/gsd-complete-milestone 1 once UAT passes + threats closed", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "Conversational UAT requires a running Splunk + Dashboard Studio instance with the rebuilt visualization.js deployed", "type": "human_action", "workaround": "Use splunk-10-dev-3 container (already healthy on macOS Studio); upload leaflet_maps_app_4.6.1.tar.gz via Splunk UI"}
+  ],
   "human_actions_pending": [
-    {"action": "User chooses Option 1 (verify all open threats via auditor subagent) vs Option 2 (accept-all — not recommended) vs Option 3 (cancel)", "context": "Paused at /gsd-secure-phase 1 Step 4 to let user lower reasoning effort and clear context before the verification subagent spawns.", "blocking": true}
+    {"action": "ROTATE GitHub Personal Access Token", "context": "A GitHub PAT (sghaskell, classic, prefix ghp_FQWr********) was previously embedded in the 'github' remote URL where any `git remote -v` output exposed it. The git config has been cleaned (token removed from URL, stored in macOS Keychain instead) and 18 commits pushed successfully. Rotate the token at https://github.com/settings/tokens BEFORE bringing up any new device.", "blocking": true},
+    {"action": "Run UAT against live Splunk+DS instance", "context": "Phase 02 code is complete and bundle is rebuilt; the 34-row matrix at .planning/phases/02-maps-plus-js-integration-testing/02-UAT-MATRIX.md is the authoritative checklist. The conversational /gsd-verify-work 2 session was about to start when the session was paused.", "blocking": true},
+    {"action": "On new MacBook: install Docker Desktop, Node 20+, Python 3.9+, and clone the repo per .planning/NEW-MACHINE-BOOTSTRAP.md", "context": "User is migrating to a new work MacBook. Bootstrap prompt was authored as part of this pause.", "blocking": false}
   ],
   "decisions": [
-    {"decision": "Dropped `script = tile_proxy.py` from restmap.conf", "rationale": "Per restmap.conf.spec, `script` is for handlers NOT derived from BaseRestHandler. Setting it forced runScript.py codepath which does os.chdir(dirname(script)) → FileNotFoundError('').", "phase": "01", "commit": "13fd7cd"},
-    {"decision": "build_release.sh strips macOS xattrs via bsdtar --no-mac-metadata --no-xattrs --no-acls --no-fflags", "rationale": "macOS 14+ com.apple.provenance xattr becomes a PaxHeader entry that Splunk's archive validator misreads as a second top-level directory.", "phase": "01", "commit": "d45b39c"},
-    {"decision": "HTTP 403 vs 400 split for SSRF rejections", "rationale": "RFC 9110 §15.5.4: 400 for client-malformed, 403 for server-side policy refusal. _validate_url codes split: policy (host_not_allowed, invalid_ip, private_ip_blocked → 403) vs syntax (scheme_not_https, invalid_chars, dns_failed → 400). Encoded as _SSRF_POLICY_CODES set in handle_GET step 5.", "phase": "01", "commit": "3b4dc25"}
+    {"decision": "Phase 02 ran in sequential-inline mode (no subagents)", "rationale": "gsd-sdk CLI not installed on this machine; 2 plans were strictly sequential anyway; surgical edits with strong grep-based acceptance criteria. All 6 verification checks of 02-01 + all 4 acceptance items of 02-02 passed.", "phase": "02"},
+    {"decision": "Renamed 02-UAT.md → 02-UAT-MATRIX.md", "rationale": "The authored 34-row tester checklist had a different shape than the /gsd-verify-work session file template. Renaming preserves it as the offline matrix and frees the canonical filename for the conversational session file.", "phase": "02"},
+    {"decision": "Removed embedded GitHub PAT from git remote URL", "rationale": "Token was visible to anyone running `git remote -v` (including this AI session, terminal recordings, screen-shares). Re-stored in macOS Keychain via osxkeychain helper. Token still must be rotated.", "phase": "02"}
   ],
-  "open_issues": [],
   "uncommitted_files": [],
-  "infrastructure_state": {
-    "splunk_container": {
-      "name": "splunk-10-dev-3",
-      "image": "splunk/splunk:10.2.0",
-      "status": "running, healthy",
-      "ports": "8000 (web, http), 8089 (mgmt, https)",
-      "admin_password": "A00mast3r",
-      "installed_app": "leaflet_maps_app v4.6.1",
-      "notes": "Container contains the fixed tile_proxy.py (md5 17166d088adb85e379943261f1842598) — deployed via docker cp, not a full reinstall. Handler is scripttype=python so no splunkd restart needed for Python file changes. If a clean-install verification is wanted on resume, rebuild tarball and re-run `docker exec -u splunk splunk-10-dev-3 /opt/splunk/bin/splunk install app ... -update 1`."
-    },
-    "node_env": {
-      "manager": "fnm",
-      "pinned": "24.14.0 via appserver/static/visualizations/maps-plus/.nvmrc",
-      "activate_with": "eval \"$(fnm env --shell zsh)\" && fnm use 24.14.0"
-    }
-  },
-  "next_action": "On resume: re-invoke /gsd-secure-phase 1. It will land at Step 4 again with the full threat register displayed. User picks Option 1 (verify) → spawn gsd-security-auditor to grep-verify 21 mitigate threats against bin/tile_proxy.py, default/restmap.conf, default/settings.json, build_release.sh, scripts/deploy.sh. Then Step 6 writes .planning/phases/01-rest-proxy-backend-routing/01-SECURITY.md.",
-  "context_notes": "Phase 01 is code-complete: 77/77 unit tests, 8/8 UAT tests, 0 open issues, 3 new commits ahead of origin (8afd921, d45b39c, 3b4dc25). The only remaining gate before /gsd-validate-phase 1 and /gsd-verify-work 1 is /gsd-secure-phase 1 — which is paused here at the user gate. User paused to lower Cursor reasoning effort and clear context before the auditor subagent runs (to save budget on what should be mechanical grep-verification work). The auditor should be straightforward: each SUMMARY's 'Threat Mitigations Implemented' table cites exact function names / grep-able patterns in bin/tile_proxy.py, and the threat model's mitigation_plan column names the specific identifiers the auditor should search for."
+  "next_action": "Run `/gsd-verify-work 2` to start conversational UAT. The session file does NOT exist yet; the workflow will create .planning/phases/02-maps-plus-js-integration-testing/02-UAT.md fresh from SUMMARY.md extraction. The 34-row matrix at 02-UAT-MATRIX.md is the offline reference.",
+  "context_notes": "Phase 02 execution complete (10 commits on this branch covering helpers, subclass, Jest, rebuild, UAT matrix, STATE/ROADMAP). 20/20 Jest tests + 77/77 Python regression tests green. Bundle delta +0.05%. User pausing to migrate to new MacBook before running conversational UAT. Branch feature/dashboard-studio-tile-proxy-v2 is fully synced to origin (github remote)."
 }

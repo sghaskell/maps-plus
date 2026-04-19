@@ -3,51 +3,147 @@
 > Engineering proposal for the Splunk Dashboard Studio team.
 > Reproducer + root-cause + concrete fix. Tested against Splunk Enterprise 10.2.2 with the bundled `splunk-dashboard-studio` app.
 
-## 1. Issue summary (one paragraph)
+## 1. Issue summary
 
-When a Dashboard Studio dashboard hosts a third-party custom visualization that fetches data from authenticated Splunk endpoints — its own app's REST handlers, or per-app static assets under `/static/app/<app>/...` — the iframe-side `window.fetch` shim correctly diverts the request to the parent's `FETCH-PROXY-REQUEST` handler, but the parent unconditionally strips credentials before relaying the fetch (`pa()` in `src/FetchHandler/DashboardFetchHandler.ts` or equivalent — see § 3 for exact code). The relayed request hits Splunk Web cookieless and is redirected to `/account/login`. The viz receives the login HTML in place of its expected payload and visibly breaks. **Maps+ for Splunk** (`leaflet_maps_app`, the most-installed third-party map visualization on Splunkbase) is broken in DS dashboards for exactly this reason.
+When a Dashboard Studio dashboard hosts a third-party custom visualization that issues `fetch()` from inside its iframe to an authenticated Splunk endpoint — its own app's REST handlers, or per-app static assets under `/static/app/<app>/...` — the iframe-side `window.fetch` shim correctly diverts the request to the parent's `FETCH-PROXY-REQUEST` handler, but the parent unconditionally strips credentials before relaying the fetch (`pa()` in the parent-side counterpart of `src/FetchHandler/IframeFetchHandler.ts` — see § 3 for exact code). The relayed request hits Splunk Web cookieless and is redirected to `/account/login`. The viz receives the login HTML in place of its expected payload and visibly breaks. § 2.1 below is a ~40-line synthetic reproducer (no third-party app dependency) that demonstrates this in isolation against any Splunk 10.x install.
 
-**Proposed fix:** per-viz credential allow-list, opted into via two new fields in `visualizations.conf`, enforced inside the existing parent-side handler. ~30 LOC across 2 files. Backwards-compatible (opt-in).
+The same root cause prevents real-world apps from shipping common functionality. **Maps+ for Splunk** (`leaflet_maps_app`, the most-installed third-party map visualization on Splunkbase, app id 4555) has a forthcoming release that routes map tiles through a Splunk REST handler (`/services/maps_plus/tile/proxy?z=…&x=…&y=…`) for tile-provider proxying purposes. Each tile fetch becomes a `window.fetch()` from the iframe → FETCH-PROXY → cookie-stripped → login HTML in place of the tile bytes → blank gray panel where the map should be. This is one specific high-visibility instance of the synthetic-reproducer bug. The same root cause also blocks any custom viz that fetches its own app's REST endpoints or static-asset bundles via `window.fetch`. (We can provide the Maps+ pre-release `.tgz` for end-to-end validation; see § 2.3.)
+
+**Proposed fix (R1):** per-viz credential allow-list, opted into via two new fields in `visualizations.conf`, enforced inside the existing parent-side handler. ~46 LOC across 2 files. Backwards-compatible (opt-in). One change, all `window.fetch`-based scenarios fixed. (Optional follow-ons R2 and R3 in §§ 7–8 cover the adjacent failure class of assets that load via DOM APIs (`<img src>`, `<link href>`) or CSS `url(...)` rather than `fetch()` — R1 alone cannot reach those code paths.)
 
 ## 2. Reproducer
 
-### 2.1 Setup
+The bug is fully exercisable without any third-party app. § 2.1 is a ~40-line synthetic visualization that calls `window.fetch()` against the SplunkD `server/info` endpoint and renders the response — that is the canonical engineering reproducer. § 2.2 is the architectural diagnostic. § 2.3 is the optional Maps+ end-to-end path for production-impact validation, gated on a Maps+ pre-release `.tgz` we can provide on request.
 
-1. Splunk Enterprise 10.x (verified on 10.2.2 / build `80b90d638de6`).
-2. `splunk-dashboard-studio` app installed (bundled).
-3. Install Maps+ for Splunk: https://splunkbase.splunk.com/app/4555 (`leaflet_maps_app`, ≥ v4.6.0).
-4. Open Splunk Web as `admin`.
+### 2.1 Synthetic reproducer (recommended for engineering)
 
-### 2.2 Steps
+Tested against Splunk Enterprise 10.x with the bundled `splunk-dashboard-studio` app. No third-party app required.
 
-1. Create a Dashboard Studio dashboard (any name).
-2. Add a custom visualization panel; pick `Maps+`.
-3. Use any search that returns at least one row with `latitude` and `longitude` fields, e.g.:
-   ```spl
-   | makeresults | eval latitude=37.7749, longitude=-122.4194
-   ```
-4. Save and view the dashboard.
+**Files** (drop into `$SPLUNK_HOME/etc/apps/fetch_proxy_repro/`):
 
-### 2.3 Expected vs observed
+```
+fetch_proxy_repro/
+├── default/
+│   ├── app.conf
+│   └── visualizations.conf
+└── appserver/static/visualizations/repro/
+    ├── visualization.js
+    └── visualization.css     (empty file)
+```
 
-| | Expected | Observed |
+`default/app.conf`:
+
+```ini
+[install]
+is_configured = false
+
+[ui]
+is_visible = false
+label = Fetch-Proxy Reproducer
+```
+
+`default/visualizations.conf`:
+
+```ini
+[repro]
+label = Fetch-Proxy Reproducer
+description = Issues window.fetch to /services/server/info from inside the viz iframe
+default_height = 220
+search_fragment = | makeresults
+```
+
+`appserver/static/visualizations/repro/visualization.js` (AMD):
+
+```js
+define(['jquery', 'api/SplunkVisualizationBase'], function ($, BaseViz) {
+    return BaseViz.extend({
+        initialize: function () {
+            BaseViz.prototype.initialize.apply(this, arguments);
+            this.$el = $(this.el);
+        },
+        updateView: function () {
+            const el = this.$el.empty();
+            const escape = s => s.replace(/[<&]/g, c => ({ '<': '&lt;', '&': '&amp;' }[c]));
+            window.fetch('/services/server/info?output_mode=json')
+                .then(r => r.text().then(body => ({
+                    status: r.status,
+                    contentType: r.headers.get('content-type') || '',
+                    body
+                })))
+                .then(info => {
+                    el.append(
+                        '<pre style="white-space:pre-wrap;font:12px monospace;margin:0;padding:8px;">' +
+                        'status      : ' + info.status + '\n' +
+                        'content-type: ' + info.contentType + '\n' +
+                        'first 240 B :\n' + escape(info.body.slice(0, 240)) +
+                        '</pre>'
+                    );
+                })
+                .catch(e => el.append('<pre>' + String(e) + '</pre>'));
+        }
+    });
+});
+```
+
+**Steps:**
+
+1. Create the four files above; restart Splunk Web.
+2. Open Splunk Web as `admin`; create a Dashboard Studio dashboard.
+3. Add a custom visualization panel; pick **Fetch-Proxy Reproducer**.
+4. Drive it with the search `| makeresults` (any non-empty result satisfies DS's data-source requirement).
+5. Save and view.
+
+**Expected** (cookie-bearing fetch reaches SplunkD as the logged-in user):
+
+```
+status      : 200
+content-type: application/json; charset=UTF-8
+first 240 B :
+{"links":{"_reload":"/services/server/info/_reload",...},"origin":"...","updated":"...","generator":{...}, ...
+```
+
+**Observed today** (cookies stripped by parent-side `pa()`; SplunkD redirects the cookieless request to the login page):
+
+```
+status      : 200
+content-type: text/html; charset=UTF-8
+first 240 B :
+<!doctype html><html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Splunk Web - Login</title>
+    ...
+```
+
+**Cross-check:** Render the same viz in a SimpleXML dashboard (`<dashboard>` instead of `<dashboard version="2">`). It returns the JSON body correctly. Same viz, same Splunk URL, same browser session — the only thing that changes is whether DS's iframe + FETCH-PROXY is in the path.
+
+### 2.2 Architectural diagnostic — confirming the cookie boundary
+
+In DevTools Network panel for the request issued by the synthetic reproducer, you will see:
+
+- `Origin: null` (the iframe's opaque origin)
+- No `Cookie` header on the relayed request
+- Response: `200 OK` with `Content-Type: text/html; charset=UTF-8` and a body that begins `<!doctype html><html` — Splunk Web's login page rendered server-side because the request had no session.
+
+The boundary is the iframe's opaque-origin sandbox combined with `SameSite=Lax` session cookies. (Background, not action: HTML §4.8.5 `sandbox` without `allow-same-origin` gives the iframe a unique opaque origin; per RFC 6265bis, `SameSite=Lax` cookies are omitted on cross-site subresource requests, including those from null-origin contexts. This is precisely why the parent-side FETCH-PROXY exists in the first place — the iframe cannot send cookies on its own. The issue is that the parent then strips them before relaying, which is the wrong default for fetches into the viz's own app namespace.)
+
+### 2.3 Optional: Maps+ end-to-end validation (production-impact path)
+
+Once R1 is implemented, an end-to-end pass against a real-world shipping app gives confidence that production users actually unblock. Maps+ for Splunk is the most-installed third-party map viz on Splunkbase (app id 4555).
+
+The Maps+ release that exercises the FETCH-PROXY code path (the REST tile-proxy endpoint and the `DsProxyTileLayer` that routes Leaflet's tile fetches through `window.fetch`) is currently in pre-release on a feature branch — **not on Splunkbase yet**. We can provide a `.tgz` build for testing. With that pre-release installed alongside R1:
+
+1. Open a Dashboard Studio dashboard; add a Maps+ panel.
+2. Drive it with `| makeresults | eval latitude=37.7749, longitude=-122.4194`.
+3. Save and view.
+
+| | Expected (after R1 ships and Maps+ pre-release installed) | Observed today (Maps+ pre-release on stock DS) |
 |---|---|---|
-| Map tiles | Render OpenStreetMap (or configured provider) tiles | Blank gray panel |
-| Marker icons | Default Leaflet marker SVG visible | Broken-image placeholders |
-| Console | No errors | `[maps-plus]` errors about JSON.parse failing on HTML; `[maps-plus]` errors about CSS engine failing to load icon images |
-| Network panel | Tile-proxy responses are 200 with `image/png` body | Tile-proxy responses are 200 with `text/html` body containing the Splunk login form |
+| Tile-proxy network responses | `200 OK` with `Content-Type: image/png` | `200 OK` with `Content-Type: text/html; charset=UTF-8`, body is the Splunk login page |
+| Map tiles in the panel | Render | Blank gray panel |
+| Console | No errors | `[maps-plus]` errors about JSON.parse failing on HTML |
 
-### 2.4 Confirming the cookie boundary
-
-In DevTools Network panel, find any request to `/services/maps_plus/tile/proxy?...` issued from the iframe. You will see:
-
-- `Origin: null`
-- No `Cookie` header
-- Response: `200 OK` with `Content-Type: text/html; charset=UTF-8` and a body that begins `<!doctype html><html` — the Splunk login page.
-
-The same dashboard rendered as SimpleXML (`<dashboard>` instead of `<dashboard version="2">`) works perfectly: tiles render, markers visible, no console errors.
-
-The boundary is the iframe's opaque-origin sandbox combined with `SameSite=Lax` session cookies. (For background, not action: HTML §4.8.5 sandbox without `allow-same-origin` gives the iframe a unique opaque origin; per RFC 6265bis, `SameSite=Lax` cookies are omitted on cross-site subresource requests, including from null-origin contexts.)
+Note: shipped Maps+ 4.6.2 from Splunkbase will *not* exhibit the FETCH-PROXY bug itself in DS — it has no `window.fetch`-based code paths, so the bug is unreachable from that build. (4.6.2 in DS does exhibit a related-but-different failure class for marker icons and CSS sprites that load via DOM APIs / CSS `url()` rather than `fetch()`. Those are the R2 / R3 follow-on territory in §§ 7–8 below; they are not what R1 fixes, and they are not blocked by the absence of R1.)
 
 ## 3. Root cause — the line that fails
 
@@ -488,7 +584,7 @@ allow_authenticated_proxy = true
 authenticated_proxy_urls = /services/maps_plus/tile/proxy*, /services/maps_plus/**
 ```
 
-No JS code change in Maps+ for the R1 case. The existing Phase-02 `DsProxyTileLayer` already routes Leaflet's tile fetches through `window.fetch`, so the existing FETCH-PROXY flow Just Works once cookies stop being stripped.
+No additional JS code change in Maps+ for the R1 case. The Maps+ pre-release referenced in § 2.3 already routes Leaflet's tile fetches through `window.fetch` (via a `DsProxyTileLayer` subclass that overrides `createTile`), so the existing FETCH-PROXY flow Just Works once cookies stop being stripped. Shipped Maps+ on Splunkbase today does not yet contain that wrapper; the visualizations.conf snippet above ships in the same Maps+ release that contains the wrapper.
 
 After R2 ships, Maps+ would remove the `DsProxyTileLayer` (~150 lines) and use stock `L.TileLayer`.
 

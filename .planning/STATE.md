@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 03
-status: Phase 03 paused mid-Plan 03-01; Step 1 (code scan) + R3 (iframe self-install) complete; R3 collapsed per spec; R2 (DS v2 extension surface) is the live work item
-last_updated: "2026-04-18T22:00:00.000Z"
+status: Phase 03 paused mid-Plan 03-01; Step 1 + R3 + R2 + DS-engineering-recommendations-writeup complete; R3 + R2 both collapsed (R1 + R4 pre-collapsed by R2 evidence); R2 follow-up discovered DS already ships a FETCH-PROXY mechanism that Maps+ could use with a ~30 LOC DS-side change; Step 5 (re-lock 03-CONTEXT.md) is the live work item; user decision on options A/B/C/D required
+last_updated: "2026-04-19T00:30:00.000Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -15,9 +15,9 @@ progress:
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 03 — PAUSED mid-Plan 03-01; Step 1 + R3 complete; R3 collapsed per spec; R2 is the live work item
+## Status: Phase 03 — PAUSED at Step 5 entry; Steps 1 + 2 (R3) + 3 (R2) + DS-engineering writeup all complete; R3 collapsed per spec, R2 collapsed per architecture+empirical evidence, R1 + R4 pre-collapsed by R2; R2 follow-up discovered DS already ships a FETCH-PROXY mechanism (just needs ~30 LOC change to credential-handling) — Phase 3 full-DS-parity goal unreachable from app space alone but tractable with DS-engineering cooperation — needs user decision on options A/B/C/D before re-lock
 
-- **Last updated:** 2026-04-18 (third pause — Path B research wave Step 1 + R3 complete; handoff to fresh-context Opus 4.7 1M Extra High Thinking session for R2 — see `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md`)
+- **Last updated:** 2026-04-19 (fifth pause — R2 complete + DS-engineering recommendations document written; full evidence trail in `03-RESEARCH-ADDENDUM.md` § R2 plus its FETCH-PROXY follow-up; concrete DS-side fix proposal in `03-DS-ENGINEERING-RECOMMENDATIONS.md`; user decision required on options A/B/C/D documented at end of § R2 follow-up)
 - **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy) — in progress, blocked on Phase 03 research wave
 - **Current phase:** 03
 - **Workflow mode:** interactive (auto_advance enabled)
@@ -29,7 +29,7 @@ progress:
 |-------|--------|-----------------|-------|
 | 1: REST Proxy Backend + Routing | Execution + Secure Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 77 unit tests pass. UAT 8/8. 01-SECURITY.md closed 24/24 threats. |
 | 2: Maps+ JS Integration + Testing | Complete (UAT-1 pass, UAT-2 blocked on external boundary) | 2/2 | All Phase 02 code goals met. 4 defects found and fixed during UAT (AMD positional-binding; sync `window.require`; `location.origin='null'` in srcdoc; jquery.i18n fatal promise rejection; DS detection widened to cover `about:srcdoc`). 24/24 Jest + 77/77 Python tests pass. UAT-2 uncovered that the browser withholds `SameSite=Lax` session cookies on null-origin subresource requests — not solvable in client code alone. See `02-UAT.md` for full diagnosis. |
-| 3: DS Parent-Frame Auth Bridge | Plan 03-01 PAUSED — Path B research wave in progress (Step 1 + R3 done; R2 next) | 0/2 | Plan 03-01 W0 conclusion ("SimpleXML-only") REOPENED in second pause. Bridge scope EXPANDED to tile + app-static. **Step 1 (code scan)** complete: see `03-CODE-SCAN.md` — two URL-shape regex categories required (tile proxy + app static) with airtight path-traversal protection; CSS-engine `url(...)` references in `contrib/css/*.css` are a "sharp edge" requiring CSS-text rewriting since JS cannot intercept them. **R3 (iframe self-install)** complete and **collapsed per spec** — see `03-RESEARCH-ADDENDUM.md` § R3: HTML §7.1.1 same-origin algorithm + §7.2.1.3.1 cross-origin Window safe-list rule out `window.top.document` access from opaque-`null` DS iframe; only legitimate cross-frame channel is `postMessage` which requires pre-installed listener. Empirical test skipped — spec unambiguous, current browser behavior uniform, Phase 02 UAT-2 already observed downstream consequence. **R2 (DS v2 extension surface) is now load-bearing** — must enumerate any top-frame hook that runs before the custom-viz iframe is constructed; if R2 also collapses, Phase 3's full-DS-parity goal is unreachable from app space alone. Recommended next-session model: Opus 4.7 1M Extra High Thinking. See `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md` for full handoff including R2 candidate vectors and evidence sources. |
+| 3: DS Parent-Frame Auth Bridge | Plan 03-01 PAUSED at Step 5 entry — Steps 1 + 2 (R3) + 3 (R2) + DS-engineering writeup complete; R1 + R4 pre-collapsed | 0/2 | **Step 1 (code scan)** complete — see `03-CODE-SCAN.md`. **R3 (iframe self-install)** collapsed per spec — see `03-RESEARCH-ADDENDUM.md` § R3. **R2 (DS v2 extension surface)** collapsed per architectural + empirical evidence — see `03-RESEARCH-ADDENDUM.md` § R2 (six vectors enumerated and closed; rendered-HTML capture confirms zero scripts from `leaflet_maps_app` on DS pages). **R2 follow-up:** while writing DS-engineering recommendations, discovered that DS already ships a complete `FETCH-PROXY-REQUEST` / `FETCH-PROXY-RESPONSE` postMessage mechanism in `ds-iframe-studio.js` + `chunks/chunk-DT4FOOLP.js` (functions `da`/`fa`/`pa`/`Dn`). The mechanism intercepts iframe-side `window.fetch`, relays same-origin requests to the parent, and reconstructs a `Response`. **The reason it doesn't fix Maps+ today is one helper function: `pa()` unconditionally strips credentials from every relayed request.** A ~30 LOC change (per-viz credential allow-list driven by `allow_authenticated_proxy` + `authenticated_proxy_urls` fields in `visualizations.conf`) makes Maps+ work end-to-end. Concrete code-level proposal in `03-DS-ENGINEERING-RECOMMENDATIONS.md`. **R1 + R4 pre-collapsed** by R2 evidence (no separate empirical tests needed). **Phase 3's full-DS-parity goal remains unreachable from app space alone**, but is now tractable with DS-engineering cooperation. Four forward options: (A) ship a Splunk-Web boot-path patch (fragile, not recommended), (B) accept partial DS support documented as a manual operator step (workable but high friction), (C) declare DS unsupported pending DS-side change (was the recommendation; still viable), (D) submit the DS-engineering recommendations document to Splunk and ship C as the interim release; once DS picks up the change, Maps+ adds 2 lines to `visualizations.conf` and DS support becomes automatic. User decision required before Step 5 re-lock can proceed. |
 
 ## Milestone Progress
 
@@ -59,6 +59,9 @@ progress:
 | 01-02-SUMMARY.md | 2026-04-17 | Plan 01-02 — restmap.conf + settings.json + packaging |
 | 01-03-SUMMARY.md | 2026-04-17 | Plan 01-03 — DiskCache (atomic writes, LRU prune, Cloud fallback) + 22 new tests (71 total) |
 | 01-SECURITY.md | 2026-04-17 | Phase 01 threat verification — 24/24 closed, ASVS L2, 3 accepted risks documented |
+| 03-CODE-SCAN.md | 2026-04-18 | Phase 03 Step 1 — bridge URL allow-list / regex / CSS sharp-edge analysis |
+| 03-RESEARCH-ADDENDUM.md | 2026-04-18 (R3) + 2026-04-19 (R2 + follow-up + R1/R4 collapse notes) | Path B research wave outputs (R3 + R2 + R2 FETCH-PROXY follow-up + R1/R4 pre-collapse) |
+| 03-DS-ENGINEERING-RECOMMENDATIONS.md | 2026-04-19 | Concrete code-level fix recommendations to Splunk DS engineers; ~30 LOC R1 + ~150 LOC R2 + ~200 LOC R3 |
 
 ## Decisions
 
@@ -69,8 +72,13 @@ progress:
 
 ## Next Action
 
-**Immediate (next session, fresh context):** `/clear`, switch model to **Opus 4.7 1M Extra High Thinking**, then `/gsd-resume-work`.
-Resume reads `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md` which contains the full updated handoff with R3 verdict, R2 candidate vectors, evidence-source priority, and post-R2 routing logic. Then reads `03-RESEARCH-ADDENDUM.md` § R3 (accept verdict — spec citations are airtight) and `03-CODE-SCAN.md` (Q1 CSS sharp edge, Q3 top-frame hook = R2's central question).
+**Immediate (next session, with user):** Surface the R2 verdict and the **four** forward options (A / B / C / D) documented at end of `03-RESEARCH-ADDENDUM.md` § R2 (and the FETCH-PROXY follow-up immediately after). **User decision required before Step 5 (re-lock) can proceed.** Recommended option is now **D** (ship C as the interim user-facing behavior in this release AND submit `03-DS-ENGINEERING-RECOMMENDATIONS.md` to Splunk; once DS ships the ~30 LOC fix, upgrade Maps+ in a future release with two new lines in `visualizations.conf`).
+
+Once the user picks A / B / C / D, Step 5 (re-lock `03-CONTEXT.md` § Locked Decisions) becomes mechanical:
+- Under **D**: same as C for this release (graceful-degradation plan only); plus an out-of-band tracking item to monitor DS releases for the FETCH-PROXY credential change and a future micro-phase to add the 2 visualizations.conf lines + UAT once it lands.
+- Under **C**: D-NN-1 reduces to "no bridge — display unsupported message inside iframe"; D-03/D-04/D-NN-3 become moot; Plans 03-01 and 03-02 collapse to a small "graceful degradation" plan (visualization.js detects `Origin: null` + opaque-origin and renders a clear in-product message).
+- Under **B**: D-NN-1 reduces to "operator-installed bridge"; need new plans for operator script + verification + documentation; D-03/D-04/D-NN-3 stay as locked but with operator-install caveat.
+- Under **A**: D-NN-1 stays as locked; need new plan for installer-patch of `splunk-dashboard-studio/appserver/templates/dashboard.html`; need re-test cadence tied to DS app version bumps.
 
 **Path B research wave status:**
 
@@ -78,14 +86,17 @@ Resume reads `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md`
 |---|---|---|
 | 1 — Code scan | **Complete** | `03-CODE-SCAN.md` |
 | 2 — R3: iframe → `window.top` bridge install | **Complete — collapsed per spec** | `03-RESEARCH-ADDENDUM.md` § R3 |
-| 3 — R2: Splunk 10.x DS v2 extension surface | **Live work item (now load-bearing)** | Stub in `03-RESEARCH-ADDENDUM.md` § R2 |
-| 4 — R1 + R4: namespace + nav XML tests | Conditional on R2 partial result | (handoff to user when reached) |
-| 5 — Re-lock `03-CONTEXT.md` (D-NN-3, D-NN-2, D-04, D-NN-5, D-03, D-01) | Pending R2 | — |
+| 3 — R2: Splunk 10.x DS v2 extension surface | **Complete — collapsed (architectural + empirical)** | `03-RESEARCH-ADDENDUM.md` § R2 |
+| 3a — DS-engineering recommendations writeup (user-requested side artifact) | **Complete** — discovered DS ships FETCH-PROXY mechanism; documented ~30 LOC fix to credential-stripping plus optional R2/R3 enhancements | `03-DS-ENGINEERING-RECOMMENDATIONS.md` + R2 follow-up section in `03-RESEARCH-ADDENDUM.md` |
+| 4 — R1 + R4: namespace + nav XML tests | **Pre-collapsed by R2 evidence** | `03-RESEARCH-ADDENDUM.md` § R1, § R4 |
+| 5 — Re-lock `03-CONTEXT.md` | **Awaiting user decision on options A / B / C / D** | (Step 5 work begins after user picks one) |
 | 6 — Plans 03-01 + 03-02 update or rewrite | Pending re-lock | — |
 
-**R2 central question:** Does Splunk 10.x DS v2 expose any extension point that runs in the top frame, **before** the custom-visualization iframe is constructed? Candidate vectors enumerated in `.continue-here.md` (`appserver/templates/*` overrides, DS module lifecycle hooks, `viz.json` extension keys, `setup.xml`, Splunk Web pre-render hooks, Splunkbase pattern-mining, side-quest sandbox attribute confirmation). Evidence sources in priority order: Splunk Web JS bundle in-container > official docs > Splunkbase apps > community threads > public splunk-web mirror.
+**R2 central question (now answered):** Does Splunk 10.x DS v2 expose any extension point that runs in the top frame, before the custom-visualization iframe is constructed? **No.** Six vectors enumerated and closed in `03-RESEARCH-ADDENDUM.md` § R2; rendered-HTML ground truth captured at `/tmp/ds-rendered.html` confirms zero per-app scripts loaded by DS pages.
 
-**If R2 collapses too:** Phase 3's stated goal (full DS parity from app space alone) is unreachable. Pause and bring decision back to user before proceeding to Step 5.
+**R2 follow-up (during the DS-engineering writeup):** discovered that DS ships a complete `FETCH-PROXY-REQUEST` / `FETCH-PROXY-RESPONSE` mechanism in `ds-iframe-studio.js` + `chunks/chunk-DT4FOOLP.js`. The mechanism strips credentials unconditionally (in helper `pa()`) which is why it doesn't fix Maps+ today. A ~30 LOC change makes Maps+ work end-to-end. Concrete proposal in `03-DS-ENGINEERING-RECOMMENDATIONS.md`. This adds **option D** (ship C as the interim release; submit recommendations to Splunk; add DS support in a future micro-phase once their fix lands).
+
+**Phase 3's stated goal is unreachable from app space alone in this release** regardless of which option is chosen — the DS-side change cannot be shipped by us. **The four forward options (A/B/C/D) at end of § R2 + R2 follow-up are the only paths.** Recommendation now is **D**.
 
 **Blocked until Phase 03 lands:**
 

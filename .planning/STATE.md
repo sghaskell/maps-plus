@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: "02 complete (client wiring + 4 in-UAT defects fixed + detection hardened). Next: Phase 03 (parent-frame auth bridge)."
-status: Ready to execute
-last_updated: "2026-04-18T07:59:01.241Z"
+current_phase: 03
+status: Phase 03 paused mid-Plan 03-01; Step 1 (code scan) + R3 (iframe self-install) complete; R3 collapsed per spec; R2 (DS v2 extension surface) is the live work item
+last_updated: "2026-04-18T22:00:00.000Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -15,11 +15,11 @@ progress:
 
 # Project State — Maps+ Dashboard Studio Compatibility
 
-## Status: Phase 02 — COMPLETE; Phase 03 REQUIRED for DS tile rendering
+## Status: Phase 03 — PAUSED mid-Plan 03-01; Step 1 + R3 complete; R3 collapsed per spec; R2 is the live work item
 
-- **Last updated:** 2026-04-17 (Phase 02 UAT complete — UAT-1 pass, UAT-2 blocked on cross-origin cookie)
-- **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy) — in progress, awaiting Phase 03
-- **Current phase:** 02 complete (client wiring + 4 in-UAT defects fixed + detection hardened). Next: Phase 03 (parent-frame auth bridge).
+- **Last updated:** 2026-04-18 (third pause — Path B research wave Step 1 + R3 complete; handoff to fresh-context Opus 4.7 1M Extra High Thinking session for R2 — see `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md`)
+- **Current milestone:** 1 (Dashboard Studio Raster Tile Proxy) — in progress, blocked on Phase 03 research wave
+- **Current phase:** 03
 - **Workflow mode:** interactive (auto_advance enabled)
 - **Git workflow:** feature branch `feature/dashboard-studio-tile-proxy-v2`
 
@@ -29,7 +29,7 @@ progress:
 |-------|--------|-----------------|-------|
 | 1: REST Proxy Backend + Routing | Execution + Secure Complete | 3/3 | All plans complete: REST handler (01-01) + restmap/packaging (01-02) + DiskCache (01-03). 77 unit tests pass. UAT 8/8. 01-SECURITY.md closed 24/24 threats. |
 | 2: Maps+ JS Integration + Testing | Complete (UAT-1 pass, UAT-2 blocked on external boundary) | 2/2 | All Phase 02 code goals met. 4 defects found and fixed during UAT (AMD positional-binding; sync `window.require`; `location.origin='null'` in srcdoc; jquery.i18n fatal promise rejection; DS detection widened to cover `about:srcdoc`). 24/24 Jest + 77/77 Python tests pass. UAT-2 uncovered that the browser withholds `SameSite=Lax` session cookies on null-origin subresource requests — not solvable in client code alone. See `02-UAT.md` for full diagnosis. |
-| 3: DS Parent-Frame Auth Bridge | Planned | 0/? | postMessage RPC between DS iframe and top-level window to proxy authenticated tile fetches. Design sketch in `02-UAT.md § Follow-ups`. Required for UAT-2..UAT-7 to complete. |
+| 3: DS Parent-Frame Auth Bridge | Plan 03-01 PAUSED — Path B research wave in progress (Step 1 + R3 done; R2 next) | 0/2 | Plan 03-01 W0 conclusion ("SimpleXML-only") REOPENED in second pause. Bridge scope EXPANDED to tile + app-static. **Step 1 (code scan)** complete: see `03-CODE-SCAN.md` — two URL-shape regex categories required (tile proxy + app static) with airtight path-traversal protection; CSS-engine `url(...)` references in `contrib/css/*.css` are a "sharp edge" requiring CSS-text rewriting since JS cannot intercept them. **R3 (iframe self-install)** complete and **collapsed per spec** — see `03-RESEARCH-ADDENDUM.md` § R3: HTML §7.1.1 same-origin algorithm + §7.2.1.3.1 cross-origin Window safe-list rule out `window.top.document` access from opaque-`null` DS iframe; only legitimate cross-frame channel is `postMessage` which requires pre-installed listener. Empirical test skipped — spec unambiguous, current browser behavior uniform, Phase 02 UAT-2 already observed downstream consequence. **R2 (DS v2 extension surface) is now load-bearing** — must enumerate any top-frame hook that runs before the custom-viz iframe is constructed; if R2 also collapses, Phase 3's full-DS-parity goal is unreachable from app space alone. Recommended next-session model: Opus 4.7 1M Extra High Thinking. See `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md` for full handoff including R2 candidate vectors and evidence sources. |
 
 ## Milestone Progress
 
@@ -69,28 +69,64 @@ progress:
 
 ## Next Action
 
-**Immediate:** Clear agent context, then begin Phase 03 planning (DS parent-frame
-auth bridge). Phase 03 design sketch lives in
-`.planning/phases/02-maps-plus-js-integration-testing/02-UAT.md § Follow-ups
-captured during UAT` — use that as the starting input to `/gsd-plan 3`.
+**Immediate (next session, fresh context):** `/clear`, switch model to **Opus 4.7 1M Extra High Thinking**, then `/gsd-resume-work`.
+Resume reads `.planning/phases/03-ds-parent-frame-auth-bridge/.continue-here.md` which contains the full updated handoff with R3 verdict, R2 candidate vectors, evidence-source priority, and post-R2 routing logic. Then reads `03-RESEARCH-ADDENDUM.md` § R3 (accept verdict — spec citations are airtight) and `03-CODE-SCAN.md` (Q1 CSS sharp edge, Q3 top-frame hook = R2's central question).
+
+**Path B research wave status:**
+
+| Step | Status | Output |
+|---|---|---|
+| 1 — Code scan | **Complete** | `03-CODE-SCAN.md` |
+| 2 — R3: iframe → `window.top` bridge install | **Complete — collapsed per spec** | `03-RESEARCH-ADDENDUM.md` § R3 |
+| 3 — R2: Splunk 10.x DS v2 extension surface | **Live work item (now load-bearing)** | Stub in `03-RESEARCH-ADDENDUM.md` § R2 |
+| 4 — R1 + R4: namespace + nav XML tests | Conditional on R2 partial result | (handoff to user when reached) |
+| 5 — Re-lock `03-CONTEXT.md` (D-NN-3, D-NN-2, D-04, D-NN-5, D-03, D-01) | Pending R2 | — |
+| 6 — Plans 03-01 + 03-02 update or rewrite | Pending re-lock | — |
+
+**R2 central question:** Does Splunk 10.x DS v2 expose any extension point that runs in the top frame, **before** the custom-visualization iframe is constructed? Candidate vectors enumerated in `.continue-here.md` (`appserver/templates/*` overrides, DS module lifecycle hooks, `viz.json` extension keys, `setup.xml`, Splunk Web pre-render hooks, Splunkbase pattern-mining, side-quest sandbox attribute confirmation). Evidence sources in priority order: Splunk Web JS bundle in-container > official docs > Splunkbase apps > community threads > public splunk-web mirror.
+
+**If R2 collapses too:** Phase 3's stated goal (full DS parity from app space alone) is unreachable. Pause and bring decision back to user before proceeding to Step 5.
 
 **Blocked until Phase 03 lands:**
 
 - UAT-2..UAT-7 re-run against DS dashboards (tile rendering, SSRF end-to-end,
-  disabled flag, cache hit, GIBS)
-
+  disabled flag, cache hit, GIBS, AND now app-static asset loads)
 - `/gsd-verify-work 2` full replay
 - `/gsd-secure-phase 2` (automated unit tests already cover T2-01..T2-06;
   secure-phase replay is optional)
-
 - `/gsd-complete-milestone 1`
+
+**Splunk version floor:** 10.x (confirmed by user 2026-04-18). 9.x compatibility
+deferred until 10.x bridge ships.
+
+**Bridge scope (corrected 2026-04-18):** tile-proxy traffic AND app-static asset
+loads under `/static/app/leaflet_maps_app/...`. User has empirically observed
+CORS/cookie failures on both. The tile-only design locked in `03-CONTEXT.md`
+must be re-locked around the broader scope before any production code is written.
+
+**Stale artifact removed:** `.planning/HANDOFF.json` (was generated when phase
+was at "context_gathered_ready_to_plan"; planning + execution have advanced
+past that and the file became misleading on resume). Authoritative resume
+sources are now this STATE.md + the phase-03 `.continue-here.md`.
 
 **Phase 02 work committed to `feature/dashboard-studio-tile-proxy-v2`:**
 
 - Plan 02-01 (DS detection + `DsProxyTileLayer`) — committed
 - Plan 02-02 (Jest harness + bundle rebuild + 02-UAT.md + matrix) — committed
 - 4 in-UAT defect fixes (AMD wiring, `_detectSplunkOrigin`, i18n DS-skip,
-  widened DS detection) — about to commit alongside this STATE update
+  widened DS detection) — committed (commit `7714728` and predecessors)
+
+**Phase 03 work currently uncommitted on the same branch:**
+
+- `default/app.conf` — load-matrix scaffold + per-mechanism comments (conclusion at the bottom is wrong; will be corrected before any release commit but does not block R2)
+- `appserver/static/parent-auth-bridge.js` — probe stub (kept; needed if R2 produces partial result requiring R1)
+- `appserver/static/dashboard.js` — probe loader (kept; same reason)
+- `default/data/ui/views/phase03_probe.xml` — probe SimpleXML dashboard (kept as manual-test fixture)
+- `.planning/STATE.md` + `.planning/phases/03-.../.continue-here.md` — handoff updates (this commit batch)
+- `.planning/phases/03-.../03-CODE-SCAN.md` — **new** Step 1 output
+- `.planning/phases/03-.../03-RESEARCH-ADDENDUM.md` — **new** R3 complete; R2/R1/R4 stubbed
+
+**Recommended:** commit this entire batch as one atomic commit before starting R2 in the fresh session, so R2 begins from a clean working tree.
 
 ## Accumulated Context
 

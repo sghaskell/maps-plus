@@ -1,0 +1,19 @@
+<dashboard script="parent-auth-bridge.js">
+  <label>Phase 03 Bridge Probe</label>
+  <description>
+    Phase 3 W0 probe — Mechanism M3 (per-dashboard script attribute). Loads
+    parent-auth-bridge.js via the dashboard root element's script= attribute.
+    The IIFE logs "[maps-plus:parent-bridge] loaded" to the top-frame Console
+    if the include fires. This dashboard ships nothing else of interest and
+    is removed in Task T03-01-W2 alongside the other probe artifacts.
+  </description>
+  <row>
+    <panel>
+      <html>
+        <h3>Phase 03 W0 Probe — Mechanism M3</h3>
+        <p>Open DevTools Console. Look for the literal line:
+          <code>[maps-plus:parent-bridge] loaded</code></p>
+      </html>
+    </panel>
+  </row>
+</dashboard>

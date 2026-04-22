@@ -98,7 +98,7 @@ Follow these steps in order when cutting a release:
 5. **Build package** from the maps-plus viz dir: `bash scripts/deploy.sh`
 6. **Verify package contents**: `tar -tzf maps-plus-for-splunk_XYZ.tgz | head -40` — confirm `leaflet_maps_app/appserver`, `leaflet_maps_app/default`, `leaflet_maps_app/static`, `leaflet_maps_app/README` are all present before uploading
 7. **Review open GitHub issues** against the changelog — close resolved issues with a comment explaining what was fixed and in which version; use `GITHUB_TOKEN` env var for API access
-8. **Write Splunkbase release notes** in `docs/release-notes-X.Y.Z.md` — user-facing language, no implementation detail
+8. **Write Splunkbase release notes** in `docs/release-notes-X.Y.Z.md` — **always required for every release**. User-facing language, no implementation detail. Follow the format in existing `docs/release-notes-*.md` files: named sections per feature (### heading), an Upgrade Notes section, and a Bug Fixes section if applicable. Security-only patch releases need a brief Security section instead.
 
 ## Development Notes
 

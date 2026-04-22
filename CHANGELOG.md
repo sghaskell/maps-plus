@@ -1,6 +1,16 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.3] - 2026-04-21
+
+### Fixed
+- **Per-row `markerColor` ignored — all markers in a layer group rendered with the first row's color** (#53): An icon caching optimization introduced in v4.1.1 stored the first-built marker icon per `layerGroup` and reused it for all subsequent rows, overriding per-row `markerColor`, `iconColor`, and `icon` values. This caused every marker within the same layer group to display the color of the first row processed. Affects `png`, `svg`, `icon`, and `custom` marker types. Fixed by removing the `cachedIcon` pattern entirely — each row now builds a fresh icon, correctly honoring per-row marker fields. The stale-markers cleanup block also clears any residual cached icon between render cycles.
+
+## [4.6.2] - 2026-03-26
+
+### Fixed
+- **Stale markers and frozen tooltips on panel auto-refresh** (#10): On Simple XML panels with a `<refresh>` interval, markers accumulated across refresh cycles and tooltips showed values from the initial render. Two root causes: (1) `updateDataParams` was not reset after the first render cycle — Splunk reused the previous chunk offset (e.g. 3 for a 3-row result), so every subsequent refresh fetched 0 rows and `updateView` returned early without updating the map; (2) `clusterColorMap` was declared with `var` inside the `!isInitializedDom` block — on every render after the first, the init block is skipped and the variable was `undefined`, causing a `TypeError` crash in the cluster color resolution logic. Fixed by resetting `offset=0` in `formatData`'s zero-results path and moving `clusterColorMap` outside the init block so it is computed on every render.
+
 ## [4.6.1] - 2026-03-26
 
 ### Security

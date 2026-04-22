@@ -262,6 +262,7 @@ initialize: function() {
     this.isInitializedDom = false
     this.curPage = 0
     this.allDataProcessed = false
+    this._cycleComplete = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
     this._clickMarker = null
@@ -2112,14 +2113,55 @@ _renderLayersToMap: function(map, options) {
 formatData: function(data) {
     if(data.results.length == 0 && data.fields.length >= 1 && data.meta.done){
         this.allDataProcessed = true
+        this._cycleComplete = true
+        // Reset data params to offset 0 so the next search refresh fetches from
+        // the beginning. Without this, Splunk keeps using the last offset (e.g. 3
+        // for a 3-row result set), causing every subsequent refresh to fetch 0
+        // rows and updateView to return early — the map never updates.
+        // Guard offset > 0 to avoid an infinite reset loop on zero-row searches.
+        if (this.offset > 0) {
+            this.offset = 0
+            this.updateDataParams({count: this.chunk || 50000, offset: 0})
+        }
         return this
     }
-    
+
     if(data.results.length == 0)  {
         return this
     }
 
-    this.allDataProcessed = false
+    // Post-reset re-fetch guard: after resetting to offset 0 above, Splunk
+    // immediately re-fetches the current (already-rendered) search data. Skip
+    // that render entirely. Also set _markersCleared=true so the clear-in-place
+    // block in updateView is skipped when Splunk calls updateView with the
+    // truthy return value of this formatData call.
+    if (this.allDataProcessed) {
+        this.allDataProcessed = false
+        this._markersCleared = true
+        return this
+    }
+
+    // If the previous render cycle completed, clear stale markers here in
+    // formatData (before updateView runs) and mark as cleared so the
+    // clear-in-place block in updateView is skipped. Doing the clear here
+    // avoids a crash triggered by clearLayers() on non-empty groups during
+    // the second render (when isInitializedDom=true and the init block is skipped).
+    if (this._cycleComplete) {
+        if (this.isInitializedDom && this.layerFilter) {
+            _.each(this.layerFilter, function(lf) {
+                if (lf.group) { lf.group.clearLayers() }
+                if (lf.markerList) { lf.markerList = [] }
+                if (lf.clusterGroup) {
+                    _.each(lf.clusterGroup, function(cg) {
+                        cg.cg.clearLayers()
+                        cg.markerList = []
+                    })
+                }
+            })
+        }
+        this._markersCleared = true
+        this._cycleComplete = false
+    }
     return data
 },
 
@@ -2327,6 +2369,10 @@ updateView: function(data, config) {
     this.activeTile = (mapTileOverride) ? mapTileOverride : _effectiveTile
     this.attribution = (mapAttributionOverride) ? mapAttributionOverride : this.ATTRIBUTIONS[_effectiveTile]
 
+    // Parse per-group color mapping on every render (config may change and this
+    // must not be undefined on second render when isInitializedDom=true).
+    var clusterColorMap = this.parseClusterGroupColors(clusterGroupColors)
+
     // Initialize the DOM
     if (!this.isInitializedDom) {
         // Set defaul icon image path
@@ -2342,11 +2388,6 @@ updateView: function(data, config) {
         this.createMarkerStyle(rangeOneBgColor, rangeOneFgColor, "one")
         this.createMarkerStyle(rangeTwoBgColor, rangeTwoFgColor, "two")
         this.createMarkerStyle(rangeThreeBgColor, rangeThreeFgColor, "three")
-
-        // Parse per-group color mapping from formatter config.
-        // Declared here (before the per-row processing loop) so it is in scope at the
-        // cluster group creation block below. JavaScript var hoisting ensures availability.
-        var clusterColorMap = this.parseClusterGroupColors(clusterGroupColors)
 
         // Enable all or multiple popups
         if(this.isArgTrue(allPopups) || this.isArgTrue(multiplePopups)) {
@@ -2967,8 +3008,24 @@ updateView: function(data, config) {
         "features": []
     };
 
+    // Clear stale markers from all layer groups before re-populating.
+    // Fires once per render cycle (gated by _markersCleared, reset in formatData).
+    // Keeps the same L.featureGroup() objects so layer control visibility is preserved.
+    if (this.isInitializedDom && this.layerFilter && !this._markersCleared) {
+        _.each(this.layerFilter, function(lf) {
+            if (lf.group) { lf.group.clearLayers() }
+            if (lf.markerList) { lf.markerList = [] }
+            if (lf.clusterGroup) {
+                _.each(lf.clusterGroup, function(cg) {
+                    cg.cg.clearLayers()
+                    cg.markerList = []
+                })
+            }
+            delete lf.cachedIcon
+        })
+        this._markersCleared = true
+    }
 
-   
     /********* BEGIN PROCESSING DATA **********/
 
     // Iterate through each row creating layer groups per icon type
@@ -3164,26 +3221,18 @@ updateView: function(data, config) {
 
         markerType = _.isNull(customIcon) ? markerType:"custom"
 
-        // Create marker
-        // For non-milsymbol types, the icon is identical for every row in the same
-        // layerGroup (same icon, color, size etc.) so we cache it on the layerFilter
-        // entry after the first build and reuse it for all subsequent rows.
-        // milsymbol icons vary per-row (SIDC, modifiers) so they are never cached here.
+        // Create marker — icons are built per-row so that per-row fields
+        // (markerColor, iconColor, icon, size, etc.) are always honoured.
         if(markerType == "custom") {
-            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
-            if(_cachedIcon) {
-                var markerIcon = _cachedIcon
-            } else {
-                var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
-                var markerIcon = L.icon({
-                    iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
-                    shadowUrl: customIconShadow,
-                    iconSize: markerSize,
-                    iconAnchor: markerAnchor,
-                    shadowAnchor: shadowAnchor,
-                    popupAnchor: popupAnchor
-                })
-            }
+            var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+            var markerIcon = L.icon({
+                iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                shadowUrl: customIconShadow,
+                iconSize: markerSize,
+                iconAnchor: markerAnchor,
+                shadowAnchor: shadowAnchor,
+                popupAnchor: popupAnchor
+            })
         }
 
         if (markerType == "svg") {
@@ -3193,8 +3242,7 @@ updateView: function(data, config) {
             layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
             popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[2,-50]
 
-            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
-            var markerIcon = _cachedIcon || L.VectorMarkers.icon({
+            var markerIcon = L.VectorMarkers.icon({
                 icon: icon,
                 iconColor: iconColor,
                 markerColor: markerColor,
@@ -3213,8 +3261,7 @@ updateView: function(data, config) {
             layerIconColor = _.has(userData, "layerIconColor") ? userData["layerIconColor"]:markerColor
             if(layerIconColor === "blue") { layerIconColor = "#38AADD"}
 
-            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
-            var markerIcon = _cachedIcon || L.AwesomeMarkers.icon({
+            var markerIcon = L.AwesomeMarkers.icon({
                 icon: icon,
                 markerColor: markerColor,
                 iconColor: iconColor,
@@ -3253,24 +3300,19 @@ updateView: function(data, config) {
             popupAnchor = _.has(userData, "popupAnchor") ? this.stringToPoint(userData["popupAnchor"]):[0,-55]
             className = "icon-only"
 
-            var _cachedIcon = this.layerFilter[layerGroup] && this.layerFilter[layerGroup].cachedIcon
-            if(_cachedIcon) {
-                var markerIcon = _cachedIcon
-            } else {
-                var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
-                var markerIcon = L.divIcon({
-                    html: divIconHtml,
-                    className: className,
-                    icon: icon,
-                    markerColor: iconColor,
-                    iconColor: iconColor,
-                    prefix: prefix,
-                    extraClasses: extraClasses,
-                    popupAnchor: popupAnchor,
-                    description: description,
-                    iconAnchor: markerAnchor
-                })
-            }
+            var divIconHtml = '<i class="' + extraClasses + ' ' + prefix + ' ' + prefix + '-' + icon + '" style="color: ' + iconColor + '"></i>'
+            var markerIcon = L.divIcon({
+                html: divIconHtml,
+                className: className,
+                icon: icon,
+                markerColor: iconColor,
+                iconColor: iconColor,
+                prefix: prefix,
+                extraClasses: extraClasses,
+                popupAnchor: popupAnchor,
+                description: description,
+                iconAnchor: markerAnchor
+            })
         }
 
         if(!this.validMarkerTypes.includes(markerType)) {
@@ -3387,11 +3429,6 @@ updateView: function(data, config) {
             this.layerFilter[layerGroup].layerIconColor = layerIconColor
             this.layerFilter[layerGroup].layerIconSize = layerIconSize
             this.layerFilter[layerGroup].layerVisibility = layerVisibility
-            // Cache the built icon for reuse by subsequent rows in this layerGroup.
-            // milsymbol icons vary per-row so they are intentionally excluded here.
-            if(markerType !== "milsymbol" && !this.layerFilter[layerGroup].cachedIcon && !_.isUndefined(markerIcon)) {
-                this.layerFilter[layerGroup].cachedIcon = markerIcon
-            }
         }
 
         if (_.has(userData, "markerVisibility")) {

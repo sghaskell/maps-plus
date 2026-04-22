@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.3] - 2026-04-21
+
+### Fixed
+- **Per-row `markerColor` ignored — all markers in a layer group rendered with the first row's color** (#53): An icon caching optimization introduced in v4.1.1 stored the first-built marker icon per `layerGroup` and reused it for all subsequent rows, overriding per-row `markerColor`, `iconColor`, and `icon` values. This caused every marker within the same layer group to display the color of the first row processed. Affects `png`, `svg`, `icon`, and `custom` marker types. Fixed by removing the `cachedIcon` pattern entirely — each row now builds a fresh icon, correctly honoring per-row marker fields. The stale-markers cleanup block also clears any residual cached icon between render cycles.
+
 ## [4.6.2] - 2026-03-26
 
 ### Fixed

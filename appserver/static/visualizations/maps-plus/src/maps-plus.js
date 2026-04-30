@@ -1628,17 +1628,17 @@ fetchKmlAndMap: function(url, file, fg, paneZIndex) {
 
 _setFullScreenMode: function(map, options) {
     var vh = $(window).height() - 120
-    $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+    $("div[data-cid='" + options.parentEl + "']").css("height", vh)
 
     $(window).resize(function() {
         var vh = $(window).height() - 120
-        $("div[data-cid=" + options.parentEl + "]").css("height", vh)
+        $("div[data-cid='" + options.parentEl + "']").css("height", vh)
     })
     map.invalidateSize()
 },
 
 _setDefaultHeight: function(map, options) {
-    $("div[data-cid=" + options.parentEl + "]").css("height", options.defaultHeight)
+    $("div[data-cid='" + options.parentEl + "']").css("height", options.defaultHeight)
     map.invalidateSize()
 },
 

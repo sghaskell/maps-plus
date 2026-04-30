@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.4] - 2026-04-30
+
+### Fixed
+- **Format Visualization panel crash when Splunk panel ID contains `(`** (#55): The jQuery/Sizzle selectors in `_setFullScreenMode` and `_setDefaultHeight` constructed attribute selector strings by concatenating `data-cid` values without quoting the value — e.g. `div[data-cid=foo(bar)]`. Sizzle treats `(` as a pseudo-class argument delimiter and throws a parse error, which propagated as an uncaught exception and prevented the Format panel from opening. Fixed by quoting the attribute value in all three selector sites: `div[data-cid='foo(bar)']`.
+
 ## [4.6.3] - 2026-04-21
 
 ### Fixed

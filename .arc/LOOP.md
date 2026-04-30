@@ -1,15 +1,15 @@
-# LOOP.md — Session 1
+# LOOP.md — Session 2
 **Agent:** [operator fills in model used]
 
 ## Goal
-Identify and fix the Sizzle selector crash in Maps+ that blocks the Format
-Visualization panel when a Splunk panel ID contains `(` (issue #55).
+Triage the 9 Dependabot vulnerabilities on the default branch and resolve
+or document each one.
 
 ## Definition of done
-1. Root cause confirmed and fix applied to source
-2. Fix validated on first principles or confirmed by reporter; new version
-   released to Splunkbase
+1. Each vulnerability assessed: patched, overridden with justification, or
+   explicitly accepted and documented in DISCOVERIES.md
+2. `npm audit` exits clean or all remaining findings are documented as accepted risk
 
 ## Out of scope this session
-- Any other open issues
-- Broader refactoring beyond what the fix requires
+- New features or unrelated bug fixes
+- Upgrading dependencies beyond what's needed to address the audit findings

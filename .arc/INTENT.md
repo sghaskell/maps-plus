@@ -56,6 +56,8 @@ operational dashboards (security, logistics, COP, network geo).
 - KML layer control: layer control mounted once at init to prevent duplicate DOM nodes
 - `clusterColorMap` must live outside the `isInitializedDom` block (regression fixed
   in v4.6.2)
+- GitFlow hotfix branches required for bug fix releases — branch from master, test on
+  the hotfix branch, merge to master (tag) then develop
 
 ## Critical Patterns (Must Preserve)
 
@@ -79,6 +81,8 @@ operational dashboards (security, logistics, COP, network geo).
   violate Splunk AppInspect cloud vetting policies
 - Use `eval()` on user-supplied SPL field data (security: replaced in v4.1.1)
 - Introduce multi-file module splitting that breaks the AMD single-bundle output
+- Execute the release checklist (merge, tag, package, close issues, release notes)
+  without explicit operator confirmation that the fix has been tested
 
 ## Resources
 

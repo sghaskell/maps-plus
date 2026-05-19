@@ -22,10 +22,10 @@
   },
   "overrides": {
     "serialize-javascript": "^7.0.4",
-    "lodash": "^4.17.23"
+    "lodash": "^4.18.1"
   },
   "dependencies": {
-    "@geoman-io/leaflet-geoman-free": "2.11.4",
+    "@geoman-io/leaflet-geoman-free": "2.19.3",
     "@mapbox/togeojson": "^0.16.2",
     "@maplibre/maplibre-gl-leaflet": "^0.0.22",
     "@turf/turf": "7.3.4",

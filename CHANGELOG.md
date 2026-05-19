@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.5] - 2026-05-19
+
+### Fixed
+- **Intermittent duplicate markers after time-range change** (#59): On a fast time-range change (or any user action that causes Splunk to cancel an in-flight search before its trailing zero-results "done" packet is delivered), markers from the previous render cycle could remain on the map and the new cycle's markers were drawn on top, producing duplicate pins (e.g. 10 pins instead of 5). The stale-marker cleanup added in v4.6.2 used a `_markersCleared` flag reset only when the prior cycle's `_cycleComplete` packet arrived — that signal isn't guaranteed across cancelled searches. `formatData` now resets `_markersCleared` at cycle start (when `offset === 0`) as a fallback, ensuring the clear-in-place block in `updateView` runs exactly once per render cycle regardless of whether the prior cycle's tail packet was delivered. The reset is gated on `offset === 0` so multi-chunk searches (>50k rows) are unaffected — chunk N+1 still cannot wipe chunk N's markers (issue #10 fix preserved). Diagnosed and patch direction proposed by Ben Liew (#59).
+
 ## [4.6.4] - 2026-04-30
 
 ### Fixed

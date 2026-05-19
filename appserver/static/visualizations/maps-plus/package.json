@@ -1,6 +1,6 @@
 {
   "name": "leaflet_maps_app",
-  "version": "4.6.1",
+  "version": "4.6.5",
   "description": "Leaflet maps app with Markercluster plugin functionality.",
   "main": "visualization.js",
   "scripts": {

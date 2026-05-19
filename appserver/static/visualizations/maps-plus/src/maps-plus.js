@@ -2162,6 +2162,18 @@ formatData: function(data) {
         this._markersCleared = true
         this._cycleComplete = false
     }
+
+    // Cycle-start fallback (issue #59): if this is chunk 1 of a new cycle
+    // (offset == 0) and _markersCleared is still true from the prior cycle,
+    // the previous cycle never emitted its zero-results "done" packet — this
+    // happens when Splunk cancels an in-flight search on a fast time-range
+    // change or panel refresh. Reset the flag so updateView's clear-in-place
+    // block runs exactly once for this cycle. Multi-chunk safety: chunk 2+
+    // enters formatData with offset > 0, so this no-ops mid-cycle and chunk
+    // N's markers are preserved when chunk N+1 arrives (issue #10 intact).
+    if (this.offset === 0 && this._markersCleared) {
+        this._markersCleared = false
+    }
     return data
 },
 

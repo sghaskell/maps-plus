@@ -3,6 +3,10 @@ appserver/static/visualizations/maps-plus/node_modules
 .superpowers/
 .worktrees/
 
+# Internal AI-collaboration planning/spec docs from the Superpowers skill plugin.
+# Tracked previously; removed in this commit. Keep ignored so they don't come back.
+docs/superpowers/
+
 # Local test data for docs/examples/airgapped-tile-server/ — operator-provided,
 # not committed.
 docs/examples/airgapped-tile-server/data/

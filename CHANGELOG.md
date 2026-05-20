@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.6] - 2026-05-20
+
+### Fixed
+- **Duplicate or stale markers after transforming-search preview updates**: Maps+ could render an intermediate preview result set as the final map state for SPL searches that use transforming commands such as `stats`. Splunk can update preview rows while the search is still running, so early paged preview chunks are not always identical to the completed result set. Maps+ now treats Splunk's post-completion offset-reset payload as the authoritative replacement: it clears preview-based markers, renders the completed row set, and avoids issuing another pagination request for that replacement. This prevents visible duplicate pins and missing final rows while preserving progressive rendering for multi-chunk searches.
+
 ## [4.6.5] - 2026-05-19
 
 ### Fixed

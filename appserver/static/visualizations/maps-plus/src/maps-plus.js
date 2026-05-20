@@ -263,6 +263,8 @@ initialize: function() {
     this.curPage = 0
     this.allDataProcessed = false
     this._cycleComplete = false
+    this._expectingOffsetResetReplacement = false
+    this._skipNextDataFetch = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
     this._clickMarker = null
@@ -2121,6 +2123,7 @@ formatData: function(data) {
         // Guard offset > 0 to avoid an infinite reset loop on zero-row searches.
         if (this.offset > 0) {
             this.offset = 0
+            this._expectingOffsetResetReplacement = true
             this.updateDataParams({count: this.chunk || 50000, offset: 0})
         }
         return this
@@ -2131,12 +2134,18 @@ formatData: function(data) {
     }
 
     // Post-reset re-fetch guard: after resetting to offset 0 above, Splunk
-    // immediately re-fetches the current (already-rendered) search data. Skip
-    // that render entirely. Also set _markersCleared=true so the clear-in-place
-    // block in updateView is skipped when Splunk calls updateView with the
-    // truthy return value of this formatData call.
+    // re-fetches the complete current search data. Render that payload as a
+    // replacement because transforming-search previews are not stable enough to
+    // leave on the map as final state.
     if (this.allDataProcessed) {
         this.allDataProcessed = false
+        if (this._expectingOffsetResetReplacement) {
+            this._expectingOffsetResetReplacement = false
+            this._cycleComplete = false
+            this._markersCleared = false
+            this._skipNextDataFetch = true
+            return data
+        }
         this._markersCleared = true
         return this
     }
@@ -3587,6 +3596,13 @@ updateView: function(data, config) {
                 clearInterval(that.intervalId)
             }
         }, 500, this)
+    }
+
+    // The offset-reset replacement payload is already the complete current
+    // result set. Do not page again or we can loop back into another reset.
+    if (this._skipNextDataFetch) {
+        this._skipNextDataFetch = false
+        return this
     }
 
     // Update offset and fetch next chunk of data

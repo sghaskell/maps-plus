@@ -27,6 +27,8 @@
         <view name="milsymbol" />
         <view name="selecting_markers" />
         <view name="clicked_latlng_demo" />
+        <!-- Airgapped tile-server acceptance test. See docs/airgapped-tile-server.md -->
+        <view name="airgapped_tile_test" />
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />

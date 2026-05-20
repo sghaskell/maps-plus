@@ -1,7 +1,7 @@
 Maps+ for Splunk Changelog
 ==========================
 
-## [Unreleased]
+## [4.6.7] - 2026-05-20
 
 ### Fixed
 - **Formatter help text rendered raw HTML quotes**: Two `<splunk-control-group>` `help=` attributes in `formatter.html` contained literal `"` characters inside the attribute value (e.g. `help="(Default: {"0.4":"blue"...})"`). Splunk's formatter renderer terminated the attribute at the first inner quote, truncating the help string and corrupting the surrounding markup. Replaced inner quotes with `&quot;` so the strings now render in full. Affects the **Heatmap → Color Gradient** and **Path Lines → Path Lines** controls.

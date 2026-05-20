@@ -16,6 +16,7 @@ appserver/static/visualizations/google-street-view/package.json export-ignore
 # Dev docs (not for end users)
 docs/ export-ignore
 CLAUDE.md export-ignore
+.arc/ export-ignore
 
 # Build dependencies (never ship to users)
 appserver/static/visualizations/maps-plus/node_modules/ export-ignore

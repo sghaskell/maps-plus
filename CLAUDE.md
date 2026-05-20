@@ -48,6 +48,7 @@ default/
   app.conf                # App metadata (id: leaflet_maps_app, version)
   visualizations.conf     # Declares the two custom visualizations
   data/ui/views/          # 16 example/demo dashboards (Splunk XML)
+docs/solutions/           # documented solutions to past problems (bugs, best practices, workflow patterns), organized by category with YAML frontmatter (module, tags, problem_type)
 ```
 
 ### How the Plugin Works

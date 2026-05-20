@@ -1,0 +1,195 @@
+<form version="1.1">
+  <label>Airgapped Tile Server Acceptance Test</label>
+  <description>
+    Verifies that an internal tile server is correctly wired up to Maps+ for Splunk in an airgapped environment. Set the three input fields to your internal tile server URLs, then visually confirm both the raster and vector panels render. Pair this with browser DevTools (Network tab) to confirm no requests leave the network — see the checklist panel at the bottom.
+  </description>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="text" token="tile_url" searchWhenChanged="true">
+      <label>Raster tile URL template</label>
+    </input>
+    <input type="text" token="style_url" searchWhenChanged="true">
+      <label>MapLibre vector style URL</label>
+    </input>
+    <input type="text" token="attribution" searchWhenChanged="true">
+      <label>Attribution text</label>
+      <default>© OpenStreetMap contributors</default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <h2>What this dashboard does</h2>
+        <p>
+          Two map panels load the same six synthetic markers (one per continent) against your internal tile server: one in raster mode (Map Tile Override) and one in vector mode (MapLibre Style URL). The markers are globally distributed so you can immediately see which regions of the world are covered by your mirrored tile set — a marker on a grey background means the tiles for that region weren't mirrored.
+        </p>
+        <p>
+          <b>Set the three inputs above before evaluating the maps below.</b> They default to empty so this dashboard does not hardcode a tile-server URL — it works for any deployment.
+        </p>
+        <h3>Quick start: bundled Docker Compose example</h3>
+        <p>
+          If you brought up the example stack from <code>docs/examples/airgapped-tile-server/</code> on the same host as Splunk, paste these into the inputs above:
+        </p>
+        <table>
+          <tr><td><b>Raster tile URL template</b></td><td><code>http://localhost/styles/basic-preview/{z}/{x}/{y}.png</code></td></tr>
+          <tr><td><b>MapLibre vector style URL</b></td><td><code>http://localhost/styles/STYLE.airgapped.json</code> — replace <code>STYLE</code> with <code>liberty</code>, <code>positron</code>, <code>bright</code>, or <code>fiord</code> depending on which style you mirrored with <code>mirror-openfreemap.sh</code></td></tr>
+          <tr><td><b>Attribution text</b></td><td><code>© OpenStreetMap contributors</code></td></tr>
+        </table>
+        <p>
+          Replace <code>localhost</code> with the hostname of your tile server (e.g. <code>tiles.corp.internal</code>) for any deployment not on the same host as Splunk. If Splunk Web is served over HTTPS, the tile server URLs must also be <code>https://</code> or the browser will block them as mixed content.
+        </p>
+        <h3>Pass criteria</h3>
+        <p>
+          Both maps render with map labels, country borders, and roads visible at the default zoom; all six markers are clickable and show popups; pan and zoom interactions are smooth; nothing in the browser's Network tab points at <code>basemaps.cartocdn.com</code>, <code>tile.openstreetmap.org</code>, <code>tiles.openfreemap.org</code>, or any other public CDN.
+        </p>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel rejects="$tile_url$">
+      <html>
+        <h3>Raster panel hidden — set <b>Raster tile URL template</b> above</h3>
+        <p>
+          The raster map panel is hidden until you fill in the input above. This prevents the dashboard from accidentally hitting Maps+'s built-in default basemap (CartoDB CDN) while you're trying to verify the airgap. See the Quick start block above for ready-to-paste values for the bundled Compose example.
+        </p>
+      </html>
+    </panel>
+    <panel rejects="$style_url$">
+      <html>
+        <h3>Vector panel hidden — set <b>MapLibre vector style URL</b> above</h3>
+        <p>
+          The vector map panel is hidden until you fill in the input above. This prevents the dashboard from loading MapLibre's built-in OpenFreeMap preset (public CDN) while you're trying to verify the airgap. See the Quick start block above for ready-to-paste values for the bundled Compose example.
+        </p>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel depends="$tile_url$">
+      <title>Raster mode — Map Tile Override = $tile_url$</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=6
+| streamstats count as row
+| eval latitude=case(row=1, "40.7128", row=2, "51.5074", row=3, "-33.8688", row=4, "35.6762", row=5, "-22.9068", row=6, "-1.2921"),
+       longitude=case(row=1, "-74.0060", row=2, "-0.1278", row=3, "151.2093", row=4, "139.6503", row=5, "-43.1729", row=6, "36.8219"),
+       title=case(row=1, "New York", row=2, "London", row=3, "Sydney", row=4, "Tokyo", row=5, "Rio de Janeiro", row=6, "Nairobi"),
+       description="Airgap test marker: ".title,
+       tooltip=title,
+       icon="map-marker",
+       markerColor="green",
+       layerGroup="airgap-test"
+| table latitude, longitude, title, description, tooltip, icon, markerColor, layerGroup</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapAttributionOverride">$attribution$</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">20</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">0</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">2</option>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+        <option name="leaflet_maps_app.maps-plus.mapTileOverride">$tile_url$</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.useOpenFreeMap">0</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+
+  <row>
+    <panel depends="$style_url$">
+      <title>Vector mode — MapLibre Style URL = $style_url$</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=6
+| streamstats count as row
+| eval latitude=case(row=1, "40.7128", row=2, "51.5074", row=3, "-33.8688", row=4, "35.6762", row=5, "-22.9068", row=6, "-1.2921"),
+       longitude=case(row=1, "-74.0060", row=2, "-0.1278", row=3, "151.2093", row=4, "139.6503", row=5, "-43.1729", row=6, "36.8219"),
+       title=case(row=1, "New York", row=2, "London", row=3, "Sydney", row=4, "Tokyo", row=5, "Rio de Janeiro", row=6, "Nairobi"),
+       description="Airgap test marker: ".title,
+       tooltip=title,
+       icon="map-marker",
+       markerColor="blue",
+       layerGroup="airgap-test"
+| table latitude, longitude, title, description, tooltip, icon, markerColor, layerGroup</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
+        <option name="leaflet_maps_app.maps-plus.mapAttributionOverride">$attribution$</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">20</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">0</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">2</option>
+        <option name="leaflet_maps_app.maps-plus.maplibreStyleOverride">$style_url$</option>
+        <option name="leaflet_maps_app.maps-plus.maplibreStylePreset">liberty</option>
+        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
+        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
+        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+        <option name="leaflet_maps_app.maps-plus.useOpenFreeMap">1</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <html>
+        <h2>Acceptance checklist</h2>
+        <p>Open browser DevTools (F12) → Network tab → reload this dashboard. Then walk through this list:</p>
+        <ol>
+          <li>
+            <b>Both maps render with visible labels, borders, and roads.</b><br/>
+            If one or both are blank/grey, the tile server URL is wrong, unreachable, or returning non-200 responses. Filter the Network tab by <code>Status</code> to find 404s/500s.
+          </li>
+          <li>
+            <b>All six markers are visible</b> (New York, London, Sydney, Tokyo, Rio de Janeiro, Nairobi)<b>, on a non-grey background.</b><br/>
+            A grey background under a marker means tiles for that region weren't mirrored. Either expand your tile set's geographic coverage or accept the gap as scope-limited.
+          </li>
+          <li>
+            <b>Every request in the Network tab targets your internal tile server.</b><br/>
+            Filter the Network tab by URL — look for any host that isn't your tile host. Common leaks: <code>basemaps.cartocdn.com</code>, <code>tile.openstreetmap.org</code>, <code>tiles.openfreemap.org</code>, <code>server.arcgisonline.com</code>, font CDNs. If you see any, the corresponding Maps+ option above is still pointing at the default.
+          </li>
+          <li>
+            <b>Zoom in to a marker (e.g. New York at z=14) — tiles still load.</b><br/>
+            If labels disappear when you zoom in, you mirrored too few zoom levels. <code>tilemaker</code> by default produces z0–z14; some pre-made tile packs only go to z10.
+          </li>
+          <li>
+            <b>Vector panel: rotate the map (right-click drag) — labels stay readable.</b><br/>
+            Vector tiles support rotation natively. If labels disappear or the map is blank, fonts or sprites are missing — see "Troubleshooting" in <code>docs/airgapped-tile-server.md</code>.
+          </li>
+          <li>
+            <b>Reload with the browser cache disabled</b> (DevTools → Network → "Disable cache"), and confirm step 3 still holds. Cached tiles from earlier sessions can mask outbound leaks.
+          </li>
+        </ol>
+        <p>
+          <b>Final sign-off command</b> (run on the Splunk web host while reloading this dashboard):
+        </p>
+        <pre>sudo tcpdump -i any -n -c 200 \
+  'host basemaps.cartocdn.com or host tile.openstreetmap.org or host tiles.openfreemap.org'</pre>
+        <p>
+          Expected output: <b>zero captured packets</b>. Any packets here means a Maps+ setting somewhere is still pointing at a public CDN — re-check Map Tile, Map Tile Override, MapLibre Style URL, and OpenFreeMap toggle on every Maps+ panel in your environment, not just this dashboard.
+        </p>
+      </html>
+    </panel>
+  </row>
+</form>

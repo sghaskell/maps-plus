@@ -1,6 +1,21 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.7] - 2026-05-20
+
+### Fixed
+- **Formatter help text rendered raw HTML quotes**: Two `<splunk-control-group>` `help=` attributes in `formatter.html` contained literal `"` characters inside the attribute value (e.g. `help="(Default: {"0.4":"blue"...})"`). Splunk's formatter renderer terminated the attribute at the first inner quote, truncating the help string and corrupting the surrounding markup. Replaced inner quotes with `&quot;` so the strings now render in full. Affects the **Heatmap → Color Gradient** and **Path Lines → Path Lines** controls.
+
+### Documentation
+- **Airgapped tile server guide** ([`docs/airgapped-tile-server.md`](docs/airgapped-tile-server.md)): Step-by-step guide for self-hosting raster and vector map tiles in environments with no internet access. Covers three architectures — `tilemaker` + `tileserver-gl` (recommended for most deployments), pre-rendered raster pyramid behind nginx, and full `renderd`/`mod_tile`/PostGIS stack — with disk-size sizing, licensing notes (ODbL / OpenMapTiles CC-BY / OpenFreeMap MIT), an end-to-end OpenFreeMap asset mirror script (style JSON, fonts, sprites, Natural Earth hillshade), and instructions for pointing Maps+ at the resulting tile server via the **Map Tile Override** or **MapLibre Style URL** formatter fields.
+- **Docker Compose example** ([`docs/examples/airgapped-tile-server/`](docs/examples/airgapped-tile-server/)): Reference deployment of `tileserver-gl` + nginx with CORS, 30-day tile caching, static serving of MapLibre style assets, and an HTTPS server block ready to enable for production. Includes `mirror-openfreemap.sh`, a standalone script that mirrors any of the four free OpenFreeMap styles (Liberty, Positron, Bright, Fiord) along with their fonts, sprites, and the Natural Earth hillshade rasters they reference, and produces an airgapped style JSON with all URLs pre-rewritten to a configurable internal hostname. The shipped `nginx.conf` is end-to-end verified against a live Maps+ dashboard and handles two non-obvious gotchas: (1) `proxy_hide_header Access-Control-Allow-Origin` is required in the proxy block because `tileserver-gl` also sets ACAO and browsers reject duplicate ACAO headers per the CORS spec, and (2) the static `/styles/` location matches only `*.json` (via regex `^/styles/[^/]+\.json$`) so that tileserver-gl keeps owning `/styles/{name}/{z}/{x}/{y}.png` server-side raster rendering.
+
+### Added
+- **Acceptance-test dashboard `airgapped_tile_test.xml`**: A form-based dashboard with three text inputs (raster tile URL, MapLibre style URL, attribution) and two map panels rendering the same six globally-distributed synthetic markers (one per continent) — one in raster mode via Map Tile Override, one in vector mode via MapLibre Style URL. Tile URL inputs default to empty: each map panel is hidden via `depends="$token$"` until the corresponding input is filled, with explanatory placeholder panels that surface in their place. This prevents the dashboard from accidentally hitting Maps+'s built-in default basemaps (CartoDB CDN for raster, OpenFreeMap public CDN for vector) and producing false-positive "leaks" on first load. Includes an inline Quick-start block with copy-paste URLs for the bundled Docker Compose example, a six-point acceptance checklist, and a `tcpdump` sign-off command. Registered in the app sidebar under Examples. Designed for airgapped-deployment verification but works equally well as a quick functional smoke-test against any custom tile server.
+
+### Changed
+- **README link** to the new airgapped guide added under a new "Airgapped / on-prem deployment" subsection.
+
 ## [4.6.6] - 2026-05-20
 
 ### Fixed

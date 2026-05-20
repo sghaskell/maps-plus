@@ -54,6 +54,9 @@ Big thanks to the following people:
 ### Compatibility
 Maps+ for Splunk is compatible with **Splunk 10.x**
 
+### Airgapped / on-prem deployment
+Running Maps+ in an environment with no internet access? See [docs/airgapped-tile-server.md](docs/airgapped-tile-server.md) for a step-by-step guide to standing up an internal tile server (raster or vector) and pointing Maps+ at it via the **Map Tile Override** or **MapLibre Style URL** fields.
+
 ## AppInspect Notes
 The warnings about "hotlinking" Leaflet are false positives. Leaflet is bundled 
 via Webpack into visualization.js - the imports are resolved at build time, 

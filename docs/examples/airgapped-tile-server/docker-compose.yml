@@ -1,0 +1,63 @@
+# Airgapped tile server for Maps+ for Splunk
+#
+# Two-container stack: tileserver-gl serves vector + on-the-fly raster tiles
+# from a local .mbtiles file; nginx fronts it with caching, CORS, and static
+# serving of fonts/sprites/styles/hillshade rasters.
+#
+# Prerequisites:
+#   1. ./data/ contains your generated .mbtiles file (see Approach A in
+#      ../../airgapped-tile-server.md).
+#   2. ./data/styles/, ./data/fonts/, ./data/sprites/, ./data/natural_earth/
+#      contain the mirrored OpenFreeMap assets (see section A.3 of the guide).
+#
+# Usage:
+#   docker compose up -d
+#   curl http://localhost/styles/liberty.airgapped.json
+#
+# To enable TLS, add your own cert/key under ./tls/ and uncomment the 443
+# server block in nginx.conf.
+
+services:
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    container_name: tileserver-gl
+    restart: unless-stopped
+    # Bind to loopback only — nginx is the public face.
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data:/data:ro
+    # --file picks up the .mbtiles automatically. For multiple .mbtiles or
+    # custom styles, replace with a config.json and pass `--config /data/config.json`.
+    command: ["--file", "us-west.mbtiles"]
+    # tileserver-gl's image is distroless-ish — node is available but wget/curl
+    # are not. Use a tiny node one-liner instead.
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "require('http').get('http://localhost:8080/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: tiles-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # - "443:443"   # uncomment after dropping certs into ./tls/
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./data:/srv/tiles:ro
+      - tile-cache:/var/cache/nginx/tiles
+      # - ./tls:/etc/nginx/tls:ro   # uncomment for HTTPS
+    depends_on:
+      tileserver:
+        condition: service_healthy
+
+volumes:
+  tile-cache:

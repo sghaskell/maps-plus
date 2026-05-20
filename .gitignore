@@ -2,3 +2,12 @@ formatter.html.updated
 appserver/static/visualizations/maps-plus/node_modules
 .superpowers/
 .worktrees/
+
+# Local test data for docs/examples/airgapped-tile-server/ — operator-provided,
+# not committed.
+docs/examples/airgapped-tile-server/data/
+docs/examples/airgapped-tile-server/docker-compose.override.yml
+
+# Airgap acceptance-test run artifacts (screenshots, network logs). The driver
+# scripts themselves (airgap_drive.py, airgap_screenshot.py) ARE committed.
+docs/investigations/2026-05-20-within-cycle-duplicates/airgap_test_results/

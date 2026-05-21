@@ -2,6 +2,7 @@ formatter.html.updated
 appserver/static/visualizations/maps-plus/node_modules
 .superpowers/
 .worktrees/
+.arc/
 
 # Internal AI-collaboration planning/spec docs from the Superpowers skill plugin.
 # Tracked previously; removed in this commit. Keep ignored so they don't come back.

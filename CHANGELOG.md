@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.8] - 2026-05-22
+
+### Fixed
+- **Panel stuck on infinite loading after rapid filter change**: When a user changed or cleared a dashboard filter while a paginated render cycle was still in flight (the panel had emitted at least one chunk and was waiting for more), Splunk cancelled the in-flight search and started a fresh one. The fresh search's first delivery to `formatData` is an empty preview chunk (`results=[], meta.done=false`); the existing zero-results early-return swallowed it without touching `this.offset`. The next call to `updateView` then paginated from the previous cycle's stale offset (e.g. 797) against the new search's smaller result set, fell past the end, and the cycle dead-stalled. The map kept its Leaflet "spinning" overlay forever and the user had to click the panel Refresh button to recover. `formatData`'s zero-results path now detects this case (`offset > 0` mid-cycle, no offset-reset replacement in flight, not all-data-processed), resets `offset=0`, clears `_markersCleared`/`_cycleComplete`, and calls `updateDataParams({offset: 0})` so the new search's first real chunk is requested at the start of the result set. Verified against the customer's repro dashboard: the previous build stuck on 3 of 6 rapid-filter-change scenarios (`seq_3s`, `seq_300ms`, `seq_clear`); after the fix all 6 scenarios recover cleanly. Mid-cycle pagination behavior on healthy multi-chunk searches is preserved (chunks with non-empty results never enter this branch). Reported and reproduction provided by Ambulance Australia.
+
 ## [4.6.7] - 2026-05-20
 
 ### Fixed

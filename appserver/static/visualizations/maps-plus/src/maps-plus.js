@@ -2130,6 +2130,26 @@ formatData: function(data) {
     }
 
     if(data.results.length == 0)  {
+        // Mid-cycle search restart guard (issue: stuck loading on filter
+        // change). When a user changes a dashboard filter while a paginated
+        // cycle is in flight (offset > 0), Splunk cancels the current
+        // search and starts a fresh one. The fresh search's first
+        // formatData delivery is an empty preview chunk (results=[],
+        // meta.done=false). Without this guard the early-return above
+        // leaves our stale offset in place; the next updateView paginates
+        // from offset > 0 against the new (smaller) result set, falls past
+        // the end, and the cycle dead-stalls — the customer sees an
+        // infinite map spinner. Resetting offset to 0 and requesting the
+        // first chunk lets the new search's data flow through normally.
+        // Guard !_expectingOffsetResetReplacement so the legitimate
+        // offset-reset replacement path above still owns its empty preview.
+        if (this.offset > 0 && !this._expectingOffsetResetReplacement
+                            && !this.allDataProcessed) {
+            this.offset = 0
+            this._markersCleared = false
+            this._cycleComplete = false
+            this.updateDataParams({count: this.chunk || 50000, offset: 0})
+        }
         return this
     }
 

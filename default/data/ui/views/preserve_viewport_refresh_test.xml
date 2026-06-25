@@ -1,0 +1,148 @@
+<dashboard version="1.1">
+  <label>Preserve Viewport on Refresh (Test)</label>
+  <description>Acceptance test for GitHub #63 — panel search auto-refresh vs Maps+ viewport behavior. Requires Maps+ 4.6.9+.</description>
+  <row>
+    <panel>
+      <html>
+        <h2>How to test panel auto-refresh</h2>
+        <p>
+          Splunk re-runs the panel search on a timer when <code>&lt;refresh&gt;</code> is set
+          <strong>inside the panel's</strong> <code>&lt;search&gt;</code> block (not on a separate
+          base search). Both maps below use <code>&lt;refresh&gt;10s&lt;/refresh&gt;</code> with
+          <code>&lt;refreshType&gt;delay&lt;/refreshType&gt;</code> (next run starts 10 seconds
+          after the previous run finishes).
+        </p>
+        <p>
+          Static lookups like <code>chicago-crime.csv</code> do not change between refreshes, so the
+          map can look unchanged even when it <em>did</em> re-render. This dashboard rotates which
+          crimes are shown every 10 seconds and updates the <b>Refresh heartbeat</b> panel so you
+          can confirm the search is re-running.
+        </p>
+        <ol>
+          <li>Wait for the first load — both maps auto-fit to Chicago.</li>
+          <li>Zoom into a neighborhood on each map (cluster breaks apart above zoom 14).</li>
+          <li>Wait for at least one 10s refresh cycle.</li>
+          <li>
+            <b>Left map</b> (Preserve Viewport <b>Disabled</b>, default): viewport should snap back
+            to the full-city fit on every refresh.
+          </li>
+          <li>
+            <b>Right map</b> (Preserve Viewport <b>Enabled</b>): viewport should stay where you
+            left it; markers and the beacon tooltip update in place.
+          </li>
+          <li>Right-click either map → <b>Auto Fit &amp; Zoom</b> to re-center manually.</li>
+        </ol>
+        <p>
+          If nothing updates, confirm you installed <b>Maps+ 4.6.9+</b>, open this dashboard from
+          <b>Classic (Simple XML)</b> view (not Dashboard Studio), and check that the heartbeat
+          timestamp below changes every ~10 seconds.
+        </p>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Refresh heartbeat (confirms search re-runs)</title>
+      <search>
+        <query>| makeresults count=1
+| eval last_refresh=strftime(now(), "%Y-%m-%d %H:%M:%S")
+| eval cycle=floor(now()/10)%6
+| eval cycle_label=case(cycle=0,"A", cycle=1,"B", cycle=2,"C", cycle=3,"D", cycle=4,"E", 1=1,"F")
+| table last_refresh, cycle, cycle_label</query>
+        <earliest>-1m</earliest>
+        <latest>now</latest>
+        <refresh>10s</refresh>
+        <refreshType>delay</refreshType>
+      </search>
+      <option name="count">10</option>
+      <option name="drilldown">none</option>
+      <option name="refresh.display">progressbar</option>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Default — Preserve Viewport Disabled (re-fits every refresh)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <title>preserveViewportOnRefresh=0</title>
+        <search>
+          <query>| inputlookup chicago-crime.csv
+| eval cycle=floor(now()/10)%6
+| eval bucket=(round(latitude*100)+round(longitude*100))%6
+| where bucket=cycle
+| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
+| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".strftime(now(), "%H:%M:%S"), tooltip=description, clusterGroup="default"
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
+| append [
+    | makeresults count=1
+    | eval latitude=41.8781, longitude=-87.6298
+    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".floor(now()/10)%6." @ ".strftime(now(), "%H:%M:%S")
+    | eval tooltip=description, markerColor="red", icon="refresh", clusterGroup="beacon", layerDescription="beacon"
+    | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
+]</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.preserveViewportOnRefresh">0</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">14</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.8781</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.6298</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">10</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>Issue #63 — Preserve Viewport Enabled</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <title>preserveViewportOnRefresh=1</title>
+        <search>
+          <query>| inputlookup chicago-crime.csv
+| eval cycle=floor(now()/10)%6
+| eval bucket=(round(latitude*100)+round(longitude*100))%6
+| where bucket=cycle
+| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
+icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
+layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
+| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".strftime(now(), "%H:%M:%S"), tooltip=description, clusterGroup="default"
+| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
+| append [
+    | makeresults count=1
+    | eval latitude=41.8781, longitude=-87.6298
+    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".floor(now()/10)%6." @ ".strftime(now(), "%H:%M:%S")
+    | eval tooltip=description, markerColor="red", icon="refresh", clusterGroup="beacon", layerDescription="beacon"
+    | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
+]</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
+        <option name="leaflet_maps_app.maps-plus.preserveViewportOnRefresh">1</option>
+        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
+        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">14</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.8781</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.6298</option>
+        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">10</option>
+        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

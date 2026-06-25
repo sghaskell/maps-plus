@@ -23,6 +23,7 @@ display.visualizations.custom.leaflet_maps_app.maps-plus.contextMenu = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoomDelay = <int>
+display.visualizations.custom.leaflet_maps_app.maps-plus.preserveViewportOnRefresh = <string>
 display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom = <int>
 display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat = <float>
 display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon = <float>

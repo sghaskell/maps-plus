@@ -1,6 +1,11 @@
 Maps+ for Splunk Changelog
 ==========================
 
+## [4.6.9] - 2026-06-25
+
+### Added
+- **Preserve Viewport on Refresh formatter option** (GitHub #63): New Map Settings control, disabled by default, that keeps the map at its current zoom and position after the first load when search results refresh (auto-refresh, filter changes, time range changes, and manual panel refresh). When enabled, Auto Fit & Zoom runs once on initial load only; use the context menu **Auto Fit & Zoom** to re-center manually. Dashboards that rely on the map re-fitting to all data on every refresh are unchanged unless this option is explicitly enabled.
+
 ## [4.6.8] - 2026-05-22
 
 ### Fixed

@@ -45,8 +45,8 @@
       <title>Refresh heartbeat (confirms search re-runs)</title>
       <search>
         <query>| makeresults count=1
-| eval last_refresh=strftime(now(), "%Y-%m-%d %H:%M:%S")
-| eval cycle=floor(now()/10)%6
+| eval last_refresh=strftime(now(), '%Y-%m-%d %H:%M:%S')
+| eval cycle=floor(now()/10) % 6
 | eval cycle_label=case(cycle=0,"A", cycle=1,"B", cycle=2,"C", cycle=3,"D", cycle=4,"E", 1=1,"F")
 | table last_refresh, cycle, cycle_label</query>
         <earliest>-1m</earliest>
@@ -66,18 +66,22 @@
         <title>preserveViewportOnRefresh=0</title>
         <search>
           <query>| inputlookup chicago-crime.csv
-| eval cycle=floor(now()/10)%6
-| eval bucket=(round(latitude*100)+round(longitude*100))%6
+| eval cycle=floor(now()/10) % 6
+| eval bucket=(round(latitude*100)+round(longitude*100)) % 6
 | where bucket=cycle
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
-layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
-| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".strftime(now(), "%H:%M:%S"), tooltip=description, clusterGroup="default"
+| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue")
+| eval icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+| eval layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
+| eval refresh_ts=strftime(now(), '%H:%M:%S')
+| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".refresh_ts
+| eval tooltip=description, clusterGroup="default"
 | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
 | append [
     | makeresults count=1
     | eval latitude=41.8781, longitude=-87.6298
-    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".floor(now()/10)%6." @ ".strftime(now(), "%H:%M:%S")
+    | eval cycle=floor(now()/10) % 6
+    | eval refresh_ts=strftime(now(), '%H:%M:%S')
+    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".cycle." @ ".refresh_ts
     | eval tooltip=description, markerColor="red", icon="refresh", clusterGroup="beacon", layerDescription="beacon"
     | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
 ]</query>
@@ -108,18 +112,22 @@ layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", c
         <title>preserveViewportOnRefresh=1</title>
         <search>
           <query>| inputlookup chicago-crime.csv
-| eval cycle=floor(now()/10)%6
-| eval bucket=(round(latitude*100)+round(longitude*100))%6
+| eval cycle=floor(now()/10) % 6
+| eval bucket=(round(latitude*100)+round(longitude*100)) % 6
 | where bucket=cycle
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
-layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
-| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".strftime(now(), "%H:%M:%S"), tooltip=description, clusterGroup="default"
+| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue")
+| eval icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
+| eval layerDescription=case(cycle=0,"Cycle A", cycle=1,"Cycle B", cycle=2,"Cycle C", cycle=3,"Cycle D", cycle=4,"Cycle E", 1=1,"Cycle F")
+| eval refresh_ts=strftime(now(), '%H:%M:%S')
+| eval description="&lt;b&gt;".description."&lt;/b&gt;&lt;br/&gt;cycle=".cycle." refresh=".refresh_ts
+| eval tooltip=description, clusterGroup="default"
 | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
 | append [
     | makeresults count=1
     | eval latitude=41.8781, longitude=-87.6298
-    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".floor(now()/10)%6." @ ".strftime(now(), "%H:%M:%S")
+    | eval cycle=floor(now()/10) % 6
+    | eval refresh_ts=strftime(now(), '%H:%M:%S')
+    | eval description="&lt;b&gt;Refresh beacon&lt;/b&gt;&lt;br/&gt;cycle=".cycle." @ ".refresh_ts
     | eval tooltip=description, markerColor="red", icon="refresh", clusterGroup="beacon", layerDescription="beacon"
     | table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, layerDescription
 ]</query>

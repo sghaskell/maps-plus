@@ -168,6 +168,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.defaultHeight': 600,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoom': 1,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.autoFitAndZoomDelay': 500,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.preserveViewportOnRefresh': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterZoom': 6,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLat': 39.50,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.mapCenterLon': -98.35,
@@ -265,6 +266,7 @@ initialize: function() {
     this._cycleComplete = false
     this._expectingOffsetResetReplacement = false
     this._skipNextDataFetch = false
+    this._preserveViewportInitialized = false
 
     this.pixelRatio = parseInt(window.devicePixelRatio) || 1
     this._clickMarker = null
@@ -2246,6 +2248,7 @@ updateView: function(data, config) {
         defaultHeight = parseInt(this._getEscapedProperty('defaultHeight', config)),
         autoFitAndZoom = parseInt(this._getEscapedProperty('autoFitAndZoom', config)),
         autoFitAndZoomDelay = parseInt(this._getEscapedProperty('autoFitAndZoomDelay', config)),
+        preserveViewportOnRefresh = parseInt(this._getEscapedProperty('preserveViewportOnRefresh', config)),
         mapCenterZoom = parseInt(this._getEscapedProperty('mapCenterZoom', config)),
         mapCenterLat = parseFloat(this._getEscapedProperty('mapCenterLat', config)),
         mapCenterLon = parseFloat(this._getEscapedProperty('mapCenterLon', config)),
@@ -2373,12 +2376,19 @@ updateView: function(data, config) {
         }
 
         if(this.isArgTrue(autoFitAndZoom)) {
-            setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
-                                                                  layerFilter: this.layerFilter,
-                                                                  heatLayers: this.heatLayers,
-                                                                  pathLineLayers: this.pathLineLayers,
-                                                                  featureLayers: this.featureLayers,
-                                                                  context: this})
+            if(!this.isArgTrue(preserveViewportOnRefresh) || !this._preserveViewportInitialized) {
+                if(this.isArgTrue(preserveViewportOnRefresh)) {
+                    this._preserveViewportInitialized = true
+                }
+                setTimeout(this.fitLayerBounds, autoFitAndZoomDelay, {map: this.map, 
+                                                                      layerFilter: this.layerFilter,
+                                                                      heatLayers: this.heatLayers,
+                                                                      pathLineLayers: this.pathLineLayers,
+                                                                      featureLayers: this.featureLayers,
+                                                                      context: this})
+            }
+        } else if(this.isArgTrue(preserveViewportOnRefresh)) {
+            this._preserveViewportInitialized = true
         }
     } 
     
@@ -3039,9 +3049,11 @@ updateView: function(data, config) {
         }
     }
 
-    // Reset map zoom
-    if (this.map.getZoom() != mapCenterZoom) {
-        this.map.setZoom(mapCenterZoom)
+    // Reset map zoom (skip after first load when preserveViewportOnRefresh is enabled)
+    if (!this.isArgTrue(preserveViewportOnRefresh) || !this._preserveViewportInitialized) {
+        if (this.map.getZoom() != mapCenterZoom) {
+            this.map.setZoom(mapCenterZoom)
+        }
     }
 
     this.allDataPoints = {

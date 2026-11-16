@@ -60,6 +60,7 @@ define([
         ) {
 
 
+var tokensCompat = require('./compat/tokens')
 
 var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
@@ -1993,6 +1994,11 @@ _addMarker: function(options) {
 
     if(this.isArgTrue(options.drilldown)) {
         var drilldownFields = this.validateFields(options.userData)
+        // Flag the DOM event so the map click handler (clickLatLngToken) doesn't send a second
+        // drilldown for the same click in Dashboard Studio. Registered first so it runs first.
+        marker.on(options.drilldownAction, function(ev) {
+            if (ev && ev.originalEvent) { ev.originalEvent._mpMarkerDrilldown = true }
+        })
         marker.on(options.drilldownAction, this._drilldown.bind(this, drilldownFields))
     }
 
@@ -2588,18 +2594,6 @@ updateView: function(data, config) {
             var precision = parseInt(_mapClickSelf._getEscapedProperty('clickLatLngPrecision', _mapClickSelf.getCurrentConfig())) || 4;
             var lat = e.latlng.lat.toFixed(precision);
             var lng = e.latlng.lng.toFixed(precision);
-            var defaultTokenModel = splunkjs.mvc.Components.get('default');
-            var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
-            if (defaultTokenModel) {
-                defaultTokenModel.set('clickedLat', lat);
-                defaultTokenModel.set('clickedLng', lng);
-                defaultTokenModel.set('clickedLatLng', lat + ',' + lng);
-            }
-            if (submittedTokenModel) {
-                submittedTokenModel.set('clickedLat', lat);
-                submittedTokenModel.set('clickedLng', lng);
-                submittedTokenModel.set('clickedLatLng', lat + ',' + lng);
-            }
             if (_mapClickSelf.isArgTrue(parseInt(_mapClickSelf._getEscapedProperty('showClickMarker', _mapClickSelf.getCurrentConfig())))) {
                 if (_mapClickSelf._clickMarker) {
                     _mapClickSelf.map.removeLayer(_mapClickSelf._clickMarker);
@@ -2613,6 +2607,14 @@ updateView: function(data, config) {
                     })
                 }).addTo(_mapClickSelf.map);
             }
+            var _tokDeps = { splunkjs: (typeof splunkjs !== 'undefined' ? splunkjs : undefined), FIELD_VALUE_DRILLDOWN: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN };
+            // Without splunkjs (Dashboard Studio) tokens go out as a drilldown. Skip it when this
+            // click already produced a marker drilldown (circle markers bubble their clicks to the
+            // map); clicks on features/paths, which have no drilldown of their own, still emit.
+            if (!_tokDeps.splunkjs && e.originalEvent && e.originalEvent._mpMarkerDrilldown) {
+                return;
+            }
+            tokensCompat.setTokens(_mapClickSelf, {clickedLat: lat, clickedLng: lng, clickedLatLng: lat + ',' + lng}, e.originalEvent, _tokDeps);
         });
 
         // Dark Mode Support
@@ -2724,18 +2726,11 @@ updateView: function(data, config) {
             function updateSelectedPoints() {
                 var ptsWithinbuff = turf.pointsWithinPolygon(_viz.allDataPoints, _viz.selectingMarkersLayer.toGeoJSON());
                 var selectedPoints = [];
+                var _rows = _viz._lastDataRows || dataRows;
                 for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
-                    selectedPoints.push(dataRows[ptsWithinbuff.features[i].properties.row]);
+                    selectedPoints.push(_rows[ptsWithinbuff.features[i].properties.row]);
                 }
-                var defaultTokenModel = splunkjs.mvc.Components.get('default');
-                var submittedTokenModel = splunkjs.mvc.Components.get('submitted');
-                var selected_points = JSON.stringify(selectedPoints);
-                if (defaultTokenModel) {
-                    defaultTokenModel.set("mapmarkers", selected_points);
-                }
-                if (submittedTokenModel) {
-                    submittedTokenModel.set("mapmarkers", selected_points);
-                }
+                tokensCompat.setTokens(_viz, {mapmarkers: JSON.stringify(selectedPoints)}, undefined, {splunkjs: (typeof splunkjs !== 'undefined' ? splunkjs : undefined), FIELD_VALUE_DRILLDOWN: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN});
             }
 
             _viz.map.on('pm:create', function(e) {
@@ -3056,6 +3051,9 @@ updateView: function(data, config) {
         }
     }
 
+    // Rows that allDataPoints' `row` indices refer to (used by the selectingMarkers lasso).
+    // Set here, after the empty-result early return, so both always describe the same render.
+    this._lastDataRows = dataRows
     this.allDataPoints = {
         "type": "FeatureCollection",
         "features": []

@@ -60,6 +60,7 @@ define([
         ) {
 
 
+var rowsCompat = require('./compat/rows')
 
 var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
@@ -2396,6 +2397,10 @@ updateView: function(data, config) {
     // Use an empty array so the map still initializes and shows a blank tile instead of a white div.
     // Guard with Array.isArray: SplunkVisualizationBase may set this.results = null, so
     // _.has returns true but data.results is null, crashing dataRows.length below.
+    // Dashboard Studio sends empty cells as null; treat them as absent (classic omits the key).
+    if (_.has(data, 'results') && Array.isArray(data.results)) {
+        data.results = rowsCompat.normalizeRows(data.results)
+    }
     var dataRows = (_.has(data, 'results') && Array.isArray(data.results)) ? data.results : []
 
     // If the map is already rendered and there's no new data, nothing to update
@@ -3020,12 +3025,14 @@ updateView: function(data, config) {
     }
 
     // Validate we have at least latitude and longitude fields
-    if (!("latitude" in dataRows[0]) || !("longitude" in dataRows[0])) {
-        if (!("feature" in dataRows[0])) {
-            throw new SplunkVisualizationBase.VisualizationError(
-                'Incorrect Fields Detected - latitude & longitude fields required'
-            )
-        }
+    if (!rowsCompat.findGeoRow(dataRows)) {
+        throw new SplunkVisualizationBase.VisualizationError(
+            // List the search's columns (data.fields), not row 0's keys: null cells were dropped by normalizeRows.
+            'Incorrect Fields Detected - need latitude & longitude, or feature. Columns seen: ' +
+            (_.isArray(data.fields) && data.fields.length
+                ? _.map(data.fields, function(f) { return _.isObject(f) ? f.name : f })
+                : _.keys(dataRows[0] || {})).join(', ')
+        )
     }
 
     // Map Scroll
@@ -3182,6 +3189,12 @@ updateView: function(data, config) {
         }
 
         // Feature Layer implemented as polygon, but could be point, line or polygon
+        // Skip rows with neither coordinates nor a feature (e.g. a header/tooltip-only row);
+        // otherwise a marker would be created at NaN. Placed after the heatmap block so heat behavior is unchanged.
+        if(!_.has(userData, "feature") && !(_.has(userData, "latitude") && _.has(userData, "longitude"))) {
+            return
+        }
+
         if(_.has(userData, "feature")) {
             const featureLayer = this.featureLayer = _.has(userData, "featureLayer") ? userData["featureLayer"]:"feature"
             let feature

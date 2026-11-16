@@ -8,7 +8,8 @@
     "build:debug": "webpack --env debug",
     "deploy": "npm run build && bash scripts/deploy.sh",
     "watch": "webpack --watch",
-    "test": "jest"
+    "test": "jest",
+    "check:defaults": "node scripts/check-defaults.js"
   },
   "author": "Splunk",
   "license": "MIT",

@@ -329,36 +329,15 @@ _darkModeInit: function () {
                   '.leaflet-contextmenu-icon{margin:2px 8px 0 0;width:16px;height:16px;float:left;border:0}',
                   '.leaflet-contextmenu-separator{border-bottom:1px solid #fff;margin:5px 0}']
 
-    // Find the contextmenu @import sub-stylesheet inside visualization.css by
-    // walking cssRules and identifying it by content (.leaflet-contextmenu selector),
-    // rather than relying on a hardcoded index or taking the first @import found.
-    var sheet = $('link[rel="stylesheet"][href*="visualization.css"]')[0].sheet
-    var darkModeStylesheet = null
-    for (var r = 0; r < sheet.cssRules.length; r++) {
-        var rule = sheet.cssRules[r]
-        if (rule.styleSheet) {
-            var subSheet = rule.styleSheet
-            for (var s = 0; s < subSheet.cssRules.length; s++) {
-                if (subSheet.cssRules[s].selectorText &&
-                    subSheet.cssRules[s].selectorText.indexOf('leaflet-contextmenu') >= 0) {
-                    darkModeStylesheet = subSheet
-                    break
-                }
-            }
-            if (darkModeStylesheet) break
-        }
-    }
-    if (!darkModeStylesheet) return
-
-    // delete styles from newest to oldest
-    for(var i = darkModeStylesheet.cssRules.length - 1; i >= 0; i--) {
-        darkModeStylesheet.deleteRule(i)
-    }
-
-    // insert dark styles
-    for(var i = 0; i < styles.length; i++) {
-        darkModeStylesheet.insertRule(styles[i], i)
-    }
+    // Inject dark context-menu styles via a <style> element. Reading/editing the
+    // imported contextmenu stylesheet's cssRules throws SecurityError in Dashboard
+    // Studio's null-origin iframe, so we append rules instead. Later rules with the
+    // same selectors override the earlier light rules.
+    if (document.getElementById('maps-plus-dark-contextmenu')) return
+    var styleEl = document.createElement('style')
+    styleEl.id = 'maps-plus-dark-contextmenu'
+    styleEl.textContent = styles.join('\n')
+    document.head.appendChild(styleEl)
 },
 
 _darkModeUpdate: function() {

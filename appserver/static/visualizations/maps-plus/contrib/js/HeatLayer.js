@@ -52,6 +52,7 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
     },
 
     redraw: function () {
+        if (!this._map) { return this; }
         if (this._heat && !this._frame && !this._map._animating) {
             this._frame = L.Util.requestAnimFrame(this._redraw, this);
         }
@@ -92,6 +93,11 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
 
         if (map.options.zoomAnimation) {
             map.off('zoomanim', this._animateZoom, this);
+        }
+
+        if (this._frame) {
+            L.Util.cancelAnimFrame(this._frame);
+            this._frame = null;
         }
     },
 
@@ -143,6 +149,9 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
     },
 
     _redraw: function () {
+        if (!this._map) { this._frame = null; return; }
+        if (!this._canvas || !this._canvas.width || !this._canvas.height) { this._frame = null; return; }
+
         var data = [],
             r = this._heat._r,
             size = this._map.getSize(),

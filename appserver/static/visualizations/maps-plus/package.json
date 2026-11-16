@@ -5,10 +5,12 @@
   "main": "visualization.js",
   "scripts": {
     "build": "webpack",
-    "build:debug": "webpack --env debug",
+    "build:debug": "npm run fonts && webpack --env debug",
     "deploy": "npm run build && bash scripts/deploy.sh",
     "watch": "webpack --watch",
-    "test": "jest"
+    "test": "jest",
+    "fonts": "node scripts/inline-fonts.js",
+    "prebuild": "node scripts/inline-fonts.js"
   },
   "author": "Splunk",
   "license": "MIT",

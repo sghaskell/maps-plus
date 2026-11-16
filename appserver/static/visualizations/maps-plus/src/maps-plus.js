@@ -60,6 +60,7 @@ define([
         ) {
 
 
+var basemapCompat = require('./compat/basemap')
 
 var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
@@ -435,8 +436,35 @@ onConfigChange: function(configChanges, previousConfig) {
             ? this._getSafeUrlProperty('maplibreStyleOverride', configChanges)
             : this._getSafeUrlProperty('maplibreStyleOverride', previousConfig)
 
+    // A key the user just changed is the user's choice, even when its value equals a default that
+    // Maps+ injected earlier (e.g. picking "Disabled" or CARTO Light): stop treating it as injected.
+    if (this._mpInjectedDefaults) {
+        _.each(_.keys(configChanges || {}), function(k) { delete this._mpInjectedDefaults[k] }, this)
+    }
+    // Keyless default (MP-08): explicit = present (non-empty) in the merged user config.
+    var _mergedCfg = _.extend({}, basemapCompat.withoutInjected(previousConfig, this._mpInjectedDefaults), configChanges),
+        _bmExplicit = basemapCompat.explicitKeys(_mergedCfg),
+        _bmValues = {},
+        _bmNs = this.getPropertyNamespaceInfo().propertyNamespace
+    _.each(_bmExplicit, function(v, k) { _bmValues[k] = _mergedCfg[_bmNs + k] })
+    var _basemap = basemapCompat.resolveBasemap({explicit: _bmExplicit, values: _bmValues, isDark: this.isDarkTheme})
+    var _wasOfm = !!this._basemapIsOfm
+    useOpenFreeMap = _basemap.useOpenFreeMap
+    if (_basemap.auto || !_bmExplicit.maplibreStylePreset) { maplibreStylePreset = _basemap.stylePreset }
+    this._basemapIsOfm = useOpenFreeMap
+    var _bingOn = basemapCompat.isTrue(_bmValues.bingMaps)
 
-    if (!useOpenFreeMap) {
+    // Switching from the OpenFreeMap layer back to raster (e.g. a tile was just chosen): rebuild raster layer
+    if (!useOpenFreeMap && _wasOfm && !_bingOn && this.tileLayer && !this.tileLayer.setUrl) {
+        var _url = mapTileOverride ? mapTileOverride : mapTile
+        this.tileLayer.remove()
+        // tileOptions has no attribution when the map started on OpenFreeMap: set it explicitly.
+        var _attribution = this._getEscapedProperty('mapAttributionOverride', _mergedCfg) || this.ATTRIBUTIONS[_url] || ''
+        this.tileLayer = L.tileLayer(_url, $.extend({}, this.tileOptions, {minZoom: minZoom, maxZoom: maxZoom, attribution: _attribution}))
+        this.map.addLayer(this.tileLayer)
+    }
+
+    if (!useOpenFreeMap && this.tileLayer && this.tileLayer.setUrl) {
         // Update tile layer
         if(this._propertyExists('mapTile', configChanges) && (_.isUndefined(mapTileOverride) ||  mapTileOverride == "")) {
             this.tileLayer.setUrl(mapTile)
@@ -454,6 +482,7 @@ onConfigChange: function(configChanges, previousConfig) {
 
     // Handle OpenFreeMap style changes
     if (useOpenFreeMap && (
+        !_wasOfm ||
         this._propertyExists('useOpenFreeMap', configChanges) ||
         this._propertyExists('maplibreStylePreset', configChanges) ||
         this._propertyExists('maplibreStyleOverride', configChanges) ||
@@ -2212,6 +2241,16 @@ formatData: function(data) {
 updateView: function(data, config) {
     // viz gets passed empty config until you click the 'format' dropdown
     // intialize with defaults
+    // The Format panel's "Auto" choices are empty strings: treat them as unset so defaults apply (MP-08).
+    var _bmNsU = this.getPropertyNamespaceInfo().propertyNamespace
+    _.each(['mapTile', 'useOpenFreeMap', 'maplibreStylePreset'], function(k) {
+        if (config && config[_bmNsU + k] === '') { delete config[_bmNsU + k] }
+    })
+    // Which basemap options did the user EXPLICITLY set? Ignore keys Maps+ injected from
+    // defaultConfig on an earlier render (they are merged into this same object below).
+    var explicitBasemapConfig = basemapCompat.withoutInjected(config, this._mpInjectedDefaults)
+    var explicitBasemapKeys = (_.keys(config).length <= 1) ? {} : basemapCompat.explicitKeys(explicitBasemapConfig)
+
     if(_.keys(config).length <= 1) {
         config = this.defaultConfig
     }
@@ -2220,8 +2259,13 @@ updateView: function(data, config) {
     // their inputs and rebuilt fresh each render cycle, but reused within it.
     this._milsymbolIconCache = {}
 
-    // Populate any missing config values with defaults
-    _.defaults(config, this.defaultConfig)
+    // Populate any missing config values with defaults, in place as before (other code reads them
+    // back through getCurrentConfig()), and remember what was injected so it isn't later mistaken
+    // for an explicit user setting.
+    if (config !== this.defaultConfig) {
+        this._mpInjectedDefaults = _.extend({}, this._mpInjectedDefaults,
+            basemapCompat.mergeDefaultsRecording(config, this.defaultConfig))
+    }
 
     // get configs
     var cluster     = parseInt(this._getEscapedProperty('cluster', config)),
@@ -2409,9 +2453,20 @@ updateView: function(data, config) {
         renderer = this._getEscapedProperty('renderer', config),
         pathSplitInterval = parseInt(this._getEscapedProperty('pathSplitInterval', config))
 
-    // Auto-select CartoDB Dark when Splunk dark theme is active and the user
-    // has not explicitly chosen a tile (i.e. mapTile is still the default value).
-    // An explicit user selection in the Format panel always takes precedence.
+    // Keyless default (MP-08): use OpenFreeMap unless the user explicitly chose a basemap.
+    var _ns = this.getPropertyNamespaceInfo().propertyNamespace
+    var _basemapValues = {}
+    _.each(explicitBasemapKeys, function(v, k) { _basemapValues[k] = explicitBasemapConfig[_ns + k] })
+    var _basemap = basemapCompat.resolveBasemap({explicit: explicitBasemapKeys, values: _basemapValues, isDark: this.isDarkTheme})
+    useOpenFreeMap = _basemap.useOpenFreeMap ? 1 : 0
+    if (_basemap.auto || !explicitBasemapKeys.maplibreStylePreset) { maplibreStylePreset = _basemap.stylePreset }
+    // Record the mode only when the basemap layer is actually built (first render, in the init
+    // block below). Later basemap switches go through onConfigChange, which updates it itself.
+    if (!this.isInitializedDom) { this._basemapIsOfm = !!_basemap.useOpenFreeMap }
+
+    // CARTO dark switch: only reachable now when raster tiles are in use with the default (CARTO light)
+    // tile, i.e. an explicit CARTO Light selection or useOpenFreeMap=0 with no tile. With nothing
+    // explicit the OpenFreeMap path above handles dark theme. An explicit tile choice still wins.
     var _defaultTile = this.defaultConfig[this.getPropertyNamespaceInfo().propertyNamespace + 'mapTile']
     var _effectiveTile = (this.isDarkTheme && mapTile === _defaultTile)
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
@@ -3032,8 +3087,8 @@ updateView: function(data, config) {
     (this.isArgTrue(scrollWheelZoom)) ? this.map.scrollWheelZoom.enable() : this.map.scrollWheelZoom.disable()
 
     if(!this.isArgTrue(bingMaps) && !this.isArgTrue(useOpenFreeMap)) {
-        // Reset Tile If Changed
-        if(this.tileLayer._url != this.activeTile) {
+        // Reset Tile If Changed (only raster layers have setUrl; the OpenFreeMap layer doesn't)
+        if(this.tileLayer && this.tileLayer.setUrl && this.tileLayer._url != this.activeTile) {
             this.tileLayer.setUrl(this.activeTile)
         }
     }

@@ -260,7 +260,7 @@
         "type": "absolute",
         "options": {
           "width": 1440,
-          "height": 2241,
+          "height": 2402,
           "display": "auto",
           "backgroundColor": "#FFFFFF"
         },
@@ -292,7 +292,7 @@
               "x": 720,
               "y": 622,
               "w": 720,
-              "h": 1319
+              "h": 1480
             }
           },
           {
@@ -300,7 +300,7 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 1941,
+              "y": 2102,
               "w": 480,
               "h": 300
             }
@@ -310,7 +310,7 @@
             "type": "block",
             "position": {
               "x": 480,
-              "y": 1941,
+              "y": 2102,
               "w": 480,
               "h": 300
             }
@@ -320,7 +320,7 @@
             "type": "block",
             "position": {
               "x": 960,
-              "y": 1941,
+              "y": 2102,
               "w": 480,
               "h": 300
             }

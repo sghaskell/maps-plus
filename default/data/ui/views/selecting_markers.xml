@@ -197,7 +197,7 @@
         "type": "absolute",
         "options": {
           "width": 1440,
-          "height": 2316,
+          "height": 2346,
           "display": "auto",
           "backgroundColor": "#FFFFFF"
         },
@@ -239,7 +239,7 @@
               "x": 720,
               "y": 490,
               "w": 720,
-              "h": 1336
+              "h": 1366
             }
           },
           {
@@ -247,7 +247,7 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 1826,
+              "y": 1856,
               "w": 1440,
               "h": 190
             }
@@ -257,7 +257,7 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 2016,
+              "y": 2046,
               "w": 1440,
               "h": 300
             }

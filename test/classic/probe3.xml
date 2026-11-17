@@ -1,0 +1,30 @@
+<dashboard version="1.1">
+  <label>Maps+ probe - heat, feature and marker layers across refreshes (MP-03, MP-04)</label>
+  <description>Probe harness, classic. H: heatA visible, heatB hidden. H2: both heat layers hidden. Same SPL and options as test/studio/probe3.json. See test/README.md.</description>
+  <row>
+    <panel>
+      <title>H - heatA (visible) and heatB (layerVisibility=false), 1 feature, 5 markers (MP-03, MP-04)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults | eval feature="34.02,-118.30;34.02,-118.20;34.08,-118.20;34.08,-118.30", featureLayer="zone", layerDescription="Zone polygon", layerVisibility="true", heatmapInclude="false" | append [| makeresults count=200 | streamstats count as n | eval latitude=34.05+(random()/2147483647-0.5)*0.1, longitude=-118.25+(random()/2147483647-0.5)*0.1, heatmapLayer=if(n&lt;=100,"heatA","heatB"), heatmapInclude="true", layerDescription=heatmapLayer, layerVisibility=if(n&lt;=100,"true","false"), markerVisibility="false"] | append [| makeresults count=5 | streamstats count as m | eval latitude=34.05+(m-3)*0.012, longitude=-118.25, tooltip="Marker ".m, markerType="circle", heatmapInclude="false", layerGroup="Markers", layerDescription="Markers", layerVisibility="true"] | table feature featureLayer layerDescription layerVisibility heatmapLayer heatmapInclude latitude longitude markerVisibility tooltip markerType layerGroup</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>H2 - both heat layers layerVisibility=false, 1 feature, 5 markers (MP-03, MP-04)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults | eval feature="34.02,-118.30;34.02,-118.20;34.08,-118.20;34.08,-118.30", featureLayer="zone", layerDescription="Zone polygon", layerVisibility="true", heatmapInclude="false" | append [| makeresults count=200 | streamstats count as n | eval latitude=34.05+(random()/2147483647-0.5)*0.1, longitude=-118.25+(random()/2147483647-0.5)*0.1, heatmapLayer=if(n&lt;=100,"heatA","heatB"), heatmapInclude="true", layerDescription=heatmapLayer, layerVisibility="false", markerVisibility="false"] | append [| makeresults count=5 | streamstats count as m | eval latitude=34.05+(m-3)*0.012, longitude=-118.25, tooltip="Marker ".m, markerType="circle", heatmapInclude="false", layerGroup="Markers", layerDescription="Markers", layerVisibility="true"] | table feature featureLayer layerDescription layerVisibility heatmapLayer heatmapInclude latitude longitude markerVisibility tooltip markerType layerGroup</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.heatmapEnable">1</option>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

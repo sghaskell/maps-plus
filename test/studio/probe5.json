@@ -1,0 +1,125 @@
+{
+  "title": "Maps+ probe - basemaps (MP-08, MP-09)",
+  "description": "Probe harness. Six panels, same 3-marker search, different basemap settings. No API key is used in this file. See test/README.md.",
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "-15m",
+            "latest": "now"
+          }
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_t1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T1 - mapTile OpenStreetMap (MP-08)",
+      "dataSources": { "primary": "ds_t1" },
+      "options": {
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      }
+    },
+    "viz_t2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T2 - useOpenFreeMap=1 (MP-08)",
+      "dataSources": { "primary": "ds_t2" },
+      "options": {
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1"
+      }
+    },
+    "viz_t3": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T3 - CARTO light_all, no key (watermark expected today) (MP-08)",
+      "dataSources": { "primary": "ds_t3" },
+      "options": {
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+      }
+    },
+    "viz_t4": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T4 - Esri World Imagery (MP-08)",
+      "dataSources": { "primary": "ds_t4" },
+      "options": {
+        "leaflet_maps_app.maps-plus.mapTile": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      }
+    },
+    "viz_t5": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T5 - mapTile with &query string; tiles load only if & is not escaped (MP-09)",
+      "dataSources": { "primary": "ds_t5" },
+      "options": {
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?a=1&b=2"
+      }
+    },
+    "viz_t6": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "T6 - no basemap options at all (default) (MP-08)",
+      "dataSources": { "primary": "ds_t6" },
+      "options": {}
+    }
+  },
+  "dataSources": {
+    "ds_t1": {
+      "type": "ds.search",
+      "name": "T1 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    },
+    "ds_t2": {
+      "type": "ds.search",
+      "name": "T2 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    },
+    "ds_t3": {
+      "type": "ds.search",
+      "name": "T3 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    },
+    "ds_t4": {
+      "type": "ds.search",
+      "name": "T4 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    },
+    "ds_t5": {
+      "type": "ds.search",
+      "name": "T5 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    },
+    "ds_t6": {
+      "type": "ds.search",
+      "name": "T6 three markers",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip=\"Marker \".n | table latitude longitude tooltip"
+      }
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 1320,
+      "display": "auto"
+    },
+    "structure": [
+      { "item": "viz_t1", "type": "block", "position": { "x": 0, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_t2", "type": "block", "position": { "x": 720, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_t3", "type": "block", "position": { "x": 0, "y": 440, "w": 720, "h": 420 } },
+      { "item": "viz_t4", "type": "block", "position": { "x": 720, "y": 440, "w": 720, "h": 420 } },
+      { "item": "viz_t5", "type": "block", "position": { "x": 0, "y": 880, "w": 720, "h": 420 } },
+      { "item": "viz_t6", "type": "block", "position": { "x": 720, "y": 880, "w": 720, "h": 420 } }
+    ],
+    "globalInputs": []
+  }
+}

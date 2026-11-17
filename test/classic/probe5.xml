@@ -1,0 +1,75 @@
+<dashboard version="1.1">
+  <label>Maps+ probe - basemaps (MP-08, MP-09)</label>
+  <description>Probe harness, classic. Six panels, same 3-marker search, different basemap settings. No API key is used in this file. Same options as test/studio/probe5.json. See test/README.md.</description>
+  <row>
+    <panel>
+      <title>T1 - mapTile OpenStreetMap (MP-08)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>T2 - useOpenFreeMap=1 (MP-08)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.useOpenFreeMap">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>T3 - CARTO light_all, no key (watermark expected today) (MP-08)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>T4 - Esri World Imagery (MP-08)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>T5 - mapTile with &amp;query string; tiles load only if the ampersand is not escaped (MP-09)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?a=1&amp;b=2</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>T6 - no basemap options at all (default) (MP-08)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.02, longitude=-118.25+n*0.02, tooltip="Marker ".n | table latitude longitude tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

@@ -1,0 +1,65 @@
+{
+  "title": "Maps+ probe - heat, feature and marker layers across refreshes (MP-03, MP-04)",
+  "description": "Probe harness. H: two heat layers, the second visible. H2: both heat layers hidden at load. See test/README.md.",
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "-15m",
+            "latest": "now"
+          }
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_h": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "H - heat layers heatA (visible) and heatB (layerVisibility=false), 1 feature, 5 markers (MP-03, MP-04)",
+      "dataSources": { "primary": "ds_h" },
+      "options": {
+        "leaflet_maps_app.maps-plus.heatmapEnable": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1"
+      }
+    },
+    "viz_h2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "H2 - both heat layers layerVisibility=false, 1 feature, 5 markers (MP-03, MP-04)",
+      "dataSources": { "primary": "ds_h2" },
+      "options": {
+        "leaflet_maps_app.maps-plus.heatmapEnable": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_h": {
+      "type": "ds.search",
+      "name": "H heat plus feature plus markers",
+      "options": {
+        "query": "| makeresults | eval feature=\"34.02,-118.30;34.02,-118.20;34.08,-118.20;34.08,-118.30\", featureLayer=\"zone\", layerDescription=\"Zone polygon\", layerVisibility=\"true\", heatmapInclude=\"false\" | append [| makeresults count=200 | streamstats count as n | eval latitude=34.05+(random()/2147483647-0.5)*0.1, longitude=-118.25+(random()/2147483647-0.5)*0.1, heatmapLayer=if(n<=100,\"heatA\",\"heatB\"), heatmapInclude=\"true\", layerDescription=heatmapLayer, layerVisibility=if(n<=100,\"true\",\"false\"), markerVisibility=\"false\"] | append [| makeresults count=5 | streamstats count as m | eval latitude=34.05+(m-3)*0.012, longitude=-118.25, tooltip=\"Marker \".m, markerType=\"circle\", heatmapInclude=\"false\", layerGroup=\"Markers\", layerDescription=\"Markers\", layerVisibility=\"true\"] | table feature featureLayer layerDescription layerVisibility heatmapLayer heatmapInclude latitude longitude markerVisibility tooltip markerType layerGroup"
+      }
+    },
+    "ds_h2": {
+      "type": "ds.search",
+      "name": "H2 heat hidden plus feature plus markers",
+      "options": {
+        "query": "| makeresults | eval feature=\"34.02,-118.30;34.02,-118.20;34.08,-118.20;34.08,-118.30\", featureLayer=\"zone\", layerDescription=\"Zone polygon\", layerVisibility=\"true\", heatmapInclude=\"false\" | append [| makeresults count=200 | streamstats count as n | eval latitude=34.05+(random()/2147483647-0.5)*0.1, longitude=-118.25+(random()/2147483647-0.5)*0.1, heatmapLayer=if(n<=100,\"heatA\",\"heatB\"), heatmapInclude=\"true\", layerDescription=heatmapLayer, layerVisibility=\"false\", markerVisibility=\"false\"] | append [| makeresults count=5 | streamstats count as m | eval latitude=34.05+(m-3)*0.012, longitude=-118.25, tooltip=\"Marker \".m, markerType=\"circle\", heatmapInclude=\"false\", layerGroup=\"Markers\", layerDescription=\"Markers\", layerVisibility=\"true\"] | table feature featureLayer layerDescription layerVisibility heatmapLayer heatmapInclude latitude longitude markerVisibility tooltip markerType layerGroup"
+      }
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 620,
+      "display": "auto"
+    },
+    "structure": [
+      { "item": "viz_h", "type": "block", "position": { "x": 0, "y": 0, "w": 720, "h": 600 } },
+      { "item": "viz_h2", "type": "block", "position": { "x": 720, "y": 0, "w": 720, "h": 600 } }
+    ],
+    "globalInputs": []
+  }
+}

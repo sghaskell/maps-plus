@@ -61,7 +61,7 @@ define([
 
 
 
-return SplunkVisualizationBase.extend({
+var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
 paneZIndex: 400,
 tileLayer: null,
@@ -218,17 +218,16 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackDateControl': 1,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.showPlaybackPlayControl': 1,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackTickLength': 50, 
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 1.0,
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.playbackSpeed': 100,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapEnable': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapOnly': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapMinOpacity': 1.0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapRadius': 25,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.heatmapBlur': 15,
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.splunkVersionCheck': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticProj': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.antarcticMapTile': "https://tile.gbif.org/3031/omt/{z}/{x}/{y}@{r}x.png?gbif-geyser",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsLayerId': "MODIS_Aqua_CorrectedReflectance_TrueColor",
-    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsFormat': "image/jpeg",
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsFormat': "jpg",
     'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsLowerCorner': -4194304,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsUpperCorner': 4194304,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.gibsTileMatrixSet': "250m",
@@ -243,6 +242,7 @@ defaultConfig:  {
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackground': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msInfoBackgroundFrame': '""',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.msOutlineColor': '""',
+    'display.visualizations.custom.leaflet_maps_app.maps-plus.msStandard': '',
     'display.visualizations.custom.leaflet_maps_app.maps-plus.selectingMarkers': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngToken': 0,
     'display.visualizations.custom.leaflet_maps_app.maps-plus.clickLatLngPrecision': 4,
@@ -2320,7 +2320,7 @@ updateView: function(data, config) {
         msColorMode = this._getEscapedProperty('msColorMode', config),
         msInfoBackground = this._stringToJSON(this._getProperty('msInfoBackground', config)),
         msInfoBackgroundFrame = this._stringToJSON(this._getProperty('msInfoBackgroundFrame', config)),
-        msStandard = this._getEscapedProperty('msInfoBackgroundFrame', config),
+        msStandard = this._getEscapedProperty('msStandard', config),
         msOutlineColor = this._stringToJSON(this._getProperty('msOutlineColor', config)),
         selectingMarkers = parseInt(this._getEscapedProperty('selectingMarkers', config)),
         clickLatLngToken = parseInt(this._getEscapedProperty('clickLatLngToken', config)),
@@ -3647,4 +3647,13 @@ updateView: function(data, config) {
     return this
 }
 })
+
+// Debug builds only (npm run build:debug): draw errors and cycle/layer state on the panel.
+// __MP_DEBUG__ is replaced at build time by webpack's DefinePlugin; when false, webpack
+// drops this branch and the overlay module is not bundled.
+if (__MP_DEBUG__) {
+    require('./compat/debug-overlay').install(MapsPlus)
+}
+
+return MapsPlus
 })

@@ -1,0 +1,66 @@
+<form version="1.1">
+  <label>Maps+ probe - assets, drilldown, click tokens (MP-05, MP-07)</label>
+  <description>Probe harness, classic. Panels E, F, G with token readouts. Same SPL and options as test/studio/probe2.json. See test/README.md.</description>
+  <init>
+    <set token="picked">none</set>
+    <set token="clickedLatLng">none</set>
+  </init>
+  <row>
+    <panel>
+      <title>E - customIcon=marker-icon.png on 2 rows (MP-05)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=2 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, markerType="png", customIcon="marker-icon.png", tooltip="custom ".n | table latitude longitude markerType customIcon tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>F - marker click sets token picked from row.picked (MP-07)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=2 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, picked=if(n=1,"area1","area2"), tooltip="Click: ".picked, markerType="circle" | table latitude longitude picked tooltip markerType</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
+        <option name="leaflet_maps_app.maps-plus.drilldownAction">click</option>
+        <drilldown>
+          <set token="picked">$row.picked$</set>
+        </drilldown>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>F readout (expect: none until a marker is clicked)</title>
+      <html>
+        <p>Picked: $picked$</p>
+      </html>
+    </panel>
+    <panel>
+      <title>G - clickLatLngToken=1, showClickMarker=1 (MP-07)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, clickedLatLng=latitude.",".longitude, tooltip="G ".n | table latitude longitude clickedLatLng tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.clickLatLngToken">1</option>
+        <option name="leaflet_maps_app.maps-plus.showClickMarker">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>G readout (classic sets $clickedLatLng$ directly from a map click)</title>
+      <html>
+        <p>Clicked: $clickedLatLng$</p>
+        <p>Lat: $clickedLat$ Lng: $clickedLng$</p>
+      </html>
+    </panel>
+  </row>
+</form>

@@ -2607,11 +2607,11 @@ updateView: function(data, config) {
                     })
                 }).addTo(_mapClickSelf.map);
             }
-            var _tokDeps = { splunkjs: (typeof splunkjs !== 'undefined' ? splunkjs : undefined), FIELD_VALUE_DRILLDOWN: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN };
-            // Without splunkjs (Dashboard Studio) tokens go out as a drilldown. Skip it when this
+            var _tokDeps = tokensCompat.tokenDeps(SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN);
+            // In Dashboard Studio (sandboxed frame) tokens go out as a drilldown. Skip it when this
             // click already produced a marker drilldown (circle markers bubble their clicks to the
             // map); clicks on features/paths, which have no drilldown of their own, still emit.
-            if (!_tokDeps.splunkjs && e.originalEvent && e.originalEvent._mpMarkerDrilldown) {
+            if (tokensCompat.usesDrilldown(_tokDeps) && e.originalEvent && e.originalEvent._mpMarkerDrilldown) {
                 return;
             }
             tokensCompat.setTokens(_mapClickSelf, {clickedLat: lat, clickedLng: lng, clickedLatLng: lat + ',' + lng}, e.originalEvent, _tokDeps);
@@ -2730,7 +2730,7 @@ updateView: function(data, config) {
                 for (var i=0; i<ptsWithinbuff.features.length;i++ ) {
                     selectedPoints.push(_rows[ptsWithinbuff.features[i].properties.row]);
                 }
-                tokensCompat.setTokens(_viz, {mapmarkers: JSON.stringify(selectedPoints)}, undefined, {splunkjs: (typeof splunkjs !== 'undefined' ? splunkjs : undefined), FIELD_VALUE_DRILLDOWN: SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN});
+                tokensCompat.setTokens(_viz, {mapmarkers: JSON.stringify(selectedPoints)}, undefined, tokensCompat.tokenDeps(SplunkVisualizationBase.FIELD_VALUE_DRILLDOWN));
             }
 
             _viz.map.on('pm:create', function(e) {

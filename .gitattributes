@@ -9,6 +9,8 @@ appserver/static/visualizations/maps-plus/src/ export-ignore
 appserver/static/visualizations/maps-plus/webpack.config.js export-ignore
 appserver/static/visualizations/maps-plus/package.json export-ignore
 appserver/static/visualizations/maps-plus/scripts/ export-ignore
+appserver/static/visualizations/maps-plus/tests/ export-ignore
+appserver/static/visualizations/maps-plus/jest.config.js export-ignore
 appserver/static/visualizations/google-street-view/src/ export-ignore
 appserver/static/visualizations/google-street-view/webpack.config.js export-ignore
 appserver/static/visualizations/google-street-view/package.json export-ignore
@@ -28,5 +30,6 @@ appserver/static/visualizations/maps-plus/node_modules/ export-ignore
 
 # Development files
 build_release.sh export-ignore
+test/ export-ignore
 README.md export-ignore
 CHANGELOG.md export-ignore

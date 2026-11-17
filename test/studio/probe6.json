@@ -1,0 +1,65 @@
+{
+  "title": "Maps+ probe - layerVisibility regression and dark theme (MP-14, MP-15)",
+  "description": "Probe harness. V1 is the SPL from upstream issue #67 (layerVisibility in 4.6.9). V2 is probe A with contextMenu=1, meant to be viewed in the Dark theme. Set the dashboard theme to Dark when creating it. See test/README.md.",
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "-15m",
+            "latest": "now"
+          }
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_v1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "V1 - issue #67 SPL, layerControl on, layerControlCollapsed off (MP-14)",
+      "dataSources": { "primary": "ds_v1" },
+      "options": {
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "0"
+      }
+    },
+    "viz_v2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "V2 - probe A markers with contextMenu=1, view in Dark theme (MP-15)",
+      "dataSources": { "primary": "ds_v2" },
+      "options": {
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_v1": {
+      "type": "ds.search",
+      "name": "V1 issue 67 layerVisibility",
+      "options": {
+        "query": "| makeresults format=csv data=\"colour,icon,latitude,layerDescription,layerVisibility,longitude,markerColor\n#DA291C,person-booth,-32.2773,Alexander Davis (5591260938),true,115.7316,blue\n#DA291C,person-booth,-37.8186,Alexander Davis (5591260938),true,145.1218,blue\n#DA291C,person-booth,-19.259,Alexander Davis (5591260938),true,146.8169,blue\n#DA291C,person-booth,-37.8186,Bruce Harris (4443311595),false,145.1218,blue\n#DA291C,person-booth,-31.7467,Bruce Harris (4443311595),false,115.7677,blue\n#DA291C,person-booth,-33.9674,Bruce Harris (4443311595),false,151.1003,blue\n#DA291C,person-booth,-31.7467,Bruce Johnson (4855239848),false,115.7677,blue\n#DA291C,person-booth,-37.9145,Bruce Johnson (4855239848),false,145.1195,blue\n#DA291C,person-booth,-33.7511,Bruce Johnson (4855239848),false,150.6942,blue\n#DA291C,person-booth,-34.727,John Williams (6827779716),false,138.6689,blue\n#DA291C,person-booth,-37.8003,John Williams (6827779716),false,144.8995,blue\n#DA291C,person-booth,-33.7511,John Williams (6827779716),false,150.6942,blue\" | eval layerGroup=layerDescription"
+      }
+    },
+    "ds_v2": {
+      "type": "ds.search",
+      "name": "V2 probe A markers",
+      "options": {
+        "query": "| makeresults count=4 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25 | eval markerType=case(n=1,\"png\",n=2,\"svg\",n=3,\"icon\",true(),\"circle\"), markerColor=case(n=2,\"#1f78b4\",true(),\"red\"), icon=\"train\", prefix=\"fa\", layerGroup=\"t\".n, layerDescription=\"Type \".markerType, tooltip=markerType | table latitude longitude markerType markerColor icon prefix layerGroup layerDescription tooltip"
+      }
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 420,
+      "display": "auto"
+    },
+    "structure": [
+      { "item": "viz_v1", "type": "block", "position": { "x": 0, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_v2", "type": "block", "position": { "x": 720, "y": 0, "w": 720, "h": 420 } }
+    ],
+    "globalInputs": []
+  }
+}

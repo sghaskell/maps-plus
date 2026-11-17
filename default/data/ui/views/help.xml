@@ -1,382 +1,792 @@
-<dashboard version="1.1">
+<dashboard version="2" theme="light">
   <label>Help</label>
-  <row>
-    <html>
-      <h1 id="mapsforsplunk">Maps+ for Splunk</h1>
-<h3 id="synopsis">Synopsis</h3>
-<p>The mapping equivalent of a Swiss Army knife for Splunk.</p>
-<h3 id="credits">Credits</h3>
-<h4 id="includedopensourcesoftware">Included Open Source Software</h4>
-<h5 id="leafletmapshttpleafletjscom"><a href="http://leafletjs.com/">Leaflet Maps</a></h5>
-<h5 id="leafletmarkerclusterpluginhttpsgithubcomleafletleafletmarkercluster"><a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet Markercluster Plugin</a></h5>
-<h5 id="leafletawesomemarkerspluginhttpswwwnpmjscompackagedrmontyleafletawesomemarkers"><a href="https://www.npmjs.com/package/drmonty-leaflet-awesome-markers">Leaflet Awesome Markers Plugin</a></h5>
-<h5 id="leafletvectormarkerspluginhttpsgithubcomhiasinholeafletvectormarkers"><a href="https://github.com/hiasinho/Leaflet.vector-markers">Leaflet.vector-markers Plugin</a></h5>
-<h5 id="leafletfeaturegroupsubgrouphttpsgithubcomghybsleafletfeaturegroupsubgroup"><a href="https://github.com/ghybs/Leaflet.FeatureGroup.SubGroup">Leaflet.FeatureGroup.SubGroup</a></h5>
-<h5 id="leafletmeasurehttpswwwnpmjscompackageleafletmeasure"><a href="https://www.npmjs.com/package/leaflet-measure">leaflet-measure</a></h5>
-<h5 id="leafletcontextmenuhttpsgithubcomaratcliffeleafletcontextmenu"><a href="https://github.com/aratcliffe/Leaflet.contextmenu">Leaflet.contextmenu</a></h5>
-<h5 id="leafletbinglayerhttpsgithubcomdigidemleafletbinglayer"><a href="https://github.com/digidem/leaflet-bing-layer">leaflet-bing-layer</a></h5>
-<h5 id="leafletdialoghttpsgithubcomnbtsolutionsleafletdialog"><a href="https://github.com/NBTSolutions/Leaflet.Dialog">Leaflet.Dialog</a></h5>
-<h5 id="leafletspinhttpsgithubcommakinacorpusleafletspin"><a href="https://github.com/makinacorpus/Leaflet.Spin">Leaflet.spin</a></h5>
-<h5 id="spinjshttpsgithubcomfgnassspinjs"><a href="https://github.com/fgnass/spin.js">spin.js</a></h5>
-<h5 id="togeojsonhttpsgithubcommapboxtogeojson"><a href="https://github.com/mapbox/togeojson">togeojson</a></h5>
-<h5 id="loadgooglemapsapihttpswwwnpmjscompackageloadgooglemapsapiusage"><a href="https://www.npmjs.com/package/load-google-maps-api#usage">load-google-maps-api</a></h5>
-<h5 id="loadgoogleplacesautocompletehttpswwwnpmjscompackageleafletgoogleplacesautocomplete"><a href="https://www.npmjs.com/package/leaflet-google-places-autocomplete">load-google-places-autocomplete</a></h5>
-<h5 id="loadgooglemapsapi2httpswwwnpmjscompackageloadgooglemapsapi2"><a href="https://www.npmjs.com/package/load-google-maps-api-2">load-google-maps-api-2</a></h5>
-<h5 id="jsziphttpsstukgithubiojszip"><a href="https://stuk.github.io/jszip/">JSZip</a></h5>
-<h5 id="jsziputilshttpstukgithubiojsziputils"><a href="http://stuk.github.io/jszip-utils/">JSZipUtils</a></h5>
-<h5 id="jqueryhttpsjquerycom"><a href="https://jquery.com/">Jquery</a></h5>
-<h5 id="underscorejshttpunderscorejsorg"><a href="http://underscorejs.org/">Underscore.js</a></h5>
-<h5 id="webpackhttpswebpackgithubio"><a href="https://webpack.github.io/">Webpack</a></h5>
-<h5 id="transformloaderhttpswwwnpmjscompackagetransformloader"><a href="https://www.npmjs.com/package/transform-loader">transform-loader</a></h5>
-<h5 id="momenthttpsgithubcommomentmoment"><a href="https://github.com/moment/moment">moment</a></h5>
-<h5 id="brfshttpswwwnpmjscompackagebrfs"><a href="https://www.npmjs.com/package/brfs">brfs</a></h5>
-<h5 id="fontawesomehttpsfontawesomecom"><a href="https://fontawesome.com/">fontawesome</a></h5>
-<h5 id="glyphiconshttpglyphiconscom"><a href="http://glyphicons.com/">Glyphicons</a></h5>
-<h5 id="ioniconshttpsioniconscom"><a href="https://ionicons.com/">Ionicons</a></h5>
-<h5 id="iconmadebypixelbuddhahttpswwwflaticoncomauthorspixelbuddhafromwwwflaticoncomwwwflaticoncom">Icon made by <a href="https://www.flaticon.com/authors/pixel-buddha">Pixel Buddha</a> from <a href="www.flaticon.com">www.flaticon.com</a></h5>
-<h5 id="cityofchicagodataportalcrimes2001topresenthttpsdatacityofchicagoorgpublicsafetycrimes2001topresentijzpq8t2"><a href="https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2">City of Chicago Data Portal - Crimes - 2001 to present</a></h5>
-<h5 id="ucimachinelearningrepositorygpstrajectoriesdatasethttpsarchiveicsuciedumldatasetsgpstrajectories"><a href="https://archive.ics.uci.edu/ml/datasets/GPS+Trajectories">UCI Machine Learning Repository - GPS Trajectories Data Set</a></h5>
-<p>Publications: 
-1 - CRUZ, M. O.; MACEDO, H.; GUIMARÃ£ES, A. P. Grouping similar trajectories for 
-carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n.], 2015. p. 
-234â€“239. ISBN 9781509000166. </p>
-<p>Big thanks to the following people: </p>
-<ul>
-<li><a href="https://splunkbase.splunk.com/apps/#/page/1/search/damien%2520dallimore/order/relevance">Damien Dallimore</a> and <strong>Andrew Stein</strong> for all the feature requests and extensive testing.</li>
-<li>Johannes Effland for contributing the path tracing code.</li>
-<li>Paul Thompson for <a href="#marker-priority">marker priority</a> and <a href="#svg-markers">SVG marker</a> feature suggestions.</li>
-<li><a href="https://github.com/dxwils3">dxwils3</a> for <strong>pathColor</strong> enhancement.</li>
-</ul>
-<h3 id="compatibility">Compatibility</h3>
-<p>Maps+ is compatible with <strong>Splunk 6.4+</strong>. <strong>Splunk 7.0+</strong> is recommended.</p>
-<h3 id="usage">Usage</h3>
-<h5 id="fieldsmustbenamedexactlyaslabledheretheappiskeyedoffoffieldnamesandnotfieldorder">Fields must be named exactly as labled here. The app is keyed off of field names and not field order.</h5>
-<pre><code>base_search | table latitude, longitude [ description | tooltip | title | icon | markerColor |markerPriority | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius | circleColor | circleWeight | circleOpacity | circleFillColor | circleFillOpacity | _time]
-</code></pre>
-<h3 id="requiredfields">Required Fields</h3>
-<h5 id="latitude">latitude</h5>
-<p>Latitude Coordinates</p>
-<h5 id="longitude">longitude</h5>
-<p>Longitude Coordinates</p>
-<h3 id="optionalfields">Optional Fields</h3>
-<h5 id="description">description</h5>
-<p>Desciption that is displayed in a pop-up when then marker is clicked on the map. You can get creative with this field. Combine a bunch of other fields or lookups using eval to make the description full of detail. <strong>This field supports HTML</strong>.</p>
-<h5 id="layerdescription">layerDescription</h5>
-<p>Description that is added next to the icon in the layer control legend. <strong>this field supports HTML</strong></p>
-<h3 id="stylemarkersandiconsdynamicallythroughspl">Style Markers And Icons Dynamically Through SPL</h3>
-<p>Maps+ allows you to dynamically style map markers and add icons via SPL. Create fields using <a href="http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions">eval</a> to define colors for the marker or use an icon from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="http://ionicons.com/">ionicons</a>. If you find the color set of icons too limiting, feel free to override the map marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.</p>
-<p>By default, markers are rendered as PNG's. The set of markers comes in a limited array of color values and cannot be re-sized. If you want access to an unlimited color palette and the ability to size markers, use <a href="#svg-markers">SVG based markers</a>.</p>
-<h3 id="availablefieldsandvalues">Available Fields and Values</h3>
-<h5 id="title">title</h5>
-<p>Icon mouse hover over description. <strong>Deprecated (with backwards compatibility) - see tooltip</strong></p>
-<h5 id="tooltip">tooltip</h5>
-<p>Tooltip to display on marker hover.</p>
-<h5 id="icon">icon</h5>
-<p>Icon displayed in map marker - Any icon from <a href="http://fortawesome.github.io/Font-Awesome/icons/">Font Awesome</a> or <a href="http://ionicons.com/">ionicons</a>. - <strong>Default</strong> <code>circle</code></p>
-<h5 id="markercolor">markerColor</h5>
-<p>Color of map marker - <code>red</code>, <code>darkred</code>, <code>lightred</code>, <code>orange</code>, <code>beige</code>, <code>green</code>, <code>darkgreen</code>, <code>lightgreen</code>, <code>blue</code>, <code>darkblue</code>, <code>lightblue</code>, <code>purple</code>, <code>darkpurple</code>, <code>pink</code>, <code>cadetblue</code>, <code>white</code>, <code>gray</code>, <code>lightgray</code>, <code>black</code>. - <strong>Default</strong> <code>blue</code></p>
-<h5 id="iconcolor">iconColor</h5>
-<p>Color of icon - Any <a href="https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html">CSS color name</a>, <a href="http://www.w3schools.com/colors/colors_picker.asp">Hex or RGB value</a>. - <strong>Default</strong> <code>white</code>.</p>
-<h5 id="prefix">prefix</h5>
-<p><code>fa</code> (Font Awesome) or <code>ion</code> (ionicons). - <strong>Default</strong> <code>fa</code></p>
-<h5 id="extraclasses">extraClasses</h5>
-<p>Any extra CSS classes you wish to add for styling. Here are some <a href="http://fortawesome.github.io/Font-Awesome/examples/">additional classes</a> you can use with Font Awesome or Ionicons to change the styling. <strong>Default</strong> <code>fa-lg</code></p>
-<h3 id="svgmarkers">SVG Markers</h3>
-<p>Dynamically size markers and assign any color (name or hex value). The following settings control SVG based markers.</p>
-<h5 id="markertype">markerType</h5>
-<p><code>svg</code> or <code>png</code> - <strong>Default</strong> <code>png</code></p>
-<h5 id="markersize">markerSize</h5>
-<p>Comma separated string representing the pixel width and height of marker, respectively. - <strong>Default</strong> <code>35,45</code></p>
-<h5 id="markercolor-1">markerColor</h5>
-<p>Color of map marker. Use any common <a href="http://www.w3schools.com/colors/colors_names.asp">HTML color code name</a> or <a href="http://www.google.com/search?q=html+color+picker">hex value</a>. - <strong>Default</strong> <code>#38AADD</code></p>
-<h5 id="markeranchor">markerAnchor</h5>
-<p>Comma separated string representing the coordinates of the "tip" of the icon (relative to its top left corner). - <strong>Default</strong> <code>15,50</code></p>
-<h5 id="popupanchor">popupAnchor</h5>
-<p>Comma separated string representing the coordinates of the point from which popups will "open", relative to the icon anchor.</p>
-<h5 id="shadowsize">shadowSize</h5>
-<p>Comma separated string representing the pixel width and height of the marker shadow. You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. Set to <code>0,0</code> to disable shadows. - <strong>Default</strong> <code>30,46</code></p>
-<h5 id="shadowanchor">shadowAnchor</h5>
-<p>Comma separated string representing the coordinates of the "tip" of the shadow (relative to its top left corner). You typically don't need to change this value unless you increase or decrese the <strong>markerSize</strong>. - <strong>Default</strong> <code>30,30</code></p>
-<h5 id="iconcolor-1">iconColor</h5>
-<p>Color of icon - Any <a href="https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html">CSS color name</a>, <a href="http://www.w3schools.com/colors/colors_picker.asp">Hex or RGB value</a>. <strong>Default</strong> white.</p>
-<h5 id="prefix-1">prefix</h5>
-<p><code>fa</code> (Font Awesome) or <code>ion</code> (ionicons). <strong>Default</strong> <code>fa</code></p>
-<h5 id="extraclasses-1">extraClasses</h5>
-<p>Any extra CSS classes you wish to add for styling. Here are some <a href="http://fortawesome.github.io/Font-Awesome/examples/">additional classes</a> you can use with Font Awesome to change the styling.</p>
-<h3 id="circlemarkers">Circle Markers</h3>
-<p>Use circle markers when you have a lot of points to plot and you need performance. Circle markers are rendered using canvas instead of SVG which gives a huge performance boost. There are also a ton of customizaiton options through the available SPL fields.</p>
-<h5 id="circleradius">circleRadius</h5>
-<p>Radius of the circle marker, in pixels</p>
-<h5 id="circlecolor">circleColor</h5>
-<p>Stroke color</p>
-<h5 id="circlefillcolor">circleFillColor</h5>
-<p>Fill color. Defaults to the value of the <a href="#circlecolor">circleColor</a> field</p>
-<h5 id="circleopacity">circleOpacity</h5>
-<p>Stroke opacity</p>
-<h5 id="circlefillopacity">circleFillOpacity</h5>
-<p>Fill opacity.</p>
-<h5 id="circlestroke">circleStroke</h5>
-<p>Whether to draw stroke along the path. Set it to false to disable borders.</p>
-<h5 id="circleweight">circleWeight</h5>
-<p>Stroke width in pixels</p>
-<h3 id="heatmaps">Heatmaps</h3>
-<p>Render heatmaps with or without markers. Control heatmaps via the <a href="#heatmap">format menu</a> or directly with SPL. Create multiple heatmap layers via SPL with the <code>heatmapLayer</code> field. When controlling heatmaps through SPL, the first event for a given <code>heatmapLayer</code> will define the heatmap settings <code>heatmapMinOpacity</code> <code>heatmapMaxZoom</code> <code>heatmapRadius</code> <code>heatmapBlur</code> <code>heatmapColorGradient</code>, if specified, otherwise values specified in the format menu will be used.</p>
-<h4 id="availablefieldsandvalues-1">Available Fields and Values</h4>
-<h5 id="heatlayer">heatmapLayer</h5>
-<p>Name of the heatmap layer to render.</p>
-<h5 id="heatpointintensity">heatPointIntensity</h5>
-<p>Control the intensity of the point - <strong>Default</strong> <code>1.0</code></p>
-<h5 id="heatmapminopacity">heatmapMinOpacity</h5>
-<p>The minimum opacity the heat will start at</p>
-<h5 id="heatmapradius">heatmapRadius</h5>
-<p>Radius of each "point" of the heatmap - <strong>Default</strong> <code>25</code></p>
-<h5 id="heatmapblur">heatmapBlur</h5>
-<p>Amount of blur - <strong>Default</strong> <code>15</code></p>
-<h5 id="heatmapcolorgradient">heatmapColorGradient</h5>
-<p>Color gradient config - <strong>Default</strong> <code>{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"})</code></p>
-<h3 id="pathtracing">Path Tracing</h3>
-<p>If you have a dataset that contains multiple coordinates for each object (think cars, trains, planes, bicycles, anything that moves and can be tracked) you can trace the path on the map. Control whether markers are displayed along the path using the <code>markerVisibility</code> setting. Show split intervals by enabling <code>Path Splits</code> and adjusting the <code>Path Split Interval</code> in the <a href="#path-lines">format menu options</a>. Note that <code>_time</code> must be present for split intervals to work.</p>
-<h4 id="availablefieldsandvalues-2">Available Fields and Values</h4>
-<h5 id="markervisibility">markerVisibility</h5>
-<p>Show marker for the given coordinates. Set to <code>marker</code> to show marker or any other value to hide.</p>
-<h5 id="pathweight">pathWeight</h5>
-<p>Weight (width) of path - <strong>Default</strong> <code>5</code></p>
-<h5 id="pathopacity">pathOpacity</h5>
-<p>Opacity of path line - <strong>Default</strong> <code>0.5</code></p>
-<h5 id="pathcolor">pathColor</h5>
-<p>The color of the path.  If not specified, the color will be chosen randomly from the set of colors listed in the <strong>Path Colors</strong> option.</p>
-<h3 id="markerpriority">Marker Priority</h3>
-<p>Higher priority markers will render on top of lower priority markers. This is especially useful for dense maps where you need certain markers to stand out over others.</p>
-<p>Use the following setting to set the marker priority.</p>
-<h5 id="markerpriority-1">markerPriority</h5>
-<p>Number used to set marker priority. Higher value numbers render over lower value numbers. Set a high value like <code>1000</code> (or a high negative value to render beneath). <strong>Default</strong> <code>0</code></p>
-<h3 id="drilldown">Drilldown</h3>
-<p>The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML. See the <a href="http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms">documentation on dynamic drilldown</a>. Refer to this section of the docs on <a href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown">accessing tokens for dynamic drilldown</a>.</p>
-<h4 id="usage-1">Usage</h4>
-<p>Drilldown is disabled by default. Enable it in the main <strong>Map</strong> section of the format menu.  Simply <strong>double-click</strong> on a marker to activate the drilldown behavior.</p>
-<h3 id="layercontrols">Layer Controls</h3>
-<p>Group marker/icon styles into their own layer. A layer control widget (enabled by default, but optionally hidden) is presented in the upper right hand corner that displays a legend for each icon class with a check-box to toggle visibility of the markers on the map. This control works for both clustered and stand-alone markers. </p>
-<p>Specify groups with the <code>layerGroup</code> field to filter markers via layer controls. The default behavior is to group by icon. If you have the same icon with different colors, the <code>layerGroup</code> field allows you to split them into their own group for filtering.</p>
-<h4 id="availablefields">Available Fields</h4>
-<h5 id="layerdescription-1">layerDescription</h5>
-<p>Add description text next to each icon in the layer control legend.</p>
-<h5 id="layergroup">layerGroup</h5>
-<p>Specify unique group that markers belong to.</p>
-<h3 id="clustergroups">Cluster Groups</h3>
-<p>By default, the visualization renders all markers into a single cluster group. Override this behavior using the <code>clusterGroup</code> SPL field. Refer to the <code>Multi-Cluster Groups</code> dashboard example in the app for details.</p>
-<h5 id="clusterbgcolor">clusterBgColor</h5>
-<p>Per-row SPL field. Sets the outer ring color of the cluster icon for this row's <code>clusterGroup</code>. Accepts hex, <code>rgba()</code>, and named CSS colors. Takes priority over the <b>Cluster Group Colors</b> formatter option. If only <code>clusterBgColor</code> is provided, <code>clusterFgColor</code> mirrors it.</p>
-<h5 id="clusterfgcolor">clusterFgColor</h5>
-<p>Per-row SPL field. Sets the inner circle color of the cluster icon for this row's <code>clusterGroup</code>. Accepts hex, <code>rgba()</code>, and named CSS colors. Takes priority over the <b>Cluster Group Colors</b> formatter option.</p>
-<h3 id="overlays">Overlays</h3>
-<p>Add custom overlays to the map. The first release implements a KML or KMZ overlay feature. If you have existing KML/KMZ files that define features (polyline, polygons, whatever) you can now leverage them to overlay these features on the map.</p>
-<h5 id="kmlkmzoverlay">KML/KMZ Overlay</h5>
-<p>Copy any KML or KMZ files into the following directory</p>
-<pre><code>$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/leaflet_maps/contrib/kml
-</code></pre>
-<p>Click <code>Format</code> and selct the <code>Overlays</code> tab. Enter a comma separated list of filenames that you uploaded to the above directory. File order dictates feature layering - e.g., file1.kml renders beneath file2.kml</p>
-<pre><code>file1.kml,file2.kmz
-</code></pre>
-<p>The files will be asynchronously loaded when the map is rendered. </p>
-<h3 id="measurementplugin">Measurement Plugin</h3>
-<p>Interactively measure paths and area on the map. The feature is enabled by default. Click the icon in the upper right corner of the map and then select 'Create new measurement'. You can draw a simple path or click to define multiple points to measure an area. Measurements will not be persisted for future use. This is an interactive tool designed for a single session.</p>
-<h3 id="googleplacessearch">Google Places Search</h3>
-<p>A search control for the Google Places API. Log into the <a target="_blank" href="https://console.cloud.google.com/apis/">Google API Console</a> and enable the <code>Google Places API Web Service</code> and <code>Google Maps JavaScript API</code> for the given project and create an API key. See <a href="https://developers.google.com/places/web-service/get-api-key?authuser=2">Google's docs</a> for detailed instructions.</p>
-<p>Enable the search control via the format menu option <code>Google Places -&gt; Google Places Search -&gt; Enabled</code></p>
-<p>Set the <code>API Key</code> option <code>Google Places -&gt; API Key</code></p>
-<p>Optionally set the <code>Zoom Level</code> option <code>Google Places -&gt; Zoom Level</code> for the desired fly to zoom level.</p>
-<h3 id="bingmaps">Bing Maps</h3>
-<p>A Bing Maps tile layer. </p>
-<p><code>Enable</code> or <code>Disable</code> Bing Maps via the format menu option <code>Bing Maps -&gt; Bing Maps -&gt; Enabled</code>. When Bing Maps are enabled, the default tile layer set and the map attribution override setting will not work.</p>
-<p>Set the <code>API Key</code> option <code>Bing Maps -&gt; API Key</code> by pasting your Bing Maps API Key into this field.</p>
-<p>Choose the desired <code>Tile Layer</code> under <code>Bing Maps -&gt; Tile Layer</code></p>
-<p>Optionally set the <code>Label Language</code> using <code>Bing Maps -&gt; Label Language</code> to localize the tile labels in the desired language. See <a href="https://msdn.microsoft.com/en-us/library/hh441729.aspx">Microsoft's documentation</a> for more details.</p>
-<h3 id="formattingoptions">Formatting Options</h3>
-<h4 id="map">Map</h4>
-<h6 id="maptile">Map Tile</h6>
-<p>Select one of six available map tiles</p>
-<h6 id="maptileoverride">Map Tile Override</h6>
-<p>Use your own map tile URL and override defaults. Example: http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. Find more tiles <a href="http://wiki.openstreetmap.org/wiki/Tiles">here</a></p>
-<h6 id="mapattributionoverride">Map Attribution Override</h6>
-<p>Use your own attribution. - <strong>Requires browser Refresh</strong></p>
-<h6 id="renderer">Renderer</h6>
-<p>Use Canvas renderer for performance boost drawing vector layers (path, circle). Requires modern browser with Canvas support.</p>
-<h6 id="progressindicator">Progress Indicator</h6>
-<p>Display progress spinner for long running searches</p>
-<h6 id="scrollwheelzoom">Scroll Wheel Zoom</h6>
-<p>Enable or disable scroll wheel zoom.</p>
-<h6 id="fullscreenmode">Full Screen Mode</h6>
-<p>Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize. - <strong>Requires browser Refresh</strong></p>
-<h6 id="drilldown-1">Drilldown</h6>
-<p>Enable or disable drilldown. Double click a marker to activate drilldown. - <strong>Requires browser Refresh</strong></p>
-<h6 id="contextmenu">Context Menu</h6>
-<p>Enable or disable context menu when right clicking the map.</p>
-<h6 id="defaultheight">Default Height</h6>
-<p>Initial Height Of Map - <strong>Default</strong> <code>600</code></p>
-<h6 id="autofitzoom">Auto Fit &amp; Zoom</h6>
-<p>Dynamically set map view that contains all markers with the maximum zoom level possible when search finishes. - <strong>Default</strong> <code>Enabled</code></p>
-<h6 id="autofitzoomdelayms">Auto Fit &amp; Zoom Delay (ms)</h6>
-<p>Delay in milliseconds before triggering Auto Fit &amp; Zoom. Increase if you get inconsistent behavior - <strong>Default</strong> <code>500</code></p>
-<h6 id="dashboardrefreshinterval">Dashboard Refresh Interval</h6>
-<p>Delay in seconds before refreshing the dasbhoard. WARNING - Refresh forces a full browser refresh on the entire dashboard. This workaround addresses a usability issue in the Custom Viz API around reliably honoring panel or global SimpleXML refresh. (default: 0 - disabled)</p>
-<h6 id="mapzoom">Map Zoom</h6>
-<p>Initial Zoom for map - <strong>Default</strong> <code>6</code></p>
-<h6 id="centerlat">Center Lat</h6>
-<p>Initial Center Latitiude - <strong>Default</strong> <code>39.50</code></p>
-<h6 id="centerlon">Center Lon</h6>
-<p>Initial Center Longitude - <strong>Default</strong> <code>-98.35</code></p>
-<h6 id="minzoom">Min Zoom</h6>
-<p>Minimum zoom for tile layer. Does not affect map zoom. - <strong>Default</strong> <code>1</code></p>
-<h6 id="maxzoom">Max Zoom</h6>
-<p>Maximum zoom for tile layer. Does not affect map zoom. - <strong>Default</strong> <code>19</code></p>
-<h4 id="clustering">Clustering</h4>
-<h6 id="enableclustering">Enable Clustering</h6>
-<p>Disable clustering and plot all markers. WARNING - This comes at a significant performance penalty for large datasets. - <strong>Requires browser Refresh</strong></p>
-<h6 id="showallpopups">Show All Popups</h6>
-<p>Display all popups on page load. Only works with clustering disabled. - <strong>Requires browser Refresh</strong></p>
-<h6 id="allowmultiplepopups">Allow Multiple Popups</h6>
-<p>Allow multiple popups to dispaly on screen without closing previous. Will disappear at higher zoom levels with clustering enabled. Enabled by default when showing all popups. - <strong>Requires browser Refresh</strong></p>
-<h6 id="animate">Animate</h6>
-<p>Animate cluster separation on zoom - <strong>Requires browser Refresh</strong></p>
-<h6 id="singlemarkermode">Single Marker Mode</h6>
-<p>Re-style single marker icon to marker cluster style (round) - <strong>Requires browser Refresh</strong></p>
-<h6 id="disableclusteringatzoom">Disable Clustering At Zoom</h6>
-<p>At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.</p>
-<h6 id="disableclusteringatzoomlevel">Disable Clustering At Zoom Level</h6>
-<p>At this zoom level and below, markers will not be clustered. Must set Disable Clustering At Zoom to Enabled.</p>
-<h6 id="maxclusterradius">Max Cluster Radius</h6>
-<p>A cluster will cover at most this many pixels from its center - <strong>Default</strong> <code>80</code> - <strong>Requires browser Refresh</strong></p>
-<h6 id="clusterwarningsize">Cluster Warning Size</h6>
-<p>Display an alert warning that the cluster exceeds threshold at max-zoom and do not show underlying markers. Browser may hang and die if a single point exceeds a very large number.- <strong>Default</strong> <code>100</code> - <strong>Requires browser refresh</strong></p>
-<h6 id="distancemultiplier">Distance Multiplier</h6>
-<p>Increase to increase the distance away that markers appear from the center when expanded at max zoom. - <strong>Default</strong> <code>1</code> - <strong>Requires browser refresh</strong></p>
-<h4 id="markers">Markers</h4>
-<h6 id="permanenttooltip">Permanent Tooltip</h6>
-<p>Open the tooltip permanently or only on mouseover. Depends on tooltip field in search results.</p>
-<h6 id="stickytooltip">Sticky Tooltip</h6>
-<p>Tooltip follows mouse instead of fixed position.</p>
-<h3 id="heatmap">Heatmap</h3>
-<h6 id="enableheatmap">Enable Heatmap</h6>
-<p>Enable or disable heatmap.</p>
-<h6 id="heatmaponly">Heatmap Only</h6>
-<p>Only show the heatmap. No markers will be rendered.</p>
-<h6 id="minopacity">Min Opacity</h6>
-<p>Minimum opacity the heat will start at. - <strong>Default</strong> <code>1.0</code></p>
-<h6 id="maxzoom-1">Max Zoom</h6>
-<p>Zoom level where the points reach maximum intensity. - <strong>Default</strong> <code>Max Zoom of map</code></p>
-<h6 id="radius">Radius</h6>
-<p>Max point intensity. - <strong>Default</strong> <code>1.0</code></p>
-<h6 id="blur">Blur</h6>
-<p>Amount of blur. - <strong>Default</strong> <code>15</code></p>
-<h6 id="colorgradient">Color Gradient</h6>
-<p>Color gradient config - <strong>Default</strong> <code>{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</code></p>
-<h4 id="pathlines">Path Lines</h4>
-<h6 id="pathlines-1">Path Lines</h6>
-<p>Draw path lines on map for markers that have multiple coordinates.</p>
-<h6 id="renderer-1">Renderer</h6>
-<p>Use Canvas renderer for performance boost drawing paths. Requires modern browser with Canvas support</p>
-<h6 id="pathidentifier">Path Identifier</h6>
-<p>Field used to distinguish unique paths, e.g. vehicle number or trip ID</p>
-<h6 id="pathcolors">Path Colors</h6>
-<p>Comma-separated list of hex or html colors for path lines (wraps around if more paths than colors)</p>
-<h6 id="pathsplits">Path Splits</h6>
-<p>Split path into unique segments based on time span between points in path. Use this to setting to determine gaps within your path baed on then Path Split Interval. _time field must be present in results.</p>
-<h6 id="pathsplitinterval">Path Split Interval</h6>
-<p>Time in seconds by which path segments are defined. Higher values result in a more continuous path. Lower values result in more segments and gaps within the path. - <strong>Default</strong> <code>60</code></p>
-<h4 id="googleplaces">Google Places</h4>
-<h6 id="googleplacessearch-1">Google Places Search</h6>
-<p>Enable or disable Google Places API search control.</p>
-<h6 id="apikey">API Key</h6>
-<p>Google Places API Key</p>
-<h6 id="searchbarposition">Search Bar Position</h6>
-<p>Position of Google Places Search Bar - <strong>Default</strong> <code>Top Left</code></p>
-<h6 id="zoomlevel">Zoom Level</h6>
-<p>Desired zoom level to fly to</p>
-<h4 id="bingmaps-1">Bing Maps</h4>
-<h6 id="bingmaps-2">Bing Maps</h6>
-<p>Enable or disable Bing Maps tiles</p>
-<h6 id="apikey-1">API Key</h6>
-<p>Bing Maps API Key</p>
-<h6 id="tilelayer">Tile Layer</h6>
-<p>Select tile layer imagery set</p>
-<h6 id="labellanguage">Label Language</h6>
-<p>Select language used for labels</p>
-<h4 id="clustercolors">Cluster Colors</h4>
-<p>Cluster color changes require browser refresh</p>
-<h6 id="rangeonebackground">Range One Background</h6>
-<ul>
-<li><strong>Default</strong> <code>#B5E28C</code></li>
-</ul>
-<h6 id="rangeoneforeground">Range One Foreground</h6>
-<ul>
-<li><strong>Default</strong> <code>#6ECC39</code></li>
-</ul>
-<h6 id="rangetwothereshold">Range two thereshold</h6>
-<p>Number at which cluster group two starts</p>
-<h6 id="rangetwobackground">Range Two Background</h6>
-<ul>
-<li><strong>Default</strong> <code>#F1D357</code></li>
-</ul>
-<h6 id="rangetwoforeground">Range Two Foreground</h6>
-<ul>
-<li><strong>Default</strong> <code>#F0C20C</code></li>
-</ul>
-<h6 id="rangethreethreshold">Range three threshold</h6>
-<p>Number at which cluster group three starts</p>
-<h6 id="rangethreebackground">Range Three Background</h6>
-<ul>
-<li><strong>Default</strong> <code>#FD9C73</code></li>
-</ul>
-<h6 id="rangethreeforeground">Range Three Foreground</h6>
-<ul>
-<li><strong>Default</strong> <code>#F18017</code></li>
-</ul>
-<h4 id="layercontrols-1">Layer Controls</h4>
-<p>Layer control changes require browser refresh</p>
-<h6 id="layercontrol">Layer Control</h6>
-<p>Enable or disable dynamic filtering of layer groups on map. Each icon type's visibility can be toggled via control in upper right corner of map. - <strong>Default</strong> <code>Enabled</code></p>
-<h6 id="controlcollapsed">Control Collapsed</h6>
-<p>Collapse or expand layer control widget. If collapsed, mousing over icon will expand. - <strong>Default</strong> <code>Collapsed</code></p>
-<h4 id="overlays-1">Overlays</h4>
-<p>Overlay control changes require browser refresh</p>
-<h6 id="kmlkmzoverlay-1">KML/KMZ Overlay</h6>
-<p>Comma separated list of KML or KMZ file names copied into kml directory of app (file1.kml, file2.kml)</p>
-<h4 id="measure">Measure</h4>
-<h6 id="enablemeasurementplugin">Enable Measurement Plugin</h6>
-<p>Enable or disable measurement plugin to allow path and area measurement on map. - <strong>Default</strong> <code>Enabled</code></p>
-<h6 id="localization">Localization</h6>
-<p>Language - <strong>Default</strong> <code>English</code></p>
-<h6 id="iconposition">Icon Position</h6>
-<p>Position of measurement icon on map - <strong>Default</strong> <code>Top Right</code></p>
-<h6 id="primarylengthunit">Primary Length Unit</h6>
-<p>Primary unit for length measurement - <strong>Default</strong> <code>feet</code></p>
-<h6 id="secondarylengthunit">Secondary Length Unit</h6>
-<p>Secondary unit for length measurement - <strong>Default</strong> <code>miles</code></p>
-<h6 id="primaryareaunit">Primary Area Unit</h6>
-<p>Primary unit for area measurement - <strong>Default</strong> <code>acres</code></p>
-<h6 id="secondaryareaunit">Secondary Area Unit</h6>
-<p>Secondary unit for area measurement - <strong>Default</strong> <code>square miles</code></p>
-<h6 id="activecolor">Active Color</h6>
-<p>Color of measurement when actively drawing - <strong>Default</strong> <code>#00ff00</code></p>
-<h6 id="completedcolor">Completed Color</h6>
-<p>Color of measurement when drawing is complete - <strong>Default</strong> <code>#0066ff</code></p>
-<h1 id="googlestreetviewcompanionvisualization">Google Street View Companion Visualization</h1>
-<p>Maps+ comes bundled with the new Google Street View visualization. Use this visualization as a drill-down target when clicking on a marker. See the <code>Google Street View Drilldown</code> example dashboard in the app for detailed usage.</p>
-<h3 id="prerequisites">Pre-requisites</h3>
-<p>The Google Street View visualization requires an API key. Log in to the <a href="https://console.cloud.google.com/">Google Cloud Console</a> to enable the <code>Maps JavaScript API</code>,<code>Street View API</code> and <a href="https://cloud.google.com/docs/authentication/api-keys">generate an API key</a>.</p>
-<h3 id="requiredfields-1">Required Fields</h3>
-<h5 id="coordinates">coordinates</h5>
-<p>Comma separated coordinate pair the format <code>&lt;latitude&gt;,&lt;longitude&gt;</code>. e.g - <code>| eval coordinates=latitude.",".longitude</code></p>
-<h3 id="formattingoptions-1">Formatting Options</h3>
-<h5 id="apikey-2">API Key</h5>
-<p>Google Street View API Key</p>
-<h5 id="defaultheight-1">Default Height</h5>
-<p>Initial Height Of Map - <strong>Default</strong> <code>600</code></p>
-<h5 id="fullscreenmode-1">Full Screen Mode</h5>
-<p>Enable or disable full screen mode. Map takes up all available space in browser and adjust to resize.</p>
-<h1 id="support">Support</h1>
-<h6 id="thisappissupportedbyscotthaskellshaskellsplunkcommailtoshaskellsplunkcom">This app is supported by Scott Haskell (<a href="mailto:shaskell@splunk.com">shaskell@splunk.com</a>)</h6>
-<h6 id="codehostedatgithubhttpsgithubcomsghaskellmapsplus"><a href="https://github.com/sghaskell/maps-plus">Code hosted at Github</a></h6>
-    </html>
-  </row>
+  <description>Maps+ for Splunk: field reference, Format menu options, integrations, support and credits.</description>
+  <definition><![CDATA[
+{
+  "title": "Help",
+  "description": "Maps+ for Splunk: field reference, Format menu options, integrations, support and credits.",
+  "dataSources": {},
+  "visualizations": {
+    "viz_help_01": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "# Maps+ for Splunk\n\nThe mapping equivalent of a Swiss Army knife for Splunk.\n\nUse the tabs above to move between topics: **SPL fields** (Markers, Layers & Clusters, Heatmaps & Paths, Drilldown & Overlays), **Integrations**, the **Format menu** reference, then **Help** and **Credits**.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_02": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Compatibility\n\nMaps+ is compatible with **Splunk 6.4+**. **Splunk 7.0+** is recommended.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_03": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Usage\n\nMaps+ is driven by the field names in your search results. **Fields must be named exactly as shown. The app keys off field names, not field order.**\n\n```\nbase_search\n| table latitude, longitude\n        [ description | tooltip | title | icon | markerColor | markerPriority\n        | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor\n        | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription\n        | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup\n        | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius\n        | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius\n        | circleColor | circleWeight | circleOpacity | circleFillColor\n        | circleFillOpacity | _time ]\n```",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_04": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Required Fields\n\n| Field | Description |\n|---|---|\n| `latitude` | Latitude coordinates |\n| `longitude` | Longitude coordinates |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_05": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Common Optional Fields\n\n| Field | Description |\n|---|---|\n| `description` | Shown in a pop-up when the marker is clicked. Get creative: combine other fields or lookups with `eval` to make it full of detail. **Supports HTML.** |\n| `layerDescription` | Description added next to the icon in the layer control legend. **Supports HTML.** |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_06": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Where to Find Each Field\n\n| If you want to... | Go to tab |\n|---|---|\n| Style markers, icons, circles or marker priority | Markers |\n| Group markers into layers or cluster groups | Layers & Clusters |\n| Draw heatmaps or trace paths | Heatmaps & Paths |\n| Enable drilldown, KML/KMZ overlays or measurement | Drilldown & Overlays |\n| Google Places, Bing Maps or Street View | Integrations |\n| Look up a Format menu option | Format: Core / Format: Features |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_07": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Style Markers and Icons Dynamically Through SPL\n\nMaps+ lets you style map markers and add icons via SPL. Create fields with [eval](http://docs.splunk.com/Documentation/Splunk/6.4.0/SearchReference/CommonEvalFunctions) to define marker colors, or pick an icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). If the standard color set is too limiting, override the marker icon with a map icon from Font Awesome and style it with any hex color or RGB value.\n\nBy default, markers are rendered as **PNGs**. PNG markers come in a limited set of colors and cannot be resized. For an unlimited color palette and resizable markers, use **SVG markers** (see below).",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_08": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## PNG Markers and Icons\n\n| Field | Description | Default |\n|---|---|---|\n| `title` | Mouse-hover text. **Deprecated** (still works) - use `tooltip`. |  |\n| `tooltip` | Tooltip displayed on marker hover. |  |\n| `icon` | Icon shown in the marker. Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). | `circle` |\n| `markerColor` | Marker color: `red`, `darkred`, `lightred`, `orange`, `beige`, `green`, `darkgreen`, `lightgreen`, `blue`, `darkblue`, `lightblue`, `purple`, `darkpurple`, `pink`, `cadetblue`, `white`, `gray`, `lightgray`, `black`. | `blue` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome) or `ion` (ionicons). | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome / Ionicons. | `fa-lg` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_09": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## SVG Markers\n\nDynamically size markers and use any color (name or hex). These fields control SVG-based markers.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerType` | `svg` or `png` | `png` |\n| `markerSize` | Comma-separated pixel width and height of the marker. | `35,45` |\n| `markerColor` | Any common [HTML color name](http://www.w3schools.com/colors/colors_names.asp) or [hex value](http://www.google.com/search?q=html+color+picker). | `#38AADD` |\n| `markerAnchor` | Comma-separated coordinates of the \"tip\" of the icon, relative to its top-left corner. | `15,50` |\n| `popupAnchor` | Comma-separated coordinates of the point from which popups open, relative to the icon anchor. |  |\n| `shadowSize` | Comma-separated pixel width and height of the shadow. Change only if you change `markerSize`. Use `0,0` to disable shadows. | `30,46` |\n| `shadowAnchor` | Comma-separated coordinates of the shadow \"tip\", relative to its top-left corner. Change only if you change `markerSize`. | `30,30` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome) or `ion` (ionicons). | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome. |  |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_10": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Circle Markers\n\nUse circle markers when you have a lot of points to plot and need performance. They render on canvas instead of SVG, which is a big performance win, and are highly customizable.\n\n| Field | Description |\n|---|---|\n| `circleRadius` | Radius of the circle marker, in pixels. |\n| `circleColor` | Stroke color. |\n| `circleFillColor` | Fill color. Defaults to the value of `circleColor`. |\n| `circleOpacity` | Stroke opacity. |\n| `circleFillOpacity` | Fill opacity. |\n| `circleStroke` | Whether to draw a stroke. Set to `false` to disable borders. |\n| `circleWeight` | Stroke width, in pixels. |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_11": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Marker Priority\n\nHigher-priority markers render on top of lower-priority ones. This is especially useful on dense maps where certain markers must stand out.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerPriority` | Number that sets marker priority. Higher values render over lower values. Use a high value like `1000` (or a large negative value to render beneath). | `0` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_12": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Layer Controls\n\nGroup marker and icon styles into their own layer. A layer control widget (enabled by default, optionally hidden) appears in the upper right of the map. It shows a legend for each icon class with a check-box to toggle those markers on or off. It works for both clustered and stand-alone markers.\n\nBy default markers are grouped by icon. If you have the same icon in different colors, use `layerGroup` to split them into their own groups for filtering.\n\n| Field | Description |\n|---|---|\n| `layerGroup` | Unique group the marker belongs to. |\n| `layerDescription` | Description text shown next to each icon in the layer control legend. |\n\nRelated Format menu options (Layer Controls) are on the **Format: Core** tab.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_13": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Cluster Groups\n\nBy default all markers render into a single cluster group. Override this with the `clusterGroup` SPL field. See the **Multi-Cluster Groups** example dashboard in the app for details.\n\n| Field | Description |\n|---|---|\n| `clusterGroup` | Name of the cluster group the marker belongs to. |\n| `clusterBgColor` | Per-row field. Sets the **outer ring** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it. |\n| `clusterFgColor` | Per-row field. Sets the **inner circle** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_14": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Heatmaps\n\nRender heatmaps with or without markers. Control them from the Format menu (**Format: Features** tab) or directly with SPL. Create multiple heatmap layers with the `heatmapLayer` field.\n\nWhen controlling heatmaps through SPL, the **first event** for a given `heatmapLayer` defines that layer's settings (`heatmapMinOpacity`, `heatmapMaxZoom`, `heatmapRadius`, `heatmapBlur`, `heatmapColorGradient`). If not specified, values from the Format menu are used.\n\n| Field | Description | Default |\n|---|---|---|\n| `heatmapLayer` | Name of the heatmap layer to render. |  |\n| `heatmapPointIntensity` | Intensity of the point. | `1.0` |\n| `heatmapMinOpacity` | Minimum opacity the heat starts at. |  |\n| `heatmapRadius` | Radius of each heatmap \"point\". | `25` |\n| `heatmapBlur` | Amount of blur. | `15` |\n| `heatmapColorGradient` | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_15": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Path Tracing\n\nIf your dataset has multiple coordinates per object (cars, trains, planes, bicycles - anything that moves and can be tracked) you can trace its path on the map. Control whether markers show along the path with `markerVisibility`.\n\nShow split intervals by enabling **Path Splits** and adjusting **Path Split Interval** in the Format menu (**Format: Features** tab). `_time` must be present for split intervals to work.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerVisibility` | Show a marker for the given coordinates. Set to `marker` to show, any other value to hide. |  |\n| `pathWeight` | Weight (width) of the path. | `5` |\n| `pathOpacity` | Opacity of the path line. | `0.5` |\n| `pathColor` | Color of the path. If not specified, chosen randomly from the **Path Colors** option. |  |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_16": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Drilldown\n\nThe visualization identifies any non-standard fields and makes them available as drilldown fields. Add any fields you want to the final `table` command and you can use them via drilldown in Simple XML.\n\nReferences: [dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms) and [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).\n\n### How to use it\n\nDrilldown is **disabled by default**. Enable it in the **Map** section of the Format menu, then **double-click** a marker to activate the drilldown behavior.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_17": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Measurement Plugin\n\nInteractively measure paths and areas on the map. Enabled by default.\n\n1. Click the icon in the upper right corner of the map.\n2. Select **Create new measurement**.\n3. Draw a simple path, or click to define multiple points to measure an area.\n\nMeasurements are **not persisted**. This is an interactive tool for a single session.\n\nUnits, colors and position are configured on the **Format: Features** tab.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_18": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## KML / KMZ Overlays\n\nAdd custom overlays to the map. If you have existing KML or KMZ files that define features (polylines, polygons, etc.) you can overlay them on the map.\n\n**1. Copy your KML/KMZ files into this directory:**\n\n```\n$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/kml\n```\n\n**2.** Click **Format** and select the **Overlays** tab. Enter a comma-separated list of the filenames you copied. File order sets feature layering: `file1.kml` renders beneath `file2.kmz`.\n\n```\nfile1.kml,file2.kmz\n```\n\nFiles are loaded asynchronously when the map renders. Overlay changes require a browser refresh.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_19": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Google Places Search\n\nA search control for the Google Places API.\n\n1. Log into the [Google API Console](https://console.cloud.google.com/apis/), enable the `Google Places API Web Service` and `Google Maps JavaScript API` for your project, and create an API key. See [Google's docs](https://developers.google.com/places/web-service/get-api-key?authuser=2) for detailed instructions.\n2. Enable the control: `Google Places -> Google Places Search -> Enabled`\n3. Set the API key: `Google Places -> API Key`\n4. Optional: set the fly-to zoom with `Google Places -> Zoom Level`",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_20": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Bing Maps\n\nA Bing Maps tile layer.\n\n1. Enable or disable it: `Bing Maps -> Bing Maps -> Enabled`. While Bing Maps is enabled, the default tile layer set and the map attribution override do **not** work.\n2. Paste your Bing Maps API key into `Bing Maps -> API Key`.\n3. Choose the imagery in `Bing Maps -> Tile Layer`.\n4. Optional: localize tile labels with `Bing Maps -> Label Language`. See [Microsoft's documentation](https://msdn.microsoft.com/en-us/library/hh441729.aspx).",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_21": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Google Street View Companion Visualization\n\nMaps+ bundles a Google Street View visualization. Use it as a drilldown target when clicking a marker. See the **Google Street View Drilldown** example dashboard in the app for detailed usage.\n\n### Pre-requisites\n\nStreet View needs an API key. Log in to the [Google Cloud Console](https://console.cloud.google.com/), enable the `Maps JavaScript API` and `Street View API`, and [generate an API key](https://cloud.google.com/docs/authentication/api-keys).",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_22": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Street View Fields and Options\n\n| Field | Description |\n|---|---|\n| `coordinates` | **Required.** Comma-separated pair in the format `<latitude>,<longitude>`, e.g. `| eval coordinates=latitude.\",\".longitude` |\n\n| Format option | Description | Default |\n|---|---|---|\n| API Key | Google Street View API key. |  |\n| Default Height | Initial height of the map. | `600` |\n| Full Screen Mode | Enable or disable full screen mode. The map takes all available space in the browser and adjusts on resize. |  |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_23": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Map\n\n| Option | Description | Default | Refresh |\n|---|---|---|---|\n| Map Tile | Select one of six available map tiles. |  |  |\n| Map Tile Override | Use your own map tile URL. Example: `http://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png`. Find more tiles [here](http://wiki.openstreetmap.org/wiki/Tiles). |  |  |\n| Map Attribution Override | Use your own attribution. |  | Yes |\n| Renderer | Use the Canvas renderer for a performance boost drawing vector layers (path, circle). Requires a modern browser with Canvas support. |  |  |\n| Progress Indicator | Display a progress spinner for long-running searches. |  |  |\n| Scroll Wheel Zoom | Enable or disable scroll wheel zoom. |  |  |\n| Full Screen Mode | Map takes all available space in the browser and adjusts on resize. |  | Yes |\n| Drilldown | Enable or disable drilldown. Double-click a marker to activate. |  | Yes |\n| Context Menu | Enable or disable the context menu when right-clicking the map. |  |  |\n| Default Height | Initial height of the map. | `600` |  |\n| Auto Fit & Zoom | When the search finishes, set the map view to contain all markers at the maximum possible zoom. | `Enabled` |  |\n| Auto Fit & Zoom Delay (ms) | Delay before triggering Auto Fit & Zoom. Increase if behavior is inconsistent. | `500` |  |\n| Dashboard Refresh Interval | Delay in seconds before refreshing the dashboard. **WARNING:** forces a full browser refresh of the entire dashboard (works around the Custom Viz API not reliably honoring panel or global Simple XML refresh). `0` = disabled. | `0` |  |\n| Map Zoom | Initial zoom for the map. | `6` |  |\n| Center Lat | Initial center latitude. | `39.50` |  |\n| Center Lon | Initial center longitude. | `-98.35` |  |\n| Min Zoom | Minimum zoom for the tile layer. Does not affect map zoom. | `1` |  |\n| Max Zoom | Maximum zoom for the tile layer. Does not affect map zoom. | `19` |  |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_24": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Clustering\n\n| Option | Description | Default | Refresh |\n|---|---|---|---|\n| Enable Clustering | Disable to plot all markers unclustered. **WARNING:** significant performance penalty on large datasets. |  | Yes |\n| Show All Popups | Display all popups on page load. Only works with clustering disabled. |  | Yes |\n| Allow Multiple Popups | Allow multiple popups on screen without closing the previous one. Disappear at higher zoom levels with clustering enabled. Enabled by default when showing all popups. |  | Yes |\n| Animate | Animate cluster separation on zoom. |  | Yes |\n| Single Marker Mode | Re-style single marker icons to the round marker cluster style. |  | Yes |\n| Disable Clustering At Zoom | Turns on the zoom threshold below. Must be Enabled for the level setting to apply. |  |  |\n| Disable Clustering At Zoom Level | At this zoom level and below, markers are not clustered. Requires *Disable Clustering At Zoom* to be Enabled. |  |  |\n| Max Cluster Radius | A cluster covers at most this many pixels from its center. | `80` | Yes |\n| Cluster Warning Size | Show a warning that the cluster exceeds the threshold at max zoom and hide the underlying markers. The browser may hang if a single point exceeds a very large number. | `100` | Yes |\n| Distance Multiplier | Increase to push markers further from the center when expanded at max zoom. | `1` | Yes |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_25": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Markers\n\n| Option | Description |\n|---|---|\n| Permanent Tooltip | Open the tooltip permanently, or only on mouseover. Depends on the `tooltip` field in search results. |\n| Sticky Tooltip | Tooltip follows the mouse instead of a fixed position. |\n\n## Layer Controls\n\nChanges require a browser refresh.\n\n| Option | Description | Default |\n|---|---|---|\n| Layer Control | Enable or disable dynamic filtering of layer groups. Each icon type's visibility is toggled from the control in the upper right of the map. | `Enabled` |\n| Control Collapsed | Collapse or expand the layer control. If collapsed, mousing over the icon expands it. | `Collapsed` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_26": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Cluster Colors\n\nChanges require a browser refresh.\n\n| Option | Description | Default |\n|---|---|---|\n| Range One Background |  | `#B5E28C` |\n| Range One Foreground |  | `#6ECC39` |\n| Range Two Threshold | Number at which cluster group two starts. |  |\n| Range Two Background |  | `#F1D357` |\n| Range Two Foreground |  | `#F0C20C` |\n| Range Three Threshold | Number at which cluster group three starts. |  |\n| Range Three Background |  | `#FD9C73` |\n| Range Three Foreground |  | `#F18017` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_27": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Heatmap\n\n| Option | Description | Default |\n|---|---|---|\n| Enable Heatmap | Enable or disable the heatmap. |  |\n| Heatmap Only | Show only the heatmap. No markers are rendered. |  |\n| Min Opacity | Minimum opacity the heat starts at. | `1.0` |\n| Max Zoom | Zoom level where points reach maximum intensity. | Max Zoom of map |\n| Radius | Max point intensity. | `1.0` |\n| Blur | Amount of blur. | `15` |\n| Color Gradient | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_28": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Path Lines\n\n| Option | Description | Default |\n|---|---|---|\n| Path Lines | Draw path lines for markers that have multiple coordinates. |  |\n| Renderer | Use the Canvas renderer for a performance boost drawing paths. Requires a modern browser with Canvas support. |  |\n| Path Identifier | Field that distinguishes unique paths, e.g. vehicle number or trip ID. |  |\n| Path Colors | Comma-separated hex or HTML colors for path lines (wraps around if there are more paths than colors). |  |\n| Path Splits | Split a path into segments based on the time gap between points. `_time` must be present in results. |  |\n| Path Split Interval | Seconds by which path segments are defined. Higher values give a more continuous path; lower values give more segments and gaps. | `60` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_29": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Measure\n\n| Option | Description | Default |\n|---|---|---|\n| Enable Measurement Plugin | Enable or disable path and area measurement on the map. | `Enabled` |\n| Localization | Language. | `English` |\n| Icon Position | Position of the measurement icon on the map. | `Top Right` |\n| Primary Length Unit | Primary unit for length measurement. | `feet` |\n| Secondary Length Unit | Secondary unit for length measurement. | `miles` |\n| Primary Area Unit | Primary unit for area measurement. | `acres` |\n| Secondary Area Unit | Secondary unit for area measurement. | `square miles` |\n| Active Color | Color of the measurement while drawing. | `#00ff00` |\n| Completed Color | Color of the measurement once drawing is complete. | `#0066ff` |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_30": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Google Places\n\n| Option | Description | Default |\n|---|---|---|\n| Google Places Search | Enable or disable the Google Places API search control. |  |\n| API Key | Google Places API key. |  |\n| Search Bar Position | Position of the search bar. | `Top Left` |\n| Zoom Level | Zoom level to fly to. |  |\n\n## Bing Maps\n\n| Option | Description |\n|---|---|\n| Bing Maps | Enable or disable Bing Maps tiles. |\n| API Key | Bing Maps API key. |\n| Tile Layer | Select the tile layer imagery set. |\n| Label Language | Select the language used for labels. |\n\n## Overlays\n\nChanges require a browser refresh.\n\n| Option | Description |\n|---|---|\n| KML/KMZ Overlay | Comma-separated list of KML or KMZ file names copied into the app's `kml` directory (`file1.kml, file2.kml`). |",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_31": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Support\n\nThis app is supported by Scott Haskell ([shaskell@splunk.com](mailto:shaskell@splunk.com)).\n\nCode is hosted on GitHub: [sghaskell/maps-plus](https://github.com/sghaskell/maps-plus)",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_32": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Quick Tips\n\n- Open the **Examples** menu in the app navigation for working dashboards you can copy from.\n- Field names are case-sensitive and must match exactly. Field order does not matter.\n- Only `latitude` and `longitude` are required. Everything else is optional.\n- Options marked **Refresh** on the Format tabs need a browser refresh before they take effect.\n- Add extra fields to your final `table` command to make them available for drilldown.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_33": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Leaflet and Plugins\n\n- [Leaflet Maps](http://leafletjs.com/)\n- [Leaflet Markercluster Plugin](https://github.com/Leaflet/Leaflet.markercluster)\n- [Leaflet Awesome Markers Plugin](https://www.npmjs.com/package/drmonty-leaflet-awesome-markers)\n- [Leaflet.vector-markers Plugin](https://github.com/hiasinho/Leaflet.vector-markers)\n- [Leaflet.FeatureGroup.SubGroup](https://github.com/ghybs/Leaflet.FeatureGroup.SubGroup)\n- [leaflet-measure](https://www.npmjs.com/package/leaflet-measure)\n- [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu)\n- [leaflet-bing-layer](https://github.com/digidem/leaflet-bing-layer)\n- [Leaflet.Dialog](https://github.com/NBTSolutions/Leaflet.Dialog)\n- [Leaflet.spin](https://github.com/makinacorpus/Leaflet.Spin)",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_34": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Libraries\n\n- [spin.js](https://github.com/fgnass/spin.js)\n- [togeojson](https://github.com/mapbox/togeojson)\n- [load-google-maps-api](https://www.npmjs.com/package/load-google-maps-api#usage)\n- [load-google-places-autocomplete](https://www.npmjs.com/package/leaflet-google-places-autocomplete)\n- [load-google-maps-api-2](https://www.npmjs.com/package/load-google-maps-api-2)\n- [JSZip](https://stuk.github.io/jszip/)\n- [JSZipUtils](http://stuk.github.io/jszip-utils/)\n- [jQuery](https://jquery.com/)\n- [Underscore.js](http://underscorejs.org/)\n- [moment](https://github.com/moment/moment)",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_35": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Build Tools, Icons and Data\n\n- [Webpack](https://webpack.github.io/)\n- [transform-loader](https://www.npmjs.com/package/transform-loader)\n- [brfs](https://www.npmjs.com/package/brfs)\n- [Font Awesome](https://fontawesome.com/)\n- [Glyphicons](http://glyphicons.com/)\n- [Ionicons](https://ionicons.com/)\n- Icon made by [Pixel Buddha](https://www.flaticon.com/authors/pixel-buddha) from [www.flaticon.com](https://www.flaticon.com)\n- [City of Chicago Data Portal - Crimes - 2001 to present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2)\n- [UCI Machine Learning Repository - GPS Trajectories Data Set](https://archive.ics.uci.edu/ml/datasets/GPS+Trajectories)",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_36": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Big Thanks To\n\n- [Damien Dallimore](https://splunkbase.splunk.com/apps/#/page/1/search/damien%2520dallimore/order/relevance) and **Andrew Stein** for all the feature requests and extensive testing.\n- Johannes Effland for contributing the path tracing code.\n- Paul Thompson for the **marker priority** and **SVG marker** feature suggestions.\n- [dxwils3](https://github.com/dxwils3) for the `pathColor` enhancement.",
+        "fontSize": "default"
+      }
+    },
+    "viz_help_37": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Publications\n\nData set: UCI GPS Trajectories.\n\n1 - CRUZ, M. O.; MACEDO, H.; GUIMARÃES, A. P. Grouping similar trajectories for carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n.], 2015. p. 234–239. ISBN 9781509000166.",
+        "fontSize": "default"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "Overview",
+          "layoutId": "layout_1"
+        },
+        {
+          "label": "Markers",
+          "layoutId": "layout_2"
+        },
+        {
+          "label": "Layers & Clusters",
+          "layoutId": "layout_3"
+        },
+        {
+          "label": "Heatmaps & Paths",
+          "layoutId": "layout_4"
+        },
+        {
+          "label": "Drilldown & Overlays",
+          "layoutId": "layout_5"
+        },
+        {
+          "label": "Integrations",
+          "layoutId": "layout_6"
+        },
+        {
+          "label": "Format: Core",
+          "layoutId": "layout_7"
+        },
+        {
+          "label": "Format: Features",
+          "layoutId": "layout_8"
+        },
+        {
+          "label": "Help",
+          "layoutId": "layout_9"
+        },
+        {
+          "label": "Credits",
+          "layoutId": "layout_10"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 1200,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_01",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 210
+            }
+          },
+          {
+            "item": "viz_help_02",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 210
+            }
+          },
+          {
+            "item": "viz_help_03",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 210,
+              "w": 1440,
+              "h": 350
+            }
+          },
+          {
+            "item": "viz_help_04",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 560,
+              "w": 720,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_help_05",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 560,
+              "w": 720,
+              "h": 280
+            }
+          },
+          {
+            "item": "viz_help_06",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 840,
+              "w": 1440,
+              "h": 360
+            }
+          }
+        ]
+      },
+      "layout_2": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 1350,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_07",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 200
+            }
+          },
+          {
+            "item": "viz_help_08",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 200,
+              "w": 720,
+              "h": 700
+            }
+          },
+          {
+            "item": "viz_help_09",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 200,
+              "w": 720,
+              "h": 700
+            }
+          },
+          {
+            "item": "viz_help_10",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 900,
+              "w": 720,
+              "h": 450
+            }
+          },
+          {
+            "item": "viz_help_11",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 900,
+              "w": 720,
+              "h": 450
+            }
+          }
+        ]
+      },
+      "layout_3": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 460,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_12",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 460
+            }
+          },
+          {
+            "item": "viz_help_13",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 460
+            }
+          }
+        ]
+      },
+      "layout_4": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 530,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_14",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 530
+            }
+          },
+          {
+            "item": "viz_help_15",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 530
+            }
+          }
+        ]
+      },
+      "layout_5": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 610,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_16",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_help_17",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_help_18",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 300,
+              "w": 1440,
+              "h": 310
+            }
+          }
+        ]
+      },
+      "layout_6": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 660,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_19",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 270
+            }
+          },
+          {
+            "item": "viz_help_20",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 270
+            }
+          },
+          {
+            "item": "viz_help_21",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 270,
+              "w": 720,
+              "h": 390
+            }
+          },
+          {
+            "item": "viz_help_22",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 270,
+              "w": 720,
+              "h": 390
+            }
+          }
+        ]
+      },
+      "layout_7": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 1720,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_23",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 1200
+            }
+          },
+          {
+            "item": "viz_help_24",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 1200
+            }
+          },
+          {
+            "item": "viz_help_25",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1200,
+              "w": 720,
+              "h": 520
+            }
+          },
+          {
+            "item": "viz_help_26",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1200,
+              "w": 720,
+              "h": 520
+            }
+          }
+        ]
+      },
+      "layout_8": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 1260,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_27",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 510
+            }
+          },
+          {
+            "item": "viz_help_28",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 510
+            }
+          },
+          {
+            "item": "viz_help_29",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 510,
+              "w": 720,
+              "h": 750
+            }
+          },
+          {
+            "item": "viz_help_30",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 510,
+              "w": 720,
+              "h": 750
+            }
+          }
+        ]
+      },
+      "layout_9": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 230,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_31",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 230
+            }
+          },
+          {
+            "item": "viz_help_32",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 230
+            }
+          }
+        ]
+      },
+      "layout_10": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 520,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_33",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 480,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_help_34",
+            "type": "block",
+            "position": {
+              "x": 480,
+              "y": 0,
+              "w": 480,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_help_35",
+            "type": "block",
+            "position": {
+              "x": 960,
+              "y": 0,
+              "w": 480,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_help_36",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 320,
+              "w": 720,
+              "h": 200
+            }
+          },
+          {
+            "item": "viz_help_37",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 320,
+              "w": 720,
+              "h": 200
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <assets><![CDATA[{}]]></assets>
 </dashboard>

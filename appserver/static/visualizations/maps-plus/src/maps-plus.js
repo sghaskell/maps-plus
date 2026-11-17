@@ -61,7 +61,7 @@ define([
 
 
 
-return SplunkVisualizationBase.extend({
+var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
 paneZIndex: 400,
 tileLayer: null,
@@ -2234,7 +2234,7 @@ updateView: function(data, config) {
         maxClusterRadius = parseInt(this._getEscapedProperty('maxClusterRadius', config)),
         maxSpiderfySize = parseInt(this._getEscapedProperty('maxSpiderfySize', config)),
         spiderfyDistanceMultiplier = parseInt(this._getEscapedProperty('spiderfyDistanceMultiplier', config)),
-        mapTile     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('mapTile', config)),
+        mapTile     = this._getSafeUrlProperty('mapTile', config),
         i18nLanguage     = SplunkVisualizationUtils.makeSafeUrl(this._getEscapedProperty('i18nLanguage', config)),
         mapTileOverride  = this._getSafeUrlProperty('mapTileOverride', config),
         mapAttributionOverride = this._getEscapedProperty('mapAttributionOverride', config),
@@ -3520,6 +3520,7 @@ updateView: function(data, config) {
         var interval = pathSplitInterval * 1000
         var intervalCounter = 0
         var previousTime = new Date()
+        var vizContext = this
 
         var paths = _.chain(dataRows)
             .map(function (d) {
@@ -3533,8 +3534,8 @@ updateView: function(data, config) {
                     antPath = _.has(d, "antPath") ? d["antPath"]:null,
                     antPathDelay = _.has(d, "antPathDelay") ? d["antPathDelay"]:1000,
                     antPathPulseColor = _.has(d, "antPathPulseColor") ? d["antPathPulseColor"]:"#FFFFFF",
-                    antPathPaused = _.has(d, "antPathPaused") ? d["antPathPaused"]:false,
-                    antPathReverse = _.has(d, "antPathReverse") ? d["antPathReverse"]:false,
+                    antPathPaused = _.has(d, "antPathPaused") ? vizContext.isArgTrue(d["antPathPaused"]):false,
+                    antPathReverse = _.has(d, "antPathReverse") ? vizContext.isArgTrue(d["antPathReverse"]):false,
                     antPathDashArray = _.has(d, "antPathDashArray") ? d["antPathDashArray"]:"10,20",
                     layerDescription = _.has(d, "layerDescription") ? d["layerDescription"]:"",
                     layerPriority = _.has(d, "layerPriority") ? d["layerPriority"]:undefined,
@@ -3647,4 +3648,13 @@ updateView: function(data, config) {
     return this
 }
 })
+
+// Debug builds only (npm run build:debug): draw errors and cycle/layer state on the panel.
+// __MP_DEBUG__ is replaced at build time by webpack's DefinePlugin; when false, webpack
+// drops this branch and the overlay module is not bundled.
+if (__MP_DEBUG__) {
+    require('./compat/debug-overlay').install(MapsPlus)
+}
+
+return MapsPlus
 })

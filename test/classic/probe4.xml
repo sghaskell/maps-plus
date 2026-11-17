@@ -1,0 +1,57 @@
+<dashboard version="1.1">
+  <label>Maps+ probe - paths, playback, ant paths, hidden markers (MP-04, MP-06, MP-10)</label>
+  <description>Probe harness, classic. P1 paths, P2 paths with playback, P3 ant paths with antPathPaused="false", P4 hidden markers. Same SPL and options as test/studio/probe4.json. See test/README.md.</description>
+  <row>
+    <panel>
+      <title>P1 - 3 paths (bus1, bus2, bus3), 10 points each, 60s apart (MP-04, MP-06)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=30 | streamstats count as n | eval id=case(n&lt;=10,"bus1",n&lt;=20,"bus2",true(),"bus3"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60 | sort 0 id _time | table _time id latitude longitude</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">id</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>P2 - as P1 plus showPlayback=1 and contextMenu=1 (MP-06)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=30 | streamstats count as n | eval id=case(n&lt;=10,"bus1",n&lt;=20,"bus2",true(),"bus3"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60 | sort 0 id _time | table _time id latitude longitude</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">id</option>
+        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
+        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>P3 - as P1 plus antPath=1 and antPathPaused="false" on all rows (MP-10: expect animates)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=30 | streamstats count as n | eval id=case(n&lt;=10,"bus1",n&lt;=20,"bus2",true(),"bus3"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60, antPath="1", antPathPaused="false" | sort 0 id _time | table _time id latitude longitude antPath antPathPaused</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
+        <option name="leaflet_maps_app.maps-plus.pathIdentifier">id</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>P4 - 5 markers, 2 with markerVisibility=false, toggle in layer control (MP-04)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=5 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, tooltip="P4 marker ".n, layerGroup="p4_".n, layerDescription="P4 marker ".n, markerVisibility=if(n>3,"false","true") | table latitude longitude tooltip layerGroup layerDescription markerVisibility</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

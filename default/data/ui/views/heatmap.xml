@@ -1,312 +1,463 @@
-<form version="1.1">
+<dashboard version="2" theme="light">
   <label>Heatmap</label>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <title>No Markers, Custom Color Gradient</title>
-      <input type="multiselect" token="desc_viz_1">
-        <label>Infraction</label>
-        <choice value="*">All</choice>
-        <valuePrefix>"</valuePrefix>
-        <valueSuffix>"</valueSuffix>
-        <delimiter> OR </delimiter>
-        <fieldForLabel>desc_vals</fieldForLabel>
-        <fieldForValue>desc_vals</fieldForValue>
-        <search>
-          <query>| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <initialValue>*</initialValue>
-      </input>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv | search description=$desc_viz_1$ | eval tooltip=description, coordinates=latitude.",".longitude</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4": "#f23e45", "0.50": "lime", "0.70": "yellow", "0.95": "#FF8300", "1.0":  'red'}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">1</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">1</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">12.5</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
-        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Markers, Default Color Gradient</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup go_track_trackspoints.csv</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">1</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">12.5</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-10.838701</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-36.904449</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">9</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Markers, Multi-Heatmap Layers (heatmapLayer), heatmapMinOpacity, heatmapBlur, heatmapColorGradient, heatmapPointIntensity, heatmapRadius, layerPriority</title>
-      <input type="multiselect" token="desc_viz_3">
-        <label>Infraction</label>
-        <choice value="*">All</choice>
-        <valuePrefix>"</valuePrefix>
-        <valueSuffix>"</valueSuffix>
-        <delimiter> OR </delimiter>
-        <fieldForLabel>desc_vals</fieldForLabel>
-        <fieldForValue>desc_vals</fieldForValue>
-        <search>
-          <query>| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <initialValue>*</initialValue>
-      </input>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv 
-| search description=$desc_viz_3$
-| eval tooltip=description, coordinates=latitude.",".longitude, 
-heatmapLayer=case(like(description, "%TO VEHICLE%"), "vehicle", like(description, "%AGGRAVATED: HANDGUN%"), "gun", 1=1, "default"),
-heatmapMinOpacity=case(like(description, "%TO VEHICLE%"), "0.8", like(description, "%AGGRAVATED: HANDGUN%"), "0.6", 1=1, "0.3"),
-heatmapBlur=case(like(description, "%TO VEHICLE%"), "15", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "15"),
-heatmapColorGradient=case(like(description, "%TO VEHICLE%"), "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}", like(description, "%AGGRAVATED: HANDGUN%"), "{\"0.4\": \"#f23e45\", \"0.50\": \"lime\", \"0.70\": \"yellow\", \"0.95\": \"#FF8300\", \"1.0\":  \"red\"}", 1=1, "{\"0.1\": \"#f442d9\", \"0.03\": \"#42f4f4\", \"0.50\": \"#4242f4\", \"0.7\": \"#bcf442\", \"1.0\":  \"red\"}"),
-heatmapPointIntensity=case(like(description, "%TO VEHICLE%"), "50", like(description, "%AGGRAVATED: HANDGUN%"), "5", 1=1, "0.5"),
-heatmapRadius=case(like(description, "%TO VEHICLE%"), "20", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "10"),
-layerPriority=case(like(description, "%TO VEHICLE%"), "20", like(description, "%AGGRAVATED: HANDGUN%"), "15", 1=1, "30")</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4": "#f23e45", "0.50": "lime", "0.70": "yellow", "0.95": "#FF8300", "1.0":  'red'}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">1</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">12.5</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.834781</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.720337</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">13</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
-        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-</form>
+  <description>Maps+ heatmaps: heat only, markers plus heat and multiple heat layers.</description>
+  <definition><![CDATA[
+{
+  "title": "Heatmap",
+  "description": "Maps+ heatmaps: heat only, markers plus heat and multiple heat layers.",
+  "dataSources": {
+    "ds_in_desc_viz_1": {
+      "type": "ds.search",
+      "name": "Infraction choices map 1",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_in_desc_viz_3": {
+      "type": "ds.search",
+      "name": "Infraction choices map 3",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_1": {
+      "type": "ds.search",
+      "name": "Heatmap 1 rows",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | search description=$desc_viz_1$ | eval tooltip=description, coordinates=latitude.\",\".longitude",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_2": {
+      "type": "ds.search",
+      "name": "Heatmap 2 rows",
+      "options": {
+        "query": "| inputlookup go_track_trackspoints.csv",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_3": {
+      "type": "ds.search",
+      "name": "Heatmap 3 rows",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv \n| search description=$desc_viz_3$\n| eval tooltip=description, coordinates=latitude.\",\".longitude, \nheatmapLayer=case(like(description, \"%TO VEHICLE%\"), \"vehicle\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"gun\", 1=1, \"default\"),\nheatmapMinOpacity=case(like(description, \"%TO VEHICLE%\"), \"0.8\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"0.6\", 1=1, \"0.3\"),\nheatmapBlur=case(like(description, \"%TO VEHICLE%\"), \"15\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"15\"),\nheatmapColorGradient=case(like(description, \"%TO VEHICLE%\"), \"{\\\"0.4\\\":\\\"blue\\\",\\\"0.6\\\":\\\"cyan\\\",\\\"0.7\\\":\\\"lime\\\",\\\"0.8\\\":\\\"yellow\\\",\\\"1\\\":\\\"red\\\"}\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"{\\\"0.4\\\": \\\"#f23e45\\\", \\\"0.50\\\": \\\"lime\\\", \\\"0.70\\\": \\\"yellow\\\", \\\"0.95\\\": \\\"#FF8300\\\", \\\"1.0\\\":  \\\"red\\\"}\", 1=1, \"{\\\"0.1\\\": \\\"#f442d9\\\", \\\"0.03\\\": \\\"#42f4f4\\\", \\\"0.50\\\": \\\"#4242f4\\\", \\\"0.7\\\": \\\"#bcf442\\\", \\\"1.0\\\":  \\\"red\\\"}\"),\nheatmapPointIntensity=case(like(description, \"%TO VEHICLE%\"), \"50\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"5\", 1=1, \"0.5\"),\nheatmapRadius=case(like(description, \"%TO VEHICLE%\"), \"20\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"10\"),\nlayerPriority=case(like(description, \"%TO VEHICLE%\"), \"20\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"30\")",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_desc_viz_1": {
+      "type": "input.multiselect",
+      "title": "Infraction (map 1)",
+      "options": {
+        "token": "desc_viz_1",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_in_desc_viz_1"
+      },
+      "encoding": {
+        "label": "primary.desc_vals",
+        "value": "primary.desc_vals"
+      }
+    },
+    "input_desc_viz_3": {
+      "type": "input.multiselect",
+      "title": "Infraction (map 3)",
+      "options": {
+        "token": "desc_viz_3",
+        "defaultValue": "*",
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_in_desc_viz_3"
+      },
+      "encoding": {
+        "label": "primary.desc_vals",
+        "value": "primary.desc_vals"
+      }
+    }
+  },
+  "visualizations": {
+    "viz_map_1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "No Markers, Custom Color Gradient",
+      "dataSources": {
+        "primary": "ds_map_1"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\": \"#f23e45\", \"0.50\": \"lime\", \"0.70\": \"yellow\", \"0.95\": \"#FF8300\", \"1.0\":  'red'}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "1",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMaxZoom": "0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "1",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "12.5",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.playbackSpeed": "100",
+        "leaflet_maps_app.maps-plus.playbackTickLength": "50",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showPlayback": "0",
+        "leaflet_maps_app.maps-plus.showPlaybackDateControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackPlayControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackSliderControl": "1",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.splunkVersionCheck": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55"
+      }
+    },
+    "viz_map_2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Markers, Default Color Gradient",
+      "dataSources": {
+        "primary": "ds_map_2"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "1",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMaxZoom": "0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "12.5",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-10.838701",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-36.904449",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "9",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      }
+    },
+    "viz_map_3": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Markers, Multi-Heatmap Layers (heatmapLayer), heatmapMinOpacity, heatmapBlur, heatmapColorGradient, heatmapPointIntensity, heatmapRadius, layerPriority",
+      "dataSources": {
+        "primary": "ds_map_3"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\": \"#f23e45\", \"0.50\": \"lime\", \"0.70\": \"yellow\", \"0.95\": \"#FF8300\", \"1.0\":  'red'}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "1",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMaxZoom": "0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "12.5",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "41.834781",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-87.720337",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "13",
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.playbackSpeed": "100",
+        "leaflet_maps_app.maps-plus.playbackTickLength": "50",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showPlayback": "0",
+        "leaflet_maps_app.maps-plus.showPlaybackDateControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackPlayControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackSliderControl": "1",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.splunkVersionCheck": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55"
+      }
+    },
+    "viz_md_1": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Heat only, custom gradient\n\n**What this shows** - Chicago crime locations as a heat layer only: no markers, a custom colour gradient and a topographic basemap, filtered by infraction type.\n\n**The SPL**\n\n```spl\n| inputlookup chicago-crime.csv | search description=$$desc_viz_1$$ | eval tooltip=description, coordinates=latitude.\",\".longitude\n```\n\n**How it works**\n\n1. `inputlookup chicago-crime.csv` loads the crime rows (`latitude`, `longitude`, `description`, ...); `search description=$$desc_viz_1$$` applies the Infraction input.\n2. `eval tooltip=description, coordinates=latitude.\",\".longitude` adds hover text and a combined `coordinates` string.\n3. `heatmapEnable=1` sends every row through the heatmap code. No row has a `heatmapLayer`, so all rows go to the default layer `heatmap`, each with the default intensity of 1.\n4. `heatmapOnly=1` suppresses all markers, so only the heat is drawn.\n5. `heatmapRadius=12.5` and `heatmapColorGradient` (a JSON object of stop to colour; single quotes are accepted) style the layer; `mapTile` picks the basemap.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name, from the lookup. Rename `lat`, `lng` and similar before the map. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Rows at 0,0 usually mean missing coordinates. |\n| `tooltip` | HTML text | Hover tooltip; not shown while `heatmapOnly=1` because no markers are drawn. |\n| `coordinates` | any | Not a reserved Maps+ field: ignored for drawing, passed to drilldown. |\n| `heatmapPointIntensity` | number, default 1 | Not set here. Weight per point; normalise to 0-1 when rows are aggregated counts. |\n\n**Try it**\n\n- Set `heatmapOnly` to 0 in the Format panel to see markers on top of the heat.\n- Append `, heatmapPointIntensity=if(like(description,\"%HANDGUN%\"),5,1)` to the `eval` to weight handgun crimes five times more.\n\n> **Studio note:** Studio multiselect inputs ignore the classic `valuePrefix` / `valueSuffix` (`\"`) and `delimiter` (` OR `): values are comma-joined with no wrapping, so only the **All** choice (`*`, the default) expands to a valid `description=*` filter. The query text is unchanged. On Maps+ 4.6.9 and earlier, heat layers appear twice in the Studio layer control: untick both entries (fixed in the unreleased 4.6.10). The `heatmapColorGradient` option is passed through unchanged.\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+      }
+    },
+    "viz_md_2": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Markers plus heat, default gradient\n\n**What this shows** - GPS track points shown as markers with a heat layer underneath, using the default gradient.\n\n**The SPL**\n\n```spl\n| inputlookup go_track_trackspoints.csv\n```\n\n**How it works**\n\n1. `inputlookup go_track_trackspoints.csv` returns the track points; there is no further processing, since the lookup already has `latitude` and `longitude`.\n2. `heatmapEnable=1` runs every row through the heatmap code (default layer `heatmap`, intensity 1), and because `heatmapOnly` is not set, markers are drawn too.\n3. `heatmapRadius=12.5` sets the heat radius; the gradient is the option default.\n4. `autoFitAndZoom=0` with `mapCenterLat`, `mapCenterLon` and `mapCenterZoom=9` fixes the starting view.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name, from the lookup. Rename `lat`, `lng` and similar before the map. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Rows at 0,0 usually mean missing coordinates. |\n| `track_id, _time` | any | Not reserved for heat: not drawn, passed to drilldown. (`_time` only matters for paths.) |\n\n**Try it**\n\n- Set `heatmapOnly` to 1 to hide the markers.\n- Lower `heatmapRadius` to 6 for tighter hot spots.\n\n> **Studio note:** On Maps+ 4.6.9 and earlier, heat layers appear twice in the Studio layer control: untick both entries (fixed in the unreleased 4.6.10).\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+      }
+    },
+    "viz_md_3": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Several heat layers, each with its own settings\n\n**What this shows** - Crimes split into three heat layers (vehicle, gun, everything else), each with its own opacity, blur, radius, gradient and weight.\n\n**The SPL**\n\n```spl\n| inputlookup chicago-crime.csv \n| search description=$$desc_viz_3$$\n| eval tooltip=description, coordinates=latitude.\",\".longitude, \nheatmapLayer=case(like(description, \"%TO VEHICLE%\"), \"vehicle\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"gun\", 1=1, \"default\"),\nheatmapMinOpacity=case(like(description, \"%TO VEHICLE%\"), \"0.8\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"0.6\", 1=1, \"0.3\"),\nheatmapBlur=case(like(description, \"%TO VEHICLE%\"), \"15\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"15\"),\nheatmapColorGradient=case(like(description, \"%TO VEHICLE%\"), \"{\\\"0.4\\\":\\\"blue\\\",\\\"0.6\\\":\\\"cyan\\\",\\\"0.7\\\":\\\"lime\\\",\\\"0.8\\\":\\\"yellow\\\",\\\"1\\\":\\\"red\\\"}\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"{\\\"0.4\\\": \\\"#f23e45\\\", \\\"0.50\\\": \\\"lime\\\", \\\"0.70\\\": \\\"yellow\\\", \\\"0.95\\\": \\\"#FF8300\\\", \\\"1.0\\\":  \\\"red\\\"}\", 1=1, \"{\\\"0.1\\\": \\\"#f442d9\\\", \\\"0.03\\\": \\\"#42f4f4\\\", \\\"0.50\\\": \\\"#4242f4\\\", \\\"0.7\\\": \\\"#bcf442\\\", \\\"1.0\\\":  \\\"red\\\"}\"),\nheatmapPointIntensity=case(like(description, \"%TO VEHICLE%\"), \"50\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"5\", 1=1, \"0.5\"),\nheatmapRadius=case(like(description, \"%TO VEHICLE%\"), \"20\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"10\"),\nlayerPriority=case(like(description, \"%TO VEHICLE%\"), \"20\", like(description, \"%AGGRAVATED: HANDGUN%\"), \"15\", 1=1, \"30\")\n```\n\n**How it works**\n\n1. Load `chicago-crime.csv` and filter with `search description=$$desc_viz_3$$`.\n2. `heatmapLayer=case(...)` assigns each row to the layer `vehicle`, `gun` or `default`; Maps+ creates one heat layer per name.\n3. `heatmapMinOpacity`, `heatmapBlur`, `heatmapRadius` and `heatmapColorGradient` are set per layer with `case()`. Maps+ reads them from the **first row** of each layer, so every row of a layer should carry the same values (they do here).\n4. `heatmapPointIntensity` is the weight per point: 50 for vehicle, 5 for gun and 0.5 for the rest, so vehicle crimes glow hotter.\n5. `layerPriority` sets pane order, and `heatmapEnable=1` turns the heat code on.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name, from the lookup. Rename `lat`, `lng` and similar before the map. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Rows at 0,0 usually mean missing coordinates. |\n| `heatmapLayer` | text | Layer name; give every row one, or rows without it fall into the layer `heatmap`. |\n| `heatmapMinOpacity, heatmapBlur, heatmapRadius` | numbers as text | Per layer, from the layer's first row; fall back to the panel options. |\n| `heatmapColorGradient` | JSON object of stop to colour | Per layer, first row wins. Quotes inside the SPL string are escaped (`\\\"`); single quotes are also accepted. |\n| `heatmapPointIntensity` | number, default 1 | Weight per point. |\n| `layerPriority` | integer | Pane order of the layer. |\n| `tooltip, coordinates` | text | `tooltip` is the hover text; `coordinates` is not reserved and only passed to drilldown. |\n\n**Try it**\n\n- Change `\"50\"` to `\"5\"` in the vehicle `heatmapPointIntensity` and compare the layers.\n- Add `heatmapInclude=\"false\"` for the `default` rows (in the `eval`) to leave them out of the heat.\n\n> **Studio note:** Studio multiselect inputs ignore the classic `valuePrefix` / `valueSuffix` (`\"`) and `delimiter` (` OR `): values are comma-joined with no wrapping, so only the **All** choice (`*`, the default) expands to a valid `description=*` filter. The query text is unchanged. On Maps+ 4.6.9 and earlier, heat layers appear twice in the Studio layer control: untick both entries (fixed in the unreleased 4.6.10).\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [
+      "input_desc_viz_1",
+      "input_desc_viz_3"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 2060,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_map_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 880,
+              "h": 650
+            }
+          },
+          {
+            "item": "viz_md_1",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 0,
+              "w": 560,
+              "h": 650
+            }
+          },
+          {
+            "item": "viz_map_2",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 650,
+              "w": 880,
+              "h": 650
+            }
+          },
+          {
+            "item": "viz_md_2",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 650,
+              "w": 560,
+              "h": 650
+            }
+          },
+          {
+            "item": "viz_map_3",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1300,
+              "w": 880,
+              "h": 760
+            }
+          },
+          {
+            "item": "viz_md_3",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 1300,
+              "w": 560,
+              "h": 760
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
+</dashboard>

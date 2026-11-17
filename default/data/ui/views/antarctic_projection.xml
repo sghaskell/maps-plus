@@ -1,580 +1,734 @@
-<dashboard version="1.1" theme="dark">
+<dashboard version="2" theme="dark">
   <label>Operation COLDFIRE: Antarctic Research Expedition</label>
   <description>Real-time operational picture for the COLDFIRE 2025 Antarctic research expedition. Integrates NASA GIBS satellite imagery, station telemetry, and traverse route tracking across the EPSG:3031 polar projection.</description>
-
-  <!-- ============================================================
-       ROW 1: Mission Header Stats
-       ============================================================ -->
-  <row>
-    <panel>
-      <title>Mission Day</title>
-      <single>
-        <search>
-          <query>| makeresults
-| eval mission_start=strptime("2025-01-15", "%Y-%m-%d"), now=now(), days=round((now - mission_start) / 86400, 0)
-| table days</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="colorBy">value</option>
-        <option name="underLabel">Days Since Departure</option>
-        <option name="unit">days</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Active Research Stations</title>
-      <single>
-        <search>
-          <query>| makeresults count=1
-| eval stations=7
-| table stations</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="underLabel">Stations Online</option>
-        <option name="colorBy">value</option>
-        <option name="rangeColors">["0xd93f3c","0xf58f39","0x6db7c6","0x53a051"]</option>
-        <option name="ranges">[0,3,5,6,10]</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Personnel Deployed</title>
-      <single>
-        <search>
-          <query>| makeresults count=1
-| eval personnel=47
-| table personnel</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="underLabel">Field Researchers</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Traverse Distance</title>
-      <single>
-        <search>
-          <query>| makeresults count=1
-| eval km=1842
-| table km</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="underLabel">km Traversed (YTD)</option>
-        <option name="unit">km</option>
-      </single>
-    </panel>
-    <panel>
-      <title>Ice Core Samples</title>
-      <single>
-        <search>
-          <query>| makeresults count=1
-| eval samples=312
-| table samples</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="underLabel">Samples Collected</option>
-      </single>
-    </panel>
-  </row>
-
-  <!-- ============================================================
-       ROW 2: Primary Mission Map — NASA GIBS True Color + Stations
-       Full-width operational picture with EPSG:3031 polar projection
-       GIBS Layer: MODIS_Aqua_CorrectedReflectance_TrueColor (250m)
-       ============================================================ -->
-  <row>
-    <panel>
-      <viz type="leaflet_maps_app.maps-plus">
-        <title>COLDFIRE Operational Picture — NASA GIBS MODIS True Color | EPSG:3031</title>
-        <search>
-          <query>| makeresults count=9
-| streamstats count as row
-| eval
-    data=case(
-      row=1,  "McMurdo Station|-77.846|-166.676|research_station|McMurdo Station (USA) — Main logistics hub. 1,258 personnel capacity. Operational since 1956.|#1E90FF|25,25",
-      row=2,  "Amundsen-Scott South Pole|-90.0|0.0|research_station|Amundsen-Scott South Pole Station (USA) — Elevation 2,835m. Continuous atmospheric monitoring. 150 winter-over personnel.|#1E90FF|25,25",
-      row=3,  "Scott Base|-77.849|-166.758|research_station|Scott Base (NZL) — New Zealand Antarctic Programme. Adjacent to McMurdo. Year-round operations.|#00CC44|22,22",
-      row=4,  "Concordia Station|-75.1|-123.35|research_station|Concordia Station (FRA/ITA) — Joint French-Italian facility. Elevation 3,233m. Deep ice core drilling operations.|#FFD700|22,22",
-      row=5,  "Vostok Station|-78.465|106.835|research_station|Vostok Station (RUS) — Coldest recorded temperature on Earth (-89.2°C). Subglacial Lake Vostok drilling program.|#FF4500|22,22",
-      row=6,  "Casey Station|-66.283|110.527|research_station|Casey Station (AUS) — Australian Antarctic Division. East Antarctica research hub. Aurora monitoring program.|#00BFFF|20,20",
-      row=7,  "Neumayer III|-70.676|-8.274|research_station|Neumayer III (DEU) — German AWI station. Atmospheric, geophysical and seismological monitoring. Steel pile foundation design.|#FF69B4|20,20",
-      row=8,  "COLDFIRE Alpha Camp|-84.2|-65.4|field_camp|COLDFIRE Alpha Camp — Active traverse base. Team: 12 researchers. Primary ice core drill site. Current depth: 847m. Est. recovery: 800ka climate record.|#FF8C00|30,30",
-      row=9,  "COLDFIRE Bravo Camp|-87.1|45.2|field_camp|COLDFIRE Bravo Camp — Geophysical survey grid. Team: 8 researchers. Bedrock mapping via ground-penetrating radar. Subglacial topography survey.|#FF8C00|28,28"
-    )
-| eval latitude=tonumber(mvindex(split(data, "|"), 1))
-| eval longitude=tonumber(mvindex(split(data, "|"), 2))
-| eval description=mvindex(split(data, "|"), 0)
-| eval markerType=mvindex(split(data, "|"), 3)
-| eval tooltip=mvindex(split(data, "|"), 4)
-| eval markerColor=mvindex(split(data, "|"), 5)
-| eval markerSize=mvindex(split(data, "|"), 6)
-| table latitude, longitude, description, tooltip, markerColor, markerSize</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLayerId">MODIS_Aqua_CorrectedReflectance_TrueColor</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTime">2025-02-10</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
-        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
-        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-90</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">3</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">700</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">kilometers</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">sqmeters</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqkilometers</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-      </viz>
-    </panel>
-  </row>
-
-  <!-- ============================================================
-       ROW 3: Two maps side-by-side
-       Left:  Sea Ice Extent (NSIDC) — GIBS Blue Marble + Sea Ice overlay
-       Right: Traverse Route with Path Lines — Team movement tracks
-       ============================================================ -->
-  <row>
-    <panel>
-      <viz type="leaflet_maps_app.maps-plus">
-        <title>Sea Ice Extent — NASA GIBS MODIS Land Surface Temp | EPSG:3031</title>
-        <search>
-          <query>| makeresults count=4
-| streamstats count as row
-| eval
-    data=case(
-      row=1, "Amery Ice Shelf|-70.4|71.5|Ice shelf calving front — Active monitoring. Recent 12km² calving event detected 2025-01-28.|25,25",
-      row=2, "Ross Ice Shelf|-80.0|-180.0|Ross Ice Shelf edge — Largest ice shelf on Earth (487,000 km²). Continuous GPS stake monitoring network active.|25,25",
-      row=3, "Pine Island Glacier|-75.17|-99.98|Pine Island Glacier — Fastest retreating glacier in West Antarctica. Mass loss rate: -45 Gt/yr. Active satellite altimetry campaign.|28,28",
-      row=4, "Thwaites Glacier Terminus|-75.5|-107.0|Thwaites Glacier — ITGC monitoring site. Sub-shelf ocean temp anomaly: +1.6°C above baseline. Critical instability threshold monitoring.|30,30"
-    )
-| eval latitude=tonumber(mvindex(split(data, "|"), 1))
-| eval longitude=tonumber(mvindex(split(data, "|"), 2))
-| eval description=mvindex(split(data, "|"), 0)
-| eval tooltip=mvindex(split(data, "|"), 3)
-| eval markerSize=mvindex(split(data, "|"), 4)
-| table latitude, longitude, description, tooltip, markerSize</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLayerId">VIIRS_NOAA20_CorrectedReflectance_TrueColor</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTime">2025-02-10</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
-        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
-        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-90</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">3</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">550</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">kilometers</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-      </viz>
-    </panel>
-    <panel>
-      <viz type="leaflet_maps_app.maps-plus">
-        <title>COLDFIRE Traverse Routes — Team Alpha &amp; Bravo Path Tracks | EPSG:3031</title>
-        <search>
-          <!-- Simulates a multi-leg traverse from McMurdo toward Pole and back,
-               plus a secondary geophysical survey traverse.
-               id field drives separate colored path lines per team. -->
-          <query>| makeresults count=22
-| streamstats count as row
-| eval
-    data=case(
-      row=1,  "alpha|-77.85|-166.68|2025-01-15T08:00:00|Departed McMurdo Station",
-      row=2,  "alpha|-78.90|-160.10|2025-01-18T14:00:00|Fuel depot cache laid — Camp 1",
-      row=3,  "alpha|-80.20|-155.40|2025-01-21T10:00:00|Crossed Transantarctic Mountains — Beardmore Glacier ascent",
-      row=4,  "alpha|-81.50|-148.00|2025-01-24T09:00:00|Polar plateau entry — elevation 2,100m",
-      row=5,  "alpha|-82.80|-135.00|2025-01-27T11:00:00|Camp 3 established — ice core sample collection begins",
-      row=6,  "alpha|-83.50|-115.00|2025-01-30T08:00:00|GPS stake network deployed — 6 ablation stakes",
-      row=7,  "alpha|-84.20|-95.00|2025-02-02T10:00:00|Camp Alpha established — primary drill site active",
-      row=8,  "alpha|-84.80|-75.00|2025-02-06T09:00:00|Geophysical survey grid — 240km GPR transect complete",
-      row=9,  "alpha|-85.20|-60.00|2025-02-09T08:00:00|Moving toward South Pole axis — sample handoff scheduled",
-      row=10, "alpha|-86.00|-42.00|2025-02-12T11:00:00|Atmospheric sampling station activated — greenhouse gas tower",
-      row=11, "alpha|-87.00|-20.00|2025-02-15T09:00:00|Final waypoint before Amundsen-Scott resupply",
-      row=12, "bravo|-70.68|-8.27|2025-01-16T07:00:00|Departed Neumayer III — geophysical survey team",
-      row=13, "bravo|-72.10|5.50|2025-01-19T13:00:00|Gravity survey transect begun — GRACE validation campaign",
-      row=14, "bravo|-73.80|18.00|2025-01-22T10:00:00|Seismic network node installation — node 4 of 8",
-      row=15, "bravo|-75.10|32.50|2025-01-25T09:00:00|Bedrock depth: 2,340m below ice surface — anomaly recorded",
-      row=16, "bravo|-76.50|45.00|2025-01-28T11:00:00|Sub-glacial lake feature detected — radar reflector signature",
-      row=17, "bravo|-77.90|58.00|2025-01-31T08:00:00|Camp Bravo established — magnetometer array deployed",
-      row=18, "bravo|-79.20|68.00|2025-02-03T10:00:00|Ice velocity survey — InSAR ground truth collection",
-      row=19, "bravo|-80.50|75.00|2025-02-06T09:00:00|Overdeepening basin survey — 180km transect complete",
-      row=20, "bravo|-81.80|82.00|2025-02-09T11:00:00|Possible subglacial hydrological network — water routing model",
-      row=21, "bravo|-83.00|88.00|2025-02-12T10:00:00|Active water system confirmed — pressure anomaly positive",
-      row=22, "bravo|-84.00|95.00|2025-02-15T09:00:00|Rendezvous with Vostok resupply — final survey node placed"
-    )
-| eval id=mvindex(split(data, "|"), 0)
-| eval latitude=tonumber(mvindex(split(data, "|"), 1))
-| eval longitude=tonumber(mvindex(split(data, "|"), 2))
-| eval _time=strptime(mvindex(split(data, "|"), 3), "%Y-%m-%dT%H:%M:%S")
-| eval description=id." — ".mvindex(split(data, "|"), 4)
-| eval tooltip=mvindex(split(data, "|"), 4)
-| sort _time
-| table _time, id, latitude, longitude, description, tooltip</query>
-          <earliest>0</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLayerId">MODIS_Aqua_CorrectedReflectance_TrueColor</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTime">2025-02-10</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
-        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
-        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-82</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-40</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">2</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">550</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
-        <option name="leaflet_maps_app.maps-plus.pathIdentifier">id</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#FF8C00,#00BFFF,#FF4500,#00CC44</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">120</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">kilometers</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-      </viz>
-    </panel>
-  </row>
-
-  <!-- ============================================================
-       ROW 4: Station Telemetry Table + Environmental Alerts
-       ============================================================ -->
-  <row>
-    <panel>
-      <title>Station Telemetry — Current Conditions</title>
-      <table>
-        <search>
-          <query>| makeresults count=7
-| streamstats count as row
-| eval
-    data=case(
-      row=1, "McMurdo Station|-77.85|-166.68|-14.2|42|8.3|NW|1013|NOMINAL|Sastrugi forming N quadrant",
-      row=2, "Amundsen-Scott S. Pole|-90.0|0.0|-41.7|67|12.1|S|683|NOMINAL|Katabatic wind event possible 48h",
-      row=3, "Concordia Station|-75.1|-123.35|-52.3|71|4.7|SW|644|NOMINAL|Instrument calibration cycle in progress",
-      row=4, "Vostok Station|-78.47|106.84|-58.9|79|2.1|E|625|CAUTION|Comms degraded — sat window 0318Z",
-      row=5, "Casey Station|-66.28|110.53|-8.6|35|14.2|NE|991|NOMINAL|Sea ice breakout 12km N perimeter",
-      row=6, "COLDFIRE Alpha Camp|-84.2|-65.4|-44.1|61|9.8|SW|668|NOMINAL|Drill at 847m — on schedule",
-      row=7, "COLDFIRE Bravo Camp|-87.1|45.2|-49.8|74|6.3|E|651|CAUTION|Blizzard warning — ops suspended 24h"
-    )
-| eval station=mvindex(split(data, "|"), 0)
-| eval lat=mvindex(split(data, "|"), 1)
-| eval lon=mvindex(split(data, "|"), 2)
-| eval "Temp (°C)"=mvindex(split(data, "|"), 3)
-| eval "RH (%)"=mvindex(split(data, "|"), 4)
-| eval "Wind (m/s)"=mvindex(split(data, "|"), 5)
-| eval "Wind Dir"=mvindex(split(data, "|"), 6)
-| eval "Pressure (hPa)"=mvindex(split(data, "|"), 7)
-| eval Status=mvindex(split(data, "|"), 8)
-| eval Notes=mvindex(split(data, "|"), 9)
-| table station, "Temp (°C)", "RH (%)", "Wind (m/s)", "Wind Dir", "Pressure (hPa)", Status, Notes</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="dataOverlayMode">none</option>
-        <format type="color" field="Status">
-          <colorPalette type="map">{"NOMINAL": "#53a051", "CAUTION": "#f8be34", "ALERT": "#d93f3c"}</colorPalette>
-        </format>
-        <format type="color" field="Temp (°C)">
-          <colorPalette type="minMidMax" maxColor="#1E90FF" minColor="#FF4500" midColor="#FFD700"/>
-          <scale type="minMidMax" maxValue="-8" minValue="-60" midValue="-35"/>
-        </format>
-      </table>
-    </panel>
-    <panel>
-      <title>Active Alerts &amp; Operational Log</title>
-      <table>
-        <search>
-          <query>| makeresults count=8
-| streamstats count as row
-| eval
-    Timestamp=case(
-      row=1, "2025-02-16 03:12Z",
-      row=2, "2025-02-15 21:44Z",
-      row=3, "2025-02-15 14:30Z",
-      row=4, "2025-02-15 09:18Z",
-      row=5, "2025-02-14 22:05Z",
-      row=6, "2025-02-14 16:50Z",
-      row=7, "2025-02-14 11:22Z",
-      row=8, "2025-02-13 08:40Z"
-    ),
-    Source=case(
-      row=1, "Vostok-Station",
-      row=2, "Bravo-Camp",
-      row=3, "McMurdo-HQ",
-      row=4, "Bravo-Camp",
-      row=5, "Alpha-Camp",
-      row=6, "McMurdo-HQ",
-      row=7, "Concordia-Station",
-      row=8, "Casey-Station"
-    ),
-    Severity=case(
-      row=1, "WARN",
-      row=2, "WARN",
-      row=3, "INFO",
-      row=4, "INFO",
-      row=5, "INFO",
-      row=6, "INFO",
-      row=7, "INFO",
-      row=8, "INFO"
-    ),
-    Message=case(
-      row=1, "Satellite comms degraded. Primary link loss at 0312Z. Backup HF radio active. Next sat window 0318Z.",
-      row=2, "Blizzard warning — POLARPRED model: 22m/s sustained, visibility under 100m. All field ops suspended 24h. Personnel sheltered.",
-      row=3, "C-17 resupply ASVR-412 confirmed 2025-02-17. Payload: fuel, food, drill equipment, mail. ETA 1430L.",
-      row=4, "Subglacial water system confirmed at -81.80, 82.00. Pressure sensor +0.4 bar above baseline. Routing model updated.",
-      row=5, "Drill at 847m. Spectral analysis indicates volcanic ash layer ca. 73,000 BP — Toba event candidate.",
-      row=6, "Resupply cache FOXTROT-3 laid at -80.20, -155.40. 2,400L JP-8 and 30-day emergency rations. GPS beacon active.",
-      row=7, "Calibration cycle complete. CO2 baseline: 421.8 ppm. Stable — no sensor drift detected.",
-      row=8, "Sea ice breakout confirmed 12km N of station. 340 km² area. Resupply vessel window opening earlier than forecast."
-    )
-| table Timestamp, Source, Severity, Message</query>
-          <earliest>-1m</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="wrap">1</option>
-        <format type="color" field="Severity">
-          <colorPalette type="map">{"INFO": "#53a051", "WARN": "#f8be34", "ALERT": "#d93f3c"}</colorPalette>
-        </format>
-      </table>
-    </panel>
-  </row>
-
-  <!-- ============================================================
-       ROW 5: Ice Core Data Chart + Wind Rose-style Conditions Chart
-       ============================================================ -->
-  <row>
-    <panel>
-      <title>Alpha Camp — Ice Core Sample Depth vs. Estimated Age (Climate Record)</title>
-      <chart>
-        <search>
-          <query>| makeresults count=12
-| streamstats count as row
-| eval
-    depth_m=row*75,
-    estimated_age_ka=(depth_m * 0.94),
-    temp_anomaly_c=case(
-      row=1,  -0.2,
-      row=2,  -0.8,
-      row=3,  -1.4,
-      row=4,  -3.1,
-      row=5,  -2.2,
-      row=6,  -4.8,
-      row=7,  -3.9,
-      row=8,  -5.2,
-      row=9,  -6.1,
-      row=10, -4.3,
-      row=11, -7.8,
-      row=12, -8.4
-    ),
-    co2_ppm=case(
-      row=1,  421,
-      row=2,  418,
-      row=3,  310,
-      row=4,  285,
-      row=5,  290,
-      row=6,  230,
-      row=7,  245,
-      row=8,  195,
-      row=9,  210,
-      row=10, 240,
-      row=11, 185,
-      row=12, 192
-    )
-| eval label=depth_m." m / ".round(estimated_age_ka,0)." ka"
-| table label, temp_anomaly_c, co2_ppm</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-45</option>
-        <option name="charting.axisY.abbreviation">auto</option>
-        <option name="charting.axisY2.enabled">1</option>
-        <option name="charting.axisY2.scale">linear</option>
-        <option name="charting.chart">column</option>
-        <option name="charting.chart.overlayFields">co2_ppm</option>
-        <option name="charting.chart.nullValueMode">connect</option>
-        <option name="charting.drilldown">none</option>
-        <option name="charting.legend.placement">bottom</option>
-        <option name="charting.seriesColors">[0x1E90FF,0xFF8C00]</option>
-        <option name="charting.axisTitleX.text">Depth (m) / Age (ka BP)</option>
-        <option name="charting.axisTitleY.text">Temp Anomaly (°C vs present)</option>
-        <option name="charting.axisTitleY2.text">CO₂ (ppm)</option>
-        <option name="height">300</option>
-      </chart>
-    </panel>
-    <panel>
-      <title>7-Station Temperature vs. Wind Speed — Current Conditions</title>
-      <chart>
-        <search>
-          <query>| makeresults count=7
-| streamstats count as row
-| eval
-    station=case(
-      row=1, "McMurdo",
-      row=2, "S.Pole",
-      row=3, "Concordia",
-      row=4, "Vostok",
-      row=5, "Casey",
-      row=6, "Alpha Camp",
-      row=7, "Bravo Camp"
-    ),
-    temp=case(row=1,-14.2, row=2,-41.7, row=3,-52.3, row=4,-58.9, row=5,-8.6, row=6,-44.1, row=7,-49.8),
-    wind=case(row=1,8.3, row=2,12.1, row=3,4.7, row=4,2.1, row=5,14.2, row=6,9.8, row=7,22.4)
-| table station, temp, wind</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <option name="charting.chart">bar</option>
-        <option name="charting.axisY2.enabled">1</option>
-        <option name="charting.chart.overlayFields">wind</option>
-        <option name="charting.drilldown">none</option>
-        <option name="charting.legend.placement">bottom</option>
-        <option name="charting.seriesColors">[0x1E90FF,0xFF8C00]</option>
-        <option name="charting.axisTitleY.text">Temperature (°C)</option>
-        <option name="charting.axisTitleY2.text">Wind Speed (m/s)</option>
-        <option name="height">300</option>
-      </chart>
-    </panel>
-  </row>
-
-  <!-- ============================================================
-       ROW 6: Atmospheric Monitoring Map — GIBS Chlorophyll / Ocean layer
-       Southern Ocean context around the continent
-       ============================================================ -->
-  <row>
-    <panel>
-      <viz type="leaflet_maps_app.maps-plus">
-        <title>Southern Ocean Sea Surface — NASA GIBS MODIS Chlorophyll-a Concentration | EPSG:3031</title>
-        <search>
-          <query>| makeresults count=5
-| streamstats count as row
-| eval
-    data=case(
-      row=1, "Drake Passage Monitor Buoy|-58.5|-68.0|Argo Float DRKE-441 — SST: +2.1°C | Salinity: 34.1 psu | Depth: surface. ACC flow rate nominal.|20,20",
-      row=2, "Weddell Sea Polynya|-72.0|-20.0|Weddell Polynya — Open water area: 8,340 km². Deep water formation active. High biological productivity signature.|22,22",
-      row=3, "Ross Sea Polynya|-76.0|176.0|Ross Polynya — Open water persistent. AABW formation site. O₂ saturation: 98%. Active penguin foraging zone.|22,22",
-      row=4, "Antarctic Circumpolar Current|-60.0|90.0|ACC Southern Boundary — Frontal position confirmed via altimetry. Eddy kinetic energy elevated. Research cruise track planned.|20,20",
-      row=5, "Sub-Antarctic Front|-52.0|0.0|Sub-Antarctic Front — Satellite SST gradient: 4.2°C over 80km. Phytoplankton bloom active — chl-a: 2.8 mg/m³.|20,20"
-    )
-| eval latitude=tonumber(mvindex(split(data, "|"), 1))
-| eval longitude=tonumber(mvindex(split(data, "|"), 2))
-| eval description=mvindex(split(data, "|"), 0)
-| eval tooltip=mvindex(split(data, "|"), 3)
-| eval markerSize=mvindex(split(data, "|"), 4)
-| table latitude, longitude, description, tooltip, markerSize</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticProj">1</option>
-        <option name="leaflet_maps_app.maps-plus.antarcticMapTile">https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLayerId">MODIS_Terra_CorrectedReflectance_TrueColor</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTime">2025-02-10</option>
-        <option name="leaflet_maps_app.maps-plus.gibsTileMatrixSet">250m</option>
-        <option name="leaflet_maps_app.maps-plus.gibsFormat">jpg</option>
-        <option name="leaflet_maps_app.maps-plus.gibsLowerCorner">-4194304</option>
-        <option name="leaflet_maps_app.maps-plus.gibsUpperCorner">4194304</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-70</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">2</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">500</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">kilometers</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-      </viz>
-    </panel>
-  </row>
-
+  <definition><![CDATA[
+{
+  "title": "Operation COLDFIRE: Antarctic Research Expedition",
+  "description": "Real-time operational picture for the COLDFIRE 2025 Antarctic research expedition. Integrates NASA GIBS satellite imagery, station telemetry, and traverse route tracking across the EPSG:3031 polar projection.",
+  "dataSources": {
+    "ds_single_1": {
+      "type": "ds.search",
+      "name": "Mission Day",
+      "options": {
+        "query": "| makeresults\n| eval mission_start=strptime(\"2025-01-15\", \"%Y-%m-%d\"), now=now(), days=round((now - mission_start) / 86400, 0)\n| table days",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_single_2": {
+      "type": "ds.search",
+      "name": "Active Research Stations",
+      "options": {
+        "query": "| makeresults count=1\n| eval stations=7\n| table stations",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_single_3": {
+      "type": "ds.search",
+      "name": "Personnel Deployed",
+      "options": {
+        "query": "| makeresults count=1\n| eval personnel=47\n| table personnel",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_single_4": {
+      "type": "ds.search",
+      "name": "Traverse Distance",
+      "options": {
+        "query": "| makeresults count=1\n| eval km=1842\n| table km",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_single_5": {
+      "type": "ds.search",
+      "name": "Ice Core Samples",
+      "options": {
+        "query": "| makeresults count=1\n| eval samples=312\n| table samples",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_1": {
+      "type": "ds.search",
+      "name": "Map 1 rows",
+      "options": {
+        "query": "| makeresults count=9\n| streamstats count as row\n| eval\n    data=case(\n      row=1,  \"McMurdo Station|-77.846|-166.676|research_station|McMurdo Station (USA) — Main logistics hub. 1,258 personnel capacity. Operational since 1956.|#1E90FF|25,25\",\n      row=2,  \"Amundsen-Scott South Pole|-90.0|0.0|research_station|Amundsen-Scott South Pole Station (USA) — Elevation 2,835m. Continuous atmospheric monitoring. 150 winter-over personnel.|#1E90FF|25,25\",\n      row=3,  \"Scott Base|-77.849|-166.758|research_station|Scott Base (NZL) — New Zealand Antarctic Programme. Adjacent to McMurdo. Year-round operations.|#00CC44|22,22\",\n      row=4,  \"Concordia Station|-75.1|-123.35|research_station|Concordia Station (FRA/ITA) — Joint French-Italian facility. Elevation 3,233m. Deep ice core drilling operations.|#FFD700|22,22\",\n      row=5,  \"Vostok Station|-78.465|106.835|research_station|Vostok Station (RUS) — Coldest recorded temperature on Earth (-89.2°C). Subglacial Lake Vostok drilling program.|#FF4500|22,22\",\n      row=6,  \"Casey Station|-66.283|110.527|research_station|Casey Station (AUS) — Australian Antarctic Division. East Antarctica research hub. Aurora monitoring program.|#00BFFF|20,20\",\n      row=7,  \"Neumayer III|-70.676|-8.274|research_station|Neumayer III (DEU) — German AWI station. Atmospheric, geophysical and seismological monitoring. Steel pile foundation design.|#FF69B4|20,20\",\n      row=8,  \"COLDFIRE Alpha Camp|-84.2|-65.4|field_camp|COLDFIRE Alpha Camp — Active traverse base. Team: 12 researchers. Primary ice core drill site. Current depth: 847m. Est. recovery: 800ka climate record.|#FF8C00|30,30\",\n      row=9,  \"COLDFIRE Bravo Camp|-87.1|45.2|field_camp|COLDFIRE Bravo Camp — Geophysical survey grid. Team: 8 researchers. Bedrock mapping via ground-penetrating radar. Subglacial topography survey.|#FF8C00|28,28\"\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval markerType=mvindex(split(data, \"|\"), 3)\n| eval tooltip=mvindex(split(data, \"|\"), 4)\n| eval markerColor=mvindex(split(data, \"|\"), 5)\n| eval markerSize=mvindex(split(data, \"|\"), 6)\n| table latitude, longitude, description, tooltip, markerColor, markerSize",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_2": {
+      "type": "ds.search",
+      "name": "Map 2 rows",
+      "options": {
+        "query": "| makeresults count=4\n| streamstats count as row\n| eval\n    data=case(\n      row=1, \"Amery Ice Shelf|-70.4|71.5|Ice shelf calving front — Active monitoring. Recent 12km² calving event detected 2025-01-28.|25,25\",\n      row=2, \"Ross Ice Shelf|-80.0|-180.0|Ross Ice Shelf edge — Largest ice shelf on Earth (487,000 km²). Continuous GPS stake monitoring network active.|25,25\",\n      row=3, \"Pine Island Glacier|-75.17|-99.98|Pine Island Glacier — Fastest retreating glacier in West Antarctica. Mass loss rate: -45 Gt/yr. Active satellite altimetry campaign.|28,28\",\n      row=4, \"Thwaites Glacier Terminus|-75.5|-107.0|Thwaites Glacier — ITGC monitoring site. Sub-shelf ocean temp anomaly: +1.6°C above baseline. Critical instability threshold monitoring.|30,30\"\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval tooltip=mvindex(split(data, \"|\"), 3)\n| eval markerSize=mvindex(split(data, \"|\"), 4)\n| table latitude, longitude, description, tooltip, markerSize",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_3": {
+      "type": "ds.search",
+      "name": "Map 3 rows",
+      "options": {
+        "query": "| makeresults count=22\n| streamstats count as row\n| eval\n    data=case(\n      row=1,  \"alpha|-77.85|-166.68|2025-01-15T08:00:00|Departed McMurdo Station\",\n      row=2,  \"alpha|-78.90|-160.10|2025-01-18T14:00:00|Fuel depot cache laid — Camp 1\",\n      row=3,  \"alpha|-80.20|-155.40|2025-01-21T10:00:00|Crossed Transantarctic Mountains — Beardmore Glacier ascent\",\n      row=4,  \"alpha|-81.50|-148.00|2025-01-24T09:00:00|Polar plateau entry — elevation 2,100m\",\n      row=5,  \"alpha|-82.80|-135.00|2025-01-27T11:00:00|Camp 3 established — ice core sample collection begins\",\n      row=6,  \"alpha|-83.50|-115.00|2025-01-30T08:00:00|GPS stake network deployed — 6 ablation stakes\",\n      row=7,  \"alpha|-84.20|-95.00|2025-02-02T10:00:00|Camp Alpha established — primary drill site active\",\n      row=8,  \"alpha|-84.80|-75.00|2025-02-06T09:00:00|Geophysical survey grid — 240km GPR transect complete\",\n      row=9,  \"alpha|-85.20|-60.00|2025-02-09T08:00:00|Moving toward South Pole axis — sample handoff scheduled\",\n      row=10, \"alpha|-86.00|-42.00|2025-02-12T11:00:00|Atmospheric sampling station activated — greenhouse gas tower\",\n      row=11, \"alpha|-87.00|-20.00|2025-02-15T09:00:00|Final waypoint before Amundsen-Scott resupply\",\n      row=12, \"bravo|-70.68|-8.27|2025-01-16T07:00:00|Departed Neumayer III — geophysical survey team\",\n      row=13, \"bravo|-72.10|5.50|2025-01-19T13:00:00|Gravity survey transect begun — GRACE validation campaign\",\n      row=14, \"bravo|-73.80|18.00|2025-01-22T10:00:00|Seismic network node installation — node 4 of 8\",\n      row=15, \"bravo|-75.10|32.50|2025-01-25T09:00:00|Bedrock depth: 2,340m below ice surface — anomaly recorded\",\n      row=16, \"bravo|-76.50|45.00|2025-01-28T11:00:00|Sub-glacial lake feature detected — radar reflector signature\",\n      row=17, \"bravo|-77.90|58.00|2025-01-31T08:00:00|Camp Bravo established — magnetometer array deployed\",\n      row=18, \"bravo|-79.20|68.00|2025-02-03T10:00:00|Ice velocity survey — InSAR ground truth collection\",\n      row=19, \"bravo|-80.50|75.00|2025-02-06T09:00:00|Overdeepening basin survey — 180km transect complete\",\n      row=20, \"bravo|-81.80|82.00|2025-02-09T11:00:00|Possible subglacial hydrological network — water routing model\",\n      row=21, \"bravo|-83.00|88.00|2025-02-12T10:00:00|Active water system confirmed — pressure anomaly positive\",\n      row=22, \"bravo|-84.00|95.00|2025-02-15T09:00:00|Rendezvous with Vostok resupply — final survey node placed\"\n    )\n| eval id=mvindex(split(data, \"|\"), 0)\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval _time=strptime(mvindex(split(data, \"|\"), 3), \"%Y-%m-%dT%H:%M:%S\")\n| eval description=id.\" — \".mvindex(split(data, \"|\"), 4)\n| eval tooltip=mvindex(split(data, \"|\"), 4)\n| sort _time\n| table _time, id, latitude, longitude, description, tooltip",
+        "queryParameters": {
+          "earliest": "0",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_map_4": {
+      "type": "ds.search",
+      "name": "Map 4 rows",
+      "options": {
+        "query": "| makeresults count=5\n| streamstats count as row\n| eval\n    data=case(\n      row=1, \"Drake Passage Monitor Buoy|-58.5|-68.0|Argo Float DRKE-441 — SST: +2.1°C | Salinity: 34.1 psu | Depth: surface. ACC flow rate nominal.|20,20\",\n      row=2, \"Weddell Sea Polynya|-72.0|-20.0|Weddell Polynya — Open water area: 8,340 km². Deep water formation active. High biological productivity signature.|22,22\",\n      row=3, \"Ross Sea Polynya|-76.0|176.0|Ross Polynya — Open water persistent. AABW formation site. O₂ saturation: 98%. Active penguin foraging zone.|22,22\",\n      row=4, \"Antarctic Circumpolar Current|-60.0|90.0|ACC Southern Boundary — Frontal position confirmed via altimetry. Eddy kinetic energy elevated. Research cruise track planned.|20,20\",\n      row=5, \"Sub-Antarctic Front|-52.0|0.0|Sub-Antarctic Front — Satellite SST gradient: 4.2°C over 80km. Phytoplankton bloom active — chl-a: 2.8 mg/m³.|20,20\"\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval tooltip=mvindex(split(data, \"|\"), 3)\n| eval markerSize=mvindex(split(data, \"|\"), 4)\n| table latitude, longitude, description, tooltip, markerSize",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_table_1": {
+      "type": "ds.search",
+      "name": "Station telemetry",
+      "options": {
+        "query": "| makeresults count=7\n| streamstats count as row\n| eval\n    data=case(\n      row=1, \"McMurdo Station|-77.85|-166.68|-14.2|42|8.3|NW|1013|NOMINAL|Sastrugi forming N quadrant\",\n      row=2, \"Amundsen-Scott S. Pole|-90.0|0.0|-41.7|67|12.1|S|683|NOMINAL|Katabatic wind event possible 48h\",\n      row=3, \"Concordia Station|-75.1|-123.35|-52.3|71|4.7|SW|644|NOMINAL|Instrument calibration cycle in progress\",\n      row=4, \"Vostok Station|-78.47|106.84|-58.9|79|2.1|E|625|CAUTION|Comms degraded — sat window 0318Z\",\n      row=5, \"Casey Station|-66.28|110.53|-8.6|35|14.2|NE|991|NOMINAL|Sea ice breakout 12km N perimeter\",\n      row=6, \"COLDFIRE Alpha Camp|-84.2|-65.4|-44.1|61|9.8|SW|668|NOMINAL|Drill at 847m — on schedule\",\n      row=7, \"COLDFIRE Bravo Camp|-87.1|45.2|-49.8|74|6.3|E|651|CAUTION|Blizzard warning — ops suspended 24h\"\n    )\n| eval station=mvindex(split(data, \"|\"), 0)\n| eval lat=mvindex(split(data, \"|\"), 1)\n| eval lon=mvindex(split(data, \"|\"), 2)\n| eval \"Temp (°C)\"=mvindex(split(data, \"|\"), 3)\n| eval \"RH (%)\"=mvindex(split(data, \"|\"), 4)\n| eval \"Wind (m/s)\"=mvindex(split(data, \"|\"), 5)\n| eval \"Wind Dir\"=mvindex(split(data, \"|\"), 6)\n| eval \"Pressure (hPa)\"=mvindex(split(data, \"|\"), 7)\n| eval Status=mvindex(split(data, \"|\"), 8)\n| eval Notes=mvindex(split(data, \"|\"), 9)\n| table station, \"Temp (°C)\", \"RH (%)\", \"Wind (m/s)\", \"Wind Dir\", \"Pressure (hPa)\", Status, Notes",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_table_2": {
+      "type": "ds.search",
+      "name": "Alerts and operational log",
+      "options": {
+        "query": "| makeresults count=8\n| streamstats count as row\n| eval\n    Timestamp=case(\n      row=1, \"2025-02-16 03:12Z\",\n      row=2, \"2025-02-15 21:44Z\",\n      row=3, \"2025-02-15 14:30Z\",\n      row=4, \"2025-02-15 09:18Z\",\n      row=5, \"2025-02-14 22:05Z\",\n      row=6, \"2025-02-14 16:50Z\",\n      row=7, \"2025-02-14 11:22Z\",\n      row=8, \"2025-02-13 08:40Z\"\n    ),\n    Source=case(\n      row=1, \"Vostok-Station\",\n      row=2, \"Bravo-Camp\",\n      row=3, \"McMurdo-HQ\",\n      row=4, \"Bravo-Camp\",\n      row=5, \"Alpha-Camp\",\n      row=6, \"McMurdo-HQ\",\n      row=7, \"Concordia-Station\",\n      row=8, \"Casey-Station\"\n    ),\n    Severity=case(\n      row=1, \"WARN\",\n      row=2, \"WARN\",\n      row=3, \"INFO\",\n      row=4, \"INFO\",\n      row=5, \"INFO\",\n      row=6, \"INFO\",\n      row=7, \"INFO\",\n      row=8, \"INFO\"\n    ),\n    Message=case(\n      row=1, \"Satellite comms degraded. Primary link loss at 0312Z. Backup HF radio active. Next sat window 0318Z.\",\n      row=2, \"Blizzard warning — POLARPRED model: 22m/s sustained, visibility under 100m. All field ops suspended 24h. Personnel sheltered.\",\n      row=3, \"C-17 resupply ASVR-412 confirmed 2025-02-17. Payload: fuel, food, drill equipment, mail. ETA 1430L.\",\n      row=4, \"Subglacial water system confirmed at -81.80, 82.00. Pressure sensor +0.4 bar above baseline. Routing model updated.\",\n      row=5, \"Drill at 847m. Spectral analysis indicates volcanic ash layer ca. 73,000 BP — Toba event candidate.\",\n      row=6, \"Resupply cache FOXTROT-3 laid at -80.20, -155.40. 2,400L JP-8 and 30-day emergency rations. GPS beacon active.\",\n      row=7, \"Calibration cycle complete. CO2 baseline: 421.8 ppm. Stable — no sensor drift detected.\",\n      row=8, \"Sea ice breakout confirmed 12km N of station. 340 km² area. Resupply vessel window opening earlier than forecast.\"\n    )\n| table Timestamp, Source, Severity, Message",
+        "queryParameters": {
+          "earliest": "-1m",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_chart_1": {
+      "type": "ds.search",
+      "name": "Ice core depth vs age",
+      "options": {
+        "query": "| makeresults count=12\n| streamstats count as row\n| eval\n    depth_m=row*75,\n    estimated_age_ka=(depth_m * 0.94),\n    temp_anomaly_c=case(\n      row=1,  -0.2,\n      row=2,  -0.8,\n      row=3,  -1.4,\n      row=4,  -3.1,\n      row=5,  -2.2,\n      row=6,  -4.8,\n      row=7,  -3.9,\n      row=8,  -5.2,\n      row=9,  -6.1,\n      row=10, -4.3,\n      row=11, -7.8,\n      row=12, -8.4\n    ),\n    co2_ppm=case(\n      row=1,  421,\n      row=2,  418,\n      row=3,  310,\n      row=4,  285,\n      row=5,  290,\n      row=6,  230,\n      row=7,  245,\n      row=8,  195,\n      row=9,  210,\n      row=10, 240,\n      row=11, 185,\n      row=12, 192\n    )\n| eval label=depth_m.\" m / \".round(estimated_age_ka,0).\" ka\"\n| table label, temp_anomaly_c, co2_ppm",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    },
+    "ds_chart_2": {
+      "type": "ds.search",
+      "name": "Station temperature vs wind",
+      "options": {
+        "query": "| makeresults count=7\n| streamstats count as row\n| eval\n    station=case(\n      row=1, \"McMurdo\",\n      row=2, \"S.Pole\",\n      row=3, \"Concordia\",\n      row=4, \"Vostok\",\n      row=5, \"Casey\",\n      row=6, \"Alpha Camp\",\n      row=7, \"Bravo Camp\"\n    ),\n    temp=case(row=1,-14.2, row=2,-41.7, row=3,-52.3, row=4,-58.9, row=5,-8.6, row=6,-44.1, row=7,-49.8),\n    wind=case(row=1,8.3, row=2,12.1, row=3,4.7, row=4,2.1, row=5,14.2, row=6,9.8, row=7,22.4)\n| table station, temp, wind",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_single_1": {
+      "type": "splunk.singlevalue",
+      "title": "Mission Day",
+      "dataSources": {
+        "primary": "ds_single_1"
+      },
+      "options": {
+        "underLabel": "Days Since Departure",
+        "unit": "days",
+        "unitPosition": "after"
+      }
+    },
+    "viz_single_2": {
+      "type": "splunk.singlevalue",
+      "title": "Active Research Stations",
+      "dataSources": {
+        "primary": "ds_single_2"
+      },
+      "options": {
+        "underLabel": "Stations Online",
+        "majorColor": "> majorValue | rangeValue(majorColorEditorConfig)"
+      },
+      "context": {
+        "majorColorEditorConfig": [
+          {
+            "to": 3,
+            "value": "#d93f3c"
+          },
+          {
+            "from": 3,
+            "to": 5,
+            "value": "#f58f39"
+          },
+          {
+            "from": 5,
+            "to": 6,
+            "value": "#6db7c6"
+          },
+          {
+            "from": 6,
+            "value": "#53a051"
+          }
+        ]
+      }
+    },
+    "viz_single_3": {
+      "type": "splunk.singlevalue",
+      "title": "Personnel Deployed",
+      "dataSources": {
+        "primary": "ds_single_3"
+      },
+      "options": {
+        "underLabel": "Field Researchers"
+      }
+    },
+    "viz_single_4": {
+      "type": "splunk.singlevalue",
+      "title": "Traverse Distance",
+      "dataSources": {
+        "primary": "ds_single_4"
+      },
+      "options": {
+        "underLabel": "km Traversed (YTD)",
+        "unit": "km",
+        "unitPosition": "after"
+      }
+    },
+    "viz_single_5": {
+      "type": "splunk.singlevalue",
+      "title": "Ice Core Samples",
+      "dataSources": {
+        "primary": "ds_single_5"
+      },
+      "options": {
+        "underLabel": "Samples Collected"
+      }
+    },
+    "viz_map_1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "COLDFIRE Operational Picture — NASA GIBS MODIS True Color | EPSG:3031",
+      "dataSources": {
+        "primary": "ds_map_1"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.antarcticMapTile": "https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}",
+        "leaflet_maps_app.maps-plus.antarcticProj": "1",
+        "leaflet_maps_app.maps-plus.gibsLayerId": "MODIS_Aqua_CorrectedReflectance_TrueColor",
+        "leaflet_maps_app.maps-plus.gibsTime": "2025-02-10",
+        "leaflet_maps_app.maps-plus.gibsTileMatrixSet": "250m",
+        "leaflet_maps_app.maps-plus.gibsFormat": "jpg",
+        "leaflet_maps_app.maps-plus.gibsLowerCorner": "-4194304",
+        "leaflet_maps_app.maps-plus.gibsUpperCorner": "4194304",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-90",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "0",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "3",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.maxZoom": "6",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.defaultHeight": "700",
+        "leaflet_maps_app.maps-plus.cluster": "0",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.fullScreen": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "kilometers",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "sqmeters",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqkilometers",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.splunkVersionCheck": "1"
+      }
+    },
+    "viz_map_2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Sea Ice Extent — NASA GIBS MODIS Land Surface Temp | EPSG:3031",
+      "dataSources": {
+        "primary": "ds_map_2"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.antarcticProj": "1",
+        "leaflet_maps_app.maps-plus.antarcticMapTile": "https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}",
+        "leaflet_maps_app.maps-plus.gibsLayerId": "VIIRS_NOAA20_CorrectedReflectance_TrueColor",
+        "leaflet_maps_app.maps-plus.gibsTime": "2025-02-10",
+        "leaflet_maps_app.maps-plus.gibsTileMatrixSet": "250m",
+        "leaflet_maps_app.maps-plus.gibsFormat": "jpg",
+        "leaflet_maps_app.maps-plus.gibsLowerCorner": "-4194304",
+        "leaflet_maps_app.maps-plus.gibsUpperCorner": "4194304",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-90",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "0",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "3",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.maxZoom": "6",
+        "leaflet_maps_app.maps-plus.defaultHeight": "550",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.cluster": "0",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.fullScreen": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "kilometers",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.drilldown": "0"
+      }
+    },
+    "viz_map_3": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "COLDFIRE Traverse Routes — Team Alpha & Bravo Path Tracks | EPSG:3031",
+      "dataSources": {
+        "primary": "ds_map_3"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.antarcticProj": "1",
+        "leaflet_maps_app.maps-plus.antarcticMapTile": "https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}",
+        "leaflet_maps_app.maps-plus.gibsLayerId": "MODIS_Aqua_CorrectedReflectance_TrueColor",
+        "leaflet_maps_app.maps-plus.gibsTime": "2025-02-10",
+        "leaflet_maps_app.maps-plus.gibsTileMatrixSet": "250m",
+        "leaflet_maps_app.maps-plus.gibsFormat": "jpg",
+        "leaflet_maps_app.maps-plus.gibsLowerCorner": "-4194304",
+        "leaflet_maps_app.maps-plus.gibsUpperCorner": "4194304",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-82",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-40",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "2",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.maxZoom": "6",
+        "leaflet_maps_app.maps-plus.defaultHeight": "550",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.cluster": "0",
+        "leaflet_maps_app.maps-plus.showPathLines": "1",
+        "leaflet_maps_app.maps-plus.pathIdentifier": "id",
+        "leaflet_maps_app.maps-plus.pathColorList": "#FF8C00,#00BFFF,#FF4500,#00CC44",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "120",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.fullScreen": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "kilometers",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.drilldown": "0"
+      }
+    },
+    "viz_map_4": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Southern Ocean Sea Surface — NASA GIBS MODIS Chlorophyll-a Concentration | EPSG:3031",
+      "dataSources": {
+        "primary": "ds_map_4"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.antarcticProj": "1",
+        "leaflet_maps_app.maps-plus.antarcticMapTile": "https://gibs-{s}.earthdata.nasa.gov/wmts/epsg3031/best/{gibsLayerId}/default/{gibsTime}/{gibsTileMatrixSet}/{z}/{y}/{x}.{gibsFormat}",
+        "leaflet_maps_app.maps-plus.gibsLayerId": "MODIS_Terra_CorrectedReflectance_TrueColor",
+        "leaflet_maps_app.maps-plus.gibsTime": "2025-02-10",
+        "leaflet_maps_app.maps-plus.gibsTileMatrixSet": "250m",
+        "leaflet_maps_app.maps-plus.gibsFormat": "jpg",
+        "leaflet_maps_app.maps-plus.gibsLowerCorner": "-4194304",
+        "leaflet_maps_app.maps-plus.gibsUpperCorner": "4194304",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-70",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "0",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "2",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.maxZoom": "6",
+        "leaflet_maps_app.maps-plus.defaultHeight": "500",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.cluster": "0",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.fullScreen": "1",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "kilometers",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.drilldown": "0"
+      }
+    },
+    "viz_table_1": {
+      "type": "splunk.table",
+      "title": "Station Telemetry — Current Conditions",
+      "dataSources": {
+        "primary": "ds_table_1"
+      },
+      "options": {
+        "columnFormat": {
+          "Status": {
+            "rowBackgroundColors": "> table | seriesByName('Status') | matchValue(statusColorConfig)"
+          },
+          "Temp (°C)": {
+            "rowBackgroundColors": "> table | seriesByName('Temp (°C)') | rangeValue(tempColorConfig)"
+          }
+        }
+      },
+      "context": {
+        "statusColorConfig": [
+          {
+            "match": "NOMINAL",
+            "value": "#53a051"
+          },
+          {
+            "match": "CAUTION",
+            "value": "#f8be34"
+          },
+          {
+            "match": "ALERT",
+            "value": "#d93f3c"
+          }
+        ],
+        "tempColorConfig": [
+          {
+            "to": -50,
+            "value": "#FF4500"
+          },
+          {
+            "from": -50,
+            "to": -35,
+            "value": "#FF9F1C"
+          },
+          {
+            "from": -35,
+            "to": -20,
+            "value": "#FFD700"
+          },
+          {
+            "from": -20,
+            "value": "#1E90FF"
+          }
+        ]
+      }
+    },
+    "viz_table_2": {
+      "type": "splunk.table",
+      "title": "Active Alerts & Operational Log",
+      "dataSources": {
+        "primary": "ds_table_2"
+      },
+      "options": {
+        "count": 8,
+        "wrap": true,
+        "columnFormat": {
+          "Severity": {
+            "rowBackgroundColors": "> table | seriesByName('Severity') | matchValue(sevColorConfig)"
+          }
+        }
+      },
+      "context": {
+        "sevColorConfig": [
+          {
+            "match": "INFO",
+            "value": "#53a051"
+          },
+          {
+            "match": "WARN",
+            "value": "#f8be34"
+          },
+          {
+            "match": "ALERT",
+            "value": "#d93f3c"
+          }
+        ]
+      }
+    },
+    "viz_chart_1": {
+      "type": "splunk.column",
+      "title": "Alpha Camp — Ice Core Sample Depth vs. Estimated Age (Climate Record)",
+      "dataSources": {
+        "primary": "ds_chart_1"
+      },
+      "options": {
+        "overlayFields": "co2_ppm",
+        "showOverlayY2Axis": true,
+        "legendDisplay": "bottom",
+        "seriesColors": [
+          "0x1E90FF",
+          "0xFF8C00"
+        ],
+        "xAxisLabelRotation": -45,
+        "xAxisTitleText": "Depth (m) / Age (ka BP)",
+        "yAxisTitleText": "Temp Anomaly (°C vs present)",
+        "y2AxisTitleText": "CO₂ (ppm)",
+        "nullValueDisplay": "connect"
+      }
+    },
+    "viz_chart_2": {
+      "type": "splunk.bar",
+      "title": "7-Station Temperature vs. Wind Speed — Current Conditions",
+      "dataSources": {
+        "primary": "ds_chart_2"
+      },
+      "options": {
+        "legendDisplay": "bottom",
+        "fieldColors": {
+          "temp": "#1E90FF",
+          "wind": "#FF8C00"
+        },
+        "yAxisTitleText": "Temperature (°C)",
+        "y2AxisTitleText": "Wind Speed (m/s)"
+      }
+    },
+    "viz_md_1": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Station map: the polar projection options\n\n**What this shows** - Seven research stations and two field camps on a NASA GIBS satellite basemap in the EPSG:3031 polar projection, centred on the South Pole.\n\n**The SPL**\n\n```spl\n| makeresults count=9\n| streamstats count as row\n| eval\n    ... (data rows elided; the full query is in this panel's data source, use Open in Search) ...\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval markerType=mvindex(split(data, \"|\"), 3)\n| eval tooltip=mvindex(split(data, \"|\"), 4)\n| eval markerColor=mvindex(split(data, \"|\"), 5)\n| eval markerSize=mvindex(split(data, \"|\"), 6)\n| table latitude, longitude, description, tooltip, markerColor, markerSize\n```\n\n**How it works**\n\n1. `makeresults count=9` plus `streamstats count as row` creates one row per record; `case(row=N, ...)` packs each record into one pipe-delimited string (`data`).\n2. `split(data, \"|\")` with `mvindex` unpacks the parts; `tonumber()` turns the coordinates into numbers.\n3. `description`, `tooltip`, `markerColor` and `markerSize` style each marker.\n4. `table` keeps only fields Maps+ reads. The helper `data` is dropped, and so is the computed `markerType` (its values are not valid marker types).\n5. Projection options: `antarcticProj=1` switches the map to the EPSG:3031 polar projection. `antarcticMapTile` is the NASA GIBS tile URL template; the `gibsLayerId`, `gibsTime`, `gibsTileMatrixSet` and `gibsFormat` options fill its placeholders and `gibsLowerCorner` / `gibsUpperCorner` set the tile grid extent (the formatter defaults, -4194304 / 4194304). `mapCenterLat=-90`, `mapCenterLon=0`, `mapCenterZoom=3` with `autoFitAndZoom=0` keep the view on the pole.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name. Negative = south. `tonumber()` keeps it numeric rather than text. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Negative = west. Only the first row is checked for the required fields. |\n| `description` | HTML text | Click popup. Inserted as raw HTML, so escape any text that comes from events (static text here). |\n| `tooltip` | HTML text | Hover tooltip, also raw HTML. |\n| `markerColor` | png: a named colour; svg: any CSS colour | This query emits hex colours but no `markerType`, so the default `png` applies, and any other value renders a blank marker. |\n| `markerSize` | `w,h` pixels, e.g. `25,25` | Used by svg, custom and icon markers (the default `png` marker does not use it). |\n\n**Try it**\n\n- Add `| eval markerType=\"svg\"` before `table` and add `markerType` to the table list: the hex colours then apply.\n- Change `gibsTime` (yyyy-mm-dd) or `gibsLayerId` to `VIIRS_NOAA20_CorrectedReflectance_TrueColor` to switch the imagery.\n\n> **Studio note:** The GIBS tile host (`gibs-*.earthdata.nasa.gov`) must be allowed by the page's CSP `img-src`; other hosts need a CSP change by the Splunk admin. The polar projection itself has not been verified in Studio."
+      }
+    },
+    "viz_md_2a": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Ice sites on VIIRS imagery\n\n**What this shows** - Four ice shelf and glacier monitoring sites as markers over VIIRS NOAA-20 imagery, same polar projection.\n\n**The SPL**\n\n```spl\n| makeresults count=4\n| streamstats count as row\n| eval\n    ... (data rows elided; the full query is in this panel's data source, use Open in Search) ...\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval tooltip=mvindex(split(data, \"|\"), 3)\n| eval markerSize=mvindex(split(data, \"|\"), 4)\n| table latitude, longitude, description, tooltip, markerSize\n```\n\n**How it works**\n\n1. Same pattern as the station map: one `case()` row per site, unpacked with `split` / `mvindex`.\n2. `latitude` / `longitude` use `tonumber()`; `description` is the popup and `tooltip` the hover text.\n3. `table` keeps just the five Maps+ fields.\n4. Only `gibsLayerId` differs from the station map (`VIIRS_NOAA20_...`); the view is centred on the pole at `mapCenterZoom=3`, `maxZoom=6`.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name. Negative = south. `tonumber()` keeps it numeric rather than text. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Negative = west. Only the first row is checked for the required fields. |\n| `description` | HTML text | Click popup. Inserted as raw HTML, so escape any text that comes from events (static text here). |\n| `tooltip` | HTML text | Hover tooltip, also raw HTML. |\n| `markerSize` | `w,h` pixels, e.g. `25,25` | Used by svg, custom and icon markers (the default `png` marker does not use it). |\n\n**Try it**\n\n- Raise `maxZoom` above 6 or lower `mapCenterZoom` to 2 to change how far you can zoom and the starting view.\n- Add `| eval markerType=\"circle\", circleRadius=\"12\"` and list both fields in `table` for circle markers.\n\n> **Studio note:** The GIBS tile host (`gibs-*.earthdata.nasa.gov`) must be allowed by the page's CSP `img-src`; other hosts need a CSP change by the Splunk admin. The polar projection itself has not been verified in Studio."
+      }
+    },
+    "viz_md_2b": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Traverse routes as paths\n\n**What this shows** - Two expedition traverses (alpha and bravo) drawn as paths over the polar basemap, one waypoint per row.\n\n**The SPL**\n\n```spl\n| makeresults count=22\n| streamstats count as row\n| eval\n    ... (data rows elided; the full query is in this panel's data source, use Open in Search) ...\n    )\n| eval id=mvindex(split(data, \"|\"), 0)\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval _time=strptime(mvindex(split(data, \"|\"), 3), \"%Y-%m-%dT%H:%M:%S\")\n| eval description=id.\" — \".mvindex(split(data, \"|\"), 4)\n| eval tooltip=mvindex(split(data, \"|\"), 4)\n| sort _time\n| table _time, id, latitude, longitude, description, tooltip\n```\n\n**How it works**\n\n1. Each `case()` row holds `id|lat|lon|timestamp|note`; the parts are unpacked into `id`, `latitude`, `longitude` and `_time` (via `strptime`).\n2. `description` and `tooltip` give each waypoint a popup and hover text.\n3. `sort _time` orders the rows. Maps+ never sorts, and every row becomes a path vertex in result order.\n4. Options: `showPathLines=1` turns paths on, `pathIdentifier=id` splits rows into one path per `id`, `pathColorList` supplies the colours, `cluster=0` shows each waypoint.\n5. `pathSplitInterval=120` (seconds) only matters when `pathSplits=1`, which is not set here.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `_time` | epoch seconds (from `strptime`) | Parsed by Maps+; used by `pathSplits` and playback. Sort by it yourself. |\n| `id` | any text; the field named in `pathIdentifier` | Splits rows into paths. Without `pathIdentifier`, all rows form one path. |\n| `latitude` | decimal degrees (number) | Exact lowercase name. Every row needs coordinates, because every row is a path vertex. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. |\n| `description` | HTML text | Popup; a path takes it from its first row. |\n| `tooltip` | HTML text | Hover text; a path takes it from its first row. |\n\n**Try it**\n\n- Set `pathColor` per path, e.g. `| eval pathColor=if(id=\"alpha\",\"#FF8C00\",\"#00BFFF\")` and add `pathColor` to `table`.\n- Set `pathSplits=1` in the Format panel: a gap longer than 120 s between rows then breaks the path.\n\n> **Studio note:** The GIBS tile host (`gibs-*.earthdata.nasa.gov`) must be allowed by the page's CSP `img-src`; other hosts need a CSP change by the Splunk admin. The polar projection itself has not been verified in Studio."
+      }
+    },
+    "viz_md_5": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Ocean features\n\n**What this shows** - Five Southern Ocean monitoring sites (buoy, polynyas, fronts) over MODIS Terra imagery, same polar projection.\n\n**The SPL**\n\n```spl\n| makeresults count=5\n| streamstats count as row\n| eval\n    ... (data rows elided; the full query is in this panel's data source, use Open in Search) ...\n    )\n| eval latitude=tonumber(mvindex(split(data, \"|\"), 1))\n| eval longitude=tonumber(mvindex(split(data, \"|\"), 2))\n| eval description=mvindex(split(data, \"|\"), 0)\n| eval tooltip=mvindex(split(data, \"|\"), 3)\n| eval markerSize=mvindex(split(data, \"|\"), 4)\n| table latitude, longitude, description, tooltip, markerSize\n```\n\n**How it works**\n\n1. One `case()` row per site; `split` / `mvindex` unpack name, coordinates, text and marker size.\n2. `latitude` / `longitude` are numeric; `description` is the popup, `tooltip` the hover text.\n3. `table` limits output to the Maps+ fields.\n4. Imagery comes from `gibsLayerId=MODIS_Terra_CorrectedReflectance_TrueColor`; the view is centred on `-70, 0` at zoom 2 with `autoFitAndZoom=0`.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name. Negative = south. `tonumber()` keeps it numeric rather than text. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. Negative = west. Only the first row is checked for the required fields. |\n| `description` | HTML text | Click popup. Inserted as raw HTML, so escape any text that comes from events (static text here). |\n| `tooltip` | HTML text | Hover tooltip, also raw HTML. |\n| `markerSize` | `w,h` pixels, e.g. `25,25` | Used by svg, custom and icon markers (the default `png` marker does not use it). |\n\n**Try it**\n\n- Set `mapCenterLat` to `-90` and `mapCenterZoom` to `3` to centre on the pole.\n- Add a `layerGroup` field (for example `\"Polynyas\"`) to group markers into a named layer.\n\n> **Studio note:** The GIBS tile host (`gibs-*.earthdata.nasa.gov`) must be allowed by the page's CSP `img-src`; other hosts need a CSP change by the Splunk admin. The polar projection itself has not been verified in Studio."
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 3140,
+          "display": "auto",
+          "backgroundColor": "#000000"
+        },
+        "structure": [
+          {
+            "item": "viz_single_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 288,
+              "h": 130
+            }
+          },
+          {
+            "item": "viz_single_2",
+            "type": "block",
+            "position": {
+              "x": 288,
+              "y": 0,
+              "w": 288,
+              "h": 130
+            }
+          },
+          {
+            "item": "viz_single_3",
+            "type": "block",
+            "position": {
+              "x": 576,
+              "y": 0,
+              "w": 288,
+              "h": 130
+            }
+          },
+          {
+            "item": "viz_single_4",
+            "type": "block",
+            "position": {
+              "x": 864,
+              "y": 0,
+              "w": 288,
+              "h": 130
+            }
+          },
+          {
+            "item": "viz_single_5",
+            "type": "block",
+            "position": {
+              "x": 1152,
+              "y": 0,
+              "w": 288,
+              "h": 130
+            }
+          },
+          {
+            "item": "viz_map_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 130,
+              "w": 880,
+              "h": 700
+            }
+          },
+          {
+            "item": "viz_md_1",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 130,
+              "w": 560,
+              "h": 700
+            }
+          },
+          {
+            "item": "viz_map_2",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 830,
+              "w": 720,
+              "h": 550
+            }
+          },
+          {
+            "item": "viz_map_3",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 830,
+              "w": 720,
+              "h": 550
+            }
+          },
+          {
+            "item": "viz_md_2a",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1380,
+              "w": 720,
+              "h": 560
+            }
+          },
+          {
+            "item": "viz_md_2b",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1380,
+              "w": 720,
+              "h": 560
+            }
+          },
+          {
+            "item": "viz_table_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1940,
+              "w": 720,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_table_2",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1940,
+              "w": 720,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_chart_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 2260,
+              "w": 720,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_chart_2",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 2260,
+              "w": 720,
+              "h": 320
+            }
+          },
+          {
+            "item": "viz_map_4",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 2580,
+              "w": 880,
+              "h": 560
+            }
+          },
+          {
+            "item": "viz_md_5",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 2580,
+              "w": 560,
+              "h": 560
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
 </dashboard>

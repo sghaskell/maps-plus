@@ -1,134 +1,176 @@
-<form version="1.1">
+<dashboard version="2" theme="light">
   <label>Path Playback</label>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <html>
-        <p>Visualize direction along a path with playback. Enable playback under <b>Format Menu -&gt; Path Lines -&gt; Playback</b>. Toggling playback will globally enable playback on all paths. To control playback through SPL, simply <code>| eval playback="true" | table playback</code>. Alternately, setting <code>| eval playback="false" | table playback</code> will disable playback for a path or all paths. Use the context menu (right click) to add all paths to playback, clear all paths from playback or reset playback. Use the context menu by right clicking on the path to add or remove the clicked path from playback.</p>
-        <p>If set, the moveable marker's icon, prefix and color are inherited from the following fields <code>icon</code>, <code>prefix</code> and <code>pathColor</code>.</p>
-        <p>Use the play and slider controls to move the markers along their paths. If time ranges for paths vary wildly there may be significant gaps (wait times) before the next marker(s) begin to play.</p>
-        <p>Adjust the playback speed by increasing/decresing the <b>Tick Length</b> and <b>Playback Speed</b> under the format menu.</p>
-      </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <input type="multiselect" token="track_id_viz_3" searchWhenChanged="true">
-        <label>Vehicle ID</label>
-        <choice value="*">All</choice>
-        <prefix>track_id=</prefix>
-        <valuePrefix>"</valuePrefix>
-        <valueSuffix>"</valueSuffix>
-        <delimiter> OR  track_id=</delimiter>
-        <fieldForLabel>track_id</fieldForLabel>
-        <fieldForValue>track_id</fieldForValue>
-        <search>
-          <query>| inputlookup go_track_trackspoints.csv | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ | stats values(track_id) as track_id | mvexpand track_id | sort +track_id</query>
-        </search>
-        <initialValue>16,17,20,22,23</initialValue>
-      </input>
-      <input type="multiselect" token="date_filter_viz_3" searchWhenChanged="true">
-        <label>Date</label>
-        <choice value="*">All</choice>
-        <prefix>date=</prefix>
-        <valuePrefix>"</valuePrefix>
-        <valueSuffix>"</valueSuffix>
-        <delimiter> OR date=</delimiter>
-        <fieldForLabel>day</fieldForLabel>
-        <fieldForValue>day</fieldForValue>
-        <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $track_id_viz_3$ | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | stats values(date) as day | mvexpand day</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <initialValue>*</initialValue>
-      </input>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time "(?&lt;date&gt;^\d+-\d+-\d+)" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility="hidden", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, "car", "bus"), description="car ".id, tooltip=description, pathColor=case(like(id, "16"), "#e50de5"), layerDescription=case(like(pathLayer, "cars-16-20"), "cars-16-20", like(pathLayer, "cars-17-22-23"), "cars-17-22-23"), pathLayer=case(like(id, "16"), "cars-16-20", like(id, "17"), "cars-17-22-23", like(id, "20"), "cars-16-20", like(id, "22"), "cars-17-22-23", like(id, "23"), "cars-17-22-23"), layerPriority=case(like(pathLayer, "cars-16-20"), 10, like(pathLayer, "cars-17-22-23"), 5)</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">-10.698394</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-37.026672</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">9</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathIdentifier">track_id</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">30</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
-        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlayback">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-</form>
+  <description>Maps+ path playback: three cars on one clock, so all markers move together.</description>
+  <definition><![CDATA[
+{
+  "title": "Path Playback",
+  "description": "Maps+ path playback: three cars on one clock, so all markers move together.",
+  "dataSources": {
+    "ds_map_1": {
+      "type": "ds.search",
+      "name": "Playback rows: 3 cars, one hour",
+      "options": {
+        "query": "| inputlookup playback_demo_tracks.csv | eval description=\"car \".track_id, tooltip=description, markerVisibility=\"hidden\", pathColor=case(track_id=16, \"#e50de5\", track_id=17, \"#0003F0\", track_id=208, \"#D43C29\") | sort 0 track_id _time | table _time latitude longitude track_id description tooltip pathColor markerVisibility",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "inputs": {},
+  "visualizations": {
+    "viz_html": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "Three cars drive at a steady speed for the same hour (09:00 to 10:00 on 17 November 2026), and every car has a point at the same minute, so pressing **Play** moves all three markers together straight away. Use this map to check that playback works.\n\n- **Play / pause:** the play button (bottom left). The slider scrubs through the hour and the date control shows the current playback time.\n- **Speed:** **Tick Length** (1000 ms here) and **Playback Speed** (60 here) under **Format > Path Lines > Playback**, so the hour plays in about one minute. Playback runs at Speed times real time, but its timer fires every Tick Length / Speed ms and browsers won't go below about 4 ms, so keep Tick Length / Speed at 10 or more. With the default Tick Length of 50, any Speed above about 12 has no effect.\n- **Per path:** right-click a path to add it to, or remove it from, playback. Right-click the map to add all, clear all or reset. From SPL, `| eval playback=\"false\"` turns playback off for a path.\n- The moving marker takes its icon, prefix and colour from the `icon`, `prefix` and `pathColor` fields."
+      }
+    },
+    "viz_map_1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Path playback",
+      "dataSources": {
+        "primary": "ds_map_1"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-10.9035",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-37.0610",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "14",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathIdentifier": "track_id",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "30",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.playbackSpeed": "60",
+        "leaflet_maps_app.maps-plus.playbackTickLength": "1000",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "canvas",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "1",
+        "leaflet_maps_app.maps-plus.showPlayback": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackDateControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackPlayControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackSliderControl": "1",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      }
+    },
+    "viz_md_1": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Playback: three cars, one hour\n\n**What this shows** - Three cars driving at the same time, on different routes through the same part of town. Each car has 61 points, one per minute from 09:00 to 10:00 on 17 November 2026, so **Play** moves all three markers together and they keep moving for the whole hour.\n\n**The SPL**\n\n```spl\n| inputlookup playback_demo_tracks.csv\n| eval description=\"car \".track_id, tooltip=description, markerVisibility=\"hidden\", pathColor=case(track_id=16, \"#e50de5\", track_id=17, \"#0003F0\", track_id=208, \"#D43C29\")\n| sort 0 track_id _time\n| table _time latitude longitude track_id description tooltip pathColor markerVisibility\n```\n\n**How it works**\n\n1. `playback_demo_tracks.csv` ships with the app. It was made from three real trips (cars 16, 17 and 208) in the app's `go_track_trackspoints.csv` lookup: stopped and parked GPS points were dropped, and each route was resampled to 61 points at equal distances along it. That gives a steady speed of about 55 to 70 m a minute, so the markers move from the first second with no pauses.\n2. All three cars use the same 61 timestamps (`2026-11-17T09:00:00` to `2026-11-17T10:00:00`, ISO format), so they start, move and stop together.\n3. `eval` adds the popup and tooltip text, a colour per car, and `markerVisibility=\"hidden\"` so only the paths and the moving markers show.\n4. `sort 0 track_id _time` puts each path in time order. Maps+ never sorts rows itself.\n5. Options: `showPathLines=1` and `pathIdentifier=track_id` build one path per car; `showPlayback=1` adds every path to playback; the date, play and slider controls are switched on with `showPlaybackDateControl`, `showPlaybackPlayControl` and `showPlaybackSliderControl`; `playbackSpeed=60` with `playbackTickLength=1000` plays the hour in about a minute.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names. Every row is a path vertex. |\n| `_time` | a timestamp Maps+ can parse (ISO `YYYY-MM-DDTHH:MM:SS` is safest) | Playback advances along it. It is read in the viewer's browser time zone. Rows must already be in time order within each path. |\n| `track_id` | any text; the field named in `pathIdentifier` | Splits rows into paths. Without `pathIdentifier`, all rows form one path. |\n| `description`, `tooltip` | HTML text | Popup and hover text; a path takes them from its first row. |\n| `pathColor` | CSS colour | Colour of the path and its moving marker. A path's style comes from its first row. |\n| `markerVisibility` | `\"true\"` / `\"marker\"` shows; anything else hides | Hides the static marker on every vertex, so only the paths and the moving markers show. |\n| `playback` | `\"true\"` / `\"false\"` per row | Not set here; the `showPlayback` option applies. A per-row `\"false\"` leaves that path out of playback. |\n\n**Try it**\n\n- Add `, playback=if(track_id=208, \"false\", \"true\")` to the `eval`: only cars 16 and 17 move.\n- Give car 17 a ten-minute head start: add `| eval _time=if(track_id=17, strftime(strptime(_time, \"%Y-%m-%dT%H:%M:%S\") - 600, \"%Y-%m-%dT%H:%M:%S\"), _time)` before `sort`.\n- Use your own data: any search that returns `latitude`, `longitude`, `_time` and an id field in time order plays back the same way. Timestamps that line up across ids make the markers move together.\n\n**Basemap:** keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys**."
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 980,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_html",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 260
+            }
+          },
+          {
+            "item": "viz_map_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 260,
+              "w": 880,
+              "h": 720
+            }
+          },
+          {
+            "item": "viz_md_1",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 260,
+              "w": 560,
+              "h": 720
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
+</dashboard>

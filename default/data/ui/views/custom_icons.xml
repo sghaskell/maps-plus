@@ -1,213 +1,345 @@
-<form version="1.1">
+<dashboard version="2" theme="light">
   <label>Marker Icon Customization</label>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <input type="dropdown" token="prefix" searchWhenChanged="true">
-        <label>Icon Set</label>
-        <choice value="fa">Fontawesome</choice>
-        <choice value="ion">Ionicons</choice>
-        <choice value="glyphicon">Glyphicons</choice>
-        <initialValue>fa</initialValue>
-        <prefix>"</prefix>
-        <suffix>"</suffix>
-      </input>
-      <input type="radio" token="iconOnly" searchWhenChanged="true">
-        <label>Icon Only</label>
-        <choice value="icon">Yes</choice>
-        <choice value="png">No</choice>
-        <default>png</default>
-        <initialValue>png</initialValue>
-      </input>
-      <input type="dropdown" token="iconSize" searchWhenChanged="true">
-        <label>Icon Size (Icon Only)</label>
-        <choice value="fa-lg">fa-lg</choice>
-        <choice value="fa-2x">fa-2x</choice>
-        <choice value="fa-3x">fa-3x</choice>
-        <choice value="fa-4x">fa-4x</choice>
-        <choice value="fa-5x">fa-5x</choice>
-        <default>fa-2x</default>
-        <initialValue>fa-2x</initialValue>
-      </input>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv
-| eval prefix=$prefix$, markerType="$iconOnly$"
-| eval icon1=case(like(prefix, "fa"), "exclamation-triangle", like(prefix, "ion"), "add-circle-outline", like(prefix, "glyphicon"), "exclamation-sign"),
-icon2=case(like(prefix, "fa"), "battery-2", like(prefix, "ion"), "battery-full", like(prefix, "glyphicon"), "ban-circle"),
-icon3=case(like(prefix, "fa"), "gavel", like(prefix, "ion"), "bicycle", like(prefix, "glyphicon"), "euro"),
-icon4=case(like(prefix, "fa"), "building", like(prefix, "ion"), "key", like(prefix, "glyphicon"), "pushpin"),
-icon5=case(like(prefix, "fa"), "shopping-cart", like(prefix, "ion"), "ios-cart", like(prefix, "glyphicon"), "piggy-bank"),
-icon6=case(like(prefix, "fa"), "flask", like(prefix, "ion"), "man", like(prefix, "glyphicon"), "knight"),
-icon7=case(like(prefix, "fa"), "car", like(prefix, "ion"), "boat", like(prefix, "glyphicon"), "tree-conifer"),
-icon8=case(like(prefix, "fa"), "hand-lizard-o", like(prefix, "ion"), "nuclear", like(prefix, "glyphicon"), "wrench")
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
-iconColor=case(like(description, "%SIMPLE%"), "#f4b541", like(description, "%DOMESTIC BATTERY%"), "#f44149", like(description, "%500 AND UNDER%"), "#f441dc", like(description, "%TO PROPERTY%"), "#a341f4", like(description, "%RETAIL THEFT%"), "#41f458", like(description, "%TO VEHICLE%"), "#41f4eb",1=1, "#4286f4"),
-layerDescription=case(like(description, "%SIMPLE%"), icon1, like(description, "%DOMESTIC BATTERY%"), icon2, like(description, "%500 AND UNDER%"), icon3, like(description, "%TO PROPERTY%"), icon4, like(description, "%RETAIL THEFT%"), icon5, like(description, "%TO VEHICLE%"), icon7, 1=1, icon8),
-extraClasses=if(markerType="icon", "$iconSize$", "fa-lg")
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses, layerDescription</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Font Awesome Brands</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <title>latitude,longitude,icon,prefix,tooltip,layerDescription</title>
-        <search>
-          <query>| inputlookup fa-brands.csv</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">0</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-</form>
+  <description>Maps+ icon customization: icon set (prefix), png vs glyph-only markers (markerType), glyph size (extraClasses), colors and layer labels.</description>
+  <definition><![CDATA[
+{
+  "title": "Marker Icon Customization",
+  "description": "Maps+ icon customization: icon set (prefix), png vs glyph-only markers (markerType), glyph size (extraClasses), colors and layer labels.",
+  "dataSources": {
+    "ds_icons": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv\n| eval prefix=$prefix$, markerType=\"$iconOnly$\"\n| eval icon1=case(like(prefix, \"fa\"), \"exclamation-triangle\", like(prefix, \"ion\"), \"add-circle-outline\", like(prefix, \"glyphicon\"), \"exclamation-sign\"),\nicon2=case(like(prefix, \"fa\"), \"battery-2\", like(prefix, \"ion\"), \"battery-full\", like(prefix, \"glyphicon\"), \"ban-circle\"),\nicon3=case(like(prefix, \"fa\"), \"gavel\", like(prefix, \"ion\"), \"bicycle\", like(prefix, \"glyphicon\"), \"euro\"),\nicon4=case(like(prefix, \"fa\"), \"building\", like(prefix, \"ion\"), \"key\", like(prefix, \"glyphicon\"), \"pushpin\"),\nicon5=case(like(prefix, \"fa\"), \"shopping-cart\", like(prefix, \"ion\"), \"ios-cart\", like(prefix, \"glyphicon\"), \"piggy-bank\"),\nicon6=case(like(prefix, \"fa\"), \"flask\", like(prefix, \"ion\"), \"man\", like(prefix, \"glyphicon\"), \"knight\"),\nicon7=case(like(prefix, \"fa\"), \"car\", like(prefix, \"ion\"), \"boat\", like(prefix, \"glyphicon\"), \"tree-conifer\"),\nicon8=case(like(prefix, \"fa\"), \"hand-lizard-o\", like(prefix, \"ion\"), \"nuclear\", like(prefix, \"glyphicon\"), \"wrench\")\n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"pink\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\"),\nicon=case(like(description, \"%SIMPLE%\"), icon1, like(description, \"%DOMESTIC BATTERY%\"), icon2, like(description, \"%500 AND UNDER%\"), icon3, like(description, \"%TO PROPERTY%\"), icon4, like(description, \"%RETAIL THEFT%\"), icon5, like(description, \"%TO VEHICLE%\"), icon7, 1=1, icon8),\niconColor=case(like(description, \"%SIMPLE%\"), \"#f4b541\", like(description, \"%DOMESTIC BATTERY%\"), \"#f44149\", like(description, \"%500 AND UNDER%\"), \"#f441dc\", like(description, \"%TO PROPERTY%\"), \"#a341f4\", like(description, \"%RETAIL THEFT%\"), \"#41f458\", like(description, \"%TO VEHICLE%\"), \"#41f4eb\",1=1, \"#4286f4\"),\nlayerDescription=case(like(description, \"%SIMPLE%\"), icon1, like(description, \"%DOMESTIC BATTERY%\"), icon2, like(description, \"%500 AND UNDER%\"), icon3, like(description, \"%TO PROPERTY%\"), icon4, like(description, \"%RETAIL THEFT%\"), icon5, like(description, \"%TO VEHICLE%\"), icon7, 1=1, icon8),\nextraClasses=if(markerType=\"icon\", \"$iconSize$\", \"fa-lg\")\n| eval description = \"<b>\".description.\"</b>\", tooltip=description, clusterGroup=\"default\"\n| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses, layerDescription",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Chicago crime icons"
+    },
+    "ds_brands": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup fa-brands.csv",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Font Awesome Brands"
+    }
+  },
+  "inputs": {
+    "input_prefix": {
+      "type": "input.dropdown",
+      "title": "Icon Set",
+      "options": {
+        "token": "prefix",
+        "defaultValue": "fa",
+        "prefix": "\"",
+        "suffix": "\"",
+        "items": [
+          {
+            "label": "Fontawesome",
+            "value": "fa"
+          },
+          {
+            "label": "Ionicons",
+            "value": "ion"
+          },
+          {
+            "label": "Glyphicons",
+            "value": "glyphicon"
+          }
+        ]
+      }
+    },
+    "input_iconOnly": {
+      "type": "input.dropdown",
+      "title": "Icon Only",
+      "options": {
+        "token": "iconOnly",
+        "defaultValue": "png",
+        "items": [
+          {
+            "label": "Yes",
+            "value": "icon"
+          },
+          {
+            "label": "No",
+            "value": "png"
+          }
+        ]
+      }
+    },
+    "input_iconSize": {
+      "type": "input.dropdown",
+      "title": "Icon Size (Icon Only)",
+      "options": {
+        "token": "iconSize",
+        "defaultValue": "fa-2x",
+        "items": [
+          {
+            "label": "fa-lg",
+            "value": "fa-lg"
+          },
+          {
+            "label": "fa-2x",
+            "value": "fa-2x"
+          },
+          {
+            "label": "fa-3x",
+            "value": "fa-3x"
+          },
+          {
+            "label": "fa-4x",
+            "value": "fa-4x"
+          },
+          {
+            "label": "fa-5x",
+            "value": "fa-5x"
+          }
+        ]
+      }
+    }
+  },
+  "visualizations": {
+    "viz_icons": {
+      "type": "leaflet_maps_app.maps-plus",
+      "dataSources": {
+        "primary": "ds_icons"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      }
+    },
+    "md_icons": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nChicago crime incidents drawn with a chosen icon set. The three inputs change `prefix` (Font Awesome, Ionicons or Glyphicons), `markerType` (a png pin with a glyph inside, or the bare glyph) and the glyph size (`extraClasses`). Each offence type gets its own glyph, pin colour and glyph colour.\n\n### The SPL\n\n```spl\n| inputlookup chicago-crime.csv\n| eval prefix=$$prefix$$, markerType=\"$$iconOnly$$\"\n... (icon1 to icon8: one glyph name per icon set, chosen with case(like(prefix, ...)) - see Open in Search)\n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", ... 1=1, \"blue\"),\nicon=case(...), iconColor=case(...), layerDescription=case(...),\nextraClasses=if(markerType=\"icon\", \"$$iconSize$$\", \"fa-lg\")\n| eval description = \"<b>\".description.\"</b>\", tooltip=description, clusterGroup=\"default\"\n| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, prefix, markerType, iconColor, extraClasses, layerDescription\n```\n\nStudio may show current token values in place of the `$...$` placeholders above.\n\n### How it works\n\n1. `inputlookup` returns one row per incident with `latitude`, `longitude` and `description`.\n2. `eval prefix=$$prefix$$, markerType=\"$$iconOnly$$\"` copies two inputs onto every row. The Icon Set input adds the quotes, so `prefix` is a string such as \"fa\".\n3. `icon1` to `icon8` hold glyph names for each set, because a name only works with its own prefix (`gavel` in `fa`, `bicycle` in `ion`, `euro` in `glyphicon`).\n4. `case(like(description, ...))` then picks `markerColor`, `icon`, `iconColor` and `layerDescription` for each offence type, with a catch-all `1=1`.\n5. `extraClasses` takes the Icon Size value only when `markerType` is `icon`; png pins keep `fa-lg`.\n6. `description` is wrapped in HTML bold and copied to `tooltip`; the final `table` keeps only fields Maps+ reads.\n\n### Field formats and rules\n\n| Field | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `markerType` | `png` or `icon` here | Also `svg`, `circle`, `custom`, `milsymbol`; any other value throws `Invalid markerType`. |\n| `markerColor` | png: a named color (red, pink, green, orange, darkred, cadetblue, blue here) | Any name outside Maps+'s fixed list renders a blank marker. |\n| `icon` | glyph name without prefix | `gavel`, not `fa-gavel`; must exist in the set named by `prefix`. |\n| `prefix` | `fa`, `fab`, `ion`, `glyphicon` | Default `fa`. |\n| `iconColor` | any CSS color | Default `white`. |\n| `extraClasses` | CSS classes such as `fa-2x` | Default `fa-lg`. |\n| `clusterGroup` | any string | Rows with different values never cluster together. |\n| `layerDescription` | HTML text | Label in the layer control. |\n| `description`, `tooltip` | HTML | Click popup and hover text; escape event text. |\n\n### Try it\n\n- Set Icon Only to Yes and Icon Size to fa-4x: the pins become bare glyphs.\n- In Open in Search, change `\"red\"` for `%SIMPLE%` in `markerColor` to `\"purple\"` to recolor that pin.\n\n### Studio note\n\nOn Maps+ 4.6.9 and earlier the icon fonts are blocked inside Studio, so glyphs show as empty boxes (pins still render, and `markerType=icon` is not usable). Fixed in unreleased 4.6.10. Studio can double-apply the Icon Set quotes after a hard reload: re-pick the value if the map goes empty.\n"
+      }
+    },
+    "viz_brands": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Font Awesome Brands",
+      "description": "latitude,longitude,icon,prefix,tooltip,layerDescription",
+      "dataSources": {
+        "primary": "ds_brands"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "0",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      }
+    },
+    "md_brands": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nNine brand icons placed on the map, one marker per row of a lookup. The lookup already has the shape Maps+ wants, so the dashboard needs no SPL beyond reading it.\n\n### The SPL\n\n```spl\n| inputlookup fa-brands.csv\n```\n\n### How it works\n\n1. `inputlookup fa-brands.csv` returns rows with `latitude`, `longitude`, `icon`, `prefix`, `tooltip` and `layerDescription`.\n2. `icon` is the brand name without any prefix (for example `twitter`), and `prefix` is `fab`, the Font Awesome brands set.\n3. `tooltip` is the hover text.\n4. With no `layerGroup`, Maps+ groups markers by icon name, so each brand is its own layer; `layerDescription` is the label shown for it in the layer control.\n5. No `markerType`, so each row is a png pin with the glyph inside. Clustering is off for this panel (`cluster` option `0`).\n\n### Field formats and rules\n\n| Field | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `icon` | name without prefix | `twitter`, not `fa-twitter`. |\n| `prefix` | `fab` for brands | `fa`, `fab`, `ion` or `glyphicon`; default `fa`. |\n| `tooltip` | HTML text | Hover text. |\n| `layerDescription` | HTML text | Layer control label. |\n\n### Try it\n\n- Append `| eval markerType=\"icon\", extraClasses=\"fa-3x\"` to draw bare glyphs instead of pins.\n- Append `| eval iconColor=\"red\"` to recolor the glyphs.\n\n### Studio note\n\nGlyphs inside the pins are blank boxes on Maps+ 4.6.9 and earlier (icon fonts blocked in Studio); fixed in unreleased 4.6.10.\n"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [
+      "input_prefix",
+      "input_iconOnly",
+      "input_iconSize"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 2548,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_icons",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_icons",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 0,
+              "w": 720,
+              "h": 1603
+            }
+          },
+          {
+            "item": "viz_brands",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1603,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_brands",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1603,
+              "w": 720,
+              "h": 945
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
+</dashboard>

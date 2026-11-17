@@ -1,129 +1,283 @@
-<form version="1.1"> 
+<dashboard version="2" theme="light">
   <label>Google Street View Drilldown</label>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <html>
-        Navigate the map and <b>double-click</b> a marker to reveal a contextual drill-down showing the Google Street View of the coordinates below the map. The Google Street View visualization requires an API key. Log in to the <a target="_blank" href="https://console.cloud.google.com/">Google Cloud Console</a> to enable the <b>Maps JavaScript API</b>, <b>Street View API</b> and <a target="_blank" href="https://cloud.google.com/docs/authentication/api-keys">generate an API key</a>.
-    </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <input type="multiselect" token="desc">
-        <label>Infraction</label>
-        <choice value="*">All</choice>
-        <valuePrefix>"</valuePrefix>
-        <valueSuffix>"</valueSuffix>
-        <delimiter> OR </delimiter>
-        <fieldForLabel>desc_vals</fieldForLabel>
-        <fieldForValue>desc_vals</fieldForValue>
-        <search>
-          <query>| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-        </search>
-        <initialValue>*</initialValue>
-      </input>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv | search description=$desc$ | eval tooltip=description, offense=description, coordinates=latitude.",".longitude</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.useOpenFreeMap">1</option>
-        <option name="leaflet_maps_app.maps-plus.maplibreStylePreset">liberty</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-        <drilldown>
-          <set token="coordinates">$row.coordinates$</set>
-          <set token="offense">$row.offense$</set>
-        </drilldown>
-      </viz>
-    </panel>
-    <panel>
-      <viz depends="$coordinates$" type="leaflet_maps_app.google-street-view">
-        <title>Street View of $coordinates$ - $offense$</title>
-        <search>
-          <query>| makeresults count=1 | eval coordinates="$coordinates$" | table coordinates</query>
-          <earliest>$earliest$</earliest>
-          <latest>$latest$</latest>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.google-street-view.defaultHeight">650</option>
-        <option name="leaflet_maps_app.google-street-view.fullScreen">0</option>
-        <option name="leaflet_maps_app.google-street-view.googleMapsApiKey"></option>
-        <option name="refresh.display">progressbar</option>
-      </viz>
-    </panel>
-  </row>
-</form>
+  <description>Double-click a Maps+ marker to see the Google Street View of its coordinates.</description>
+  <definition><![CDATA[
+{
+  "title": "Google Street View Drilldown",
+  "description": "Double-click a Maps+ marker to see the Google Street View of its coordinates.",
+  "dataSources": {
+    "ds_input_desc": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | stats values(description) as desc_vals | mvexpand desc_vals",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Infraction values"
+    },
+    "ds_map": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | search description=$desc$ | eval tooltip=description, offense=description, coordinates=latitude.\",\".longitude",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Chicago crime markers"
+    },
+    "ds_streetview": {
+      "type": "ds.search",
+      "options": {
+        "query": "| makeresults count=1 | eval coordinates=\"$coordinates$\" | table coordinates",
+        "queryParameters": {
+          "earliest": "$earliest$",
+          "latest": "$latest$"
+        }
+      },
+      "name": "Street View coordinates"
+    }
+  },
+  "inputs": {
+    "input_desc": {
+      "type": "input.multiselect",
+      "title": "Infraction",
+      "options": {
+        "token": "desc",
+        "defaultValue": [
+          "*"
+        ],
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          }
+        ]
+      },
+      "dataSources": {
+        "primary": "ds_input_desc"
+      },
+      "encoding": {
+        "label": "primary.desc_vals",
+        "value": "primary.desc_vals"
+      }
+    }
+  },
+  "visualizations": {
+    "md_intro": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "Navigate the map and **double-click** a marker to reveal a contextual drill-down showing the Google Street View of the marker's coordinates. The Google Street View visualization requires an API key. Log in to the [Google Cloud Console](https://console.cloud.google.com/) to enable the **Maps JavaScript API** and **Street View API**, and [generate an API key](https://cloud.google.com/docs/authentication/api-keys).\n"
+      }
+    },
+    "viz_map": {
+      "type": "leaflet_maps_app.maps-plus",
+      "dataSources": {
+        "primary": "ds_map"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMaxZoom": "0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "liberty",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [
+              {
+                "token": "coordinates",
+                "key": "row.coordinates.value"
+              },
+              {
+                "token": "offense",
+                "key": "row.offense.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "viz_streetview": {
+      "type": "leaflet_maps_app.google-street-view",
+      "title": "Street View of $coordinates$ - $offense$",
+      "dataSources": {
+        "primary": "ds_streetview"
+      },
+      "options": {
+        "leaflet_maps_app.google-street-view.defaultHeight": "650",
+        "leaflet_maps_app.google-street-view.fullScreen": "0",
+        "leaflet_maps_app.google-street-view.googleMapsApiKey": ""
+      },
+      "containerOptions": {
+        "visibility": {
+          "showConditions": [
+            "coordinates_show"
+          ]
+        }
+      }
+    },
+    "md_map": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nA Maps+ map of Chicago crime markers, and a Google Street View panel that appears when you double-click a marker. The click passes the marker's `coordinates` to the Street View panel.\n\n### The SPL\n\nMap:\n\n```spl\n| inputlookup chicago-crime.csv | search description=$$desc$$ | eval tooltip=description, offense=description, coordinates=latitude.\",\".longitude\n```\n\nStreet View panel:\n\n```spl\n| makeresults count=1 | eval coordinates=\"$$coordinates$$\" | table coordinates\n```\n\n### How it works\n\n1. The Infraction input lists the distinct `description` values from the lookup and defaults to `*` (All).\n2. `search description=$$desc$$` filters the lookup rows by the input.\n3. `tooltip=description` gives hover text, `offense=description` keeps a copy for the panel title, and `coordinates=latitude.\",\".longitude` builds a `lat,lng` string.\n4. There is no final `table`, so every lookup column reaches Maps+. `offense` and `coordinates` are not reserved, so they arrive in drilldown as `row.offense.value` and `row.coordinates.value`.\n5. A double-click (`drilldownAction` = `dblclick`) runs `drilldown.setToken`, which fills the `coordinates` and `offense` tokens.\n6. The Street View panel is shown only once `coordinates` is set. Its search emits a single `coordinates` field for the Street View visualization, which also needs a Google API key in its `googleMapsApiKey` option.\n\n### Field formats and rules\n\n| Field / token | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `tooltip` | HTML text | Hover text. |\n| `offense` | any string | Not reserved: reaches drilldown as `row.offense.value`. |\n| `coordinates` | `lat,lng` string, latitude first | Not reserved; the drilldown token and the Street View field. |\n| `desc` (token) | the input value | Unquoted in Studio (see note). |\n\n### Try it\n\n- Double-click a marker, then drag the Street View around.\n- Change the first line of the map query to `| inputlookup chicago-crime.csv | search primary_type=\"THEFT\"` to show one crime type.\n\n### Studio note\n\nStudio ignores the multiselect's classic quote and ` OR ` wrapping (`valuePrefix`, `valueSuffix`, `delimiter`): values arrive comma-joined and unquoted. `description=$$desc$$` therefore works for All (`*`), but picking individual infractions can return no or wrong rows. The Street View search used the classic `$$earliest$$` and `$$latest$$` tokens, so `earliest` and `latest` tokens are defined (`-24h@h`, `now`) to keep that query unchanged.\n"
+      }
+    }
+  },
+  "defaults": {
+    "tokens": {
+      "default": {
+        "earliest": {
+          "value": "-24h@h"
+        },
+        "latest": {
+          "value": "now"
+        }
+      }
+    }
+  },
+  "expressions": {
+    "conditions": {
+      "coordinates_show": {
+        "name": "coordinates_show",
+        "value": "$isSet($coordinates$)"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [
+      "input_desc"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 1410,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "md_intro",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 110
+            }
+          },
+          {
+            "item": "viz_map",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 110,
+              "w": 720,
+              "h": 650
+            }
+          },
+          {
+            "item": "viz_streetview",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 760,
+              "w": 720,
+              "h": 650
+            }
+          },
+          {
+            "item": "md_map",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 110,
+              "w": 720,
+              "h": 1300
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
+</dashboard>

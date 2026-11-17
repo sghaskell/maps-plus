@@ -1,104 +1,167 @@
-<dashboard version="1.1">
+<dashboard version="2" theme="light">
   <label>Multi-Layer Groups</label>
-  <row>
-    <panel>
-      <html>
-      <p>
-        The default behavior is to group like icons into the same layer group. Use the <code>layerGroup</code> field for granular control over layer grouping. To group all markers into a single layer, simply <code>| eval layerGroup="default" | table layerGroup</code>
-      </p>
-      <p>
-        Toggle the visibility of each layer using the layer controls panel in the upper right corner of the map.
-      </p>
-    </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Multi-Layer Groups, Multi-Cluster Groups, Uncollapsed Layer Controls</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv 
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o"),
-iconColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "yellow", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue")
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description
-| table latitude, longitude, description, tooltip, markerColor, icon, iconColor</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
+  <description>Maps+ layers: markers grouped into toggleable layers, shown in an uncollapsed layer control.</description>
+  <definition><![CDATA[
+{
+  "title": "Multi-Layer Groups",
+  "description": "Maps+ layers: markers grouped into toggleable layers, shown in an uncollapsed layer control.",
+  "dataSources": {
+    "ds_map": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv \n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"yellow\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\"),\nicon=case(like(description, \"%SIMPLE%\"), \"exclamation-triangle\", like(description, \"%DOMESTIC BATTERY%\"), \"battery-2\", like(description, \"%500 AND UNDER%\"), \"gavel\", like(description, \"%TO PROPERTY%\"), \"building\", like(description, \"%RETAIL THEFT%\"), \"shopping-cart\", like(description, \"%TO VEHICLE%\"), \"car\", 1=1, \"hand-lizard-o\"),\niconColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"yellow\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\")\n| eval description = \"<b>\".description.\"</b>\", tooltip=description\n| table latitude, longitude, description, tooltip, markerColor, icon, iconColor",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Chicago crime layers"
+    }
+  },
+  "visualizations": {
+    "md_intro": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "The default behavior is to group like icons into the same layer group. Use the `layerGroup` field for granular control over layer grouping. To group all markers into a single layer, simply `| eval layerGroup=\"default\" | table layerGroup`\n\nToggle the visibility of each layer using the layer controls panel in the upper right corner of the map.\n"
+      }
+    },
+    "viz_map": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Multi-Layer Groups, Multi-Cluster Groups, Uncollapsed Layer Controls",
+      "dataSources": {
+        "primary": "ds_map"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "0",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55"
+      }
+    },
+    "md_map": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nChicago crime markers in one cluster group but several toggleable layers. The layer control (top right, uncollapsed via `layerControlCollapsed` = `0`) lists one entry per layer.\n\n### The SPL\n\n```spl\n| inputlookup chicago-crime.csv \n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"yellow\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\"),\nicon=case( ... ),\niconColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"yellow\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\")\n| eval description = \"<b>\".description.\"</b>\", tooltip=description\n| table latitude, longitude, description, tooltip, markerColor, icon, iconColor\n```\n\n### How it works\n\n1. `inputlookup` returns `latitude`, `longitude` and `description` per incident.\n2. `case(like(description, ...))` sets `markerColor`, `icon` and `iconColor` per offence type.\n3. This query emits no `layerGroup`. When it is missing and no `clusterGroup` is set, Maps+ names the layer after the **icon**, so each icon becomes its own layer.\n4. Each layer gets a checkbox in the layer control; unticking it hides that layer's markers.\n5. `description` is wrapped in HTML bold and copied to `tooltip`; `table` keeps the Maps+ fields.\n\n### Field formats and rules\n\n| Field | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `icon` | glyph name without prefix | Names the layer when `layerGroup` is missing. |\n| `markerColor` | png: named color | Must be one of Maps+'s fixed names or the marker is blank. `yellow` (domestic battery here) is not in the list. |\n| `iconColor` | any CSS color | Glyph color; default `white`. |\n| `layerGroup` | any string (not emitted here) | The layer-control entry. Same value, same layer. |\n| `layerDescription` | HTML text (not emitted here) | Label in the layer control; for marker layers the last row in the group wins. |\n| `layerVisibility` | `\"true\"` or `\"false\"` | Per-row boolean; only the exact string `\"true\"` is true, so `\"1\"` means false. |\n\n### Try it\n\n- Append `| eval layerGroup=case(like(description, \"%SIMPLE%\"), \"Simple\", 1=1, \"Other\")` and add `layerGroup` to `table`: two layers.\n- Add `layerDescription=layerGroup` for readable labels, or `layerVisibility=\"false\"` on some rows to start them unticked.\n"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 1310,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "md_intro",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 170
+            }
+          },
+          {
+            "item": "viz_map",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 170,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_map",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 170,
+              "w": 720,
+              "h": 1140
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
 </dashboard>

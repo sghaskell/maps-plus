@@ -271,6 +271,12 @@
       "options": {
         "markdown": "## Dashboard Studio notes\n\n- **Empty cells:** Empty (null) cells are treated as missing fields, as in classic dashboards. You do not need to fill every column.\n- **Icon fonts:** Icon fonts are embedded, so icon glyphs render in Dashboard Studio.\n- **Click Lat/Lng and lasso selection tokens:** Studio has no classic token API, so Maps+ sends these values as a drilldown. Add a `drilldown.setToken` event handler that maps `row.clickedLatLng.value`, `row.clickedLat.value`, `row.clickedLng.value` or `row.mapmarkers.value`, for example: `{\"type\": \"drilldown.setToken\", \"options\": {\"tokens\": [{\"token\": \"clicked\", \"key\": \"row.clickedLatLng.value\"}]}}`. A click-token drilldown and a marker drilldown share the same event channel. With the default double-click marker drilldown, the two clicks also send click-token drilldowns, so avoid mapping the same token from both.\n- **KML/KMZ files:** KML and KMZ files stored in the app cannot be loaded from Dashboard Studio because of browser cross-origin rules. Use an absolute URL on a host that allows cross-origin requests.\n- **True/false fields:** Per-row true/false fields such as `layerVisibility`, `markerVisibility`, `antPath` and `antPathPaused` must be `\"true\"` or `\"false\"`. A value of `\"1\"` from SPL is treated as false.\n- **Dark theme:** Maps+ detects the dark theme in Dashboard Studio, and the default basemap switches to its dark variant.\n- **Basemap:** When no basemap is chosen (no Map Tile, Tile Map Override, Bing or OpenFreeMap setting), Maps+ uses keyless OpenFreeMap vector tiles: Positron, or Dark in the dark theme. Any basemap you choose explicitly is used as before. CartoDB tiles now need an API key; without one they show an \"API KEY REQUIRED\" watermark. Providers that need a key take the full URL, including `?key=<your key>`, in the matching override field (**Map Tile Override** for raster tiles, **MapLibre Style URL** for vector styles). Never put a real key in a dashboard you share.\n- **After upgrading the app:** restart Splunk (or open `/en-US/debug/refresh`) so Dashboard Studio picks up the new Format panel defaults, and open `/en-US/_bump` so browsers fetch the new visualization files."
       }
+    },
+    "viz_help_examples": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Maps+ Examples\n\nWorking example dashboards ship with the app (also under **Examples** in the app menu). Open one, then use **Edit** or **Open in Search** to copy its SPL and options.\n\n| Example | What it shows |\n|---|---|\n| [PNG Markers](png_markers) | Pre-colored PNG markers with Font Awesome icons |\n| [SVG Markers](svg_markers) | Sizable vector markers in any color |\n| [Circle Markers](circle_markers) | Canvas circle markers for large point counts |\n| [Marker Icon Customization](custom_icons) | Icon prefix, size and style choices driven by inputs |\n| [Custom Icon Images](custom_icon_images) | Your own marker images from contrib/images |\n| [Multi-Cluster Groups](multicluster_groups) | Several independent cluster groups |\n| [Cluster Colors](cluster_colors) | Colored cluster groups and legend |\n| [Multi-Layer Groups](multilayer_groups) | Layer groups toggled from the layer control |\n| [KML Overlay](kml_overlay) | KML/KMZ overlays (classic dashboards) |\n| [Google Street View Drilldown](google_streetview_drilldown) | Drill down from a marker to the Street View companion visualization |\n| [Path Lines](path_lines) | Paths drawn from time-ordered points |\n| [Ant Paths](ant_path) | Animated ant paths |\n| [Path Playback](playback) | Play back movement along paths over time |\n| [Heatmap](heatmap) | Heatmap layers with and without markers |\n| [Features](features) | Points, lines and polygons from the feature field |\n| [Drilldown](drilldown) | Marker drilldown to tokens and searches |\n| [Dark Mode](png_markers_dark) | Maps+ in the dark theme |\n| [Antarctic Projection](antarctic_projection) | Polar (EPSG:3031) projection with GIBS imagery |\n| [Milsymbol](milsymbol) | NATO APP-6 / MIL-STD-2525 tactical symbols |\n| [Selecting Markers](selecting_markers) | Lasso selection of markers into a token |\n| [Click Lat/Lng Token](clicked_latlng_demo) | Map clicks set latitude/longitude tokens |\n| [Airgapped Tile Server Test](airgapped_tile_test) | Acceptance test for a private tile server |\n| [Preserve Viewport on Refresh](preserve_viewport_refresh_test) | Test for keeping the view across refreshes |"
+      }
     }
   },
   "layout": {
@@ -280,6 +286,10 @@
         {
           "label": "Overview",
           "layoutId": "layout_1"
+        },
+        {
+          "label": "Examples",
+          "layoutId": "layout_examples"
         },
         {
           "label": "Markers",
@@ -798,7 +808,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 760,
+          "height": 380,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -809,7 +819,27 @@
               "x": 0,
               "y": 0,
               "w": 1440,
-              "h": 740
+              "h": 360
+            }
+          }
+        ]
+      },
+      "layout_examples": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 900,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_examples",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 880
             }
           }
         ]

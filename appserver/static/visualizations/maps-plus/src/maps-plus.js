@@ -60,8 +60,10 @@ define([
         ) {
 
 
+var assetsCompat = require('./compat/assets')
+var I18N_MESSAGES = { en: require('../contrib/i18n/en.json'), ja: require('../contrib/i18n/ja.json') }
 
-return SplunkVisualizationBase.extend({
+var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
 paneZIndex: 400,
 tileLayer: null,
@@ -260,6 +262,7 @@ ATTRIBUTIONS: {
 initialize: function() {
     SplunkVisualizationBase.prototype.initialize.apply(this, arguments)
     this.$el = $(this.el)
+    this.contribUri = assetsCompat.contribBase(window)
     this.isInitializedDom = false
     this.curPage = 0
     this.allDataProcessed = false
@@ -2427,7 +2430,7 @@ updateView: function(data, config) {
     // Initialize the DOM
     if (!this.isInitializedDom) {
         // Set defaul icon image path
-        L.Icon.Default.imagePath = location.origin + this.contribUri + '/images/'
+        L.Icon.Default.imagePath = this.contribUri + '/images/'
 
         // Create layer filter object
         var layerFilter = this.layerFilter = {}
@@ -2859,7 +2862,13 @@ updateView: function(data, config) {
         // Load localization file and init locale
         var i18n = $.i18n()
         i18n.locale = i18nLanguage
-        i18n.load(location.origin + this.contribUri + '/i18n/' + i18nLanguage + '.json', i18n.locale)
+        var i18nLangKey = String(i18nLanguage || 'en')
+        if (!Object.prototype.hasOwnProperty.call(I18N_MESSAGES, i18nLangKey)) {
+            i18nLangKey = i18nLangKey.split(/[-_]/)[0].toLowerCase()      // ja-JP -> ja
+        }
+        var i18nMessages = Object.prototype.hasOwnProperty.call(I18N_MESSAGES, i18nLangKey)
+            ? I18N_MESSAGES[i18nLangKey] : I18N_MESSAGES.en
+        i18n.load(i18nMessages, i18n.locale)
         
         if(this.isArgTrue(showProgress)) {
             this.map.spin(true)
@@ -2928,7 +2937,11 @@ updateView: function(data, config) {
             var kmlFiles = kmlOverlay.split(/\s*,\s*/)
             var paneZIndex = this.paneZIndex = 400
             _.each(kmlFiles.reverse(), function(file, i) {
-                var url = /^https?:\/\//.test(file) ? file : location.origin + this.contribUri + '/kml/' + file
+                var url = assetsCompat.assetUrl(this.contribUri, 'kml', file)
+                if (location.origin === 'null' && !/^https?:\/\//.test(url) && !this._kmlCorsWarned) {
+                    this._kmlCorsWarned = true
+                    console.warn('Maps+: contrib KML cannot be fetched from Dashboard Studio (CORS). Use an absolute URL on a CORS-enabled host.')
+                }
                 var label = file.split('/').pop()
                 var fg = L.featureGroup().addTo(this.map)
                 if (this.isArgTrue(layerControl)) {
@@ -3277,9 +3290,9 @@ updateView: function(data, config) {
         // Create marker — icons are built per-row so that per-row fields
         // (markerColor, iconColor, icon, size, etc.) are always honoured.
         if(markerType == "custom") {
-            var customIconShadow = _.has(userData, "customIconShadow") ? location.origin + this.contribUri + '/images/' + userData["customIconShadow"]:""
+            var customIconShadow = _.has(userData, "customIconShadow") ? assetsCompat.assetUrl(this.contribUri, 'images', userData["customIconShadow"]):""
             var markerIcon = L.icon({
-                iconUrl: location.origin + this.contribUri + '/images/' + customIcon,
+                iconUrl: assetsCompat.assetUrl(this.contribUri, 'images', customIcon),
                 shadowUrl: customIconShadow,
                 iconSize: markerSize,
                 iconAnchor: markerAnchor,
@@ -3647,4 +3660,13 @@ updateView: function(data, config) {
     return this
 }
 })
+
+// Debug builds only (npm run build:debug): draw errors and cycle/layer state on the panel.
+// __MP_DEBUG__ is replaced at build time by webpack's DefinePlugin; when false, webpack
+// drops this branch and the overlay module is not bundled.
+if (__MP_DEBUG__) {
+    require('./compat/debug-overlay').install(MapsPlus)
+}
+
+return MapsPlus
 })

@@ -61,7 +61,7 @@ define([
 
 
 
-return SplunkVisualizationBase.extend({
+var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
 paneZIndex: 400,
 tileLayer: null,
@@ -3647,4 +3647,13 @@ updateView: function(data, config) {
     return this
 }
 })
+
+// Debug builds only (npm run build:debug): draw errors and cycle/layer state on the panel.
+// __MP_DEBUG__ is replaced at build time by webpack's DefinePlugin; when false, webpack
+// drops this branch and the overlay module is not bundled.
+if (__MP_DEBUG__) {
+    require('./compat/debug-overlay').install(MapsPlus)
+}
+
+return MapsPlus
 })

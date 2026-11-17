@@ -164,7 +164,7 @@
     "md_token": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "### Example of using a token in a markdown panel\n\nThe `mapmarkers` token currently holds:\n\n```\n$mapmarkers$\n```\n"
+        "markdown": "### Example of using a token in a markdown panel\n\nThe `mapmarkers` token currently holds:\n\n```\n$$mapmarkers$$\n```\n"
       }
     },
     "viz_parse": {

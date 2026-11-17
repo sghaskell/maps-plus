@@ -59,14 +59,14 @@
     "viz_help_08": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## PNG Markers and Icons\n\n| Field | Description | Default |\n|---|---|---|\n| `title` | Mouse-hover text. **Deprecated** (still works) - use `tooltip`. |  |\n| `tooltip` | Tooltip displayed on marker hover. |  |\n| `icon` | Icon shown in the marker. Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). | `circle` |\n| `markerColor` | Marker color: `red`, `darkred`, `lightred`, `orange`, `beige`, `green`, `darkgreen`, `lightgreen`, `blue`, `darkblue`, `lightblue`, `purple`, `darkpurple`, `pink`, `cadetblue`, `white`, `gray`, `lightgray`, `black`. | `blue` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome) or `ion` (ionicons). | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome / Ionicons. | `fa-lg` |",
+        "markdown": "## PNG Markers and Icons\n\n| Field | Description | Default |\n|---|---|---|\n| `title` | Mouse-hover text. **Deprecated** (still works) - use `tooltip`. |  |\n| `tooltip` | Tooltip displayed on marker hover. |  |\n| `icon` | Icon shown in the marker. Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). | `circle` |\n| `markerColor` | Marker color: `red`, `darkred`, `lightred`, `orange`, `beige`, `green`, `darkgreen`, `lightgreen`, `blue`, `darkblue`, `lightblue`, `purple`, `darkpurple`, `pink`, `cadetblue`, `white`, `gray`, `lightgray`, `black`. | `blue` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome / Ionicons. | `fa-lg` |",
         "fontSize": "default"
       }
     },
     "viz_help_09": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## SVG Markers\n\nDynamically size markers and use any color (name or hex). These fields control SVG-based markers.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerType` | `svg` or `png` | `png` |\n| `markerSize` | Comma-separated pixel width and height of the marker. | `35,45` |\n| `markerColor` | Any common [HTML color name](http://www.w3schools.com/colors/colors_names.asp) or [hex value](http://www.google.com/search?q=html+color+picker). | `#38AADD` |\n| `markerAnchor` | Comma-separated coordinates of the \"tip\" of the icon, relative to its top-left corner. | `15,50` |\n| `popupAnchor` | Comma-separated coordinates of the point from which popups open, relative to the icon anchor. |  |\n| `shadowSize` | Comma-separated pixel width and height of the shadow. Change only if you change `markerSize`. Use `0,0` to disable shadows. | `30,46` |\n| `shadowAnchor` | Comma-separated coordinates of the shadow \"tip\", relative to its top-left corner. Change only if you change `markerSize`. | `30,30` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome) or `ion` (ionicons). | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome. |  |",
+        "markdown": "## SVG Markers\n\nDynamically size markers and use any color (name or hex). These fields control SVG-based markers.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerType` | `png`: pre-colored PNG marker from a limited palette (cannot be resized). `svg`: vector marker sized with `markerSize`, any color name or hex. `circle`: circle marker drawn on canvas, for large numbers of points (styled with the `circle*` fields). `custom`: image from the app's `contrib/images` directory named in `customIcon` (set automatically when `customIcon` is present). `milsymbol`: NATO APP-6 / MIL-STD-2525D tactical symbol driven by `msSidc`. | `png` |\n| `markerSize` | Comma-separated pixel width and height of the marker. | `35,45` |\n| `markerColor` | Any common [HTML color name](http://www.w3schools.com/colors/colors_names.asp) or [hex value](http://www.google.com/search?q=html+color+picker). | `#38AADD` |\n| `markerAnchor` | Comma-separated coordinates of the \"tip\" of the icon, relative to its top-left corner. | `15,50` |\n| `popupAnchor` | Comma-separated coordinates of the point from which popups open, relative to the icon anchor. |  |\n| `shadowSize` | Comma-separated pixel width and height of the shadow. Change only if you change `markerSize`. Use `0,0` to disable shadows. | `30,46` |\n| `shadowAnchor` | Comma-separated coordinates of the shadow \"tip\", relative to its top-left corner. Change only if you change `markerSize`. | `30,30` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome. |  |",
         "fontSize": "default"
       }
     },
@@ -101,7 +101,7 @@
     "viz_help_14": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Heatmaps\n\nRender heatmaps with or without markers. Control them from the Format menu (**Format: Features** tab) or directly with SPL. Create multiple heatmap layers with the `heatmapLayer` field.\n\nWhen controlling heatmaps through SPL, the **first event** for a given `heatmapLayer` defines that layer's settings (`heatmapMinOpacity`, `heatmapMaxZoom`, `heatmapRadius`, `heatmapBlur`, `heatmapColorGradient`). If not specified, values from the Format menu are used.\n\n| Field | Description | Default |\n|---|---|---|\n| `heatmapLayer` | Name of the heatmap layer to render. |  |\n| `heatmapPointIntensity` | Intensity of the point. | `1.0` |\n| `heatmapMinOpacity` | Minimum opacity the heat starts at. |  |\n| `heatmapRadius` | Radius of each heatmap \"point\". | `25` |\n| `heatmapBlur` | Amount of blur. | `15` |\n| `heatmapColorGradient` | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
+        "markdown": "## Heatmaps\n\nRender heatmaps with or without markers. Control them from the Format menu (**Format: Features** tab) or directly with SPL. Create multiple heatmap layers with the `heatmapLayer` field.\n\nWhen controlling heatmaps through SPL, the **first event** for a given `heatmapLayer` defines that layer's settings (`heatmapMinOpacity`, `heatmapRadius`, `heatmapBlur`, `heatmapColorGradient`). If not specified, values from the Format menu are used.\n\n| Field | Description | Default |\n|---|---|---|\n| `heatmapLayer` | Name of the heatmap layer to render. |  |\n| `heatmapPointIntensity` | Intensity of the point. | `1.0` |\n| `heatmapMinOpacity` | Minimum opacity the heat starts at. |  |\n| `heatmapRadius` | Radius of each heatmap \"point\". | `25` |\n| `heatmapBlur` | Amount of blur. | `15` |\n| `heatmapColorGradient` | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
         "fontSize": "default"
       }
     },
@@ -265,6 +265,12 @@
         "markdown": "## Publications\n\nData set: UCI GPS Trajectories.\n\n1 - CRUZ, M. O.; MACEDO, H.; GUIMARÃES, A. P. Grouping similar trajectories for carpooling purposes. In: Brazilian Conference on Intelligent Systems. [S.l.: s.n.], 2015. p. 234–239. ISBN 9781509000166.",
         "fontSize": "default"
       }
+    },
+    "viz_help_studio_notes": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Dashboard Studio notes\n\n- **Empty cells:** Empty (null) cells are treated as missing fields, as in classic dashboards. You do not need to fill every column.\n- **Icon fonts:** Icon fonts are embedded, so icon glyphs render in Dashboard Studio.\n- **Click Lat/Lng and lasso selection tokens:** Studio has no classic token API, so Maps+ sends these values as a drilldown. Add a `drilldown.setToken` event handler that maps `row.clickedLatLng.value`, `row.clickedLat.value`, `row.clickedLng.value` or `row.mapmarkers.value`, for example: `{\"type\": \"drilldown.setToken\", \"options\": {\"tokens\": [{\"token\": \"clicked\", \"key\": \"row.clickedLatLng.value\"}]}}`. A click-token drilldown and a marker drilldown share the same event channel. With the default double-click marker drilldown, the two clicks also send click-token drilldowns, so avoid mapping the same token from both.\n- **KML/KMZ files:** KML and KMZ files stored in the app cannot be loaded from Dashboard Studio because of browser cross-origin rules. Use an absolute URL on a host that allows cross-origin requests.\n- **True/false fields:** Per-row true/false fields such as `layerVisibility`, `markerVisibility`, `antPath` and `antPathPaused` must be `\"true\"` or `\"false\"`. A value of `\"1\"` from SPL is treated as false.\n- **Dark theme:** Maps+ detects the dark theme in Dashboard Studio, and the default basemap switches to its dark variant.\n- **Basemap:** When no basemap is chosen (no Map Tile, Tile Map Override, Bing or OpenFreeMap setting), Maps+ uses keyless OpenFreeMap vector tiles: Positron, or Dark in the dark theme. Any basemap you choose explicitly is used as before. CartoDB tiles now need an API key; without one they show an \"API KEY REQUIRED\" watermark. Providers that need a key take the full URL, including `?key=<your key>`, in the matching override field (**Map Tile Override** for raster tiles, **MapLibre Style URL** for vector styles). Never put a real key in a dashboard you share.\n- **After upgrading the app:** restart Splunk (or open `/en-US/debug/refresh`) so Dashboard Studio picks up the new Format panel defaults, and open `/en-US/_bump` so browsers fetch the new visualization files."
+      }
     }
   },
   "layout": {
@@ -302,6 +308,10 @@
         {
           "label": "Format: Features",
           "layoutId": "layout_8"
+        },
+        {
+          "label": "Dashboard Studio",
+          "layoutId": "layout_studio_notes"
         },
         {
           "label": "Help",
@@ -780,6 +790,26 @@
               "y": 320,
               "w": 720,
               "h": 200
+            }
+          }
+        ]
+      },
+      "layout_studio_notes": {
+        "type": "grid",
+        "options": {
+          "width": 1440,
+          "height": 760,
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "viz_help_studio_notes",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 740
             }
           }
         ]

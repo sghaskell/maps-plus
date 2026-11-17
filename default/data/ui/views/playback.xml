@@ -1,38 +1,16 @@
 <dashboard version="2" theme="light">
   <label>Path Playback</label>
-  <description>Maps+ path playback: step markers along time-ordered paths.</description>
+  <description>Maps+ path playback: three cars on one clock, so all markers move together.</description>
   <definition><![CDATA[
 {
   "title": "Path Playback",
-  "description": "Maps+ path playback: step markers along time-ordered paths.",
+  "description": "Maps+ path playback: three cars on one clock, so all markers move together.",
   "dataSources": {
-    "ds_in_track_id_viz_3": {
-      "type": "ds.search",
-      "name": "Vehicle ID choices map 3",
-      "options": {
-        "query": "| inputlookup go_track_trackspoints.csv | rex field=_time \"(?<date>^\\d+-\\d+-\\d+)\" | search $date_filter_viz_3$ | stats values(track_id) as track_id | mvexpand track_id | sort +track_id",
-        "queryParameters": {
-          "earliest": "-24h@h",
-          "latest": "now"
-        }
-      }
-    },
-    "ds_in_date_filter_viz_3": {
-      "type": "ds.search",
-      "name": "Date choices map 3",
-      "options": {
-        "query": "| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | search $track_id_viz_3$ | rex field=_time \"(?<date>^\\d+-\\d+-\\d+)\" | stats values(date) as day | mvexpand day",
-        "queryParameters": {
-          "earliest": "-24h@h",
-          "latest": "now"
-        }
-      }
-    },
     "ds_map_1": {
       "type": "ds.search",
-      "name": "Playback rows",
+      "name": "Playback rows: 3 cars, one hour",
       "options": {
-        "query": "| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time \"(?<date>^\\d+-\\d+-\\d+)\" | search $date_filter_viz_3$ $track_id_viz_3$ | eval markerVisibility=\"hidden\", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, \"car\", \"bus\"), description=\"car \".id, tooltip=description, pathColor=case(like(id, \"16\"), \"#e50de5\"), layerDescription=case(like(pathLayer, \"cars-16-20\"), \"cars-16-20\", like(pathLayer, \"cars-17-22-23\"), \"cars-17-22-23\"), pathLayer=case(like(id, \"16\"), \"cars-16-20\", like(id, \"17\"), \"cars-17-22-23\", like(id, \"20\"), \"cars-16-20\", like(id, \"22\"), \"cars-17-22-23\", like(id, \"23\"), \"cars-17-22-23\"), layerPriority=case(like(pathLayer, \"cars-16-20\"), 10, like(pathLayer, \"cars-17-22-23\"), 5)",
+        "query": "| inputlookup go_track_trackspoints.csv where track_id=16 OR track_id=17 OR track_id=208 | streamstats count as seq by track_id | eventstats max(seq) as points by track_id | eval minute=round((seq-1)*60/(points-1)) | dedup track_id minute | eval _time=strftime(strptime(\"2026-11-17 09:00:00\", \"%Y-%m-%d %H:%M:%S\") + minute*60, \"%Y-%m-%dT%H:%M:%S\") | eval description=\"car \".track_id, tooltip=description, markerVisibility=\"hidden\", pathColor=case(track_id=16, \"#e50de5\", track_id=17, \"#0003F0\", track_id=208, \"#D43C29\") | sort 0 track_id minute | table _time latitude longitude track_id description tooltip pathColor markerVisibility",
         "queryParameters": {
           "earliest": "-24h@h",
           "latest": "now"
@@ -40,56 +18,12 @@
       }
     }
   },
-  "inputs": {
-    "input_track_id_viz_3": {
-      "type": "input.multiselect",
-      "title": "Vehicle ID",
-      "options": {
-        "token": "track_id_viz_3",
-        "defaultValue": "*",
-        "items": [
-          {
-            "label": "All",
-            "value": "*"
-          }
-        ]
-      },
-      "dataSources": {
-        "primary": "ds_in_track_id_viz_3"
-      },
-      "encoding": {
-        "label": "primary.track_id",
-        "value": "primary.track_id"
-      }
-    },
-    "input_date_filter_viz_3": {
-      "type": "input.multiselect",
-      "title": "Date",
-      "options": {
-        "token": "date_filter_viz_3",
-        "defaultValue": "*",
-        "items": [
-          {
-            "label": "All",
-            "value": "*"
-          }
-        ],
-        "isCascadingInput": true
-      },
-      "dataSources": {
-        "primary": "ds_in_date_filter_viz_3"
-      },
-      "encoding": {
-        "label": "primary.day",
-        "value": "primary.day"
-      }
-    }
-  },
+  "inputs": {},
   "visualizations": {
     "viz_html": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "Visualize direction along a path with playback. Enable playback under **Format Menu -> Path Lines -> Playback**. Toggling playback will globally enable playback on all paths. To control playback through SPL, simply `| eval playback=\"true\" | table playback`. Alternately, setting `| eval playback=\"false\" | table playback` will disable playback for a path or all paths. Use the context menu (right click) to add all paths to playback, clear all paths from playback or reset playback. Use the context menu by right clicking on the path to add or remove the clicked path from playback.\n\nIf set, the moveable marker's icon, prefix and color are inherited from the following fields `icon`, `prefix` and `pathColor`.\n\nUse the play and slider controls to move the markers along their paths. If time ranges for paths vary wildly there may be significant gaps (wait times) before the next marker(s) begin to play.\n\nAdjust the playback speed by increasing/decreasing the **Tick Length** and **Playback Speed** under the format menu."
+        "markdown": "Three cars drive for the same hour (09:00 to 10:00 on 17 November 2026), and every car has a point at the same minute, so pressing **Play** moves all three markers together. Use this map to check that playback works.\n\n- **Play / pause:** the play button (bottom left). The slider scrubs through the hour and the date control shows the current playback time.\n- **Speed:** **Tick Length** and **Playback Speed** under **Format > Path Lines > Playback**. At the default speed of 100 the hour plays in about 36 seconds.\n- **Per path:** right-click a path to add it to, or remove it from, playback. Right-click the map to add all, clear all or reset. From SPL, `| eval playback=\"false\"` turns playback off for a path.\n- The moving marker takes its icon, prefix and colour from the `icon`, `prefix` and `pathColor` fields."
       }
     },
     "viz_map_1": {
@@ -121,16 +55,15 @@
         "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
         "leaflet_maps_app.maps-plus.heatmapEnable": "0",
         "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
-        "leaflet_maps_app.maps-plus.heatmapMaxZoom": "0",
         "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
         "leaflet_maps_app.maps-plus.heatmapOnly": "0",
         "leaflet_maps_app.maps-plus.heatmapRadius": "25",
         "leaflet_maps_app.maps-plus.i18nLanguage": "en",
         "leaflet_maps_app.maps-plus.layerControl": "1",
         "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
-        "leaflet_maps_app.maps-plus.mapCenterLat": "-10.698394",
-        "leaflet_maps_app.maps-plus.mapCenterLon": "-37.026672",
-        "leaflet_maps_app.maps-plus.mapCenterZoom": "9",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "-10.9035",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-37.0610",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "14",
         "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
         "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
         "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
@@ -179,15 +112,12 @@
     "viz_md_1": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "### Playback along time-ordered paths\n\n**What this shows** - Vehicle tracks as paths with a play control and time slider, so markers move along each path in time order. Markers are hidden until played.\n\n**The SPL**\n\n```spl\n| inputlookup go_track_trackspoints.csv | lookup go_track_tracks.csv id as track_id | rex field=_time \"(?<date>^\\d+-\\d+-\\d+)\" | search $$date_filter_viz_3$$ $$track_id_viz_3$$ | eval markerVisibility=\"hidden\", id=track_id, speed=round(speed, 2), vehicle_type=if(car_or_bus == 1, \"car\", \"bus\"), description=\"car \".id, tooltip=description, pathColor=case(like(id, \"16\"), \"#e50de5\"), layerDescription=case(like(pathLayer, \"cars-16-20\"), \"cars-16-20\", like(pathLayer, \"cars-17-22-23\"), \"cars-17-22-23\"), pathLayer=case(like(id, \"16\"), \"cars-16-20\", like(id, \"17\"), \"cars-17-22-23\", like(id, \"20\"), \"cars-16-20\", like(id, \"22\"), \"cars-17-22-23\", like(id, \"23\"), \"cars-17-22-23\"), layerPriority=case(like(pathLayer, \"cars-16-20\"), 10, like(pathLayer, \"cars-17-22-23\"), 5)\n```\n\n**How it works**\n\n1. `inputlookup go_track_trackspoints.csv` plus `lookup go_track_tracks.csv id as track_id` gives `latitude`, `longitude`, `track_id` and `_time`; `rex` and `search $$date_filter_viz_3$$ $$track_id_viz_3$$` apply the input filters.\n2. `eval` sets `markerVisibility`, `description` / `tooltip` and the `pathColor`, `pathLayer`, `layerDescription`, `layerPriority` styling for vehicles 16, 17, 20, 22 and 23.\n3. `_time` is what playback advances along, so rows must be in time order; Maps+ never sorts.\n4. Options: `showPathLines=1` and `pathIdentifier=track_id` build the paths; `showPlayback=1` adds playback to all paths; `playbackSpeed=100` and `playbackTickLength=50` set the pace; the date, play and slider controls are each switched on with `showPlaybackDateControl`, `showPlaybackPlayControl` and `showPlaybackSliderControl`.\n5. Gotcha: `eval` runs left to right, so `layerDescription` tests `pathLayer` before it is assigned.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees (number) | Exact lowercase name. Here it comes straight from the lookup. Every row is a path vertex, so every row needs coordinates. |\n| `longitude` | decimal degrees (number) | Exact lowercase name. |\n| `_time` | timestamp Maps+ can parse | Used by `pathSplits` and playback. Maps+ never sorts: rows are drawn in result order, and this query relies on the lookup's row order. |\n| `track_id` | any text; the field named in `pathIdentifier` | Splits rows into paths. Without `pathIdentifier`, all rows form one path. |\n| `description` | HTML text | Click popup; a path takes it from its first row. Escape any event text you put in it. |\n| `tooltip` | HTML text | Hover tooltip; a path takes it from its first row. |\n| `playback` | `\"true\"` / `\"false\"` per row | Not set by this query; default is the `showPlayback` option value. A per-row `\"false\"` disables playback for that path. |\n| `markerVisibility` | `\"true\"` / `\"marker\"` shows; anything else hides | Every row also draws a marker; this hides them so only the path shows. The documented off value is `\"false\"`. |\n| `pathColor` | CSS colour | Default is the next colour in `pathColorList`. A path's style comes from its first row. |\n| `pathLayer` | text | Layer-control entry for the path (default: the path id). |\n| `layerDescription` | HTML text | Label in the layer control; for path layers the first row wins. |\n| `layerPriority` | integer | Pane order of the layer. |\n\n**Try it**\n\n- Change `playbackTickLength` or `playbackSpeed` in the Format panel to speed playback up or slow it down.\n- Append `, playback=\"false\"` to the `eval` to switch playback off for every path from SPL.\n\n> **Studio note:** Playback in Studio is not yet verified: Studio draws the paths and markers, but the Play control has not been confirmed to work (earlier Maps+ builds drew no paths with `showPlayback=1`). Use the classic dashboard or a report for playback. Studio multiselect inputs ignore the classic prefix (`track_id=`), `valuePrefix`/`valueSuffix` and `delimiter`; values are comma-joined with no wrapping, so the token no longer expands to `track_id=\"16\" OR track_id=\"17\"`. Only the **All** choice (`*`) gives a valid filter, so the inputs default to All. The query text is unchanged. On Maps+ 4.6.9 and earlier, a Studio cell that is null counts as set (the `case()` fields below are null for non-matching rows); fixed in the unreleased 4.6.10.\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+        "markdown": "### Playback: three cars, one hour\n\n**What this shows** - Three vehicle tracks that run close together, re-timed so they share one clock: 61 points each, one per minute from 09:00 to 10:00 on 17 November 2026. **Play** moves all three markers at the same time. The original GPS points come from the app's `go_track_trackspoints.csv` lookup.\n\n**The SPL**\n\n```spl\n| inputlookup go_track_trackspoints.csv where track_id=16 OR track_id=17 OR track_id=208\n| streamstats count as seq by track_id\n| eventstats max(seq) as points by track_id\n| eval minute=round((seq-1)*60/(points-1))\n| dedup track_id minute\n| eval _time=strftime(strptime(\"2026-11-17 09:00:00\", \"%Y-%m-%d %H:%M:%S\") + minute*60, \"%Y-%m-%dT%H:%M:%S\")\n| eval description=\"car \".track_id, tooltip=description, markerVisibility=\"hidden\", pathColor=case(track_id=16, \"#e50de5\", track_id=17, \"#0003F0\", track_id=208, \"#D43C29\")\n| sort 0 track_id minute\n| table _time latitude longitude track_id description tooltip pathColor markerVisibility\n```\n\n**How it works**\n\n1. `inputlookup ... where track_id=...` keeps three cars (16, 17 and 208) that drive through the same part of town on different routes, each covering about 2.5 km.\n2. `streamstats count as seq by track_id` numbers each car's points in recorded order, and `eventstats max(seq) as points` counts them.\n3. `minute=round((seq-1)*60/(points-1))` spreads each car's points evenly over 0 to 60 minutes, and `dedup track_id minute` keeps one point per car per minute, so every car has exactly 61 points.\n4. `_time` is rebuilt as 09:00 plus `minute` minutes, in ISO format (`2026-11-17T09:05:00`). Because all three cars use the same 61 timestamps, they start, move and stop together.\n5. `sort 0 track_id minute` puts each path in time order. Maps+ never sorts rows itself.\n6. Options: `showPathLines=1` and `pathIdentifier=track_id` build one path per car; `showPlayback=1` adds every path to playback; the date, play and slider controls are switched on with `showPlaybackDateControl`, `showPlaybackPlayControl` and `showPlaybackSliderControl`.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names. Every row is a path vertex. |\n| `_time` | a timestamp Maps+ can parse (ISO `YYYY-MM-DDTHH:MM:SS` is safest) | Playback advances along it. It is read in the viewer's browser time zone. Rows must already be in time order within each path. |\n| `track_id` | any text; the field named in `pathIdentifier` | Splits rows into paths. Without `pathIdentifier`, all rows form one path. |\n| `description`, `tooltip` | HTML text | Popup and hover text; a path takes them from its first row. |\n| `pathColor` | CSS colour | Colour of the path and its moving marker. A path's style comes from its first row. |\n| `markerVisibility` | `\"true\"` / `\"marker\"` shows; anything else hides | Hides the static marker on every vertex, so only the paths and the moving markers show. |\n| `playback` | `\"true\"` / `\"false\"` per row | Not set here; the `showPlayback` option applies. A per-row `\"false\"` leaves that path out of playback. |\n\n**Try it**\n\n- Change `minute*60` to `minute*30` in the `_time` eval to squeeze the same trips into 30 minutes.\n- Add `, playback=if(track_id=208, \"false\", \"true\")` to the last `eval`: only cars 16 and 17 move.\n- Give one car a head start: add `+ if(track_id=17, 600, 0)` inside `strptime(...) + minute*60` and watch car 17 begin ten minutes later.\n\n**Basemap:** keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys**."
       }
     }
   },
   "layout": {
-    "globalInputs": [
-      "input_track_id_viz_3",
-      "input_date_filter_viz_3"
-    ],
+    "globalInputs": [],
     "tabs": {
       "items": [
         {

@@ -1,224 +1,335 @@
-<form version="1.1">
+<dashboard version="2" theme="light">
   <label>Click Lat/Lng Token Demo</label>
-  <init>
-    <set token="clickedLat">0</set>
-    <set token="clickedLng">0</set>
-    <set token="clickedLatLng">Not yet clicked</set>
-  </init>
-  <fieldset submitButton="false"></fieldset>
-  <row>
-    <panel>
-      <html>
-        <h2>Click Lat/Lng Token Feature</h2>
-        <p>
-          When enabled, clicking anywhere on the map immediately sets three Splunk dashboard tokens —
-          <code>$$clickedLat$$</code>, <code>$$clickedLng$$</code>, and <code>$$clickedLatLng$$</code> —
-          that can drive searches, filters, and drilldowns elsewhere on the dashboard — no custom
-          JavaScript required.
-        </p>
-        <table style="border-collapse:collapse; margin:10px 0 16px 0;">
-          <tr>
-            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLat$</td>
-            <td style="padding:4px 0;">Latitude of the clicked point (e.g. <code>39.7392</code>)</td>
-          </tr>
-          <tr>
-            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLng$</td>
-            <td style="padding:4px 0;">Longitude of the clicked point (e.g. <code>-104.9903</code>)</td>
-          </tr>
-          <tr>
-            <td style="padding:4px 16px 4px 0; font-family:monospace; font-weight:bold;">$clickedLatLng$</td>
-            <td style="padding:4px 0;">Combined coordinate string (e.g. <code>39.7392,-104.9903</code>)</td>
-          </tr>
-        </table>
-        <h3 style="margin-top:16px;">Enabling the feature</h3>
-        <p>
-          Open the visualization format menu (the pencil icon on the map panel) and navigate to the
-          <b>Marker Options</b> section. Three settings control this feature:
-        </p>
-        <ul>
-          <li>
-            <b>Click Lat/Lng Token</b> — Enable this to activate token-setting on map click.
-            When enabled, the map cursor changes to a crosshair to indicate click mode is active.
-          </li>
-          <li>
-            <b>Show Click Marker</b> — When enabled, a red crosshair icon is placed on the map at
-            the last clicked location and replaced on each subsequent click. Disable to set tokens
-            silently without a visual marker.
-          </li>
-          <li>
-            <b>Lat/Lng Decimal Precision</b> — Controls the number of decimal places in the
-            coordinate values (default: 4). Higher precision gives more exact coordinates;
-            lower precision gives rounded values suitable for coarse filtering.
-          </li>
-        </ul>
-        <h3 style="margin-top:16px;">Example use cases</h3>
-        <ul>
-          <li><b>Radius search</b> — use <code>$$clickedLat$$</code> and <code>$$clickedLng$$</code> in a haversine SPL query to find events within N km of the clicked point (demonstrated below)</li>
-          <li><b>Geo-filter</b> — pass coordinates into a lookup or subsearch to filter a table or chart to a specific region</li>
-          <li><b>External map link</b> — use <code>$$clickedLatLng$$</code> in a drilldown link to open Google Maps, OpenStreetMap, or any geo tool (demonstrated below)</li>
-          <li><b>Dynamic SPL</b> — substitute coordinates directly into search queries: <code>| where haversine(lat, lng, $$clickedLat$$, $$clickedLng$$) &lt; 100</code></li>
-          <li><b>Cross-panel context</b> — click a region on the map to update charts, tables, or single-value panels elsewhere on the same dashboard</li>
-        </ul>
-      </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Click anywhere on the map to set coordinate tokens</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| makeresults count=15
-| streamstats count as _serial
-| eval _serial=_serial-1
-| eval latitude=mvindex(split("47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3", ","), _serial)
-| eval longitude=mvindex(split("-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0", ","), _serial)
-| eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
-| eval count=mvindex(split("142,287,513,198,76,334,89,210,55,167,301,423,88,256,378", ","), _serial)
-| table latitude, longitude, title, count</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.clickLatLngPrecision">4</option>
-        <option name="leaflet_maps_app.maps-plus.clickLatLngToken">1</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">4</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
-        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.selectingMarkers">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
-  <row>
-    <panel depends="$clickedLatLng$">
-      <title>Clicked Coordinates</title>
-      <table>
-        <search>
-          <query>| makeresults
-| eval lat="$clickedLat$", lng="$clickedLng$", coordinates="$clickedLatLng$"
-| table lat, lng, coordinates</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="refresh.display">progressbar</option>
-      </table>
-    </panel>
-    <panel depends="$clickedLatLng$">
-      <title>Nearest Markers (within 500km)</title>
-      <table>
-        <search>
-          <query>| makeresults count=15
-| streamstats count as _serial
-| eval _serial=_serial-1
-| eval lat=mvindex(split("47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3", ","), _serial)
-| eval lng=mvindex(split("-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0", ","), _serial)
-| eval title=mvindex(split("Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston", ","), _serial)
-| eval clicked_lat=$clickedLat$, clicked_lng=$clickedLng$
-| eval dlat=(lat-clicked_lat)*pi()/180, dlng=(lng-clicked_lng)*pi()/180
-| eval a=pow(sin(dlat/2),2)+cos(clicked_lat*pi()/180)*cos(lat*pi()/180)*pow(sin(dlng/2),2)
-| eval distance_km=round(6371*2*asin(sqrt(a)),1)
-| where distance_km &lt; 500
-| sort distance_km
-| table title, lat, lng, distance_km
-| rename title as "Location", lat as "Latitude", lng as "Longitude", distance_km as "Distance (km)"</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="refresh.display">progressbar</option>
-      </table>
-    </panel>
-    <panel depends="$clickedLatLng$">
-      <title>Open in Maps</title>
-      <table>
-        <search>
-          <query>| makeresults
-| eval label="Open $clickedLatLng$ in Google Maps"
-| table label</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">row</option>
-        <option name="refresh.display">progressbar</option>
-        <drilldown>
-          <link target="_blank">https://www.google.com/maps?q=$clickedLat$,$clickedLng$</link>
-        </drilldown>
-      </table>
-    </panel>
-  </row>
-</form>
+  <description>Maps+ clickLatLngToken: clicking the map sets clickedLat, clickedLng and clickedLatLng tokens that drive other panels.</description>
+  <definition><![CDATA[
+{
+  "title": "Click Lat/Lng Token Demo",
+  "description": "Maps+ clickLatLngToken: clicking the map sets clickedLat, clickedLng and clickedLatLng tokens that drive other panels.",
+  "dataSources": {
+    "ds_map": {
+      "type": "ds.search",
+      "options": {
+        "query": "| makeresults count=15\n| streamstats count as _serial\n| eval _serial=_serial-1\n| eval latitude=mvindex(split(\"47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3\", \",\"), _serial)\n| eval longitude=mvindex(split(\"-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0\", \",\"), _serial)\n| eval title=mvindex(split(\"Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston\", \",\"), _serial)\n| eval count=mvindex(split(\"142,287,513,198,76,334,89,210,55,167,301,423,88,256,378\", \",\"), _serial)\n| table latitude, longitude, title, count",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Cities"
+    },
+    "ds_coords": {
+      "type": "ds.search",
+      "options": {
+        "query": "| makeresults\n| eval lat=\"$clickedLat$\", lng=\"$clickedLng$\", coordinates=\"$clickedLatLng$\"\n| table lat, lng, coordinates",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Clicked Coordinates"
+    },
+    "ds_nearest": {
+      "type": "ds.search",
+      "options": {
+        "query": "| makeresults count=15\n| streamstats count as _serial\n| eval _serial=_serial-1\n| eval lat=mvindex(split(\"47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3\", \",\"), _serial)\n| eval lng=mvindex(split(\"-122.3,-118.2,-87.6,-95.3,-112.0,-75.1,-80.4,-93.2,-115.1,-122.6,-117.1,-104.9,-80.8,-97.7,-71.0\", \",\"), _serial)\n| eval title=mvindex(split(\"Seattle,Los Angeles,Chicago,Houston,Phoenix,Philadelphia,Miami,Minneapolis,Las Vegas,Portland,San Diego,Denver,Charlotte,Austin,Boston\", \",\"), _serial)\n| eval clicked_lat=$clickedLat$, clicked_lng=$clickedLng$\n| eval dlat=(lat-clicked_lat)*pi()/180, dlng=(lng-clicked_lng)*pi()/180\n| eval a=pow(sin(dlat/2),2)+cos(clicked_lat*pi()/180)*cos(lat*pi()/180)*pow(sin(dlng/2),2)\n| eval distance_km=round(6371*2*asin(sqrt(a)),1)\n| where distance_km < 500\n| sort distance_km\n| table title, lat, lng, distance_km\n| rename title as \"Location\", lat as \"Latitude\", lng as \"Longitude\", distance_km as \"Distance (km)\"",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Nearest Markers within 500km"
+    },
+    "ds_open": {
+      "type": "ds.search",
+      "options": {
+        "query": "| makeresults\n| eval label=\"Open $clickedLatLng$ in Google Maps\"\n| table label",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Open in Maps"
+    }
+  },
+  "visualizations": {
+    "md_intro": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Click Lat/Lng Token Feature\n\nWhen enabled, clicking anywhere on the map immediately sets three dashboard tokens, `clickedLat`, `clickedLng` and `clickedLatLng`, that can drive searches, filters and drilldowns elsewhere on the dashboard, with no custom JavaScript required.\n\n| Token | Value |\n|---|---|\n| `clickedLat` | Latitude of the clicked point (for example `39.7392`) |\n| `clickedLng` | Longitude of the clicked point (for example `-104.9903`) |\n| `clickedLatLng` | Combined coordinate string (for example `39.7392,-104.9903`) |\n\n### Enabling the feature\n\nOpen the visualization options of the map panel (classic: the Marker Options section of the format menu). Settings that control this feature:\n\n- **Click Lat/Lng Token** (`clickLatLngToken` = `1`): activates token-setting on map click. The map cursor changes to a crosshair to show click mode is active.\n- **Show Click Marker**: places a red crosshair icon at the last clicked location, replaced on each click. Disable to set tokens silently.\n- **Lat/Lng Decimal Precision** (`clickLatLngPrecision`, here `4`): the number of decimal places in the coordinate values. Higher precision gives more exact coordinates; lower precision gives rounded values for coarse filtering.\n\n### Example use cases\n\n- **Radius search**: use `clickedLat` and `clickedLng` in a haversine SPL query to find events within N km of the clicked point (demonstrated below).\n- **Geo-filter**: pass coordinates into a lookup or subsearch to filter a table or chart to a specific region.\n- **External map link**: use `clickedLat` and `clickedLng` in a drilldown link to open Google Maps, OpenStreetMap or any geo tool (demonstrated below).\n- **Dynamic SPL**: substitute coordinates directly into search queries, for example a `where haversine(lat, lng, ...) < 100` style filter.\n- **Cross-panel context**: click a region on the map to update charts, tables or single-value panels elsewhere on the same dashboard.\n"
+      }
+    },
+    "viz_map": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Click anywhere on the map to set coordinate tokens",
+      "dataSources": {
+        "primary": "ds_map"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.clickLatLngPrecision": "4",
+        "leaflet_maps_app.maps-plus.clickLatLngToken": "1",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "4",
+        "leaflet_maps_app.maps-plus.mapTile": "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.playbackSpeed": "100",
+        "leaflet_maps_app.maps-plus.playbackTickLength": "50",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.selectingMarkers": "0",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showPlayback": "0",
+        "leaflet_maps_app.maps-plus.showPlaybackDateControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackPlayControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackSliderControl": "1",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.splunkVersionCheck": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [
+              {
+                "token": "clickedLatLng",
+                "key": "row.clickedLatLng.value"
+              },
+              {
+                "token": "clickedLat",
+                "key": "row.clickedLat.value"
+              },
+              {
+                "token": "clickedLng",
+                "key": "row.clickedLng.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "md_map": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nFifteen US cities as markers, and tables that react to wherever you click on the map. The click sets the `clickedLat`, `clickedLng` and `clickedLatLng` tokens, which three panels below use.\n\n### The SPL\n\n```spl\n| makeresults count=15\n| streamstats count as _serial\n| eval _serial=_serial-1\n| eval latitude=mvindex(split(\"47.6,34.05,41.8,29.7,33.4,39.9,25.7,44.9,36.1,45.5,32.7,39.7,35.2,30.3,42.3\", \",\"), _serial)\n... (longitude, title and count use the same mvindex(split(...)) pattern)\n| table latitude, longitude, title, count\n```\n\nNearest Markers panel, key lines:\n\n```spl\n| eval clicked_lat=$clickedLat$, clicked_lng=$clickedLng$\n| eval dlat=(lat-clicked_lat)*pi()/180, dlng=(lng-clicked_lng)*pi()/180\n| eval a=pow(sin(dlat/2),2)+cos(clicked_lat*pi()/180)*cos(lat*pi()/180)*pow(sin(dlng/2),2)\n| eval distance_km=round(6371*2*asin(sqrt(a)),1)\n| where distance_km < 500\n```\n\nStudio may show current token values in place of the `$...$` placeholders above.\n\n### How it works\n\n1. `makeresults count=15` and `streamstats count as _serial` number 15 rows, and `eval _serial=_serial-1` makes it a 0-based index.\n2. `mvindex(split(\"47.6,34.05,...\", \",\"), _serial)` picks the n-th value from a list, so each row gets its own `latitude`, `longitude`, `title` and `count`.\n3. `table` keeps those four fields.\n4. A click anywhere sets the three tokens (see the Studio note).\n5. The Nearest Markers query substitutes the tokens into SPL, computes the haversine great-circle distance in km, and `where distance_km < 500` keeps cities within 500 km, closest first.\n6. Open in Maps builds a Google Maps link from `clickedLat` and `clickedLng`.\n\n### Field formats and rules\n\n| Field / token | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `title` | text | Native hover title. |\n| `count` | number | Not reserved, so Maps+ passes it as data. |\n| `clickedLat`, `clickedLng` | decimal degrees | Rounded to `clickLatLngPrecision` places (4 here). |\n| `clickedLatLng` | `lat,lng` string | Default \"Not yet clicked\" until the first click. |\n\n### Try it\n\n- Change `500` in `where distance_km < 500` to `1500` and click again to widen the radius.\n- Set `clickLatLngPrecision` to `1` in the viz options and watch the coordinates round.\n\n### Studio note\n\nClassic Maps+ sets these tokens through the SplunkJS token models, which do not exist in Studio. The map has a `drilldown.setToken` handler mapping `row.clickedLatLng.value`, `row.clickedLat.value` and `row.clickedLng.value` to the three tokens. This path is pending verification in Studio (unreleased 4.6.10 build); until it works the tokens keep their defaults.\n"
+      }
+    },
+    "viz_coords": {
+      "type": "splunk.table",
+      "title": "Clicked Coordinates",
+      "dataSources": {
+        "primary": "ds_coords"
+      },
+      "containerOptions": {
+        "visibility": {
+          "showConditions": [
+            "clickedLatLng_show"
+          ]
+        }
+      }
+    },
+    "viz_nearest": {
+      "type": "splunk.table",
+      "title": "Nearest Markers (within 500km)",
+      "dataSources": {
+        "primary": "ds_nearest"
+      },
+      "containerOptions": {
+        "visibility": {
+          "showConditions": [
+            "clickedLatLng_show"
+          ]
+        }
+      }
+    },
+    "viz_open": {
+      "type": "splunk.table",
+      "title": "Open in Maps",
+      "dataSources": {
+        "primary": "ds_open"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.customUrl",
+          "options": {
+            "url": "https://www.google.com/maps?q=$clickedLat$,$clickedLng$",
+            "newTab": true
+          }
+        }
+      ],
+      "containerOptions": {
+        "visibility": {
+          "showConditions": [
+            "clickedLatLng_show"
+          ]
+        }
+      }
+    }
+  },
+  "defaults": {
+    "tokens": {
+      "default": {
+        "clickedLat": {
+          "value": "0"
+        },
+        "clickedLng": {
+          "value": "0"
+        },
+        "clickedLatLng": {
+          "value": "Not yet clicked"
+        }
+      }
+    }
+  },
+  "expressions": {
+    "conditions": {
+      "clickedLatLng_show": {
+        "name": "clickedLatLng_show",
+        "value": "$isSet($clickedLatLng$)"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 2241,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "md_intro",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 622
+            }
+          },
+          {
+            "item": "viz_map",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 622,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_map",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 622,
+              "w": 720,
+              "h": 1319
+            }
+          },
+          {
+            "item": "viz_coords",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1941,
+              "w": 480,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_nearest",
+            "type": "block",
+            "position": {
+              "x": 480,
+              "y": 1941,
+              "w": 480,
+              "h": 300
+            }
+          },
+          {
+            "item": "viz_open",
+            "type": "block",
+            "position": {
+              "x": 960,
+              "y": 1941,
+              "w": 480,
+              "h": 300
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
+</dashboard>

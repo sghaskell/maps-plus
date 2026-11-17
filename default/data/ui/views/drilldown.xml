@@ -1,206 +1,308 @@
-<dashboard version="1.1">
+<dashboard version="2" theme="light">
   <label>Drilldown</label>
-  <row>
-    <panel>
-      <html>
-      <p>Drilldown must be enabled using the format menu under <b>Map -&gt; Drilldown</b>. Select a <b>Drilldown Mouse Event</b> (Double Click or Single Click) that triggers the drilldown when interacting with a marker.</p>
-      <p>The visualization will identify any non-standard fields and make them available as drilldown fields. Simply add any fields you wish to the final table command and you'll have access to them via drilldown in Simple XML.</p>
-      <p>Use the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Access_the_drilldown_editor">drilldown editor</a> to <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/DrilldownIntro#Choose_a_drilldown_action">set the action</a> for the drilldown.</p>
-      <p>See the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/ContextualDrilldown">documentation on contextual drilldown</a>. Refer to this section of the docs  on <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown">accessing tokens for dynamic drilldown</a>.</p>
-      <p>Note that <code>$click.value$</code> does not get set through the Custom Visualization API. Use <code>$row.fieldname$</code> to acceess a drilldown value.</p>
-      <p>When using the <b>Click</b> drilldown mouse event, use the <code>tooltip</code> field instead of the <code>description</code> field to display information about the marker as you hover over the icon.</p>
-    </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Drilldown To Search On location_description Field - Double Click Mouse Event</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv 
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;", clusterGroup="default"
-| table latitude, longitude, description, markerColor, icon, clusterGroup, location_description</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">16</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">14</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-        <drilldown>
-          <link target="_blank">search?q=%7C%20inputlookup%20chicago-crime.csv%20%7C%20search%20location_description=%22$row.location_description$%22&amp;earliest=-24h@h&amp;latest=now</link>
-        </drilldown>
-      </viz>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Drilldown To Search On location_description Field - Click Mouse Event</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv 
-| eval markerColor=case(like(description, "%SIMPLE%"), "red", like(description, "%DOMESTIC BATTERY%"), "pink", like(description, "%500 AND UNDER%"), "green", like(description, "%TO PROPERTY%"), "orange", like(description, "%RETAIL THEFT%"), "darkred", like(description, "%TO VEHICLE%"), "cadetblue", 1=1, "blue"),
-icon=case(like(description, "%SIMPLE%"), "exclamation-triangle", like(description, "%DOMESTIC BATTERY%"), "battery-2", like(description, "%500 AND UNDER%"), "gavel", like(description, "%TO PROPERTY%"), "building", like(description, "%RETAIL THEFT%"), "shopping-cart", like(description, "%TO VEHICLE%"), "car", 1=1, "hand-lizard-o")
-| eval description = "&lt;b&gt;".description."&lt;/b&gt;", tooltip=description, clusterGroup="default"
-| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, location_description</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">all</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel">16</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">1</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">click</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">14</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">1</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.playbackSpeed">100</option>
-        <option name="leaflet_maps_app.maps-plus.playbackTickLength">50</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">canvas</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlayback">0</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackDateControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackPlayControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPlaybackSliderControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.splunkVersionCheck">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-        <drilldown>
-          <link target="_blank">search?q=%7C%20inputlookup%20chicago-crime.csv%20%7C%20search%20location_description=%22$row.location_description$%22&amp;earliest=-24h@h&amp;latest=now</link>
-        </drilldown>
-      </viz>
-    </panel>
-  </row>
+  <description>Maps+ marker drilldown: non-standard fields in the results become drilldown fields that can fill a search link.</description>
+  <definition><![CDATA[
+{
+  "title": "Drilldown",
+  "description": "Maps+ marker drilldown: non-standard fields in the results become drilldown fields that can fill a search link.",
+  "dataSources": {
+    "ds_map1": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv \n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"pink\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\"),\nicon=case(like(description, \"%SIMPLE%\"), \"exclamation-triangle\", like(description, \"%DOMESTIC BATTERY%\"), \"battery-2\", like(description, \"%500 AND UNDER%\"), \"gavel\", like(description, \"%TO PROPERTY%\"), \"building\", like(description, \"%RETAIL THEFT%\"), \"shopping-cart\", like(description, \"%TO VEHICLE%\"), \"car\", 1=1, \"hand-lizard-o\")\n| eval description = \"<b>\".description.\"</b>\", clusterGroup=\"default\"\n| table latitude, longitude, description, markerColor, icon, clusterGroup, location_description",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Chicago crime drilldown 1"
+    },
+    "ds_map2": {
+      "type": "ds.search",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv \n| eval markerColor=case(like(description, \"%SIMPLE%\"), \"red\", like(description, \"%DOMESTIC BATTERY%\"), \"pink\", like(description, \"%500 AND UNDER%\"), \"green\", like(description, \"%TO PROPERTY%\"), \"orange\", like(description, \"%RETAIL THEFT%\"), \"darkred\", like(description, \"%TO VEHICLE%\"), \"cadetblue\", 1=1, \"blue\"),\nicon=case(like(description, \"%SIMPLE%\"), \"exclamation-triangle\", like(description, \"%DOMESTIC BATTERY%\"), \"battery-2\", like(description, \"%500 AND UNDER%\"), \"gavel\", like(description, \"%TO PROPERTY%\"), \"building\", like(description, \"%RETAIL THEFT%\"), \"shopping-cart\", like(description, \"%TO VEHICLE%\"), \"car\", 1=1, \"hand-lizard-o\")\n| eval description = \"<b>\".description.\"</b>\", tooltip=description, clusterGroup=\"default\"\n| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, location_description",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      },
+      "name": "Chicago crime drilldown 2"
+    }
+  },
+  "visualizations": {
+    "md_intro": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## Drilldown\n\nDrilldown must be enabled in the visualization options (`drilldown` = `1`). Choose a **Drilldown Mouse Event** (`drilldownAction`: `dblclick` or `click`) that triggers the drilldown when you interact with a marker.\n\nThe visualization identifies any non-standard fields and makes them available as drilldown fields. Add any fields you wish to the final `table` command and you will have access to them through drilldown as `row.<fieldname>.value`.\n\nUse the drilldown editor in Dashboard Studio to set the action (here a link to a search). See the Splunk documentation on [contextual drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/ContextualDrilldown) and on [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).\n\nNote that the click value is not set through the Custom Visualization API: use the `row.<fieldname>.value` form (classic Simple XML: `$row.fieldname$`) to access a drilldown value.\n\nWhen using the **Click** drilldown mouse event, use the `tooltip` field instead of the `description` field to display information about the marker as you hover over the icon.\n"
+      }
+    },
+    "viz_map1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Drilldown To Search On location_description Field - Double Click Mouse Event",
+      "dataSources": {
+        "primary": "ds_map1"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "1",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel": "16",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "14",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "canvas",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.customUrl",
+          "options": {
+            "url": "/app/leaflet_maps_app/search?q=%7C%20inputlookup%20chicago-crime.csv%20%7C%20search%20location_description=%22$row.location_description.value$%22&earliest=-24h@h&latest=now",
+            "newTab": true
+          }
+        }
+      ]
+    },
+    "viz_map2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Drilldown To Search On location_description Field - Click Mouse Event",
+      "dataSources": {
+        "primary": "ds_map2"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "1",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoomLevel": "16",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "click",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "14",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "1",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.playbackSpeed": "100",
+        "leaflet_maps_app.maps-plus.playbackTickLength": "50",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "canvas",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showPlayback": "0",
+        "leaflet_maps_app.maps-plus.showPlaybackDateControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackPlayControl": "1",
+        "leaflet_maps_app.maps-plus.showPlaybackSliderControl": "1",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.splunkVersionCheck": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.customUrl",
+          "options": {
+            "url": "/app/leaflet_maps_app/search?q=%7C%20inputlookup%20chicago-crime.csv%20%7C%20search%20location_description=%22$row.location_description.value$%22&earliest=-24h@h&latest=now",
+            "newTab": true
+          }
+        }
+      ]
+    },
+    "md_map1": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nChicago crime markers, colored and iconed by offence. **Double-click** a marker to open a search on that marker's `location_description`.\n\n### The SPL\n\n```spl\n| inputlookup chicago-crime.csv \n... (markerColor and icon: case(like(description, ...)) per offence type - see Open in Search)\n| eval description = \"<b>\".description.\"</b>\", clusterGroup=\"default\"\n| table latitude, longitude, description, markerColor, icon, clusterGroup, location_description\n```\n\n### How it works\n\n1. `inputlookup` returns `latitude`, `longitude`, `description`, `location_description` and `primary_type` per incident.\n2. `case(like(description, ...))` sets `markerColor` and `icon` per offence type.\n3. `description` is wrapped in HTML bold (it is the click popup) and `clusterGroup=\"default\"` puts every marker in one cluster group.\n4. `location_description` is last in `table`. It is not a reserved Maps+ field, so Maps+ passes it to drilldown, where it arrives as `row.location_description.value`.\n5. With `drilldown` = `1` and `drilldownAction` = `dblclick`, a double-click fires the drilldown event handler.\n6. The handler opens a search URL with `row.location_description.value` filled in. Only markers fire drilldown.\n\n### Field formats and rules\n\n| Field | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `description` | HTML | Click popup; escape event text. |\n| `markerColor` | named png color | A name outside Maps+'s fixed list renders a blank marker. |\n| `icon` | glyph name without prefix | `gavel`, not `fa-gavel`. |\n| `clusterGroup` | any string | Rows with different values never cluster together. |\n| `location_description` | any string | Non-reserved: keep it in the final `table` and it reaches `row.location_description.value`. |\n| `drilldown`, `drilldownAction` | options `\"1\"`/`\"0\"`, `dblclick` or `click` | Set both on the viz. |\n\n### Try it\n\n- Add `primary_type` to the end of `table`, then build a handler that uses `row.primary_type.value`.\n- Change `drilldownAction` to `click` in the viz options and compare with the second map.\n\n### Studio note\n\nThe classic link was a relative `search?q=...` URL. It is now `drilldown.customUrl` pointing at `/app/leaflet_maps_app/search`; check that values containing spaces open correctly.\n"
+      }
+    },
+    "md_map2": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### What this shows\n\nThe same drilldown, triggered by a **single click** on a marker. A `tooltip` field provides the hover text, because a click opens the drilldown instead of the popup.\n\n### The SPL\n\n```spl\n| inputlookup chicago-crime.csv \n... (markerColor and icon: case(like(description, ...)) per offence type - see Open in Search)\n| eval description = \"<b>\".description.\"</b>\", tooltip=description, clusterGroup=\"default\"\n| table latitude, longitude, description, tooltip, markerColor, icon, clusterGroup, location_description\n```\n\n### How it works\n\n1. `inputlookup` returns the incident rows, as in the first map.\n2. `case(like(description, ...))` sets `markerColor` and `icon` per offence type.\n3. `description` is wrapped in HTML bold and copied to `tooltip` (`tooltip=description`), so the text is available on hover.\n4. `location_description` stays in `table` and becomes `row.location_description.value`.\n5. `drilldownAction` = `click` makes a single click on a marker fire the same search link.\n\n### Field formats and rules\n\n| Field | Format | Rule / gotcha |\n|---|---|---|\n| `latitude`, `longitude` | decimal degrees | Exact lowercase names; required. |\n| `description` | HTML | Click popup; escape event text. |\n| `tooltip` | HTML | Hover text; use it with the click action. |\n| `markerColor`, `icon` | png color name, glyph name | Colors outside Maps+'s fixed list render blank. |\n| `clusterGroup` | any string | Rows with different values never cluster together. |\n| `location_description` | any string | Non-reserved: reaches drilldown as `row.location_description.value`. |\n\n### Try it\n\n- Edit `tooltip=description` to add `primary_type`'s value, for example `tooltip=description.\" - \".primary_type`, and keep `primary_type` in `table`.\n- Switch `drilldownAction` back to `dblclick`.\n\n### Studio note\n\nThis map uses the Esri World Imagery basemap from the original; it works in Studio without a key. The link target is a `drilldown.customUrl` (see the first map).\n"
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 2665,
+          "display": "auto",
+          "backgroundColor": "#FFFFFF"
+        },
+        "structure": [
+          {
+            "item": "md_intro",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 334
+            }
+          },
+          {
+            "item": "viz_map1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 334,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_map1",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 334,
+              "w": 720,
+              "h": 1246
+            }
+          },
+          {
+            "item": "viz_map2",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 1580,
+              "w": 720,
+              "h": 760
+            }
+          },
+          {
+            "item": "md_map2",
+            "type": "block",
+            "position": {
+              "x": 720,
+              "y": 1580,
+              "w": 720,
+              "h": 1085
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
 </dashboard>

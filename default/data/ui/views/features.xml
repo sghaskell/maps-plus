@@ -1,106 +1,169 @@
-<dashboard version="1.1" theme="dark">
+<dashboard version="2" theme="dark">
   <label>Features</label>
-  <row>
-    <panel>
-      <html>
-        <p>Use the measure tool in the upper right corner to draw features (point, line or polygon) on the map. Upon completion, a <b>Feature Definition</b> can be copied and used with the <code>feature</code> field. Adjust the look and behavior of the feature with the following fields <code>featureColor</code>, <code>featureDescription</code>, <code>featureTooltip</code>, <code>featureLayer</code>, <code>featureWeight</code>, <code>featureStroke</code>, <code>featureFill</code>, <code>featureFillColor</code>, <code>featureFillOpacity</code>, <code>featureRadius</code>
-        </p>
-        <p>Define the features with the <code>feature</code> field.</p>
-        <p>
-          <img src="/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/images/feature-definition.png"/>
-        </p>
-        <p>Optionally, store the features in a lookup file and use <code>| append [|inputlookup feature-lookup.csv]</code> to load the features on map</p>
-        <h3>Example Feature Search</h3>
-        <pre>
-          <code>| makeresults | eval feature="42.259016415705766,-87.99087524414064", featureWeight="3", featureColor="#5CBF5C", featureDescription="point description", featureTooltip="point tip", featureFillOpacity="0.350", featureFillColor="#f4f141", featureFill="false",featureStroke="true", featureRadius="10", featureLayer="point layer", featureFillOpacity="1.0"
-| append [| makeresults | eval feature="42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151", layerDescription="polygon layer", featureTooltip="polygon tooltip", featureDescription="polygon description", featureLayer="polygon layer", featureColor="#41dff4", featureFillColor="#55f441", featureFillOpacity="0.1"]
-| append [| makeresults | eval feature="42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131", layerDescription="line layer", featureDescription="line description", featureTooltip="line tooltip", featureLayer="line layer", featureColor="#f441d3"]
-| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity</code>
-        </pre>
-      </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>feature, featureColor, featureDescription, featureTooltip, featureLayer, featureWeight, featureStroke, featureFill, featureFillColor, featureFillOpacity, featureRadius, layerPriority</title>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup features.csv</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">39.50</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-98.35</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">6</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.renderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
+  <description>Maps+ features: points, lines and polygons from the feature field.</description>
+  <definition><![CDATA[
+{
+  "title": "Features",
+  "description": "Maps+ features: points, lines and polygons from the feature field.",
+  "dataSources": {
+    "ds_map_1": {
+      "type": "ds.search",
+      "name": "Feature rows",
+      "options": {
+        "query": "| inputlookup features.csv",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_html": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "Use the measure tool in the upper right corner to draw features (point, line or polygon) on the map. Upon completion, a **Feature Definition** can be copied and used with the `feature` field. Adjust the look and behavior of the feature with the following fields `featureColor`, `featureDescription`, `featureTooltip`, `featureLayer`, `featureWeight`, `featureStroke`, `featureFill`, `featureFillColor`, `featureFillOpacity`, `featureRadius`\n\nDefine the features with the `feature` field.\n\n![](/static/app/leaflet_maps_app/visualizations/maps-plus/contrib/images/feature-definition.png)\n\nOptionally, store the features in a lookup file and use `| append [|inputlookup feature-lookup.csv]` to load the features on map\n\n### Example Feature Search\n\n```spl\n| makeresults | eval feature=\"42.259016415705766,-87.99087524414064\", featureWeight=\"3\", featureColor=\"#5CBF5C\", featureDescription=\"point description\", featureTooltip=\"point tip\", featureFillOpacity=\"0.350\", featureFillColor=\"#f4f141\", featureFill=\"false\",featureStroke=\"true\", featureRadius=\"10\", featureLayer=\"point layer\", featureFillOpacity=\"1.0\"\n| append [| makeresults | eval feature=\"42.25946306970395,-87.99049168825151;42.25916530072335,-87.99044072628021;42.259145449407995,-87.98961728811265;42.259472995312414,-87.98967629671098;42.25946306970395,-87.99049168825151\", layerDescription=\"polygon layer\", featureTooltip=\"polygon tooltip\", featureDescription=\"polygon description\", featureLayer=\"polygon layer\", featureColor=\"#41dff4\", featureFillColor=\"#55f441\", featureFillOpacity=\"0.1\"]\n| append [| makeresults | eval feature=\"42.25895289132462,-87.99104690551759;42.25959408760995,-87.98937588930131\", layerDescription=\"line layer\", featureDescription=\"line description\", featureTooltip=\"line tooltip\", featureLayer=\"line layer\", featureColor=\"#f441d3\"]\n| table feature, layerDescription, tooltip, featureDescription, featureTooltip, featureColor, featureStroke, featureWeight, featureRadius, featureLayer, featureFillColor, featureFillOpacity\n```"
+      }
+    },
+    "viz_map_1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "feature, featureColor, featureDescription, featureTooltip, featureLayer, featureWeight, featureStroke, featureFill, featureFillColor, featureFillOpacity, featureRadius, layerPriority",
+      "dataSources": {
+        "primary": "ds_map_1"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "0",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "39.50",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-98.35",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "6",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.renderer": "svg",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "dark"
+      }
+    },
+    "viz_md_1": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "### Features from a lookup\n\n**What this shows** - Three features stored in a lookup: a one-point circle, a polygon and a two-point shape, each styled with its own colours, tooltip and layer.\n\n**The SPL**\n\n```spl\n| inputlookup features.csv\n```\n\n**How it works**\n\n1. `inputlookup features.csv` returns one row per shape; there is no latitude/longitude, only a `feature` string.\n2. `feature` is `lat,lon` points joined by `;`. One point draws a circle (`featureRadius` pixels), two or more draw a polygon, or a polyline when `featureFill=\"false\"`.\n3. The `feature*` columns style each shape; `featureLayer` and `layerPriority` put it in its own layer and set pane order. Blank lookup cells are treated as absent in classic dashboards, which means defaults apply.\n4. `measureTool=1` adds the measure tool; its output is a Feature Definition you can paste into the lookup. `cluster`, `mapCenter*` and `autoFitAndZoom=1` set the view.\n\n**Field formats and rules**\n\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `feature` | `lat,lon;lat,lon;...`, latitude first | One point = circle; two or more = polygon, or polyline when `featureFill=\"false\"`. A row with `feature` and no `latitude`/`longitude` draws only the shape. |\n| `featureColor` | CSS colour, default `#3388ff` | Stroke colour. |\n| `featureDescription` | HTML text | Click popup; escape any event text. |\n| `featureTooltip` | HTML text | Hover tooltip; escape any event text. |\n| `featureLayer` | text, default `feature` | Layer-control entry. First row wins for the layer label (`layerDescription`). |\n| `featureWeight` | integer, default 3 | Stroke width in pixels. |\n| `featureStroke` | `\"true\"` / `\"false\"`, default true | Only the string `\"true\"` is true; `\"1\"` or `\"yes\"` mean false. |\n| `featureFill` | `\"true\"` / `\"false\"`, default true | Same boolean rule. `\"false\"` turns a multi-point shape into a polyline. |\n| `featureFillColor` | CSS colour, default = `featureColor` | Fill colour. |\n| `featureFillOpacity` | 0 to 1, default 0.2 | Fill opacity. |\n| `featureRadius` | pixels, default 10 | One-point features only. |\n| `layerPriority` | integer | Pane order of the layer. |\n\n**Try it**\n\n- In the lookup, set `featureFill` to `false` on the two-point row: it becomes a line instead of a degenerate polygon.\n- Draw a shape with the measure tool, copy its Feature Definition into a new `feature` cell and give it a `featureLayer`.\n\n> **Studio note:** The lookup leaves `featureStroke` and `featureFill` blank on every row. On Maps+ 4.6.9 and earlier, Studio sends blanks as null, which reads as false, so polygons become lines (fixed in the unreleased 4.6.10; before that, fill them in the lookup or add `| fillnull value=\"true\" featureStroke featureFill`). The measure tool's output has not been verified in Studio.\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+      }
+    }
+  },
+  "layout": {
+    "globalInputs": [],
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 1340,
+          "display": "auto",
+          "backgroundColor": "#000000"
+        },
+        "structure": [
+          {
+            "item": "viz_html",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 640
+            }
+          },
+          {
+            "item": "viz_map_1",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 640,
+              "w": 880,
+              "h": 700
+            }
+          },
+          {
+            "item": "viz_md_1",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 640,
+              "w": 560,
+              "h": 700
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
 </dashboard>

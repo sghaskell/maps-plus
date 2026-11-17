@@ -1,96 +1,166 @@
-<dashboard version="1.1">
+<dashboard version="2" theme="light">
   <label>Custom Icon Images</label>
-  <row>
-    <panel>
-      <html>
-      <p>Use custom images as icons. Include the images in <code>$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images</code>
-        </p>
-      <p>Set the <code>customIcon</code> field to the name of the image. Adjust the size of the marker using the <a target="_blank" href="https://github.com/sghaskell/maps-plus#markersize">
-            <code>markerSize</code>
-          </a> field.</p>
-    </html>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <viz type="leaflet_maps_app.maps-plus">
-        <search>
-          <query>| inputlookup chicago-crime.csv | eval customIcon="kovar.png", markerSize="40,40", layerDescription="The Kovar", layerIconSize="30,30"</query>
-          <earliest>-24h@h</earliest>
-          <latest>now</latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="drilldown">none</option>
-        <option name="leaflet_maps_app.maps-plus.allPopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.animate">1</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.autoFitAndZoomDelay">500</option>
-        <option name="leaflet_maps_app.maps-plus.bingMaps">0</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsLabelLanguage">en-US</option>
-        <option name="leaflet_maps_app.maps-plus.bingMapsTileLayer">CanvasLight</option>
-        <option name="leaflet_maps_app.maps-plus.cluster">1</option>
-        <option name="leaflet_maps_app.maps-plus.contextMenu">1</option>
-        <option name="leaflet_maps_app.maps-plus.criticalThreshold">80</option>
-        <option name="leaflet_maps_app.maps-plus.defaultHeight">600</option>
-        <option name="leaflet_maps_app.maps-plus.disableClusteringAtZoom">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldown">0</option>
-        <option name="leaflet_maps_app.maps-plus.drilldownAction">dblclick</option>
-        <option name="leaflet_maps_app.maps-plus.fullScreen">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesPosition">topleft</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesSearch">0</option>
-        <option name="leaflet_maps_app.maps-plus.googlePlacesZoomLevel">12</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapBlur">15</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapColorGradient">{"0.4":"blue","0.6":"cyan","0.7":"lime","0.8":"yellow","1":"red"}</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapEnable">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMaxPointIntensity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapMinOpacity">1.0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapOnly">0</option>
-        <option name="leaflet_maps_app.maps-plus.heatmapRadius">25</option>
-        <option name="leaflet_maps_app.maps-plus.i18nLanguage">en</option>
-        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
-        <option name="leaflet_maps_app.maps-plus.layerControlCollapsed">0</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLat">41.880889</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterLon">-87.72819</option>
-        <option name="leaflet_maps_app.maps-plus.mapCenterZoom">16</option>
-        <option name="leaflet_maps_app.maps-plus.mapTile">http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png</option>
-        <option name="leaflet_maps_app.maps-plus.maxClusterRadius">80</option>
-        <option name="leaflet_maps_app.maps-plus.maxSpiderfySize">100</option>
-        <option name="leaflet_maps_app.maps-plus.maxZoom">19</option>
-        <option name="leaflet_maps_app.maps-plus.measureActiveColor">#00ff00</option>
-        <option name="leaflet_maps_app.maps-plus.measureCompletedColor">#0066ff</option>
-        <option name="leaflet_maps_app.maps-plus.measureIconPosition">topright</option>
-        <option name="leaflet_maps_app.maps-plus.measureLocalization">en</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryAreaUnit">acres</option>
-        <option name="leaflet_maps_app.maps-plus.measurePrimaryLengthUnit">feet</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryAreaUnit">sqmiles</option>
-        <option name="leaflet_maps_app.maps-plus.measureSecondaryLengthUnit">miles</option>
-        <option name="leaflet_maps_app.maps-plus.measureTool">1</option>
-        <option name="leaflet_maps_app.maps-plus.minZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.multiplePopups">0</option>
-        <option name="leaflet_maps_app.maps-plus.pathColorList">#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378</option>
-        <option name="leaflet_maps_app.maps-plus.pathRenderer">svg</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplitInterval">60</option>
-        <option name="leaflet_maps_app.maps-plus.pathSplits">0</option>
-        <option name="leaflet_maps_app.maps-plus.permanentTooltip">0</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneBgColor">#B5E28C</option>
-        <option name="leaflet_maps_app.maps-plus.rangeOneFgColor">#6ECC39</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeBgColor">#FD9C73</option>
-        <option name="leaflet_maps_app.maps-plus.rangeThreeFgColor">#F18017</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoBgColor">#F1D357</option>
-        <option name="leaflet_maps_app.maps-plus.rangeTwoFgColor">#F0C20C</option>
-        <option name="leaflet_maps_app.maps-plus.refreshInterval">0</option>
-        <option name="leaflet_maps_app.maps-plus.scrollWheelZoom">1</option>
-        <option name="leaflet_maps_app.maps-plus.showPathLines">0</option>
-        <option name="leaflet_maps_app.maps-plus.showProgress">1</option>
-        <option name="leaflet_maps_app.maps-plus.singleMarkerMode">0</option>
-        <option name="leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier">1</option>
-        <option name="leaflet_maps_app.maps-plus.stickyTooltip">1</option>
-        <option name="leaflet_maps_app.maps-plus.warningThreshold">55</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-      </viz>
-    </panel>
-  </row>
+  <description>Maps+ example: custom icon images.</description>
+  <definition><![CDATA[
+{
+  "title": "Custom Icon Images",
+  "description": "Maps+ example: custom icon images.",
+  "dataSources": {
+    "ds_map": {
+      "type": "ds.search",
+      "name": "Map rows",
+      "options": {
+        "query": "| inputlookup chicago-crime.csv | eval customIcon=\"kovar.png\", markerSize=\"40,40\", layerDescription=\"The Kovar\", layerIconSize=\"30,30\"",
+        "queryParameters": {
+          "earliest": "-24h@h",
+          "latest": "now"
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_intro": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "Use custom images as icons. Include the images in `$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images`\n\nSet the `customIcon` field to the name of the image. Adjust the size of the marker using the [`markerSize`](https://github.com/sghaskell/maps-plus#markersize) field."
+      }
+    },
+    "viz_map": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "Custom icon image marker",
+      "dataSources": {
+        "primary": "ds_map"
+      },
+      "options": {
+        "leaflet_maps_app.maps-plus.allPopups": "0",
+        "leaflet_maps_app.maps-plus.animate": "1",
+        "leaflet_maps_app.maps-plus.autoFitAndZoom": "0",
+        "leaflet_maps_app.maps-plus.autoFitAndZoomDelay": "500",
+        "leaflet_maps_app.maps-plus.bingMaps": "0",
+        "leaflet_maps_app.maps-plus.bingMapsLabelLanguage": "en-US",
+        "leaflet_maps_app.maps-plus.bingMapsTileLayer": "CanvasLight",
+        "leaflet_maps_app.maps-plus.cluster": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1",
+        "leaflet_maps_app.maps-plus.criticalThreshold": "80",
+        "leaflet_maps_app.maps-plus.defaultHeight": "600",
+        "leaflet_maps_app.maps-plus.disableClusteringAtZoom": "0",
+        "leaflet_maps_app.maps-plus.drilldown": "0",
+        "leaflet_maps_app.maps-plus.drilldownAction": "dblclick",
+        "leaflet_maps_app.maps-plus.fullScreen": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesPosition": "topleft",
+        "leaflet_maps_app.maps-plus.googlePlacesSearch": "0",
+        "leaflet_maps_app.maps-plus.googlePlacesZoomLevel": "12",
+        "leaflet_maps_app.maps-plus.heatmapBlur": "15",
+        "leaflet_maps_app.maps-plus.heatmapColorGradient": "{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}",
+        "leaflet_maps_app.maps-plus.heatmapEnable": "0",
+        "leaflet_maps_app.maps-plus.heatmapMaxPointIntensity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapMinOpacity": "1.0",
+        "leaflet_maps_app.maps-plus.heatmapOnly": "0",
+        "leaflet_maps_app.maps-plus.heatmapRadius": "25",
+        "leaflet_maps_app.maps-plus.i18nLanguage": "en",
+        "leaflet_maps_app.maps-plus.layerControl": "1",
+        "leaflet_maps_app.maps-plus.layerControlCollapsed": "0",
+        "leaflet_maps_app.maps-plus.mapCenterLat": "41.880889",
+        "leaflet_maps_app.maps-plus.mapCenterLon": "-87.72819",
+        "leaflet_maps_app.maps-plus.mapCenterZoom": "16",
+        "leaflet_maps_app.maps-plus.mapTile": "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "leaflet_maps_app.maps-plus.maxClusterRadius": "80",
+        "leaflet_maps_app.maps-plus.maxSpiderfySize": "100",
+        "leaflet_maps_app.maps-plus.maxZoom": "19",
+        "leaflet_maps_app.maps-plus.measureActiveColor": "#00ff00",
+        "leaflet_maps_app.maps-plus.measureCompletedColor": "#0066ff",
+        "leaflet_maps_app.maps-plus.measureIconPosition": "topright",
+        "leaflet_maps_app.maps-plus.measureLocalization": "en",
+        "leaflet_maps_app.maps-plus.measurePrimaryAreaUnit": "acres",
+        "leaflet_maps_app.maps-plus.measurePrimaryLengthUnit": "feet",
+        "leaflet_maps_app.maps-plus.measureSecondaryAreaUnit": "sqmiles",
+        "leaflet_maps_app.maps-plus.measureSecondaryLengthUnit": "miles",
+        "leaflet_maps_app.maps-plus.measureTool": "1",
+        "leaflet_maps_app.maps-plus.minZoom": "1",
+        "leaflet_maps_app.maps-plus.multiplePopups": "0",
+        "leaflet_maps_app.maps-plus.pathColorList": "#0003F0,#D43C29,darkgreen,0xe2d400,darkred,#23A378",
+        "leaflet_maps_app.maps-plus.pathRenderer": "svg",
+        "leaflet_maps_app.maps-plus.pathSplitInterval": "60",
+        "leaflet_maps_app.maps-plus.pathSplits": "0",
+        "leaflet_maps_app.maps-plus.permanentTooltip": "0",
+        "leaflet_maps_app.maps-plus.rangeOneBgColor": "#B5E28C",
+        "leaflet_maps_app.maps-plus.rangeOneFgColor": "#6ECC39",
+        "leaflet_maps_app.maps-plus.rangeThreeBgColor": "#FD9C73",
+        "leaflet_maps_app.maps-plus.rangeThreeFgColor": "#F18017",
+        "leaflet_maps_app.maps-plus.rangeTwoBgColor": "#F1D357",
+        "leaflet_maps_app.maps-plus.rangeTwoFgColor": "#F0C20C",
+        "leaflet_maps_app.maps-plus.refreshInterval": "0",
+        "leaflet_maps_app.maps-plus.scrollWheelZoom": "1",
+        "leaflet_maps_app.maps-plus.showPathLines": "0",
+        "leaflet_maps_app.maps-plus.showProgress": "1",
+        "leaflet_maps_app.maps-plus.singleMarkerMode": "0",
+        "leaflet_maps_app.maps-plus.spiderfyDistanceMultiplier": "1",
+        "leaflet_maps_app.maps-plus.stickyTooltip": "1",
+        "leaflet_maps_app.maps-plus.warningThreshold": "55",
+        "leaflet_maps_app.maps-plus.useOpenFreeMap": "1",
+        "leaflet_maps_app.maps-plus.maplibreStylePreset": "positron"
+      }
+    },
+    "viz_teach": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "## What this shows\nEvery row from the Chicago crime lookup drawn with one **custom image** (`kovar.png`) as the marker icon instead of a pin.\n\n## The SPL\n```spl\n| inputlookup chicago-crime.csv | eval customIcon=\"kovar.png\", markerSize=\"40,40\", layerDescription=\"The Kovar\", layerIconSize=\"30,30\"\n```\n\n## How it works\n1. `inputlookup chicago-crime.csv` loads rows that already carry `latitude` and `longitude`.\n2. `eval customIcon=\"kovar.png\"` names the image file. Setting `customIcon` forces `markerType` to `custom`.\n3. `markerSize=\"40,40\"` sizes the image; `layerDescription` and `layerIconSize` label the layer-control entry and size its small icon.\n4. No `| table`: all lookup columns pass through, and fields Maps+ does not know are ignored for drawing.\n\n## Field formats and rules\n| Field | Expected format | Rule / gotcha |\n|---|---|---|\n| `latitude` | decimal degrees, numeric (e.g. `41.88`) | Exact lowercase name, required on marker rows. Only the first row is checked; if it has no `latitude`+`longitude` the panel shows an error. |\n| `longitude` | decimal degrees, numeric (e.g. `-87.72`) | Exact lowercase name. Longitude is negative west of Greenwich. Rows at 0,0 usually mean missing coordinates. |\n| `customIcon` | image file name, e.g. `kovar.png` | File must exist in `leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/images/`. Forces `markerType=custom`. |\n| `markerSize` | `\"w,h\"` pixels | String with width first, here `\"40,40\"`. |\n| `layerDescription` | HTML string | Label in the layer control. |\n| `layerIconSize` | `\"w,h\"` pixels | Size of the icon beside the label in the layer control (default `20,20`). |\n\n## Try it\n- Change `markerSize` to `\"60,60\"` for a bigger image.\n- Add `description=\"<b>Hello</b>\"` to the `eval` to get a click popup.\n\nStudio note: on Maps+ 4.6.9 and earlier `customIcon` is broken in Dashboard Studio (the image URL is built from `location.origin`, which is `null` inside the Studio frame), so markers may show a broken image there. It works in classic dashboards, and a fix is on the unreleased 4.6.10 branch. The conversion is kept faithful; use `svg` or `circle` markers if you need Studio today. the original `mapTile` (a CARTO URL) is kept, but this Studio version turns on keyless OpenFreeMap (`useOpenFreeMap` = 1), because CARTO tiles show an \"API KEY REQUIRED\" watermark without a key.\n\n**Basemap:** this example uses keyless OpenFreeMap vector tiles (`useOpenFreeMap` = 1). CARTO basemaps need a free API key: see **Help > Basemaps & API keys** for how to get one and where to put it (**Map Tile Override**)."
+      }
+    }
+  },
+  "layout": {
+    "tabs": {
+      "items": [
+        {
+          "label": "New tab",
+          "layoutId": "layout_1"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "absolute",
+        "options": {
+          "width": 1440,
+          "height": 910,
+          "display": "auto"
+        },
+        "structure": [
+          {
+            "item": "viz_intro",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 150
+            }
+          },
+          {
+            "item": "viz_map",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 150,
+              "w": 880,
+              "h": 760
+            }
+          },
+          {
+            "item": "viz_teach",
+            "type": "block",
+            "position": {
+              "x": 880,
+              "y": 150,
+              "w": 560,
+              "h": 760
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+]]></definition>
+  <meta type="hiddenElements"><![CDATA[{"hideEdit":false,"hideOpenInSearch":false,"hideExport":false}]]></meta>
 </dashboard>

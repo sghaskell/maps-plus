@@ -348,6 +348,11 @@ Use `spath` or `eval` with `json_extract` in a downstream search to parse indivi
 #### Token Payload Size
 The `$mapmarkers$` token contains the **full row data** for every selected marker. If your search includes large `description` or `tooltip` fields with rich HTML content, selecting many markers at once can produce a very large token value. Splunk imposes a token size limit — if you experience truncation or dropped token values, consider removing or shortening `description` and `tooltip` from your `table` command when using marker selection, or use a separate search panel to enrich the data after filtering by a lightweight token field such as a unique ID.
 
+#### Dashboard Studio
+Studio has no `splunkjs` token API, so Maps+ emits these values as a drilldown. Add a `drilldown.setToken` event handler and map `row.mapmarkers.value` (lasso selection) or, with Click Lat/Lng Token enabled, `row.clickedLatLng.value`, `row.clickedLat.value` and `row.clickedLng.value`, e.g. `{"type": "drilldown.setToken", "options": {"tokens": [{"token": "clicked", "key": "row.clickedLatLng.value"}]}}`.
+
+In Studio a single drilldown event carries either the click keys or `mapmarkers`, and marker drilldowns share the same channel: a click on a circle marker with a `click` drilldown sends only the marker's drilldown (no `clickedLatLng`). With the default `dblclick` marker drilldown, the two clicks of a double-click on a marker also send click-token drilldowns, so avoid mapping the same token from both.
+
 #### Behavior Notes
 - Drawing a new selection shape replaces the previous selection and updates `$mapmarkers$` immediately
 - Deleting or editing an existing shape also updates the token

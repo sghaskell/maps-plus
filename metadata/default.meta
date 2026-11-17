@@ -42,3 +42,22 @@ export = system
 
 [visualizations/google-street-view]
 export = system
+
+### Setup page: admins only (hides the nav entry and blocks the view for others)
+
+[views/maps_plus_setup]
+access = read : [ admin, sc_admin ], write : [ admin, sc_admin ]
+export = none
+
+### Setup page settings (basemap tile URL; not a secret). Readable by everyone so
+### a Dashboard Studio dropdown can read it with | rest.
+
+[maps_plus_settings]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = none
+
+### Search macros (mapsplus_basemap): usable from any app's dashboards; only admins change them
+
+[macros]
+access = read : [ * ], write : [ admin, sc_admin ]
+export = system

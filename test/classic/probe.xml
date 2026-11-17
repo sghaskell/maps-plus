@@ -1,0 +1,89 @@
+<dashboard version="1.1">
+  <label>Maps+ probe - markers and nulls (MP-01, MP-02, MP-13)</label>
+  <description>Probe harness, classic. Panels A, A2, B, C, C2, D, M13. Same SPL and options as test/studio/probe.json. See test/README.md.</description>
+  <row>
+    <panel>
+      <title>A - uniform marker types: png, svg, icon, circle (MP-01)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=4 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25 | eval markerType=case(n=1,"png",n=2,"svg",n=3,"icon",true(),"circle"), markerColor=case(n=2,"#1f78b4",true(),"red"), icon="train", prefix="fa", layerGroup="t".n, layerDescription="Type ".markerType, tooltip=markerType | table latitude longitude markerType markerColor icon prefix layerGroup layerDescription tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>A2 - svg icon prefixes fab / ion / glyphicon (MP-01)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval markerType="svg", latitude=34.05+n*0.01, longitude=-118.25 | eval prefix=case(n=1,"fab",n=2,"ion",true(),"glyphicon"), icon=case(n=1,"github",n=2,"md-train",true(),"star"), layerGroup="a2_".n, layerDescription="A2 ".icon | table latitude longitude markerType prefix icon layerGroup layerDescription</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>B - marker row + feature row in one search (MP-02)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults | eval latitude=34.05, longitude=-118.25, tooltip="marker" | append [| makeresults | eval feature="34.06,-118.26;34.06,-118.24;34.07,-118.24;34.07,-118.26", featureLayer="poly"] | table latitude longitude tooltip feature featureLayer</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>C - null markerColor on row 2, expect default blue (MP-02)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=2 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, markerColor=if(n=1,"red",null()) | table latitude longitude markerColor</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>C2 - nulls in markerType, clusterGroup, markerVisibility, layerVisibility, layerGroup (MP-02)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, markerType=if(n=1,null(),"circle"), clusterGroup=if(n=2,null(),"g1"), markerVisibility=if(n=3,null(),"true"), layerVisibility=if(n=2,null(),"true"), layerGroup=if(n=3,null(),"c2_".n), layerDescription="C2 row ".n | table latitude longitude markerType clusterGroup markerVisibility layerVisibility layerGroup layerDescription</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>D - features only, no latitude/longitude columns (MP-02)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=2 | streamstats count as n | eval feature=case(n=1,"34.05,-118.25;34.05,-118.20;34.08,-118.20;34.08,-118.25",n=2,"34.10,-118.30;34.10,-118.27;34.12,-118.27;34.12,-118.30"), featureLayer=case(n=1,"polyA",n=2,"polyB"), tooltip="poly ".n | table feature featureLayer tooltip</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>M13 - row 1 has no coordinates, rows 2-3 do (MP-13)</title>
+      <viz type="leaflet_maps_app.maps-plus">
+        <search>
+          <query>| makeresults count=3 | streamstats count as n | eval tooltip=if(n=1,"header",null()), latitude=if(n=1,null(),34.05+n*0.01), longitude=if(n=1,null(),-118.25) | table tooltip latitude longitude</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="leaflet_maps_app.maps-plus.layerControl">1</option>
+      </viz>
+    </panel>
+  </row>
+</dashboard>

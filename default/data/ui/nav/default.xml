@@ -33,5 +33,6 @@
         <!-- Add a nested list with items -->
     </collection>
   <view name="help" />
+  <view name="maps_plus_setup" />
   <view name="search" />
 </nav>

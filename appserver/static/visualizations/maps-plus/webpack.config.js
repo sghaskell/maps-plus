@@ -1,8 +1,11 @@
 const path = require('path');
+const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
-module.exports = {
+// `npm run build:debug` (webpack --env debug) bundles the on-panel debug overlay
+// (src/compat/debug-overlay.js). A plain `npm run build` leaves it out.
+module.exports = (env = {}) => ({
     entry: './src/maps-plus.js',
 
     mode: 'production',
@@ -142,6 +145,9 @@ module.exports = {
     ],
 
     plugins: [
+        new webpack.DefinePlugin({
+            __MP_DEBUG__: JSON.stringify(!!env.debug)
+        }),
         new CopyPlugin({
             patterns: [
                 {
@@ -175,4 +181,4 @@ module.exports = {
     },
 
     devtool: false
-};
+});

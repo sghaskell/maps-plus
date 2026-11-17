@@ -1,0 +1,14 @@
+#mp_setup { max-width: 860px; }
+#mp_setup .mp-lead { font-size: 15px; margin-bottom: 18px; }
+#mp_setup .mp-card { border: 1px solid rgba(128, 128, 128, 0.35); border-radius: 6px; padding: 14px 18px; margin-bottom: 16px; }
+#mp_setup .mp-card h3 { margin-top: 0; }
+#mp_setup .mp-input { width: 100%; box-sizing: border-box; font-family: monospace; margin-bottom: 8px; }
+#mp_setup pre { white-space: pre-wrap; word-break: break-all; }
+#mp_setup .mp-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#mp_setup .mp-status { opacity: 0.8; }
+#mp_setup .mp-msg { margin-top: 10px; padding: 8px 12px; border-radius: 4px; border-left: 4px solid transparent; }
+#mp_setup .mp-msg.mp-ok { border-left-color: #2f9e44; background: rgba(47, 158, 68, 0.12); }
+#mp_setup .mp-msg.mp-err { border-left-color: #d6342b; background: rgba(214, 52, 43, 0.12); }
+#mp_setup .mp-note { margin-top: 10px; opacity: 0.85; }
+#mp_setup .mp-info ul { padding-left: 20px; }
+#mp_setup .mp-info li { margin-bottom: 6px; }

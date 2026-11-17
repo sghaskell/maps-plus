@@ -1,31 +1,35 @@
 <form class="splunk-formatter-section" section-label="Map">
-        <splunk-control-group label="Map Tile" help="CartoDB and Esri tiles are recommended. OpenStreetMap tiles may return 403 errors — OSM enforces rate limits and requires headers that browser-based tile loading cannot send. Use OpenFreeMap Vector Tiles (below) for the best OSM-based experience.">
-            <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">
+        <splunk-control-group label="Map Tile" help="Default: keyless OpenFreeMap vector tiles, used automatically when no tile is chosen here. Selecting a tile switches to raster tiles. CartoDB tiles require an API key; put a keyed CARTO URL in Tile Map Override (…/{z}/{x}/{y}.png?key=&lt;your key&gt;). OpenStreetMap tiles may return 403 errors (rate limits).">
+            <splunk-select name="{{VIZ_NAMESPACE}}.mapTile" value="">
+                              <option value="">Auto (OpenFreeMap vector tiles)</option>
                               <option value="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png">OpenStreetMap (may be rate-limited)</option>
-                              <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light</option>
-                              <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark</option>
+                              <option value="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png">CartoDB Light (API key required)</option>
+                              <option value="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png">CartoDB Dark (API key required)</option>
                               <option value="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png">OpenTopoMap</option>
                               <option value="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png">Humanitarian OSM (may be rate-limited)</option>
                               <option value="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}">Esri World Imagery</option>
                             </splunk-select>
         </splunk-control-group>
-        <splunk-control-group label="Map Tile Override" help="Use your own map tile URL and override defaults. Example: https://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png">
+        <splunk-control-group label="Map Tile Override" help="Use your own map tile URL and override defaults. Example: https://a.tiles.wmflabs.org/hikebike/{z}/{x}/{y}.png. A keyed CARTO URL goes here: https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=&lt;your key&gt;">
             <splunk-text-input name="{{VIZ_NAMESPACE}}.mapTileOverride"></splunk-text-input>
         </splunk-control-group>
         <splunk-control-group label="Map Attribution Override" help="Use your own attribution.">
             <splunk-text-input name="{{VIZ_NAMESPACE}}.mapAttributionOverride"></splunk-text-input>
         </splunk-control-group>
-        <splunk-control-group label="OpenFreeMap Vector Tiles" help="Enable MapLibre GL vector tile rendering via OpenFreeMap. Replaces the raster Map Tile selection when enabled.">
-            <splunk-select name="{{VIZ_NAMESPACE}}.useOpenFreeMap" value="0">
+        <splunk-control-group label="OpenFreeMap Vector Tiles" help="Auto (default): OpenFreeMap is used when no Map Tile, Tile Map Override or Bing Maps is set. Enabled forces OpenFreeMap; Disabled forces raster tiles.">
+            <splunk-select name="{{VIZ_NAMESPACE}}.useOpenFreeMap" value="">
+                              <option value="">Auto (default: OpenFreeMap when no tile is set)</option>
                               <option value="0">Disabled</option>
                               <option value="1">Enabled</option>
                             </splunk-select>
         </splunk-control-group>
-        <splunk-control-group label="OpenFreeMap Style" help="Select a built-in OpenFreeMap style. Ignored if MapLibre Style URL is set.">
-            <splunk-select name="{{VIZ_NAMESPACE}}.maplibreStylePreset" value="liberty">
-                              <option value="liberty">Liberty (default, general purpose)</option>
+        <splunk-control-group label="OpenFreeMap Style" help="Select a built-in OpenFreeMap style. When unset, Positron (light theme) or Dark (dark theme) is used. Ignored if MapLibre Style URL is set.">
+            <splunk-select name="{{VIZ_NAMESPACE}}.maplibreStylePreset" value="">
+                              <option value="">Auto (Positron, or Dark in dark theme)</option>
+                              <option value="liberty">Liberty (general purpose)</option>
                               <option value="bright">Bright (high contrast)</option>
                               <option value="positron">Positron (light/minimal)</option>
+                              <option value="dark">Dark</option>
                               <option value="fiord">Fiord (dark)</option>
                             </splunk-select>
         </splunk-control-group>

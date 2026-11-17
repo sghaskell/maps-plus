@@ -1,0 +1,100 @@
+{
+  "title": "Maps+ probe - paths, playback, ant paths, hidden markers (MP-04, MP-06, MP-10)",
+  "description": "Probe harness. P1 paths, P2 paths with playback, P3 ant paths with antPathPaused=\"false\", P4 hidden markers. See test/README.md.",
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "-15m",
+            "latest": "now"
+          }
+        }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_p1": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "P1 - 3 paths (bus1, bus2, bus3), 10 points each, 60s apart (MP-04, MP-06)",
+      "dataSources": { "primary": "ds_p1" },
+      "options": {
+        "leaflet_maps_app.maps-plus.showPathLines": "1",
+        "leaflet_maps_app.maps-plus.pathIdentifier": "id"
+      }
+    },
+    "viz_p2": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "P2 - as P1 plus showPlayback=1 and contextMenu=1 (MP-06; breaks Studio by design)",
+      "dataSources": { "primary": "ds_p2" },
+      "options": {
+        "leaflet_maps_app.maps-plus.showPathLines": "1",
+        "leaflet_maps_app.maps-plus.pathIdentifier": "id",
+        "leaflet_maps_app.maps-plus.showPlayback": "1",
+        "leaflet_maps_app.maps-plus.contextMenu": "1"
+      }
+    },
+    "viz_p3": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "P3 - as P1 plus antPath=1 and antPathPaused=\"false\" on all rows (MP-10: expect animates)",
+      "dataSources": { "primary": "ds_p3" },
+      "options": {
+        "leaflet_maps_app.maps-plus.showPathLines": "1",
+        "leaflet_maps_app.maps-plus.pathIdentifier": "id"
+      }
+    },
+    "viz_p4": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "P4 - 5 markers, 2 with markerVisibility=false, toggle in layer control (MP-04)",
+      "dataSources": { "primary": "ds_p4" },
+      "options": {
+        "leaflet_maps_app.maps-plus.layerControl": "1"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_p1": {
+      "type": "ds.search",
+      "name": "P1 paths",
+      "options": {
+        "query": "| makeresults count=30 | streamstats count as n | eval id=case(n<=10,\"bus1\",n<=20,\"bus2\",true(),\"bus3\"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60 | sort 0 id _time | table _time id latitude longitude"
+      }
+    },
+    "ds_p2": {
+      "type": "ds.search",
+      "name": "P2 paths with playback",
+      "options": {
+        "query": "| makeresults count=30 | streamstats count as n | eval id=case(n<=10,\"bus1\",n<=20,\"bus2\",true(),\"bus3\"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60 | sort 0 id _time | table _time id latitude longitude"
+      }
+    },
+    "ds_p3": {
+      "type": "ds.search",
+      "name": "P3 ant paths",
+      "options": {
+        "query": "| makeresults count=30 | streamstats count as n | eval id=case(n<=10,\"bus1\",n<=20,\"bus2\",true(),\"bus3\"), k=(n-1)%10, latitude=34.05+k*0.005+floor((n-1)/10)*0.01, longitude=-118.30+k*0.005, _time=now()-n*60, antPath=\"1\", antPathPaused=\"false\" | sort 0 id _time | table _time id latitude longitude antPath antPathPaused"
+      }
+    },
+    "ds_p4": {
+      "type": "ds.search",
+      "name": "P4 hidden markers",
+      "options": {
+        "query": "| makeresults count=5 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, tooltip=\"P4 marker \".n, layerGroup=\"p4_\".n, layerDescription=\"P4 marker \".n, markerVisibility=if(n>3,\"false\",\"true\") | table latitude longitude tooltip layerGroup layerDescription markerVisibility"
+      }
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 880,
+      "display": "auto"
+    },
+    "structure": [
+      { "item": "viz_p1", "type": "block", "position": { "x": 0, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_p2", "type": "block", "position": { "x": 720, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_p3", "type": "block", "position": { "x": 0, "y": 440, "w": 720, "h": 420 } },
+      { "item": "viz_p4", "type": "block", "position": { "x": 720, "y": 440, "w": 720, "h": 420 } }
+    ],
+    "globalInputs": []
+  }
+}

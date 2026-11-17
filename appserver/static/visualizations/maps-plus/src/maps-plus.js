@@ -61,7 +61,7 @@ define([
 
 
 
-return SplunkVisualizationBase.extend({
+var MapsPlus = SplunkVisualizationBase.extend({
 maxResults: 0,
 paneZIndex: 400,
 tileLayer: null,
@@ -1287,6 +1287,21 @@ drawPath: function(options) {
     })
 },
 
+// MP-04: heat, feature and path groups persist across data cycles. Empty their contents
+// when a new cycle starts (same moment markers are cleared, never on paging continuations)
+// while keeping the group objects so layer-control entries and user toggles survive.
+_clearOverlayContents: function() {
+    _.each(this.heatLayers, function(fg) {
+        var heat = fg.getLayers()[0]
+        if (heat && heat.setLatLngs) { heat.setLatLngs([]) }
+    })
+    _.each(this.featureLayers, function(fg) { fg.clearLayers() })
+    _.each(this.pathLineLayers, function(fg) { fg.clearLayers() })
+    // Playback tracks are NOT cleared here: they are only refilled in _renderLayersToMap,
+    // which doesn't run after the offset-reset replacement, so clearing here would leave
+    // playback empty. _renderLayersToMap clears and refills them in one step instead.
+},
+
 // Create a control icon and description in the layer control legend
 addLayerToControl: function(options) {
     let name,
@@ -1305,10 +1320,11 @@ addLayerToControl: function(options) {
             name = _.has(options.featureGroup.options, "name") ? options.featureGroup.options.name : name
         }
 
-        options.control.addOverlay(options.featureGroup, name)
-        if(_.has(options.featureGroup.options, "layerVisibility") && !options.featureGroup.options.layerVisibility) { 
-            options.featureGroup.remove()
-        }
+        // MP-04: Control.Layers does not dedupe, and these groups persist across data cycles.
+        // Register once, and honour layerVisibility only on first add (keep the user's toggles).
+        var overlaysCompat = require('./compat/overlays')
+        overlaysCompat.addOverlayOnce(options.control, options.featureGroup, name)
+        overlaysCompat.applyInitialVisibility(options.featureGroup)
         return
     }
 
@@ -2018,7 +2034,10 @@ _addClustered: function(map, options) {
                 lg.group.addLayer(this.tmpFG)
             })
 
-            lg.group.addTo(map)
+            // MP-14: only add to the map on first sight; on later cycles re-adding would
+            // undo layerVisibility=false and any user toggle. (layerExists is only set when
+            // the control step ran, so without a control we keep adding as before.)
+            if(!(lg.layerExists && options.layerControl)) { lg.group.addTo(map) }
             
             if(options.layerControl) {
                 options.context.addLayerToControl({layerGroup: lg, control: options.control})
@@ -2057,8 +2076,8 @@ _addUnclustered: function(map, options) {
                 options.paneZIndex += 1
             }
 
-            // Add layergroup to map
-            lg.group.addTo(map)
+            // Add layergroup to map (MP-14: first sight only, see _addClustered)
+            if(!(lg.layerExists && options.layerControl)) { lg.group.addTo(map) }
             
             //options.paneZIndex += 1
 
@@ -2071,6 +2090,10 @@ _addUnclustered: function(map, options) {
 },
 
 _renderLayersToMap: function(map, options) {
+    // updateData() appends tracks, so clear first to avoid duplicates across cycles (MP-04).
+    if (options.layerType === "path" && options.playback && options.playback.clearData) {
+        options.playback.clearData()
+    }
     _.chain(options.layers)
     .sortBy(function(d) {
         if(!_.isUndefined(d.options.layerPriority)){
@@ -2094,12 +2117,11 @@ _renderLayersToMap: function(map, options) {
             if(options.context.isArgTrue(l.options.playback)) { options.playback.updateData(l.options.geoJSON) }
         })                
         
-        // Check if layer is already on the map, remove before re-adding
-        if(map.hasLayer(lg)) {
-            map.removeLayer(lg)
-        }
-        // Add layer controls
-        lg.addTo(map)
+        // Re-add to pick up pane/zIndex changes, but only if it was on the map, or this is its
+        // first render (layerVisibility is then applied by addLayerToControl), or there is no
+        // layer control to toggle it. Otherwise a hidden or user-unticked overlay would
+        // reappear on every completed cycle (MP-04 review finding).
+        require('./compat/overlays').readdOverlay(map, lg, options.layerControl)
 
         // Increment zIndex
         if(!_.isUndefined(lg.options.layerPriority)){ options.paneZIndex += 1 }
@@ -2179,6 +2201,7 @@ formatData: function(data) {
     // the second render (when isInitializedDom=true and the init block is skipped).
     if (this._cycleComplete) {
         if (this.isInitializedDom && this.layerFilter) {
+            this._clearOverlayContents()
             _.each(this.layerFilter, function(lf) {
                 if (lf.group) { lf.group.clearLayers() }
                 if (lf.markerList) { lf.markerList = [] }
@@ -3065,6 +3088,7 @@ updateView: function(data, config) {
     // Fires once per render cycle (gated by _markersCleared, reset in formatData).
     // Keeps the same L.featureGroup() objects so layer control visibility is preserved.
     if (this.isInitializedDom && this.layerFilter && !this._markersCleared) {
+        this._clearOverlayContents()
         _.each(this.layerFilter, function(lf) {
             if (lf.group) { lf.group.clearLayers() }
             if (lf.markerList) { lf.markerList = [] }
@@ -3647,4 +3671,13 @@ updateView: function(data, config) {
     return this
 }
 })
+
+// Debug builds only (npm run build:debug): draw errors and cycle/layer state on the panel.
+// __MP_DEBUG__ is replaced at build time by webpack's DefinePlugin; when false, webpack
+// drops this branch and the overlay module is not bundled.
+if (__MP_DEBUG__) {
+    require('./compat/debug-overlay').install(MapsPlus)
+}
+
+return MapsPlus
 })

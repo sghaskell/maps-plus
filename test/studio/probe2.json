@@ -1,0 +1,121 @@
+{
+  "title": "Maps+ probe - assets, drilldown, click tokens (MP-05, MP-07)",
+  "description": "Probe harness. Panels E, F, G with markdown token readers. See test/README.md.",
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "earliest": "-15m",
+            "latest": "now"
+          }
+        }
+      }
+    },
+    "tokens": {
+      "default": {
+        "picked": { "value": "none" },
+        "clickedLatLng": { "value": "none" }
+      }
+    }
+  },
+  "visualizations": {
+    "viz_e": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "E - customIcon=marker-icon.png on 2 rows (MP-05)",
+      "dataSources": { "primary": "ds_e" },
+      "options": {
+        "leaflet_maps_app.maps-plus.layerControl": "1"
+      }
+    },
+    "viz_f": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "F - marker click sets token picked from row.picked (MP-07)",
+      "dataSources": { "primary": "ds_f" },
+      "options": {
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "click"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [ { "token": "picked", "key": "row.picked.value" } ]
+          }
+        }
+      ]
+    },
+    "md_f": {
+      "type": "splunk.markdown",
+      "title": "F - token readout (expect: none until a marker is clicked)",
+      "options": {
+        "markdown": "Picked: $picked$"
+      }
+    },
+    "viz_g": {
+      "type": "leaflet_maps_app.maps-plus",
+      "title": "G - clickLatLngToken=1, showClickMarker=1 (MP-07)",
+      "dataSources": { "primary": "ds_g" },
+      "options": {
+        "leaflet_maps_app.maps-plus.clickLatLngToken": "1",
+        "leaflet_maps_app.maps-plus.showClickMarker": "1",
+        "leaflet_maps_app.maps-plus.drilldown": "1",
+        "leaflet_maps_app.maps-plus.drilldownAction": "click"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [ { "token": "clickedLatLng", "key": "row.clickedLatLng.value" } ]
+          }
+        }
+      ]
+    },
+    "md_g": {
+      "type": "splunk.markdown",
+      "title": "G - token readout (expect: none; never set in Studio by clickLatLngToken)",
+      "options": {
+        "markdown": "Clicked: $clickedLatLng$"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_e": {
+      "type": "ds.search",
+      "name": "E customIcon",
+      "options": {
+        "query": "| makeresults count=2 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, markerType=\"png\", customIcon=\"marker-icon.png\", tooltip=\"custom \".n | table latitude longitude markerType customIcon tooltip"
+      }
+    },
+    "ds_f": {
+      "type": "ds.search",
+      "name": "F drilldown picked",
+      "options": {
+        "query": "| makeresults count=2 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, picked=if(n=1,\"area1\",\"area2\"), tooltip=\"Click: \".picked, markerType=\"circle\" | table latitude longitude picked tooltip markerType"
+      }
+    },
+    "ds_g": {
+      "type": "ds.search",
+      "name": "G click latlng",
+      "options": {
+        "query": "| makeresults count=3 | streamstats count as n | eval latitude=34.05+n*0.01, longitude=-118.25, clickedLatLng=latitude.\",\".longitude, tooltip=\"G \".n | table latitude longitude clickedLatLng tooltip"
+      }
+    }
+  },
+  "layout": {
+    "type": "absolute",
+    "options": {
+      "width": 1440,
+      "height": 1000,
+      "display": "auto"
+    },
+    "structure": [
+      { "item": "viz_e", "type": "block", "position": { "x": 0, "y": 0, "w": 720, "h": 420 } },
+      { "item": "viz_f", "type": "block", "position": { "x": 720, "y": 0, "w": 720, "h": 420 } },
+      { "item": "md_f", "type": "block", "position": { "x": 720, "y": 440, "w": 720, "h": 80 } },
+      { "item": "viz_g", "type": "block", "position": { "x": 0, "y": 540, "w": 720, "h": 420 } },
+      { "item": "md_g", "type": "block", "position": { "x": 720, "y": 540, "w": 720, "h": 80 } }
+    ],
+    "globalInputs": []
+  }
+}

@@ -1,0 +1,71 @@
+<dashboard isDashboard="false"
+           script="javascript/maps_plus_setup.js"
+           stylesheet="styles/maps_plus_setup.css"
+           hideTitle="true"
+           version="1.1">
+  <label>Maps+ Setup</label>
+  <row>
+    <panel>
+      <html>
+        <div id="mp_setup">
+          <h2>Maps+ Setup: basemap and API keys</h2>
+          <p class="mp-lead">Optional. Save a basemap URL or API keys once here so classic Maps+ panels that do not set their own use them. Each section is independent: fill in only what you use and leave the rest empty. You need admin rights. Values are stored in this Splunk instance, not in dashboards.</p>
+
+          <div class="mp-card" id="mp_tile">
+            <h3>CARTO basemap key</h3>
+            <p>CARTO tiles show an <b>API KEY REQUIRED</b> watermark without a key. Request a free key at <a href="https://carto.com/basemaps/apikey" target="_blank" rel="noopener noreferrer">carto.com/basemaps/apikey</a>, then paste the full tile URL with <code>?key=YOUR_KEY</code>, for example:</p>
+            <pre>https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=YOUR_KEY</pre>
+            <label for="tile_url_input">Tile URL (Map Tile Override)</label>
+            <input type="text" id="tile_url_input" class="mp-input" autocomplete="off" spellcheck="false" placeholder="https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=..."/>
+            <div class="mp-actions">
+              <button type="button" class="btn btn-primary" id="tile_save">Save</button>
+              <button type="button" class="btn" id="tile_clear">Clear</button>
+              <span class="mp-status" id="tile_status"></span>
+            </div>
+            <div class="mp-msg" id="tile_msg" style="display:none"></div>
+            <p class="mp-note"><b>Not a secret.</b> A tile key is visible in every tile request the browser makes. Restrict it in the CARTO dashboard if you can. Classic panels and reports that do not choose their own basemap use it. A panel that sets its own Map Tile, Map Tile Override, OpenFreeMap or Bing option keeps that choice.</p>
+            <p><b>Dashboard Studio:</b> Studio panels cannot read saved settings, so add the <code>mapsplus_basemap</code> macro at the end of each map panel's search. It adds a <code>mapTileOverride</code> column that Maps+ uses when the panel has no Map Tile Override of its own:</p>
+            <pre>... | `mapsplus_basemap`</pre>
+          </div>
+
+          <div class="mp-card" id="mp_bing">
+            <h3>Bing Maps key</h3>
+            <p>Used when a panel turns on <b>Bing Maps</b>. Get a key from the <a href="https://www.bingmapsportal.com/" target="_blank" rel="noopener noreferrer">Bing Maps Dev Center</a>.</p>
+            <label for="bing_key_input">Bing Maps key</label>
+            <input type="password" id="bing_key_input" class="mp-input" autocomplete="new-password" spellcheck="false"/>
+            <div class="mp-actions">
+              <button type="button" class="btn btn-primary" id="bing_save">Save</button>
+              <button type="button" class="btn" id="bing_clear">Remove</button>
+              <span class="mp-status" id="bing_status"></span>
+            </div>
+            <div class="mp-msg" id="bing_msg" style="display:none"></div>
+          </div>
+
+          <div class="mp-card" id="mp_google">
+            <h3>Google key (Places search and Street View)</h3>
+            <p>One key serves the Google Places search control and the Google Street View visualization. In the <a href="https://console.cloud.google.com/apis/" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>, enable <b>Maps JavaScript API</b>, <b>Places API</b> and <b>Street View</b> for the key.</p>
+            <label for="google_key_input">Google API key</label>
+            <input type="password" id="google_key_input" class="mp-input" autocomplete="new-password" spellcheck="false"/>
+            <div class="mp-actions">
+              <button type="button" class="btn btn-primary" id="google_save">Save</button>
+              <button type="button" class="btn" id="google_clear">Remove</button>
+              <span class="mp-status" id="google_status"></span>
+            </div>
+            <div class="mp-msg" id="google_msg" style="display:none"></div>
+          </div>
+
+          <div class="mp-card mp-info">
+            <h3>Read this before relying on it</h3>
+            <ul>
+              <li><b>Classic panels:</b> a panel that does not choose its own basemap loads the saved tile URL when it renders. For Bing and Google, a panel that turns the service on (<b>Bing Maps</b>, <b>Google Places Search</b>) and names no key of its own uses the saved key. Saved reports also get the values as app defaults. You still turn each service on per panel.</li>
+              <li><b>Dashboard Studio:</b> Studio ignores app defaults, and the Maps+ panel runs in a sandboxed frame that cannot read saved settings. The CARTO URL works through the <code>mapsplus_basemap</code> macro described above. <b>Bing and Google keys saved here do not reach Studio panels</b>: they would have to travel in search results, which is not a safe place for a key. In Studio, set the key on each panel instead.</li>
+              <li><b>Who can use a saved Bing/Google key:</b> in classic, the viewer's browser reads the key from Splunk, which needs the <code>list_storage_passwords</code> capability. The built-in <code>user</code> and <code>power</code> roles do not have it. Granting it lets that role read every stored password it can see, so grant it with care.</li>
+              <li><b>Keys reach the browser:</b> a map key is visible to anyone who can view the map (network tab). Restrict Google and Bing keys by HTTP referrer to your Splunk URL.</li>
+              <li><b>Where it applies:</b> the saved values are read from this app (<code>leaflet_maps_app</code>), so they work for classic panels in any app. Reports in other apps may need the same values in that app's <code>savedsearches.conf</code> [default].</li>
+            </ul>
+          </div>
+        </div>
+      </html>
+    </panel>
+  </row>
+</dashboard>

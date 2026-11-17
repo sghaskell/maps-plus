@@ -447,6 +447,11 @@ onConfigChange: function(configChanges, previousConfig) {
         _bmValues = {},
         _bmNs = this.getPropertyNamespaceInfo().propertyNamespace
     _.each(_bmExplicit, function(v, k) { _bmValues[k] = _mergedCfg[_bmNs + k] })
+    // A mapTileOverride result column seen on the last render counts as an explicit raster choice.
+    if (this._mpDataTile && !_bmExplicit.mapTileOverride) {
+        _bmExplicit = _.extend({}, _bmExplicit, {mapTileOverride: true})
+        _bmValues.mapTileOverride = this._mpDataTile
+    }
     var _basemap = basemapCompat.resolveBasemap({explicit: _bmExplicit, values: _bmValues, isDark: this.isDarkTheme})
     var _wasOfm = !!this._basemapIsOfm
     useOpenFreeMap = _basemap.useOpenFreeMap
@@ -454,9 +459,15 @@ onConfigChange: function(configChanges, previousConfig) {
     this._basemapIsOfm = useOpenFreeMap
     var _bingOn = basemapCompat.isTrue(_bmValues.bingMaps)
 
+    if (!useOpenFreeMap) {
+        // The user chose a basemap in the Format panel: a late-arriving saved default must not undo it.
+        if(this._propertyExists('mapTile', configChanges) || this._propertyExists('mapTileOverride', configChanges)) { this._savedBasemapSkip = true }
+    }
+
     // Switching from the OpenFreeMap layer back to raster (e.g. a tile was just chosen): rebuild raster layer
     if (!useOpenFreeMap && _wasOfm && !_bingOn && this.tileLayer && !this.tileLayer.setUrl) {
-        var _url = mapTileOverride ? mapTileOverride : mapTile
+        var _url = mapTileOverride ? mapTileOverride
+            : ((this._propertyExists('mapTile', configChanges) || !this._mpDataTile) ? mapTile : this._mpDataTile)
         this.tileLayer.remove()
         // tileOptions has no attribution when the map started on OpenFreeMap: set it explicitly.
         var _attribution = this._getEscapedProperty('mapAttributionOverride', _mergedCfg) || this.ATTRIBUTIONS[_url] || ''
@@ -1028,6 +1039,65 @@ renderModal: function(id, title, body, buttonText, callback=function(){}, callba
 
     // Launch it!  
     myModal.show()
+},
+
+// True inside Dashboard Studio's sandboxed iframe (origin "null"). Requests to
+// splunkd cannot succeed there, so saved-settings lookups are skipped.
+_isSandboxedFrame: function() {
+    try { return window.location.origin === 'null' || window.location.protocol === 'about:' } catch(e) { return true }
+},
+
+// Studio parity: a `mapTileOverride` column in the search results (added with the
+// `mapsplus_basemap` macro the Setup page maintains) supplies the basemap tile URL.
+// Works in Dashboard Studio, where the sandboxed panel cannot read saved settings.
+// Returns the first non-empty http(s) URL in that column, or "".
+_getDataTileOverride: function(rows) {
+    if(!Array.isArray(rows)) { return "" }
+    for(var i = 0; i < rows.length; i++) {
+        var v = rows[i] && rows[i].mapTileOverride
+        if(typeof v === 'string' && v.trim() !== '') {
+            var safe = SplunkVisualizationUtils.makeSafeUrl(v.trim())
+            return /^https?:\/\//.test(safe) ? safe : ""
+        }
+    }
+    return ""
+},
+
+// Saved-by-the-Setup-page defaults. When a panel does not pick its own basemap,
+// use the tile URL an admin saved on the Maps+ Setup page (maps_plus_settings.conf
+// [basemap] mapTileOverride). Best effort: any failure leaves the normal basemap.
+// Classic dashboards only; the Studio sandbox cannot reach splunkd.
+_applySavedBasemap: function() {
+    if(this._savedBasemapRequested || this._isSandboxedFrame()) { return }
+    this._savedBasemapRequested = true
+    $.ajax({
+        type: "GET",
+        dataType: "json",
+        context: this,
+        url: "/en-US/splunkd/__raw/servicesNS/nobody/leaflet_maps_app/configs/conf-maps_plus_settings/basemap?output_mode=json",
+        success: function(r) {
+            var url = r && r.entry && r.entry[0] && r.entry[0].content && r.entry[0].content.mapTileOverride
+            url = url ? SplunkVisualizationUtils.makeSafeUrl(url) : ""
+            if(!url || !/^https?:\/\//.test(url)) { return }
+            // Remembered so later renders keep it (updateView recomputes activeTile each time).
+            this._savedBasemapUrl = url
+            // The panel may have switched basemap (Bing, override, a tile choice) while we waited.
+            if(this._savedBasemapSkip || !this.tileLayer || !this.map) { return }
+            if(this.tileLayer.setUrl) {
+                this.activeTile = url
+                this.tileLayer.setUrl(url)
+            } else if(this._basemapIsOfm && this._mpBasemapAuto) {
+                // The keyless OpenFreeMap default (MP-08) is on only because nothing was chosen:
+                // a saved Setup URL is the admin's choice, so swap in a raster layer for it.
+                this.tileLayer.remove()
+                this.activeTile = url
+                this.tileLayer = L.tileLayer(url, $.extend({}, this.tileOptions, {attribution: this._getEscapedProperty('mapAttributionOverride', this.getCurrentConfig() || {}) || ''}))
+                this.map.addLayer(this.tileLayer)
+                this._basemapIsOfm = false
+            }
+        },
+        error: function() { /* no saved setting, or not allowed: keep the default basemap */ }
+    })
 },
 
 // Get API key from storage/passwords REST endpoint
@@ -2457,12 +2527,21 @@ updateView: function(data, config) {
     var _ns = this.getPropertyNamespaceInfo().propertyNamespace
     var _basemapValues = {}
     _.each(explicitBasemapKeys, function(v, k) { _basemapValues[k] = explicitBasemapConfig[_ns + k] })
-    var _basemap = basemapCompat.resolveBasemap({explicit: explicitBasemapKeys, values: _basemapValues, isDark: this.isDarkTheme})
+    // A mapTileOverride result column (the `mapsplus_basemap` macro from the Setup page) is an
+    // explicit raster choice, so it turns off the automatic OpenFreeMap default.
+    var _colTile = (!mapTileOverride && !this.isArgTrue(antarcticProj)) ? this._getDataTileOverride(dataRows) : ""
+    var _dataTile = _colTile
+    // A Setup-page URL fetched on an earlier render (classic only) acts the same way.
+    if (!_dataTile && !mapTileOverride && this._savedBasemapUrl && !this._savedBasemapSkip && !this.isArgTrue(antarcticProj)) { _dataTile = this._savedBasemapUrl }
+    var _basemapExplicit = _dataTile ? _.extend({}, explicitBasemapKeys, {mapTileOverride: true}) : explicitBasemapKeys
+    if (_dataTile) { _basemapValues.mapTileOverride = _dataTile }
+    var _basemap = basemapCompat.resolveBasemap({explicit: _basemapExplicit, values: _basemapValues, isDark: this.isDarkTheme})
     useOpenFreeMap = _basemap.useOpenFreeMap ? 1 : 0
     if (_basemap.auto || !explicitBasemapKeys.maplibreStylePreset) { maplibreStylePreset = _basemap.stylePreset }
     // Record the mode only when the basemap layer is actually built (first render, in the init
     // block below). Later basemap switches go through onConfigChange, which updates it itself.
     if (!this.isInitializedDom) { this._basemapIsOfm = !!_basemap.useOpenFreeMap }
+    this._mpBasemapAuto = !!_basemap.auto
 
     // CARTO dark switch: only reachable now when raster tiles are in use with the default (CARTO light)
     // tile, i.e. an explicit CARTO Light selection or useOpenFreeMap=0 with no tile. With nothing
@@ -2472,7 +2551,27 @@ updateView: function(data, config) {
         ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
         : mapTile
 
-    this.activeTile = (mapTileOverride) ? mapTileOverride : _effectiveTile
+    // Precedence: the mapTileOverride option, then a mapTileOverride result column
+    // (not with Antarctic/OpenFreeMap/Bing, which pick their own layer), then the
+    // normal tile choice.
+    // _dataTile is computed above, before the basemap is resolved.
+    this._mpDataTile = _dataTile
+    // Only a result column overrides the saved Setup URL; the saved URL itself must not.
+    if(_colTile) { this._savedBasemapSkip = true }
+    this.activeTile = (mapTileOverride) ? mapTileOverride : (_dataTile ? _dataTile : _effectiveTile)
+    // After the first render the tile layer already exists: follow a changed data column
+    // (plain raster layers only; OpenFreeMap and Bing use their own layer types).
+    if(this.isInitializedDom && _dataTile && this.tileLayer && this.tileLayer.setUrl && !this.isArgTrue(useOpenFreeMap) && !this.isArgTrue(bingMaps) && this.tileLayer._url !== _dataTile) {
+        this.tileLayer.setUrl(_dataTile)
+    }
+    // The map was first built before any rows arrived (automatic OpenFreeMap layer): now that the
+    // column supplies a raster URL, replace that layer with a raster one.
+    if(this.isInitializedDom && _dataTile && this._basemapIsOfm && !useOpenFreeMap && !this.isArgTrue(bingMaps) && this.tileLayer && !this.tileLayer.setUrl) {
+        this.tileLayer.remove()
+        this.tileLayer = L.tileLayer(_dataTile, $.extend({}, this.tileOptions, {minZoom: minZoom, maxZoom: maxZoom, attribution: mapAttributionOverride || ''}))
+        this.map.addLayer(this.tileLayer)
+        this._basemapIsOfm = false
+    }
     this.attribution = (mapAttributionOverride) ? mapAttributionOverride : this.ATTRIBUTIONS[_effectiveTile]
 
     // Parse per-group color mapping on every render (config may change and this
@@ -2675,6 +2774,11 @@ updateView: function(data, config) {
 
         // Load Google Places Search Control
         if(this.isArgTrue(googlePlacesSearch)) {
+            // Setup-page default credential when the panel names none.
+            if(_.isEmpty(googlePlacesApiKeyUser)) {
+                googlePlacesApiKeyUser = 'google_maps_api_key'
+                googlePlacesApiKeyRealm = 'leaflet_maps_app'
+            }
             this.getStoredApiKey({user: googlePlacesApiKeyUser,
                                   realm: googlePlacesApiKeyRealm,
                                   context: this})
@@ -2709,7 +2813,15 @@ updateView: function(data, config) {
                 style: styleUrl,
                 attribution: attribution
             }).addTo(this.map);
+            // Automatic OpenFreeMap (nothing chosen): a URL saved on the Setup page takes over.
+            if(_basemap.auto && !_dataTile) { this._applySavedBasemap() }
         } else if(this.isArgTrue(bingMaps)) {
+            // Setup-page default: a key saved there is used when the panel sets neither a
+            // key nor a user. Not in the Studio sandbox, which cannot read stored keys.
+            if(_.isEmpty(bingMapsApiKeyUser) && _.isEmpty(bingMapsApiKey) && !this._isSandboxedFrame()) {
+                bingMapsApiKeyUser = 'bing_maps_api_key'
+                bingMapsApiKeyRealm = 'leaflet_maps_app'
+            }
             if(!_.isEmpty(bingMapsApiKeyUser)) {
                 this.getStoredApiKey({user: bingMapsApiKeyUser,
                                       realm: bingMapsApiKeyRealm,
@@ -2753,6 +2865,12 @@ updateView: function(data, config) {
 
             // Add tile layer to map
             this.map.addLayer(this.tileLayer)
+
+            // No explicit basemap on this panel (no override, default mapTile, not Antarctic):
+            // use the tile URL saved on the Maps+ Setup page, if any.
+            if(!mapTileOverride && !_dataTile && mapTile === _defaultTile && !this.isArgTrue(antarcticProj)) {
+                this._applySavedBasemap()
+            }
         }
 
         // Add map controls which allow user to draw a polygon to select markers

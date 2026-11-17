@@ -24,7 +24,7 @@
     "viz_help_03": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Usage\n\nMaps+ is driven by the field names in your search results. **Fields must be named exactly as shown. The app keys off field names, not field order.**\n\n```\nbase_search\n| table latitude, longitude\n        [ description | tooltip | title | icon | markerColor | markerPriority\n        | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor\n        | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription\n        | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup\n        | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius\n        | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius\n        | circleColor | circleWeight | circleOpacity | circleFillColor\n        | circleFillOpacity | _time ]\n```",
+        "markdown": "## Usage\n\nNew to Maps+? Start with the [PNG Markers](png_markers) example, then open **Edit** to copy its SPL.\n\nMaps+ is driven by the field names in your search results. **Fields must be named exactly as shown. The app keys off field names, not field order.**\n\n```\nbase_search\n| table latitude, longitude\n        [ description | tooltip | title | icon | markerColor | markerPriority\n        | markerSize | markerAnchor | popupAnchor | markerVisibility | iconColor\n        | shadowAnchor | shadowSize | prefix | extraClasses | layerDescription\n        | pathWeight | pathOpacity | pathColor | layerGroup | clusterGroup\n        | heatmapLayer | heatmapPointIntensity | heatmapMinOpacity | heatmapRadius\n        | heatmapBlur | heatmapColorGradient | circleStroke | circleRadius\n        | circleColor | circleWeight | circleOpacity | circleFillColor\n        | circleFillOpacity | _time ]\n```",
         "fontSize": "default"
       }
     },
@@ -45,7 +45,7 @@
     "viz_help_06": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Where to Find Each Field\n\n| If you want to... | Go to tab |\n|---|---|\n| Style markers, icons, circles or marker priority | Markers |\n| Group markers into layers or cluster groups | Layers & Clusters |\n| Draw heatmaps or trace paths | Heatmaps & Paths |\n| Enable drilldown, KML/KMZ overlays or measurement | Drilldown & Overlays |\n| Google Places, Bing Maps or Street View | Integrations |\n| Look up a Format menu option | Format: Core / Format: Features |",
+        "markdown": "## Where to Find Each Field\n\n| If you want to... | Go to tab | Working example |\n|---|---|---|\n| Style markers, icons, circles or marker priority | Markers | [PNG Markers](png_markers) · [SVG Markers](svg_markers) · [Circle Markers](circle_markers) |\n| Group markers into layers or cluster groups | Layers & Clusters | [Multi-Layer Groups](multilayer_groups) · [Multi-Cluster Groups](multicluster_groups) |\n| Draw heatmaps or trace paths | Heatmaps & Paths | [Heatmap](heatmap) · [Path Lines](path_lines) · [Ant Paths](ant_path) · [Path Playback](playback) |\n| Enable drilldown, KML/KMZ overlays or measurement | Drilldown & Overlays | [Drilldown](drilldown) · [Selecting Markers](selecting_markers) · [Click Lat/Lng Token](clicked_latlng_demo) |\n| Google Places, Bing Maps or Street View | Integrations | [Google Street View Drilldown](google_streetview_drilldown) |\n| Plot points, lines and polygons from the feature field | Examples | [Features](features) |\n| Use a polar projection | Examples | [Antarctic Projection](antarctic_projection) |\n| Use the dark theme | Dashboard Studio | [Dark Mode](png_markers_dark) |\n| Look up a Format menu option | Format: Core / Format: Features | |",
         "fontSize": "default"
       }
     },
@@ -59,21 +59,21 @@
     "viz_help_08": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## PNG Markers and Icons\n\n| Field | Description | Default |\n|---|---|---|\n| `title` | Mouse-hover text. **Deprecated** (still works) - use `tooltip`. |  |\n| `tooltip` | Tooltip displayed on marker hover. |  |\n| `icon` | Icon shown in the marker. Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). | `circle` |\n| `markerColor` | Marker color: `red`, `darkred`, `lightred`, `orange`, `beige`, `green`, `darkgreen`, `lightgreen`, `blue`, `darkblue`, `lightblue`, `purple`, `darkpurple`, `pink`, `cadetblue`, `white`, `gray`, `lightgray`, `black`. | `blue` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome / Ionicons. | `fa-lg` |",
+        "markdown": "## PNG Markers and Icons\n\n**Examples:** [PNG Markers](png_markers) · [Marker Icon Customization](custom_icons) · [Custom Icon Images](custom_icon_images) · [Dark Mode](png_markers_dark)\n\n| Field | Description | Default |\n|---|---|---|\n| `title` | Mouse-hover text. **Deprecated** (still works) - use `tooltip`. |  |\n| `tooltip` | Tooltip displayed on marker hover. |  |\n| `icon` | Icon shown in the marker. Any icon from [Font Awesome](http://fortawesome.github.io/Font-Awesome/icons/) or [ionicons](http://ionicons.com/). | `circle` |\n| `markerColor` | Marker color: `red`, `darkred`, `lightred`, `orange`, `beige`, `green`, `darkgreen`, `lightgreen`, `blue`, `darkblue`, `lightblue`, `purple`, `darkpurple`, `pink`, `cadetblue`, `white`, `gray`, `lightgray`, `black`. | `blue` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome / Ionicons. | `fa-lg` |",
         "fontSize": "default"
       }
     },
     "viz_help_09": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## SVG Markers\n\nDynamically size markers and use any color (name or hex). These fields control SVG-based markers.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerType` | `png`: pre-colored PNG marker from a limited palette (cannot be resized). `svg`: vector marker sized with `markerSize`, any color name or hex. `circle`: circle marker drawn on canvas, for large numbers of points (styled with the `circle*` fields). `custom`: image from the app's `contrib/images` directory named in `customIcon` (set automatically when `customIcon` is present). `milsymbol`: NATO APP-6 / MIL-STD-2525D tactical symbol driven by `msSidc`. | `png` |\n| `markerSize` | Comma-separated pixel width and height of the marker. | `35,45` |\n| `markerColor` | Any common [HTML color name](http://www.w3schools.com/colors/colors_names.asp) or [hex value](http://www.google.com/search?q=html+color+picker). | `#38AADD` |\n| `markerAnchor` | Comma-separated coordinates of the \"tip\" of the icon, relative to its top-left corner. | `15,50` |\n| `popupAnchor` | Comma-separated coordinates of the point from which popups open, relative to the icon anchor. |  |\n| `shadowSize` | Comma-separated pixel width and height of the shadow. Change only if you change `markerSize`. Use `0,0` to disable shadows. | `30,46` |\n| `shadowAnchor` | Comma-separated coordinates of the shadow \"tip\", relative to its top-left corner. Change only if you change `markerSize`. | `30,30` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome. |  |",
+        "markdown": "## SVG Markers\n\n**Examples:** [SVG Markers](svg_markers) · [Custom Icon Images](custom_icon_images) · [Milsymbol](milsymbol)\n\nDynamically size markers and use any color (name or hex). These fields control SVG-based markers.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerType` | `png`: pre-colored PNG marker from a limited palette (cannot be resized). `svg`: vector marker sized with `markerSize`, any color name or hex. `circle`: circle marker drawn on canvas, for large numbers of points (styled with the `circle*` fields). `custom`: image from the app's `contrib/images` directory named in `customIcon` (set automatically when `customIcon` is present). `milsymbol`: NATO APP-6 / MIL-STD-2525D tactical symbol driven by `msSidc`. | `png` |\n| `markerSize` | Comma-separated pixel width and height of the marker. | `35,45` |\n| `markerColor` | Any common [HTML color name](http://www.w3schools.com/colors/colors_names.asp) or [hex value](http://www.google.com/search?q=html+color+picker). | `#38AADD` |\n| `markerAnchor` | Comma-separated coordinates of the \"tip\" of the icon, relative to its top-left corner. | `15,50` |\n| `popupAnchor` | Comma-separated coordinates of the point from which popups open, relative to the icon anchor. |  |\n| `shadowSize` | Comma-separated pixel width and height of the shadow. Change only if you change `markerSize`. Use `0,0` to disable shadows. | `30,46` |\n| `shadowAnchor` | Comma-separated coordinates of the shadow \"tip\", relative to its top-left corner. Change only if you change `markerSize`. | `30,30` |\n| `iconColor` | Icon color. Any [CSS color name](https://www.vogatek.com/html-tutorials/cssref/css_colornames.asp.html), or [hex or RGB value](http://www.w3schools.com/colors/colors_picker.asp). | `white` |\n| `prefix` | `fa` (Font Awesome Solid, default), `fab` (Font Awesome Brands), `ion` (ionicons) or `glyphicon` (Bootstrap Glyphicons). Font Awesome Pro styles `far` and `fal` work only after you upload the Pro web fonts to the app's `contrib/fonts` directory. | `fa` |\n| `extraClasses` | Extra CSS classes for styling. See [additional classes](http://fortawesome.github.io/Font-Awesome/examples/) for Font Awesome. |  |",
         "fontSize": "default"
       }
     },
     "viz_help_10": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Circle Markers\n\nUse circle markers when you have a lot of points to plot and need performance. They render on canvas instead of SVG, which is a big performance win, and are highly customizable.\n\n| Field | Description |\n|---|---|\n| `circleRadius` | Radius of the circle marker, in pixels. |\n| `circleColor` | Stroke color. |\n| `circleFillColor` | Fill color. Defaults to the value of `circleColor`. |\n| `circleOpacity` | Stroke opacity. |\n| `circleFillOpacity` | Fill opacity. |\n| `circleStroke` | Whether to draw a stroke. Set to `false` to disable borders. |\n| `circleWeight` | Stroke width, in pixels. |",
+        "markdown": "## Circle Markers\n\n**Examples:** [Circle Markers](circle_markers)\n\nUse circle markers when you have a lot of points to plot and need performance. They render on canvas instead of SVG, which is a big performance win, and are highly customizable.\n\n| Field | Description |\n|---|---|\n| `circleRadius` | Radius of the circle marker, in pixels. |\n| `circleColor` | Stroke color. |\n| `circleFillColor` | Fill color. Defaults to the value of `circleColor`. |\n| `circleOpacity` | Stroke opacity. |\n| `circleFillOpacity` | Fill opacity. |\n| `circleStroke` | Whether to draw a stroke. Set to `false` to disable borders. |\n| `circleWeight` | Stroke width, in pixels. |",
         "fontSize": "default"
       }
     },
@@ -87,35 +87,35 @@
     "viz_help_12": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Layer Controls\n\nGroup marker and icon styles into their own layer. A layer control widget (enabled by default, optionally hidden) appears in the upper right of the map. It shows a legend for each icon class with a check-box to toggle those markers on or off. It works for both clustered and stand-alone markers.\n\nBy default markers are grouped by icon. If you have the same icon in different colors, use `layerGroup` to split them into their own groups for filtering.\n\n| Field | Description |\n|---|---|\n| `layerGroup` | Unique group the marker belongs to. |\n| `layerDescription` | Description text shown next to each icon in the layer control legend. |\n\nRelated Format menu options (Layer Controls) are on the **Format: Core** tab.",
+        "markdown": "## Layer Controls\n\n**Examples:** [Multi-Layer Groups](multilayer_groups)\n\nGroup marker and icon styles into their own layer. A layer control widget (enabled by default, optionally hidden) appears in the upper right of the map. It shows a legend for each icon class with a check-box to toggle those markers on or off. It works for both clustered and stand-alone markers.\n\nBy default markers are grouped by icon. If you have the same icon in different colors, use `layerGroup` to split them into their own groups for filtering.\n\n| Field | Description |\n|---|---|\n| `layerGroup` | Unique group the marker belongs to. |\n| `layerDescription` | Description text shown next to each icon in the layer control legend. |\n\nRelated Format menu options (Layer Controls) are on the **Format: Core** tab.",
         "fontSize": "default"
       }
     },
     "viz_help_13": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Cluster Groups\n\nBy default all markers render into a single cluster group. Override this with the `clusterGroup` SPL field. See the **Multi-Cluster Groups** example dashboard in the app for details.\n\n| Field | Description |\n|---|---|\n| `clusterGroup` | Name of the cluster group the marker belongs to. |\n| `clusterBgColor` | Per-row field. Sets the **outer ring** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it. |\n| `clusterFgColor` | Per-row field. Sets the **inner circle** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. |",
+        "markdown": "## Cluster Groups\n\n**Examples:** [Multi-Cluster Groups](multicluster_groups) · [Cluster Colors](cluster_colors)\n\nBy default all markers render into a single cluster group. Override this with the `clusterGroup` SPL field. See the **Multi-Cluster Groups** example dashboard in the app for details.\n\n| Field | Description |\n|---|---|\n| `clusterGroup` | Name of the cluster group the marker belongs to. |\n| `clusterBgColor` | Per-row field. Sets the **outer ring** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. If only `clusterBgColor` is provided, `clusterFgColor` mirrors it. |\n| `clusterFgColor` | Per-row field. Sets the **inner circle** color of the cluster icon for this row's `clusterGroup`. Accepts hex, `rgba()` and named CSS colors. Takes priority over the **Cluster Group Colors** formatter option. |",
         "fontSize": "default"
       }
     },
     "viz_help_14": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Heatmaps\n\nRender heatmaps with or without markers. Control them from the Format menu (**Format: Features** tab) or directly with SPL. Create multiple heatmap layers with the `heatmapLayer` field.\n\nWhen controlling heatmaps through SPL, the **first event** for a given `heatmapLayer` defines that layer's settings (`heatmapMinOpacity`, `heatmapRadius`, `heatmapBlur`, `heatmapColorGradient`). If not specified, values from the Format menu are used.\n\n| Field | Description | Default |\n|---|---|---|\n| `heatmapLayer` | Name of the heatmap layer to render. |  |\n| `heatmapPointIntensity` | Intensity of the point. | `1.0` |\n| `heatmapMinOpacity` | Minimum opacity the heat starts at. |  |\n| `heatmapRadius` | Radius of each heatmap \"point\". | `25` |\n| `heatmapBlur` | Amount of blur. | `15` |\n| `heatmapColorGradient` | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
+        "markdown": "## Heatmaps\n\n**Examples:** [Heatmap](heatmap)\n\nRender heatmaps with or without markers. Control them from the Format menu (**Format: Features** tab) or directly with SPL. Create multiple heatmap layers with the `heatmapLayer` field.\n\nWhen controlling heatmaps through SPL, the **first event** for a given `heatmapLayer` defines that layer's settings (`heatmapMinOpacity`, `heatmapRadius`, `heatmapBlur`, `heatmapColorGradient`). If not specified, values from the Format menu are used.\n\n| Field | Description | Default |\n|---|---|---|\n| `heatmapLayer` | Name of the heatmap layer to render. |  |\n| `heatmapPointIntensity` | Intensity of the point. | `1.0` |\n| `heatmapMinOpacity` | Minimum opacity the heat starts at. |  |\n| `heatmapRadius` | Radius of each heatmap \"point\". | `25` |\n| `heatmapBlur` | Amount of blur. | `15` |\n| `heatmapColorGradient` | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
         "fontSize": "default"
       }
     },
     "viz_help_15": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Path Tracing\n\nIf your dataset has multiple coordinates per object (cars, trains, planes, bicycles - anything that moves and can be tracked) you can trace its path on the map. Control whether markers show along the path with `markerVisibility`.\n\nShow split intervals by enabling **Path Splits** and adjusting **Path Split Interval** in the Format menu (**Format: Features** tab). `_time` must be present for split intervals to work.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerVisibility` | Show a marker for the given coordinates. Set to `marker` to show, any other value to hide. |  |\n| `pathWeight` | Weight (width) of the path. | `5` |\n| `pathOpacity` | Opacity of the path line. | `0.5` |\n| `pathColor` | Color of the path. If not specified, chosen randomly from the **Path Colors** option. |  |",
+        "markdown": "## Path Tracing\n\n**Examples:** [Path Lines](path_lines) · [Ant Paths](ant_path) · [Path Playback](playback)\n\nIf your dataset has multiple coordinates per object (cars, trains, planes, bicycles - anything that moves and can be tracked) you can trace its path on the map. Control whether markers show along the path with `markerVisibility`.\n\nShow split intervals by enabling **Path Splits** and adjusting **Path Split Interval** in the Format menu (**Format: Features** tab). `_time` must be present for split intervals to work.\n\n| Field | Description | Default |\n|---|---|---|\n| `markerVisibility` | Show a marker for the given coordinates. Set to `marker` to show, any other value to hide. |  |\n| `pathWeight` | Weight (width) of the path. | `5` |\n| `pathOpacity` | Opacity of the path line. | `0.5` |\n| `pathColor` | Color of the path. If not specified, chosen randomly from the **Path Colors** option. |  |",
         "fontSize": "default"
       }
     },
     "viz_help_16": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Drilldown\n\nThe visualization identifies any non-standard fields and makes them available as drilldown fields. Add any fields you want to the final `table` command and you can use them via drilldown in Simple XML.\n\nReferences: [dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms) and [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).\n\n### How to use it\n\nDrilldown is **disabled by default**. Enable it in the **Map** section of the Format menu, then **double-click** a marker to activate the drilldown behavior.",
+        "markdown": "## Drilldown\n\n**Examples:** [Drilldown](drilldown) · [Click Lat/Lng Token](clicked_latlng_demo) · [Selecting Markers](selecting_markers)\n\nThe visualization identifies any non-standard fields and makes them available as drilldown fields. Add any fields you want to the final `table` command and you can use them via drilldown in Simple XML.\n\nReferences: [dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/6.5.1/Viz/Dynamicdrilldownindashboardsandforms) and [accessing tokens for dynamic drilldown](http://docs.splunk.com/Documentation/Splunk/latest/Viz/tokens#Define_tokens_for_dynamic_drilldown).\n\n### How to use it\n\nDrilldown is **disabled by default**. Enable it in the **Map** section of the Format menu, then **double-click** a marker to activate the drilldown behavior.",
         "fontSize": "default"
       }
     },
@@ -129,7 +129,7 @@
     "viz_help_18": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## KML / KMZ Overlays\n\nAdd custom overlays to the map. If you have existing KML or KMZ files that define features (polylines, polygons, etc.) you can overlay them on the map.\n\n**1. Copy your KML/KMZ files into this directory:**\n\n```\n$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/kml\n```\n\n**2.** Click **Format** and select the **Overlays** tab. Enter a comma-separated list of the filenames you copied. File order sets feature layering: `file1.kml` renders beneath `file2.kmz`.\n\n```\nfile1.kml,file2.kmz\n```\n\nFiles are loaded asynchronously when the map renders. Overlay changes require a browser refresh.",
+        "markdown": "## KML / KMZ Overlays\n\n**Example (classic dashboard):** [KML Overlay](kml_overlay). Not available in Dashboard Studio, see the Dashboard Studio tab.\n\nAdd custom overlays to the map. If you have existing KML or KMZ files that define features (polylines, polygons, etc.) you can overlay them on the map.\n\n**1. Copy your KML/KMZ files into this directory:**\n\n```\n$SPLUNK_HOME/etc/apps/leaflet_maps_app/appserver/static/visualizations/maps-plus/contrib/kml\n```\n\n**2.** Click **Format** and select the **Overlays** tab. Enter a comma-separated list of the filenames you copied. File order sets feature layering: `file1.kml` renders beneath `file2.kmz`.\n\n```\nfile1.kml,file2.kmz\n```\n\nFiles are loaded asynchronously when the map renders. Overlay changes require a browser refresh.",
         "fontSize": "default"
       }
     },
@@ -150,7 +150,7 @@
     "viz_help_21": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Google Street View Companion Visualization\n\nMaps+ bundles a Google Street View visualization. Use it as a drilldown target when clicking a marker. See the **Google Street View Drilldown** example dashboard in the app for detailed usage.\n\n### Pre-requisites\n\nStreet View needs an API key. Log in to the [Google Cloud Console](https://console.cloud.google.com/), enable the `Maps JavaScript API` and `Street View API`, and [generate an API key](https://cloud.google.com/docs/authentication/api-keys).",
+        "markdown": "## Google Street View Companion Visualization\n\n**Examples:** [Google Street View Drilldown](google_streetview_drilldown)\n\nMaps+ bundles a Google Street View visualization. Use it as a drilldown target when clicking a marker. See the **Google Street View Drilldown** example dashboard in the app for detailed usage.\n\n### Pre-requisites\n\nStreet View needs an API key. Log in to the [Google Cloud Console](https://console.cloud.google.com/), enable the `Maps JavaScript API` and `Street View API`, and [generate an API key](https://cloud.google.com/docs/authentication/api-keys).",
         "fontSize": "default"
       }
     },
@@ -185,21 +185,21 @@
     "viz_help_26": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Cluster Colors\n\nChanges require a browser refresh.\n\n| Option | Description | Default |\n|---|---|---|\n| Range One Background |  | `#B5E28C` |\n| Range One Foreground |  | `#6ECC39` |\n| Range Two Threshold | Number at which cluster group two starts. |  |\n| Range Two Background |  | `#F1D357` |\n| Range Two Foreground |  | `#F0C20C` |\n| Range Three Threshold | Number at which cluster group three starts. |  |\n| Range Three Background |  | `#FD9C73` |\n| Range Three Foreground |  | `#F18017` |",
+        "markdown": "## Cluster Colors\n\n**Examples:** [Cluster Colors](cluster_colors)\n\nChanges require a browser refresh.\n\n| Option | Description | Default |\n|---|---|---|\n| Range One Background |  | `#B5E28C` |\n| Range One Foreground |  | `#6ECC39` |\n| Range Two Threshold | Number at which cluster group two starts. |  |\n| Range Two Background |  | `#F1D357` |\n| Range Two Foreground |  | `#F0C20C` |\n| Range Three Threshold | Number at which cluster group three starts. |  |\n| Range Three Background |  | `#FD9C73` |\n| Range Three Foreground |  | `#F18017` |",
         "fontSize": "default"
       }
     },
     "viz_help_27": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Heatmap\n\n| Option | Description | Default |\n|---|---|---|\n| Enable Heatmap | Enable or disable the heatmap. |  |\n| Heatmap Only | Show only the heatmap. No markers are rendered. |  |\n| Min Opacity | Minimum opacity the heat starts at. | `1.0` |\n| Max Zoom | Zoom level where points reach maximum intensity. | Max Zoom of map |\n| Radius | Max point intensity. | `1.0` |\n| Blur | Amount of blur. | `15` |\n| Color Gradient | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
+        "markdown": "## Heatmap\n\n**Examples:** [Heatmap](heatmap)\n\n| Option | Description | Default |\n|---|---|---|\n| Enable Heatmap | Enable or disable the heatmap. |  |\n| Heatmap Only | Show only the heatmap. No markers are rendered. |  |\n| Min Opacity | Minimum opacity the heat starts at. | `1.0` |\n| Max Zoom | Zoom level where points reach maximum intensity. | Max Zoom of map |\n| Radius | Max point intensity. | `1.0` |\n| Blur | Amount of blur. | `15` |\n| Color Gradient | Color gradient config. | `{\"0.4\":\"blue\",\"0.6\":\"cyan\",\"0.7\":\"lime\",\"0.8\":\"yellow\",\"1\":\"red\"}` |",
         "fontSize": "default"
       }
     },
     "viz_help_28": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Path Lines\n\n| Option | Description | Default |\n|---|---|---|\n| Path Lines | Draw path lines for markers that have multiple coordinates. |  |\n| Renderer | Use the Canvas renderer for a performance boost drawing paths. Requires a modern browser with Canvas support. |  |\n| Path Identifier | Field that distinguishes unique paths, e.g. vehicle number or trip ID. |  |\n| Path Colors | Comma-separated hex or HTML colors for path lines (wraps around if there are more paths than colors). |  |\n| Path Splits | Split a path into segments based on the time gap between points. `_time` must be present in results. |  |\n| Path Split Interval | Seconds by which path segments are defined. Higher values give a more continuous path; lower values give more segments and gaps. | `60` |",
+        "markdown": "## Path Lines\n\n**Examples:** [Path Lines](path_lines) · [Ant Paths](ant_path) · [Path Playback](playback)\n\n| Option | Description | Default |\n|---|---|---|\n| Path Lines | Draw path lines for markers that have multiple coordinates. |  |\n| Renderer | Use the Canvas renderer for a performance boost drawing paths. Requires a modern browser with Canvas support. |  |\n| Path Identifier | Field that distinguishes unique paths, e.g. vehicle number or trip ID. |  |\n| Path Colors | Comma-separated hex or HTML colors for path lines (wraps around if there are more paths than colors). |  |\n| Path Splits | Split a path into segments based on the time gap between points. `_time` must be present in results. |  |\n| Path Split Interval | Seconds by which path segments are defined. Higher values give a more continuous path; lower values give more segments and gaps. | `60` |",
         "fontSize": "default"
       }
     },
@@ -227,7 +227,7 @@
     "viz_help_32": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Quick Tips\n\n- Open the **Examples** menu in the app navigation for working dashboards you can copy from.\n- Field names are case-sensitive and must match exactly. Field order does not matter.\n- Only `latitude` and `longitude` are required. Everything else is optional.\n- Options marked **Refresh** on the Format tabs need a browser refresh before they take effect.\n- Add extra fields to your final `table` command to make them available for drilldown.",
+        "markdown": "## Quick Tips\n\n- Open the **Examples** menu in the app navigation for working dashboards you can copy from, or the **Examples** tab on this page for the full list.\n- Field names are case-sensitive and must match exactly. Field order does not matter.\n- Only `latitude` and `longitude` are required. Everything else is optional.\n- Options marked **Refresh** on the Format tabs need a browser refresh before they take effect.\n- Add extra fields to your final `table` command to make them available for drilldown.",
         "fontSize": "default"
       }
     },
@@ -269,7 +269,7 @@
     "viz_help_studio_notes": {
       "type": "splunk.markdown",
       "options": {
-        "markdown": "## Dashboard Studio notes\n\n- **Empty cells:** Empty (null) cells are treated as missing fields, as in classic dashboards. You do not need to fill every column.\n- **Icon fonts:** Icon fonts are embedded, so icon glyphs render in Dashboard Studio.\n- **Click Lat/Lng and lasso selection tokens:** Studio has no classic token API, so Maps+ sends these values as a drilldown. Add a `drilldown.setToken` event handler that maps `row.clickedLatLng.value`, `row.clickedLat.value`, `row.clickedLng.value` or `row.mapmarkers.value`, for example: `{\"type\": \"drilldown.setToken\", \"options\": {\"tokens\": [{\"token\": \"clicked\", \"key\": \"row.clickedLatLng.value\"}]}}`. A click-token drilldown and a marker drilldown share the same event channel. With the default double-click marker drilldown, the two clicks also send click-token drilldowns, so avoid mapping the same token from both.\n- **KML/KMZ files:** KML and KMZ files stored in the app cannot be loaded from Dashboard Studio because of browser cross-origin rules. Use an absolute URL on a host that allows cross-origin requests.\n- **True/false fields:** Per-row true/false fields such as `layerVisibility`, `markerVisibility`, `antPath` and `antPathPaused` must be `\"true\"` or `\"false\"`. A value of `\"1\"` from SPL is treated as false.\n- **Dark theme:** Maps+ detects the dark theme in Dashboard Studio, and the default basemap switches to its dark variant.\n- **Basemap:** When no basemap is chosen (no Map Tile, Map Tile Override, Bing or OpenFreeMap setting), Maps+ uses keyless OpenFreeMap vector tiles: Positron, or Dark in the dark theme. Any basemap you choose explicitly is used as before. CartoDB tiles now need an API key; without one they show an \"API KEY REQUIRED\" watermark. Providers that need a key take the full URL, including `?key=<your key>`, in the matching override field (**Map Tile Override** for raster tiles, **MapLibre Style URL** for vector styles). Never put a real key in a dashboard you share.\n- **After upgrading the app:** restart Splunk (or open `/en-US/debug/refresh`) so Dashboard Studio picks up the new Format panel defaults, and open `/en-US/_bump` so browsers fetch the new visualization files."
+        "markdown": "## Dashboard Studio notes\n\n- **Empty cells:** Empty (null) cells are treated as missing fields, as in classic dashboards. You do not need to fill every column.\n- **Icon fonts:** Icon fonts are embedded, so icon glyphs render in Dashboard Studio.\n- **Click Lat/Lng and lasso selection tokens:** Studio has no classic token API, so Maps+ sends these values as a drilldown. Add a `drilldown.setToken` event handler that maps `row.clickedLatLng.value`, `row.clickedLat.value`, `row.clickedLng.value` or `row.mapmarkers.value`, for example: `{\"type\": \"drilldown.setToken\", \"options\": {\"tokens\": [{\"token\": \"clicked\", \"key\": \"row.clickedLatLng.value\"}]}}`. A click-token drilldown and a marker drilldown share the same event channel. With the default double-click marker drilldown, the two clicks also send click-token drilldowns, so avoid mapping the same token from both. Working examples: [Click Lat/Lng Token](clicked_latlng_demo) and [Selecting Markers](selecting_markers).\n- **KML/KMZ files:** KML and KMZ files stored in the app cannot be loaded from Dashboard Studio because of browser cross-origin rules. Use an absolute URL on a host that allows cross-origin requests.\n- **True/false fields:** Per-row true/false fields such as `layerVisibility`, `markerVisibility`, `antPath` and `antPathPaused` must be `\"true\"` or `\"false\"`. A value of `\"1\"` from SPL is treated as false.\n- **Dark theme:** Maps+ detects the dark theme in Dashboard Studio, and the default basemap switches to its dark variant. Example: [Dark Mode](png_markers_dark).\n- **Basemap:** When no basemap is chosen (no Map Tile, Map Tile Override, Bing or OpenFreeMap setting), Maps+ uses keyless OpenFreeMap vector tiles: Positron, or Dark in the dark theme. Any basemap you choose explicitly is used as before. CartoDB tiles now need an API key; without one they show an \"API KEY REQUIRED\" watermark. Providers that need a key take the full URL, including `?key=<your key>`, in the matching override field (**Map Tile Override** for raster tiles, **MapLibre Style URL** for vector styles). Never put a real key in a dashboard you share.\n- **After upgrading the app:** restart Splunk (or open `/en-US/debug/refresh`) so Dashboard Studio picks up the new Format panel defaults, and open `/en-US/_bump` so browsers fetch the new visualization files."
       }
     },
     "viz_help_examples": {
@@ -348,7 +348,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 1200,
+          "height": 1366,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -379,7 +379,7 @@
               "x": 0,
               "y": 210,
               "w": 1440,
-              "h": 350
+              "h": 390
             }
           },
           {
@@ -387,7 +387,7 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 560,
+              "y": 600,
               "w": 720,
               "h": 280
             }
@@ -397,7 +397,7 @@
             "type": "block",
             "position": {
               "x": 720,
-              "y": 560,
+              "y": 600,
               "w": 720,
               "h": 280
             }
@@ -407,9 +407,9 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 840,
+              "y": 880,
               "w": 1440,
-              "h": 360
+              "h": 486
             }
           }
         ]
@@ -418,7 +418,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 1350,
+          "height": 1430,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -439,7 +439,7 @@
               "x": 0,
               "y": 200,
               "w": 720,
-              "h": 700
+              "h": 740
             }
           },
           {
@@ -449,7 +449,7 @@
               "x": 720,
               "y": 200,
               "w": 720,
-              "h": 700
+              "h": 740
             }
           },
           {
@@ -457,9 +457,9 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 900,
+              "y": 940,
               "w": 720,
-              "h": 450
+              "h": 490
             }
           },
           {
@@ -467,9 +467,9 @@
             "type": "block",
             "position": {
               "x": 720,
-              "y": 900,
+              "y": 940,
               "w": 720,
-              "h": 450
+              "h": 490
             }
           }
         ]
@@ -478,7 +478,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 460,
+          "height": 500,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -489,7 +489,7 @@
               "x": 0,
               "y": 0,
               "w": 720,
-              "h": 460
+              "h": 500
             }
           },
           {
@@ -499,7 +499,7 @@
               "x": 720,
               "y": 0,
               "w": 720,
-              "h": 460
+              "h": 500
             }
           }
         ]
@@ -508,7 +508,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 530,
+          "height": 570,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -519,7 +519,7 @@
               "x": 0,
               "y": 0,
               "w": 720,
-              "h": 530
+              "h": 570
             }
           },
           {
@@ -529,7 +529,7 @@
               "x": 720,
               "y": 0,
               "w": 720,
-              "h": 530
+              "h": 570
             }
           }
         ]
@@ -538,7 +538,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 610,
+          "height": 710,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -549,7 +549,7 @@
               "x": 0,
               "y": 0,
               "w": 720,
-              "h": 300
+              "h": 340
             }
           },
           {
@@ -559,7 +559,7 @@
               "x": 720,
               "y": 0,
               "w": 720,
-              "h": 300
+              "h": 340
             }
           },
           {
@@ -567,9 +567,9 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 300,
+              "y": 340,
               "w": 1440,
-              "h": 310
+              "h": 370
             }
           }
         ]
@@ -578,7 +578,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 660,
+          "height": 700,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -609,7 +609,7 @@
               "x": 0,
               "y": 270,
               "w": 720,
-              "h": 390
+              "h": 430
             }
           },
           {
@@ -619,7 +619,7 @@
               "x": 720,
               "y": 270,
               "w": 720,
-              "h": 390
+              "h": 430
             }
           }
         ]
@@ -628,7 +628,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 1720,
+          "height": 1760,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -659,7 +659,7 @@
               "x": 0,
               "y": 1200,
               "w": 720,
-              "h": 520
+              "h": 560
             }
           },
           {
@@ -669,7 +669,7 @@
               "x": 720,
               "y": 1200,
               "w": 720,
-              "h": 520
+              "h": 560
             }
           }
         ]
@@ -678,7 +678,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 1260,
+          "height": 1300,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -689,7 +689,7 @@
               "x": 0,
               "y": 0,
               "w": 720,
-              "h": 510
+              "h": 550
             }
           },
           {
@@ -699,7 +699,7 @@
               "x": 720,
               "y": 0,
               "w": 720,
-              "h": 510
+              "h": 550
             }
           },
           {
@@ -707,7 +707,7 @@
             "type": "block",
             "position": {
               "x": 0,
-              "y": 510,
+              "y": 550,
               "w": 720,
               "h": 750
             }
@@ -717,7 +717,7 @@
             "type": "block",
             "position": {
               "x": 720,
-              "y": 510,
+              "y": 550,
               "w": 720,
               "h": 750
             }
@@ -728,7 +728,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 230,
+          "height": 254,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -739,7 +739,7 @@
               "x": 0,
               "y": 0,
               "w": 720,
-              "h": 230
+              "h": 254
             }
           },
           {
@@ -749,7 +749,7 @@
               "x": 720,
               "y": 0,
               "w": 720,
-              "h": 230
+              "h": 254
             }
           }
         ]
@@ -818,7 +818,7 @@
         "type": "grid",
         "options": {
           "width": 1440,
-          "height": 380,
+          "height": 440,
           "backgroundColor": "#FFFFFF"
         },
         "structure": [
@@ -829,7 +829,7 @@
               "x": 0,
               "y": 0,
               "w": 1440,
-              "h": 360
+              "h": 420
             }
           }
         ]
